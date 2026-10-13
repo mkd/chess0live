@@ -39,8 +39,13 @@ external move checker agrees on 93 positions at depth 2, including special moves
 The included 12-opening suites are too small for the runner's uncertainty gate;
 no strength rating or improvement is established by their smoke tests.
 
-Next work should freeze a comparison binary, expand the predeclared opening
-sample, and measure search improvements. Investigate incremental feature-list
+The owner is testing with Cute Chess while development continues. Snapshot
+`0.1-dev-4b8b35d` is preserved under ignored `build/test-baselines/`, including
+its own network and manifest. Read [manual testing](MANUAL_TESTING.md) and do not
+replace that copy during ordinary rebuilds. GUI feedback does not block work.
+
+Next work should expand the predeclared opening sample and measure search
+improvements against the frozen comparison binary. Investigate incremental feature-list
 maintenance, faster sliding attacks, selective search, and worker parallelism as
 separate hypotheses; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer

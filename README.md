@@ -72,6 +72,9 @@ an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
 set `EvalFile` to its absolute path.
 
+For manual Cute Chess testing while development continues, use the preserved
+snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
+
 See [NNUE compatibility and evidence](docs/NNUE.md). UCI centipawn display uses
 SF19's normalization for its network scale; it is not a calibrated chess0live
 win-probability model. Network compatibility does not establish engine strength.

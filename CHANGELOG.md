@@ -24,5 +24,7 @@ Versions describe tested deliverables. Research objectives are not results.
 - Added original development/validation openings and optional independent
   legal-move/perft comparison against a pinned external referee library.
 - Updated the workflow to tested local commits; the owner publishes to GitHub.
+- Preserved a separate local GUI test snapshot and documented Cute Chess setup
+  so manual feedback and engine development can proceed together.
 
 No release or strength rating has been established yet.
