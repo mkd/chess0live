@@ -26,5 +26,9 @@ Versions describe tested deliverables. Research objectives are not results.
 - Updated the workflow to tested local commits; the owner publishes to GitHub.
 - Preserved a separate local GUI test snapshot and documented Cute Chess setup
   so manual feedback and engine development can proceed together.
+- Added alternating baseline/candidate benchmarks that require identical search
+  work, preserve raw evidence, and report observed timing variability.
+- Recorded an inconclusive NNUE buffer-reuse experiment; the candidate was not
+  retained and no speed or strength gain is claimed.
 
 No release or strength rating has been established yet.

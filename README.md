@@ -111,6 +111,12 @@ checks the runner; `make verify-moves` independently compares legal moves and
 perft against the same optional referee library. These tools do not add a
 Python dependency to the engine itself.
 
+For changes intended to preserve search behavior, use the
+[performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline
+and candidate runs verify identical search work before reporting timing ratios.
+The [experiment log](docs/EXPERIMENTS.md) records decisions, including candidates
+that were not retained.
+
 ## Cross-compilation
 
 ```sh

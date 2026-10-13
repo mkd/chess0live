@@ -39,6 +39,12 @@ external move checker agrees on 93 positions at depth 2, including special moves
 The included 12-opening suites are too small for the runner's uncertainty gate;
 no strength rating or improvement is established by their smoke tests.
 
+A deterministic comparison helper now checks equal per-depth search work before
+reporting throughput. The first buffer-reuse candidate passed correctness but
+had inconclusive timing results, so it was not retained. The original evaluator
+remains current; [the experiment log](EXPERIMENTS.md) preserves the decision and
+local evidence paths. Do not count this experiment as a strength improvement.
+
 The owner is testing with Cute Chess while development continues. Snapshot
 `0.1-dev-4b8b35d` is preserved under ignored `build/test-baselines/`, including
 its own network and manifest. Read [manual testing](MANUAL_TESTING.md) and do not

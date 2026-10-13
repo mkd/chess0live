@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/search.cpp src/main.cpp
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-search test-match verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-search test-match test-bench verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -133,6 +133,9 @@ test-match:
 	$(PYTHON) tests/match_statistics_test.py
 	$(PYTHON) tests/match_test.py
 
+test-bench:
+	$(PYTHON) tests/compare_bench_test.py
+
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
 
@@ -149,6 +152,7 @@ help:
 	@echo 'make MODE=sanitize test   Address/undefined-behavior checks'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
+	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'
