@@ -1,0 +1,18 @@
+{
+  "format": "SFNNv16",
+  "reference_release": "Stockfish 19",
+  "reference_tag": "sf_19",
+  "reference_commit": "edb0d9db6731067ec50ce619ff372b463bc4dd5d",
+  "filename": "nn-1a298aa575a0.nnue",
+  "sha256": "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2",
+  "size_bytes": 98511183,
+  "license": "CC0-1.0",
+  "license_source": "https://github.com/official-stockfish/networks/blob/master/README.md",
+  "digest_source": "https://raw.githubusercontent.com/official-stockfish/networks/master/nn-1a298aa575a0.nnue",
+  "verified_at": "2026-10-13",
+  "verification": "Full downloaded payload SHA-256 and byte count match the official Git LFS pointer.",
+  "download_urls": [
+    "https://tests.stockfishchess.org/api/nn/nn-1a298aa575a0.nnue",
+    "https://media.githubusercontent.com/media/official-stockfish/networks/master/nn-1a298aa575a0.nnue"
+  ]
+}
