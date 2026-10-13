@@ -1,0 +1,9 @@
+/build/
+/networks/*.nnue
+/networks/*.part
+/networks/.nnue-*
+/.local/
+/results/
+__pycache__/
+*.pyc
+.DS_Store

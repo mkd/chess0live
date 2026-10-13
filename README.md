@@ -1,4 +1,152 @@
 # chess0live 🫒
-Next-generation UCI chess engine written in standard C++26.
 
-Coming soon..
+An independently written, GPL-3.0-or-later UCI chess engine in C++26.
+
+**Status: 0.1 development baseline.** The long-term objective is decisively
+stronger play than Stockfish 19 on equal desktop hardware. No Elo rating or
+competitive superiority has been established. The current search is an early
+single-worker implementation; strength testing and further optimization remain.
+
+Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
+
+## Build and run
+
+Install a recent C++ compiler with C++26 mode, GNU Make, and Python 3.9 or newer
+(tooling only). The engine has no Python runtime dependency. From this directory:
+
+```sh
+make doctor
+make -j2
+make net
+make test
+./build/macos-arm64-generic-release/chess0live
+```
+
+The executable path changes with the target; for example Linux x86-64 uses
+`build/linux-x86_64-generic-release/chess0live`. A bare `make` uses one build job.
+Choose parallel jobs within the current [resource budget](#local-resource-policy).
+The network is about 98.5 MB; `make net` downloads the pinned official file and
+verifies its full SHA-256. Large networks and build outputs are excluded from Git.
+
+Configure a UCI-compatible chess GUI to launch the executable, or use stdin:
+
+```text
+uci
+isready
+position startpos moves e2e4 c7c5
+go movetime 1000
+```
+
+Wait for `bestmove` before sending `quit`. For diagnostics:
+
+```text
+position startpos
+perft 5
+divide 2
+eval
+d
+quit
+```
+
+`perft 5` from the initial position is 4,865,609 nodes. `divide` lists each root
+move's count. `eval` reports raw NNUE components and calibrated internal score;
+`d` prints FEN. These diagnostics do not add variants or an interactive SAN mode.
+
+## Evaluation and search
+
+- Versioned SF19/SFNNv16 file reader and independently implemented feature math.
+- Pinned network: `nn-1a298aa575a0.nnue`; full digest and provenance in
+  [the network manifest](networks/manifest.json).
+- Piece-square, threat, and pawn-pair features; incremental accumulators;
+  integer inference; ARM64 NEON kernels; scalar/full-refresh reference paths.
+- Legal bitboard moves, castling, en passant, underpromotion, reversible state,
+  and deterministic position hashing.
+- Iterative deepening, PVS/alpha-beta, quiescence, aspiration windows, move
+  ordering, bounded transposition storage, repetition and rule-50 handling.
+- UCI cancellation, pondering, search limits, and soft/hard clock allocation.
+
+`Hash`, `Clear Hash`, `EvalFile`, `Move Overhead`, and `Ponder` are configurable.
+`Threads` currently accepts **1**. Parallel search is future work. A missing or
+incompatible network produces an explicit error; the engine does not substitute
+an undisclosed evaluator. `isready` prepares a changed network before a timed
+search. When distributing the executable, put the default network beside it or
+set `EvalFile` to its absolute path.
+
+See [NNUE compatibility and evidence](docs/NNUE.md). UCI centipawn display uses
+SF19's normalization for its network scale; it is not a calibrated chess0live
+win-probability model. Network compatibility does not establish engine strength.
+
+## Tests and benchmarks
+
+```sh
+make test
+make MODE=sanitize -j2 test
+make SIMD=scalar -j2 test
+make bench
+python3 tools/bench.py build/macos-arm64-generic-release/chess0live --depth 5 --output results/bench.json
+```
+
+Tests cover published perft counts, chess-rule edge cases, state/hash restoration,
+NNUE parser rejection and accumulator parity, search terminal states/limits, and
+asynchronous UCI behavior. Benchmarks record binary/network hashes, Git state,
+positions, search output, and resource policy. NPS and solved positions are not
+Elo estimates. [Validation](docs/VALIDATION.md) defines the required evidence for
+future match results and releases.
+
+Pass `--positions /path/to/positions.txt` to benchmark your own positions/openings,
+one `startpos moves ...` or `fen ...` entry per line. Comments start with `#`.
+`python3 tools/verify_nnue.py` builds a separate pinned Stockfish test reference
+and compares scalar/native features, accumulators, layers, and outputs. It
+downloads upstream source into the ignored build directory; it is not part of
+the shipped executable.
+
+## Cross-compilation
+
+```sh
+make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++
+make TARGET=linux-x86_64 CXX=x86_64-linux-gnu-g++
+make TARGET=linux-riscv64 CXX=riscv64-linux-gnu-g++
+make TARGET=windows-x86_64 CXX=x86_64-w64-mingw32-g++
+make TARGET=windows-arm64 CXX=aarch64-w64-mingw32-clang++
+```
+
+Install the relevant compiler and target libraries first. `SYSROOT=/path` is
+available for toolchains requiring an explicit sysroot. `CPU=generic` is the
+portable default; `CPU=native` is for the current machine only. macOS ARM64 builds
+require a supported macOS host and Apple SDK. Windows builds statically link the
+compiler runtimes. [Portability](docs/PORTABILITY.md) records tested versus
+intended targets and host restrictions; producing a binary is not runtime testing.
+
+## Local resource policy
+
+Local compute only: **50% daytime**, **80% 23:00–07:00 Europe/Helsinki**. Override
+the workload budget at any time, or restore the automatic time-window policy:
+
+```sh
+python3 tools/resources.py show
+python3 tools/resources.py set 60
+python3 tools/resources.py clear
+```
+
+The helper calculates aggregate worker and memory budgets; it is **not an OS
+utilization limiter**. The benchmark re-reads it between positions. Current
+search uses one worker. It does not resize arbitrary running programs or change
+an explicitly supplied `make -j` value. Long matches/training belong overnight;
+no recurring job has been scheduled. On systems without IANA timezone data,
+install the Python `tzdata` package for these resource tools.
+
+## Contributing and continuing development
+
+Start with [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md),
+[handover](docs/HANDOVER.md), [validation](docs/VALIDATION.md), and [agent guidance](AGENTS.md).
+The [changelog](CHANGELOG.md) distinguishes planned releases from measured work;
+[provenance](PROVENANCE.md) identifies external specifications and assets.
+
+Priorities after correctness: efficient ARM64 evaluation and move generation,
+measured search improvements, desktop parallelism, broader runtime verification,
+and reproducible training integration. Proposed ideas need falsifiable
+hypotheses and controlled results. The owner's previous engines and testing
+assets are not reused. Future books, puzzles, and variants are outside this core.
+
+Original code is licensed under [GNU GPL version 3 or later](LICENSE), without
+warranty. See the network manifest for the separate upstream network license.
