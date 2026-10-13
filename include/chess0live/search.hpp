@@ -1,0 +1,102 @@
+/*
+ * chess0live — an independent UCI chess engine.
+ * Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * This program is free software: you may redistribute and/or modify it under
+ * GNU GPL version 3 or later. It comes WITHOUT ANY WARRANTY. See LICENSE.
+ */
+#pragma once
+
+#include "chess0live/types.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <vector>
+
+namespace chess0live {
+class Position;
+namespace nnue { class Network; }
+
+/** Limits are intersections: the first exhausted hard limit stops the search.
+ * Negative clock values mean unspecified; zero is a real exhausted clock.
+ * Depth and nodes zero mean unlimited. Explicit movetime takes precedence over
+ * clock allocation. Pondering defers time consumption until ponderhit().
+ */
+struct SearchLimits {
+    int depth = 0;
+    std::uint64_t nodes = 0;
+    std::int64_t movetime_ms = -1;
+    std::int64_t wtime_ms = -1;
+    std::int64_t btime_ms = -1;
+    std::int64_t winc_ms = 0;
+    std::int64_t binc_ms = 0;
+    int movestogo = 0;
+    int mate = 0;
+    bool infinite = false;
+    bool ponder = false;
+    int move_overhead_ms = 20;
+    /** Empty means all legal moves; entries must be generated for the root. */
+    std::vector<Move> searchmoves;
+};
+
+struct SearchInfo {
+    int depth = 0;
+    int seldepth = 0;
+    std::uint64_t nodes = 0;
+    std::int64_t time_ms = 0;
+    int score = 0;
+    std::vector<Move> pv;
+};
+
+struct SearchResult {
+    Move best;
+    Move ponder;
+    int score = 0;
+    int depth = 0;
+    std::uint64_t nodes = 0;
+};
+
+/** Independent, single-worker iterative deepening search.
+ *
+ * The caller serializes search(), clear(), set_hash(), and destruction. Only
+ * stop() and ponderhit() may run concurrently with search(). Call reset_stop()
+ * BEFORE launching an asynchronous search, not inside its new thread: this
+ * preserves a stop received immediately after UCI "go". Immutable NNUE weights
+ * may be shared, while the evaluator and transposition table are worker-local.
+ *
+ * The game history contains position keys through the root, in chronological
+ * order; a missing final root key is appended. Full history enables exact
+ * threefold detection. Callbacks run synchronously on the searching thread.
+ * A completed depth/node-limited ponder or infinite search may return; the UCI
+ * controller must defer bestmove until ponderhit/stop as appropriate.
+ */
+class Search {
+public:
+    static constexpr int mate_score = 31000;
+    static constexpr int mate_threshold = 30000;
+    static constexpr int max_ply = 128;
+    static constexpr int max_threads = 1;
+    using Reporter = std::function<void(const SearchInfo&)>;
+
+    explicit Search(const nnue::Network& network, std::size_t hash_mb = 64,
+                    int threads = 1);
+    ~Search();
+    Search(const Search&) = delete;
+    Search& operator=(const Search&) = delete;
+    SearchResult search(Position position, std::vector<std::uint64_t> history,
+                        const SearchLimits& limits, Reporter report = {});
+    void reset_stop();
+    void stop() noexcept;
+    void ponderhit() noexcept;
+    void clear();
+    void set_hash(std::size_t megabytes);
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
+
+} // namespace chess0live
