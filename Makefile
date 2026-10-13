@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/search.cpp src/main.cpp
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-search bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-search test-match verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -127,6 +127,15 @@ test-search: $(BUILD)/search-test$(EXE)
 
 test: test-core test-nnue test-search
 
+# Optional independent referee checks: install requirements-match.txt first.
+# Keep the engine's ordinary correctness suite free of third-party Python deps.
+test-match:
+	$(PYTHON) tests/match_statistics_test.py
+	$(PYTHON) tests/match_test.py
+
+verify-moves: $(ENGINE)
+	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
+
 bench: $(ENGINE)
 	$(PYTHON) tools/bench.py "$(ENGINE)"
 
@@ -139,6 +148,8 @@ help:
 	@echo 'make test             Run correctness checks; make net first'
 	@echo 'make MODE=sanitize test   Address/undefined-behavior checks'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
+	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
+	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'
 	@echo 'make TARGET=windows-arm64 CXX=aarch64-w64-mingw32-clang++'

@@ -1,0 +1,3 @@
+# External match/testing tool only; the engine has no Python dependency.
+# chess is the importable library distributed by the python-chess project.
+chess==1.11.2

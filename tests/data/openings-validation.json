@@ -1,0 +1,161 @@
+{
+  "description": "Original hand-selected validation opening lines for chess0live. No external game collection used.",
+  "openings": [
+    {
+      "id": "validation-01",
+      "moves": [
+        "e2e4",
+        "c7c5",
+        "g1f3",
+        "b8c6",
+        "d2d4",
+        "c5d4",
+        "f3d4",
+        "e7e5"
+      ]
+    },
+    {
+      "id": "validation-02",
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "d2d4",
+        "e5d4",
+        "f3d4",
+        "f8c5"
+      ]
+    },
+    {
+      "id": "validation-03",
+      "moves": [
+        "e2e4",
+        "e7e6",
+        "d2d4",
+        "d7d5",
+        "b1d2",
+        "c7c5",
+        "e4d5",
+        "e6d5"
+      ]
+    },
+    {
+      "id": "validation-04",
+      "moves": [
+        "e2e4",
+        "c7c6",
+        "d2d4",
+        "d7d5",
+        "e4e5",
+        "c8f5",
+        "g1f3",
+        "e7e6"
+      ]
+    },
+    {
+      "id": "validation-05",
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "g7g6",
+        "b1c3",
+        "d7d5",
+        "c4d5",
+        "f6d5"
+      ]
+    },
+    {
+      "id": "validation-06",
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "e7e6",
+        "g1f3",
+        "b7b6",
+        "g2g3",
+        "c8b7"
+      ]
+    },
+    {
+      "id": "validation-07",
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "d5c4",
+        "g1f3",
+        "g8f6",
+        "e2e3",
+        "e7e6"
+      ]
+    },
+    {
+      "id": "validation-08",
+      "moves": [
+        "c2c4",
+        "c7c5",
+        "g1f3",
+        "g8f6",
+        "b1c3",
+        "b8c6",
+        "g2g3",
+        "g7g6"
+      ]
+    },
+    {
+      "id": "validation-09",
+      "moves": [
+        "g1f3",
+        "d7d5",
+        "c2c4",
+        "d5d4",
+        "e2e3",
+        "b8c6",
+        "e3d4",
+        "c6d4"
+      ]
+    },
+    {
+      "id": "validation-10",
+      "moves": [
+        "d2d4",
+        "f7f5",
+        "g2g3",
+        "g8f6",
+        "f1g2",
+        "g7g6",
+        "g1f3",
+        "f8g7"
+      ]
+    },
+    {
+      "id": "validation-11",
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "g8f6",
+        "f3e5",
+        "d7d6",
+        "e5f3",
+        "f6e4"
+      ]
+    },
+    {
+      "id": "validation-12",
+      "moves": [
+        "e2e4",
+        "d7d5",
+        "e4d5",
+        "d8d5",
+        "b1c3",
+        "d5d8",
+        "d2d4",
+        "g8f6"
+      ]
+    }
+  ]
+}

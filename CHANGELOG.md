@@ -19,5 +19,10 @@ Versions describe tested deliverables. Research objectives are not results.
   regression tests, sanitizer builds, and repeatable custom-position benchmarks.
 - Added Make cross-target checks and configuration-aware rebuilds; fixed network
   preparation before timed search and default-network discovery via PATH.
+- Added paired-opening match tooling with explicit clocks, PGNs, reproducibility
+  records, separate failure reporting, and conservative pair-level statistics.
+- Added original development/validation openings and optional independent
+  legal-move/perft comparison against a pinned external referee library.
+- Updated the workflow to tested local commits; the owner publishes to GitHub.
 
 No release or strength rating has been established yet.

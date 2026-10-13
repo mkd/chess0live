@@ -21,6 +21,44 @@ Three foreign targets cross-compiled; they were not executed. See
 No tournament results, measured Elo rating, parallel search validation, or
 training outcome is claimed for this baseline.
 
+## Independent referee checks — October 13, 2026
+
+`make verify-moves` compares every legal root move and each perft branch with
+the pinned `chess==1.11.2` reference. The release binary passed all 93 depth-2
+cases: 64 deterministic reachable random positions and 29 initial/special/mirrored
+fixtures. A depth-3 check also passed all 37 cases (8 random plus the fixtures).
+A deliberately incorrect mock engine produced failure records and a nonzero
+exit status. These are correctness checks, not strength measurements.
+
+The default seed is `18938320320349523`; the ordered FEN corpus SHA-256 is
+`d2d60c101811d895dc3dc309f0f4079258aedab9937abf15a25b46a56cbd28d4`.
+The checked binary SHA-256 is
+`5e2650fa3d9ff18ba836580bef942dec9223105e584da6853c3e0a81edc5330c`.
+The ignored `results/move-verification.json` contains the full inputs, branch
+comparison summaries, tool hash, and environment metadata.
+
+## Match-runner verification — October 13, 2026
+
+`make test-match` passed 17 paired-statistics tests and 13 subprocess/referee
+integration tests. Coverage includes swapped colors, full opening history,
+PGN replay, illegal/null opening rejection, protocol errors and timeouts,
+readiness excluded from the chess clock, real clock losses without a credited
+increment, resource overrides, artifact changes, and inference exclusions.
+
+A real two-game smoke run against the separately built pinned Stockfish 19
+completed with no protocol failures, truncations, or clock losses. Both games
+ended in checkmate; chess0live lost both. Settings were 1 second plus 0.01 seconds
+per move, one thread, 64 MiB hash, 20 ms move overhead, seed `20261013`, one pair
+from the development suite (`development-02`), and a 256-ply safety limit.
+Both PGNs replayed legally to the recorded final positions. This deliberately
+short run validates the workflow; it is not a blitz rating or evidence for a
+strength margin. No confidence interval is produced.
+
+Evidence is in ignored `results/match-smoke-sf19-20261013/`: the manifest, frozen
+opening suite, game records, PGNs, raw protocol logs, and summary. The manifest
+records source labels, runner/binary/network hashes, platform and actual options.
+See [match testing](MATCHES.md) for the separate opponent build and its PGO flags.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

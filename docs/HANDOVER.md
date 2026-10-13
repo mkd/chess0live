@@ -32,13 +32,25 @@ reference remains selectable with `SIMD=scalar`. Three other platform binaries
 cross-build, with execution still outstanding. RISC-V64 and Windows ARM64 lack
 configured local toolchains. Search deliberately remains single-worker.
 
-Next work should establish a local paired-opening match harness and a held-out
-suite, then measure search improvements. Investigate incremental feature-list
+An original paired-opening runner now records clocks, game files, binary/network
+hashes, and pair-level statistics. Small development and validation suites are
+separate. Read [the match guide](MATCHES.md) before running it. The optional
+external move checker agrees on 93 positions at depth 2, including special moves.
+The included 12-opening suites are too small for the runner's uncertainty gate;
+no strength rating or improvement is established by their smoke tests.
+
+Next work should freeze a comparison binary, expand the predeclared opening
+sample, and measure search improvements. Investigate incremental feature-list
 maintenance, faster sliding attacks, selective search, and worker parallelism as
 separate hypotheses; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer
 integration, multi-platform runtime execution, and any public strength claim
 remain open. Avoid marking the overall world-leading-strength objective complete.
+
+The unmodified SF19 match opponent is in ignored `build/stockfish19-reference`;
+the instrumented NNUE oracle is separate. Never substitute one for the other.
+Local GitHub authentication failed during initial setup; the owner's subsequent
+instruction is to keep developing and committing locally while they push.
 
 README contains the current runnable commands and limitations. CHANGELOG tracks
 versions. [Architecture](ARCHITECTURE.md) describes boundaries, [validation](VALIDATION.md)

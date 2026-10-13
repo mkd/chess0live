@@ -28,6 +28,8 @@ of chess0live's own win/draw/loss probabilities.
 An upstream build used for differential testing is separate from the shipped
 engine. Upstream Stockfish is GPL-3.0-or-later, copyright The Stockfish developers;
 its notices stay with that reference checkout and any upstream-derived patch.
+An unmodified build of the same pinned source is also used as a match opponent;
+it is separate from the instrumented NNUE oracle. See [match testing](docs/MATCHES.md).
 
 ## Network and fixtures
 
@@ -40,6 +42,12 @@ provenance is given in `tests/position_test.cpp`, including
 [Perft Results](https://www.chessprogramming.org/Perft_Results).
 Random evaluation fixtures use an original deterministic legal-move generator
 and recorded seed. No proprietary game collection is included.
+
+The match runner uses the external GPL-3.0-or-later
+[python-chess library](https://github.com/niklasf/python-chess), by Niklas Fiekas
+and contributors, pinned as `chess==1.11.2` in `requirements-match.txt`. It is a
+testing dependency, not part of the engine. The opening selection in
+`tests/data/` was authored for chess0live and uses no external game collection.
 
 The GNU GPL text in [LICENSE](LICENSE) is the unmodified FSF license text from
 <https://www.gnu.org/licenses/gpl-3.0.txt>. Original project sources are

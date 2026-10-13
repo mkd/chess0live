@@ -100,6 +100,14 @@ and compares scalar/native features, accumulators, layers, and outputs. It
 downloads upstream source into the ignored build directory; it is not part of
 the shipped executable.
 
+For paired-opening matches, install `requirements-match.txt` and follow
+[the match guide](docs/MATCHES.md). It records full games, clocks, failures,
+binary/network hashes, and uncertainty at the opening-pair level. Separate
+development and validation opening fixtures are included. `make test-match`
+checks the runner; `make verify-moves` independently compares legal moves and
+perft against the same optional referee library. These tools do not add a
+Python dependency to the engine itself.
+
 ## Cross-compilation
 
 ```sh
@@ -129,7 +137,8 @@ python3 tools/resources.py clear
 ```
 
 The helper calculates aggregate worker and memory budgets; it is **not an OS
-utilization limiter**. The benchmark re-reads it between positions. Current
+utilization limiter**. Benchmarks re-read it between positions and matches
+between games. Current
 search uses one worker. It does not resize arbitrary running programs or change
 an explicitly supplied `make -j` value. Long matches/training belong overnight;
 no recurring job has been scheduled. On systems without IANA timezone data,
