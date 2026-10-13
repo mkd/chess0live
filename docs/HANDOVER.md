@@ -5,7 +5,8 @@
 Read [requirements](REQUIREMENTS.md) first. The user completed the interview:
 original engine, strength over elegance, GPL-3.0-or-later, pinned SF19 network,
 no own initial network training, desktop/laptop focus, M5 Pro primary, local-only
-compute, and tested commits directly to main followed by pushes.
+compute, and tested commits directly to main. The owner now handles GitHub pushes
+manually; do not retry authentication or publishing from an agent session.
 
 No unresolved product decision blocks the baseline. Nighttime is 23:00–07:00
 Europe/Helsinki at 80%; daytime 50%; the owner can override the budget. Blitz is
@@ -49,5 +50,5 @@ verified targets, and [NNUE](NNUE.md) owns the network pin and parity record.
 Run the relevant correctness checks and inspect the diff. Keep generated binaries,
 large networks, external oracle source, and raw match output out of Git. Record
 what actually ran and what did not. Update these documents when APIs, commands,
-test evidence, or limitations change. Make a small local commit on main, then
-push origin main. Do not amend unrelated commits or rewrite published history.
+test evidence, or limitations change. Make a small local commit on main and leave
+GitHub pushes to the owner. Do not amend unrelated commits or rewrite history.

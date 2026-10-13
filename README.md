@@ -142,6 +142,9 @@ Start with [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTUR
 The [changelog](CHANGELOG.md) distinguishes planned releases from measured work;
 [provenance](PROVENANCE.md) identifies external specifications and assets.
 
+Development uses small tested commits directly on `main`. The owner publishes
+those commits to GitHub manually; agent sessions work and commit locally.
+
 Priorities after correctness: efficient ARM64 evaluation and move generation,
 measured search improvements, desktop parallelism, broader runtime verification,
 and reproducible training integration. Proposed ideas need falsifiable

@@ -67,10 +67,11 @@ restrictions instead of promising impossible toolchain-free cross-compilation.
 
 ## Delivery and maintenance
 
-Work in the existing local `chess0live` checkout and push to
-<https://github.com/mkd/chess0live>. Use small tested commits directly on `main`.
+Work in the existing local `chess0live` checkout. The owner handles publishing to
+<https://github.com/mkd/chess0live> manually; agents should not attempt GitHub
+authentication or pushes. Use small tested commits directly on `main`.
 Branches/PRs are unnecessary unless an exceptional practical reason arises.
-Test first, commit locally second, push third. Update README, concise
+Test first, commit locally second. Update README, concise
 version-oriented changelog, implementation decisions, and handover instructions.
 Every release must distinguish measured strength from aspiration, and tested
 platforms from merely intended targets. Source files have consistent copyright,
