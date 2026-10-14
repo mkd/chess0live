@@ -169,8 +169,14 @@ while treating later scores as independent validation.
 with `Late Move Reductions=false`. Correctness passed and the work reduction
 makes the hypothesis worth investigating, but the smoke provides no support
 for promotion. A larger, separately specified strength campaign and analysis
-of tactical misses are still needed. Move ordering remains a separate next
-Phase 2C experiment; neither it nor all of Phase 2C is complete.
+of tactical misses are still needed. Move ordering is evaluated in a [separate Phase 2C experiment](MOVE_ORDERING.md);
+its results must not be attributed to reductions or combined with this baseline.
+
+A subsequent [bounded diagnosis of all four losses](reports/2026-10-14-lmr-losses.md)
+found no LMR-specific miss in eight selected roots: all off/on moves agreed at
+200,000 nodes, and all 40 common-depth scores/PVs agreed. In the sharpest collapse,
+both policies made the same shallow choice and changed it a depth later. This
+post-hoc evidence does not establish strength or validate all reduced fail-lows.
 
 The raw match is in `results/lmr-20261014/match-smoke/`: `run.json`, frozen
 openings, per-game records, PGNs, protocol logs, and `summary.json`. The independent

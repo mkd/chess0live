@@ -40,6 +40,12 @@ format inspection confirmed the expected architectures; no foreign execution
 was performed. Native ARM64, scalar, and ASan/UBSan checks passed with reductions
 both disabled and enabled.
 
+The later capture-ordering revision also built and linked for these three
+foreign targets on October 14; file inspection again confirmed AArch64 ELF64,
+x86-64 ELF64, and Windows x86-64 PE32+. They were not executed. Native ARM64,
+scalar, and sanitizer suites passed with the new option disabled and enabled.
+No RISC-V64 or Windows ARM64 toolchain/runtime evidence was added.
+
 The successful commands on this host were:
 
 ```sh

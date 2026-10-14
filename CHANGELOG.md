@@ -53,4 +53,17 @@ Versions describe tested deliverables. Research objectives are not results.
   operational smoke; retained it only as an opt-in experiment, with no strength
   gain or default promotion claimed.
 
+- Added an independent static-exchange estimator and optional capture ordering,
+  preserving every searched move and leaving MVV-LVA as the default. Covered
+  pins, x-rays, king recaptures, en passant, promotions, and reversible state
+  with composed and generated reference checks.
+- Extended the fixed-depth/node profiler to isolate capture ordering from LMR,
+  validate ordering diagnostics, and preserve partial-failure evidence.
+- Investigated all four LMR smoke losses at eight selected roots; no LMR-specific
+  miss was demonstrated in the bounded replay, so no reduction parameters changed.
+
+- Recorded capture ordering's 4.72% lower sampled depth-5 work and 2W/4D/2L
+  operational smoke. It remains opt-in; the initial Phase 2C experiments are
+  complete and Phase 2D strength qualification remains pending.
+
 No release or strength rating has been established yet.

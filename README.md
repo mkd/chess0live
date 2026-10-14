@@ -10,10 +10,12 @@ single-worker implementation; strength testing and further optimization remain.
 **Current phase: 2 — search efficiency and time management.** Follow the
 [development plan](docs/ROADMAP.md) for completed steps, active experiments,
 and the evidence required before a candidate becomes the default.
-The active step is **2C: selective search**, starting with an isolated late-move
-reduction experiment. Move ordering and the time-policy experiment stay separate.
-The first LMR candidate passed correctness checks; its eight-game smoke scored
-2W/2D/4L, so it remains experimental and off by default.
+**2C's initial selective-search and move-ordering experiments are complete.**
+Both passed correctness checks and remain opt-in. LMR's eight-game smoke scored
+2W/2D/4L; [capture ordering](docs/MOVE_ORDERING.md) scored 2W/4D/2L. The latter
+used 4.72% fewer depth-5 nodes with matching sampled decisions, but neither
+experiment establishes stronger play. **2D: playing-strength qualification is
+next**, with no long campaign currently running or scheduled.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
@@ -91,6 +93,11 @@ experiment: guarded one-ply reductions with ordinary-depth verification of
 promising probes. See [selective search](docs/SELECTIVE_SEARCH.md) for safeguards,
 comparison settings, and results. It is not yet an accepted strength improvement.
 
+`Capture Ordering` defaults to `mvv-lva`; experimental `see` estimates material
+exchanges and searches apparently losing captures later. All captures remain
+available to search. It is evaluated independently with LMR off and classic
+timing; see [the ordering experiment](docs/MOVE_ORDERING.md).
+
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
@@ -143,6 +150,9 @@ includes deterministic time-policy and iteration-accounting tests.
 `make test-profile-lmr` checks the optional selective-search profiler, using the
 same pinned referee dependency as matches. It compares LMR off/on at fixed
 depth or nodes and independently replays every reported principal variation.
+Use `--experiment capture-ordering` with that profiler to compare SEE against
+MVV-LVA while pinning LMR off. `make test-profile-ordering` checks both profiler
+modes; `make test` includes exchange estimates versus a slow legal-move reference.
 
 ## Cross-compilation
 

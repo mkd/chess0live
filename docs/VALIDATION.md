@@ -138,6 +138,53 @@ The Linux ARM64, Linux x86-64, and Windows x86-64 binaries also rebuilt and link
 successfully; file inspection confirmed target architectures. They remain
 cross-build-only. No RISC-V64 or Windows ARM64 build/runtime evidence was added.
 
+## Phase 2C exchange-ordering checks — October 14, 2026
+
+Native `make -j2 test`, `make -j2 SIMD=scalar test`, and
+`make -j2 MODE=sanitize test` passed, including 28 composed/reflected exchange
+cases and 4,117 generated comparisons against an independent slow legal-move
+reference. Search tests exercise genuine negative-exchange classification,
+forced losing-capture retention, warm policy switching in both directions,
+interrupted node accounting, and diagnostics invariance. Rule, stop, and ponder
+cases run again with SEE enabled. The native-CPU exchange/search/UCI checks also
+passed. NNUE's 537-position incremental checks passed in all three full suites;
+position and NNUE sources are unchanged, and the full separate SF19 stage oracle
+was not rerun for this ordering-only change.
+
+Tool checks passed: 20 isolated search-mode profiler tests, 15 clock-profiler
+tests, 17 paired-statistics tests, 17 match-runner tests, and 11 equal-work
+benchmark tests. The new profiler checks both modes, required ordering records,
+counter consistency, isolation from LMR, and partial failures.
+
+Default ordering matched all 24 frozen-parent signatures. The 48 depth-5
+searches retained all final moves/scores/PVs; 24 node-limited searches respected
+the exact 200,000-node cap and independently legal PVs. See
+[capture ordering](MOVE_ORDERING.md) for work, timing, and acceptance limits.
+
+The predeclared eight-game smoke completed 2W/4D/2L for SEE, with four
+checkmates, three repetition draws, and one insufficient-material draw. There
+were no protocol errors, time forfeits, truncations, or excluded pairs. These
+four development pairs are not a strength or equivalence test. Independent replay
+verified 703 legal plies (639 searched), clock records, options, hashes, and
+terminations. The three repetition draws were valid next-move claims under the
+runner's documented policy. The independent profile audit also checked all
+120 depth-5 and 62 fixed-node common-depth score/PV comparisons; all matched.
+Audit records and their digest are linked from the ordering experiment.
+
+Linux ARM64, Linux x86-64, and Windows x86-64 builds compiled and linked with
+the documented toolchains. File inspection confirmed their architectures; none
+was executed. RISC-V64 and Windows ARM64 remain unavailable locally.
+The frozen GUI, forecast, LMR, and ordering binaries, pinned network, and reserved
+time-validation suite retain their recorded hashes. The local
+`results/capture-ordering-20261014/validation.json` records successful commands,
+source-snapshot agreement, binary hashes, and these validation limits.
+
+The separate [LMR loss diagnosis](reports/2026-10-14-lmr-losses.md) replayed all
+four losses at eight selected roots using the frozen LMR executable. All eight
+best moves and 40 common-depth scores/PVs agreed between policies. This is
+post-hoc, bounded diagnosis; it neither demonstrates an LMR-specific miss nor
+establishes strength or safety of all reduced fail-lows.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

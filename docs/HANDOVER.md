@@ -89,9 +89,32 @@ The predeclared eight-game smoke scored 2W/2D/4L for LMR with no operational
 failures. This unfavorable small sample does not support default promotion;
 record it honestly and do not tune to these pairs as if they were held out.
 
-Next qualify LMR with a separately predeclared longer match, and investigate move
-ordering as an independent Phase 2C hypothesis. Do not combine it with forecast
-timing or change either default based on short development tests.
+The independent [capture-ordering experiment](MOVE_ORDERING.md) is also now
+implemented and checked. `Capture Ordering=mvv-lva` remains the default; `see`
+uses legal-LVA material estimates to rank negative exchanges below quiet moves,
+without pruning captures. Native/scalar/sanitizer tests, 28 composed/reflected
+cases, and 4,117 generated reference comparisons passed. Default mode matched
+all 24 parent samples. Depth-5 work fell 4.72% with matching final decisions;
+equal-node searches gained one nominal depth on one root and lost one on another.
+The eight-game smoke scored 2W/4D/2L without operational failures. No strength
+claim or default promotion follows. Frozen candidate:
+`build/experiments/capture-ordering-20261014/chess0live`, SHA-256
+`7d63b9f99bedd93586549bd6fb2057d473024c69a5d19989e6b4569727323b44`.
+Use `tools/profile_lmr.py --experiment capture-ordering` for isolated comparisons;
+it pins LMR off and classic timing. Its historical filename still supports LMR.
+
+The separate [LMR loss replay](reports/2026-10-14-lmr-losses.md) found no
+LMR-specific miss in its eight selected roots. All moves and all 40 common-depth
+scores/PVs agreed; no LMR parameter changed. This is post-hoc development evidence,
+not held-out qualification or proof that every reduction is safe.
+
+Phase 2C's initial experiments are complete. Phase 2D has not started: first
+use the already specified frozen time-policy overnight test; then prepare a
+separate predeclared campaign for one isolated search candidate. Fresh search
+validation openings and acceptance/sample rules still need to be frozen. Do not
+reuse the reserved time suite or repeat the 12 general roots simply to cross
+the runner's 30-pair reporting floor. Keep experiments separate and do not change
+defaults based on short development tests. No long job or schedule is active.
 Incremental feature-list maintenance, faster sliding attacks, and worker
 parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer

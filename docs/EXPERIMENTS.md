@@ -4,6 +4,41 @@ Record unsuccessful and inconclusive experiments as well as improvements.
 Performance observations are not Elo estimates. Large raw records and experimental
 binaries stay in ignored local output directories.
 
+## 2026-10-14 — capture ordering: opt-in, not promoted
+
+**Hypothesis:** rank captures with negative static exchange estimates below
+quiet moves, so useful quiet cutoffs can precede material-losing captures.
+The original legal-LVA estimator handles pins, x-rays, king safety, en passant,
+and promotions. It changes priority only: captures are neither pruned nor
+reduced. LMR stays disabled, timing classic, and the evaluator unchanged.
+
+Native, scalar, sanitizer, and independent reference checks passed, including
+28 composed/reflected cases and 4,117 generated exchanges. Default mode matched
+all 24 frozen-parent signatures. Depth-5 search used 4.72% fewer nodes with
+matching final moves/scores/PVs in all 24 comparisons. At 200,000 nodes, one root
+gained a nominal depth and another lost one; all 12 best moves agreed.
+
+The predeclared eight-game smoke scored **2W/4D/2L** with no operational failures,
+time forfeits, truncations, or exclusions. Four development pairs cannot show a
+strength advantage or statistical equivalence. No parameter was tuned or
+favorable subset selected after measurement.
+
+**Decision:** retain as an opt-in research checkpoint; MVV-LVA remains default.
+The modest sampled work reduction merits further investigation, not an Elo
+claim. [Capture ordering](MOVE_ORDERING.md) records the algorithm's limits,
+predeclared checks, frozen hashes, exact results, and reproduction commands.
+Phase 2D strength qualification remains a separate next step.
+
+## 2026-10-14 — bounded LMR loss diagnosis: no policy change
+
+Selected a decision root and its next-turn witness from each of the four LMR
+smoke losses by a frozen score-drop rule. Sixteen node-limited off/on searches
+on the frozen LMR executable agreed on all eight best moves and all 40
+common-depth scores/PVs. Both policies reproduced the sharpest shallow choice
+and changed it one depth later. No LMR-specific miss was demonstrated; no LMR
+parameter changed. This post-hoc evidence neither proves reductions safe nor
+replaces strength qualification. See the [full diagnosis](reports/2026-10-14-lmr-losses.md).
+
 ## 2026-10-14 — conservative LMR: opt-in, not promoted
 
 **Hypothesis:** independently implemented one-ply reductions on later quiet
