@@ -78,6 +78,27 @@ class ValidationTests(unittest.TestCase):
         for changed in ([s for s in lines if not s.startswith("info string lmr")], lines[:-1] + [lines[-3], lines[-1]]):
             with self.assertRaises(ValueError): profiler.validate_result(changed, True, profiler.board_for("startpos"), 2, None)
 
+    def test_ordering_diagnostics_reject_wrong_policy_or_bad_counters(self):
+        lines = replies(False)
+        record = "info string ordering v1 policy see see_calls 10 losing_captures 3"
+        lines.insert(-2, record)
+        result = profiler.validate_result(lines, True, profiler.board_for("startpos"), 2, None, "capture-ordering")
+        self.assertEqual(result["ordering"]["see_calls"], 10)
+        for before, after in (("policy see", "policy mvv-lva"), ("ordering v1", "ordering v2"),
+                              ("losing_captures 3", "losing_captures 11"), ("see_calls 10", "see_calls -1"),
+                              ("see_calls 10", "see_calls nan"), ("losing_captures 3", "see_calls 3")):
+            with self.subTest(before=before), self.assertRaises(ValueError):
+                profiler.validate_result([s.replace(before, after) for s in lines], True, profiler.board_for("startpos"), 2, None, "capture-ordering")
+        for changed in (replies(False), lines[:-1] + [record, lines[-1]],
+                        [s.replace("enabled false", "enabled true") for s in lines]):
+            with self.assertRaises(ValueError):
+                profiler.validate_result(changed, True, profiler.board_for("startpos"), 2, None, "capture-ordering")
+        with self.assertRaises(ValueError):
+            profiler.validate_result(lines, True, profiler.board_for("startpos"), 2, None, "lmr")
+        lines = [s.replace("policy see", "policy mvv-lva") for s in lines]
+        with self.assertRaises(ValueError):
+            profiler.validate_result(lines, False, profiler.board_for("startpos"), 2, None, "capture-ordering")
+
     def test_opening_history_legality_and_repetition_are_checked(self):
         board = profiler.board_for("startpos moves e2e4 e7e5 g1f3")
         self.assertEqual(len(board.move_stack), 3)
@@ -92,18 +113,21 @@ class FakeEngine:
 
     def __init__(self, path):
         self.enabled, self.sent, self.transcript = False, [], []
+        self.capture_ordering = "mvv-lva"
         self.instances.append(self)
 
     def send(self, command):
         self.sent.append(command)
         if command.startswith("setoption name Late Move Reductions"):
             self.enabled = command.endswith("true")
+        if command.startswith("setoption name Capture Ordering"):
+            self.capture_ordering = command.rsplit(" ", 1)[-1]
 
     def until(self, prefix, timeout=30):
         if prefix == "uciok":
             lines = [f"option name {name} type {kind}" for name, kind in
                      (("Hash", "spin"), ("Threads", "spin"), ("EvalFile", "string"), ("Ponder", "check"),
-                      ("Time Policy", "combo"), ("Search Diagnostics", "check"), ("Late Move Reductions", "check"))] + ["uciok"]
+                      ("Time Policy", "combo"), ("Search Diagnostics", "check"), ("Late Move Reductions", "check"), ("Capture Ordering", "combo"))] + ["uciok"]
         elif prefix == "readyok":
             if self.failure == "preparation" and "ucinewgame" in self.sent:
                 self.transcript.append("info string preparing test root")
@@ -111,6 +135,9 @@ class FakeEngine:
             lines = ["readyok"]
         else:
             lines = replies(self.enabled, self.sent[-1].startswith("go nodes"))
+            if self.capture_ordering == "see" and self.sent[-1].startswith("go depth"):
+                lines = [line.replace("nodes 140", "nodes 80").replace("nodes 100 duration", "nodes 40 duration") for line in lines]
+            lines.insert(-2, f"info string ordering v1 policy {self.capture_ordering} see_calls {10 if self.capture_ordering == 'see' else 0} losing_captures {3 if self.capture_ordering == 'see' else 0}")
             if self.failure == "timeout":
                 self.transcript.extend(lines[:1]); raise TimeoutError("Injected timeout")
             if self.failure == "illegal": lines = [s.replace("e7e5", "e2e3") for s in lines]
@@ -183,6 +210,66 @@ class EvidenceTests(unittest.TestCase):
     def test_limits_and_timeout_reject_unbounded_or_conflicting_requests(self):
         for kwargs in ({"depth": 2, "nodes": 100}, {"nodes": 0}, {"depth": 13}, {"search_timeout": float("nan")}, {"search_timeout": 301}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError): self.run_profile(**kwargs)
+        self.assertFalse(FakeEngine.instances)
+
+    def test_capture_ordering_is_isolated_and_has_its_own_counters(self):
+        report = self.run_profile(depth=2, experiment="capture-ordering")
+        self.assertEqual(report["settings"]["off_on_values"], ("mvv-lva", "see"))
+        self.assertIn("setoption name Late Move Reductions value false", report["setup_commands"])
+        self.assertEqual([s["preparation_commands"][0] for s in report["samples"]],
+                         ["setoption name Capture Ordering value " + value for value in ("mvv-lva", "see", "see", "mvv-lva")])
+        self.assertEqual(report["summary"]["pairs"][0]["nodes_off_on"], [140, 80])
+        self.assertEqual(report["summary"]["policies"]["on"]["counters"], {"see_calls": 20, "losing_captures": 6})
+        self.assertTrue(all(not sample["result"]["lmr"]["enabled"] for sample in report["samples"]))
+
+    def test_capture_ordering_partial_timeout_is_preserved(self):
+        FakeEngine.failure = "timeout"
+        with self.assertRaises(TimeoutError): self.run_profile(nodes=100, experiment="capture-ordering")
+        report = json.loads(self.output.read_text())
+        self.assertEqual(report["settings"]["experiment"], "capture-ordering")
+        self.assertTrue(report["samples"][0]["output"])
+        self.assertNotIn("summary", report)
+
+    def test_lmr_profile_explicitly_pins_new_ordering_option(self):
+        report = self.run_profile(depth=2)
+        self.assertIn("setoption name Capture Ordering value mvv-lva", report["setup_commands"])
+        self.assertTrue(all(s["result"]["ordering"]["policy"] == "mvv-lva" for s in report["samples"]))
+
+    def test_legacy_lmr_binary_remains_supported_without_ordering_option(self):
+        class LegacyEngine(FakeEngine):
+            def until(self, prefix, timeout=30):
+                return [line for line in super().until(prefix, timeout)
+                        if not line.startswith(("option name Capture Ordering ", "info string ordering "))]
+        with patch.object(profiler, "Engine", LegacyEngine), patch.object(profiler, "resource_check", return_value={}):
+            report = profiler.profile(self.binary, self.network, self.positions, self.output, depth=2)
+        self.assertFalse(any("Capture Ordering" in command for command in report["setup_commands"]))
+        self.assertEqual(report["status"], "complete")
+
+    def test_advertised_ordering_diagnostics_cannot_disappear_in_lmr_profile(self):
+        class BrokenEngine(FakeEngine):
+            def until(self, prefix, timeout=30):
+                return [line for line in super().until(prefix, timeout)
+                        if not line.startswith("info string ordering ")]
+        with patch.object(profiler, "Engine", BrokenEngine), patch.object(profiler, "resource_check", return_value={}):
+            with self.assertRaisesRegex(ValueError, "exactly one capture-ordering"):
+                profiler.profile(self.binary, self.network, self.positions, self.output, depth=2)
+        report = json.loads(self.output.read_text())
+        self.assertEqual(report["status"], "invalid_or_interrupted")
+        self.assertTrue(report["samples"][0]["output"])
+        self.assertNotIn("summary", report)
+
+    def test_capture_ordering_requires_advertised_option(self):
+        class LegacyEngine(FakeEngine):
+            def until(self, prefix, timeout=30):
+                return [line for line in super().until(prefix, timeout)
+                        if not line.startswith("option name Capture Ordering ")]
+        with patch.object(profiler, "Engine", LegacyEngine), patch.object(profiler, "resource_check", return_value={}):
+            with self.assertRaisesRegex(ValueError, "Engine lacks option Capture Ordering"):
+                profiler.profile(self.binary, self.network, self.positions, self.output, depth=2, experiment="capture-ordering")
+        self.assertFalse(any(command.startswith("go ") for command in FakeEngine.instances[-1].sent))
+
+    def test_unknown_experiment_rejected_before_startup(self):
+        with self.assertRaises(ValueError): self.run_profile(experiment="both")
         self.assertFalse(FakeEngine.instances)
 
 

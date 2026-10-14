@@ -63,6 +63,7 @@ struct Fixture {
     nnue::Network network;
     Search search{network, 1};
     bool enable_lmr = false;
+    CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
 
     explicit Fixture(const std::filesystem::path& path) {
         std::string error;
@@ -74,6 +75,7 @@ struct Fixture {
         search.reset_stop();
         auto request = limits;
         request.late_move_reductions = request.late_move_reductions || enable_lmr;
+        if (capture_ordering == CaptureOrdering::see) request.capture_ordering = capture_ordering;
         return search.search(std::move(position), std::move(history), request, std::move(reporter));
     }
 };
@@ -234,10 +236,12 @@ void cancellation_and_pondering(Fixture& fixture) {
     const auto position = Position::start();
     auto limits = depth_limit();
     limits.late_move_reductions = fixture.enable_lmr;
+    limits.capture_ordering = fixture.capture_ordering;
     fixture.search.reset_stop();
     fixture.search.stop();
     auto result = fixture.search.search(position, {}, limits);
-    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr,
+    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr
+            && result.ordering.policy == fixture.capture_ordering,
             "A stop published before worker startup must not be lost");
 
     // No wall-clock racing is needed: the first completed iteration signals that
@@ -245,6 +249,7 @@ void cancellation_and_pondering(Fixture& fixture) {
     fixture.search.reset_stop();
     limits = {};
     limits.late_move_reductions = fixture.enable_lmr;
+    limits.capture_ordering = fixture.capture_ordering;
     limits.infinite = true;
     std::promise<void> iteration_started;
     auto started = iteration_started.get_future();
@@ -258,25 +263,28 @@ void cancellation_and_pondering(Fixture& fixture) {
     fixture.search.stop();
     result = pending.get();
     require(status == std::future_status::ready && legal(position, result.best)
-            && result.lmr.enabled == fixture.enable_lmr,
+            && result.lmr.enabled == fixture.enable_lmr && result.ordering.policy == fixture.capture_ordering,
             "Concurrent stop must preserve a completed iteration's legal result");
 
     // A hit can arrive before the search thread starts, just like immediate stop.
     limits = {};
     limits.late_move_reductions = fixture.enable_lmr;
+    limits.capture_ordering = fixture.capture_ordering;
     limits.ponder = true;
     limits.movetime_ms = 0;
     fixture.search.reset_stop();
     fixture.search.ponderhit();
     result = fixture.search.search(position, {}, limits);
-    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr,
+    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr
+            && result.ordering.policy == fixture.capture_ordering,
             "Ponderhit before worker startup must activate the exhausted clock");
 
     // Clearing that hit for a new ponder must suspend even a zero-millisecond
     // clock. The UCI layer separately holds the completed depth-limited result.
     limits.depth = 1;
     result = fixture.run(position, limits);
-    require(result.depth == 1 && result.lmr.enabled == fixture.enable_lmr,
+    require(result.depth == 1 && result.lmr.enabled == fixture.enable_lmr
+            && result.ordering.policy == fixture.capture_ordering,
             "Ponder clock must remain inactive before its own ponderhit");
 }
 
@@ -522,6 +530,87 @@ void missing_network() {
     require(rejected, "Search must not silently substitute evaluation for a missing NNUE network");
 }
 
+void capture_ordering_and_policy_switches(Fixture& fixture) {
+    const auto position = fen("6k1/8/4p3/3p4/8/8/8/3Q2K1 w - - 0 1");
+    const auto original_fen = position.fen();
+    const auto original_key = position.key();
+    fixture.search.clear();
+    const auto baseline = fixture.run(position, depth_limit(3));
+    require(baseline.ordering.policy == CaptureOrdering::mvv_lva
+            && baseline.ordering.see_calls == 0 && baseline.ordering.losing_captures == 0,
+            "The default policy must not compute exchange estimates");
+
+    auto limits = depth_limit(3);
+    limits.capture_ordering = CaptureOrdering::see;
+    const auto candidate = fixture.run(position, limits);
+    require(candidate.ordering.policy == CaptureOrdering::see && candidate.ordering.see_calls > 0
+            && candidate.ordering.losing_captures > 0
+            && candidate.ordering.losing_captures <= candidate.ordering.see_calls,
+            "The real search must exercise and account for losing-capture ordering");
+    require(candidate.score == baseline.score && legal(position, candidate.best),
+            "Ordering alone must preserve the completed minimax value in this regression");
+
+    // Switching a warm API object must isolate both TT and learned move order.
+    // These checks cover both directions without relying on UCI to clear state.
+    const auto restored = fixture.run(position, depth_limit(3));
+    require(restored.best == baseline.best && restored.score == baseline.score
+            && restored.nodes == baseline.nodes && restored.ordering.see_calls == 0,
+            "Returning from SEE must reproduce a fresh default search");
+    fixture.search.clear();
+    const auto fresh_candidate = fixture.run(position, limits);
+    require(fresh_candidate.best == candidate.best && fresh_candidate.score == candidate.score
+            && fresh_candidate.nodes == candidate.nodes,
+            "Entering SEE from a warm default search must match a fresh SEE search");
+
+    fixture.search.clear();
+    limits.diagnostics = true;
+    std::vector<SearchInfo> reports;
+    const auto traced = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+        auto replay = position;
+        for (const auto pv_move : info.pv) {
+            require(legal(replay, pv_move), "SEE ordering must preserve legal principal variations");
+            replay.make_move(pv_move);
+        }
+        reports.push_back(info);
+    });
+    require(traced.best == candidate.best && traced.score == candidate.score && traced.nodes == candidate.nodes
+            && traced.ordering.see_calls == candidate.ordering.see_calls,
+            "Diagnostics cannot change the SEE search tree or its counters");
+    require(position.fen() == original_fen && position.key() == original_key,
+            "The ordering experiment cannot mutate its caller's position");
+
+    // A negative exchange estimate must never discard a legal sacrifice,
+    // including when it is the only allowed root move.
+    limits.searchmoves = {move(position, "d1d5")};
+    fixture.search.clear();
+    const auto forced = fixture.run(position, limits);
+    require(forced.best == limits.searchmoves.front() && forced.depth == 3
+            && forced.ordering.losing_captures > 0,
+            "A restricted losing capture must still be searched to the requested depth");
+
+    // Interrupt the second iteration after exactly one additional visited node.
+    fixture.search.clear();
+    limits.searchmoves.clear();
+    limits.depth = 0;
+    limits.nodes = traced.diagnostics->iterations.front().nodes + 1;
+    const auto partial = fixture.run(position, limits);
+    require(partial.nodes == limits.nodes && partial.depth == 1
+            && partial.best == reports.front().pv.front()
+            && !partial.diagnostics->iterations.back().completed,
+            "Interrupted SEE work must retain the completed move and exact node accounting");
+
+    // Changing policy cannot erase an already published stop, including when
+    // both selective search and ordering settings change in the same request.
+    fixture.search.reset_stop();
+    fixture.search.stop();
+    limits.capture_ordering = CaptureOrdering::mvv_lva;
+    limits.late_move_reductions = true;
+    const auto stopped = fixture.search.search(position, {}, limits);
+    require(stopped.nodes == 0 && stopped.ordering.see_calls == 0 && stopped.lmr.enabled
+            && stopped.diagnostics->stop_reason == StopReason::external_stop,
+            "A combined policy transition must preserve a prepublished stop");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -544,10 +633,24 @@ int main(int argc, char** argv) {
         forecast_scope_and_clock_budgets(fixture);
         selective_search_verification_and_policy_switches(fixture);
         selective_special_positions(fixture);
+        capture_ordering_and_policy_switches(fixture);
         // Re-run the existing chess-rule cases with the experimental option on.
         // Their exact expectations remain mandatory despite selective search.
         fixture.search.clear();
         fixture.enable_lmr = true;
+        terminal_positions(fixture);
+        mate_at_draw_boundary(fixture);
+        quiescence_terminals_and_evasions(fixture);
+        repetition_history(fixture);
+        move_restrictions_and_table_bounds(fixture);
+        limits_and_principal_variations(fixture);
+        cancellation_and_pondering(fixture);
+        clock_limit(fixture);
+        // Isolate the ordering experiment from LMR while repeating mandatory
+        // chess-rule, cancellation, pondering, and elapsed-clock behavior.
+        fixture.search.clear();
+        fixture.enable_lmr = false;
+        fixture.capture_ordering = CaptureOrdering::see;
         terminal_positions(fixture);
         mate_at_draw_boundary(fixture);
         quiescence_terminals_and_evasions(fixture);

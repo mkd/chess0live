@@ -41,7 +41,23 @@ def search_diagnostics(lines):
     assert lmr["enabled"] in ("true", "false")
     assert int(lmr["researches"]) <= int(lmr["reductions"])
     assert int(lmr["fail_lows"]) + int(lmr["verified_cutoffs"]) <= int(lmr["researches"])
+    ordering_lines = [line for line in lines if line.startswith("info string ordering v1 ")]
+    assert len(ordering_lines) == 1
+    fields = ordering_lines[0].split()[4:]
+    ordering = dict(zip(fields[::2], fields[1::2]))
+    assert ordering["policy"] in ("mvv-lva", "see")
+    assert 0 <= int(ordering["losing_captures"]) <= int(ordering["see_calls"])
+    if ordering["policy"] == "mvv-lva":
+        assert ordering["see_calls"] == ordering["losing_captures"] == "0"
     return summary, iterations
+
+
+def completed_signature(lines):
+    """Ignore speed/timing; compare the final completed tree and its result."""
+    fields = [line.split() for line in lines if line.startswith("info depth ")][-1]
+    score_index = fields.index("score")
+    return (bestmove(lines), fields[fields.index("nodes") + 1],
+            fields[score_index + 1:score_index + 3], fields[fields.index("pv") + 1:])
 
 
 with Engine(Path(sys.argv[1]).resolve()) as engine:
@@ -50,6 +66,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
     assert "option name Time Policy type combo default classic var classic var forecast" in handshake
     assert "option name Search Diagnostics type check default false" in handshake
     assert "option name Late Move Reductions type check default false" in handshake
+    assert "option name Capture Ordering type combo default mvv-lva var mvv-lva var see" in handshake
     engine.send("position startpos")
     engine.send("perft 4")
     assert engine.until("nodes ")[-1].split()[1] == "197281"
@@ -78,6 +95,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert bestmove(default_output) == "e2e4"
         assert not any(line.startswith("info string search-") for line in default_output)
         assert not any(line.startswith("info string lmr ") for line in default_output)
+        assert not any(line.startswith("info string ordering ") for line in default_output)
 
         engine.send("setoption name Time Policy value forecast")
         engine.send("setoption name Search Diagnostics value true")
@@ -99,6 +117,28 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert any(line.startswith("info string lmr v1 enabled true reductions ")
                    and int(line.split()[7]) > 0 for line in selective_output)
         engine.send("setoption name Late Move Reductions value false")
+        engine.send("setoption name Time Policy value classic")
+        engine.send("position fen 6k1/8/4p3/3p4/8/8/8/3Q2K1 w - - 0 1")
+        engine.send("setoption name Clear Hash")
+        engine.send("go depth 3")
+        ordering_baseline = engine.until("bestmove ")
+        search_diagnostics(ordering_baseline)
+        engine.send("setoption name Capture Ordering value see")
+        engine.send("setoption name Capture Ordering value invalid")
+        assert "Capture Ordering expects" in engine.until("info string error:")[-1]
+        engine.send("go depth 3")
+        ordering_candidate = engine.until("bestmove ")
+        search_diagnostics(ordering_candidate)
+        assert any(line.startswith("info string ordering v1 policy see see_calls ")
+                   and int(line.split()[7]) > 0 and int(line.split()[9]) > 0
+                   for line in ordering_candidate)
+        engine.send("setoption name Capture Ordering value mvv-lva")
+        engine.send("go depth 3")
+        ordering_restored = engine.until("bestmove ")
+        search_diagnostics(ordering_restored)
+        assert completed_signature(ordering_restored) == completed_signature(ordering_baseline)
+        engine.send("position startpos")
+        engine.send("setoption name Time Policy value forecast")
         engine.send("go wtime 0 btime 1000 winc 2000 binc 2000")
         summary, iterations = search_diagnostics(engine.until("bestmove "))
         assert summary["forecast_active"] == "true" and summary["stop_reason"] == "hard_time"
@@ -114,6 +154,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         disabled_output = engine.until("bestmove ")
         assert not any(line.startswith("info string search-") for line in disabled_output)
         assert not any(line.startswith("info string lmr ") for line in disabled_output)
+        assert not any(line.startswith("info string ordering ") for line in disabled_output)
         for _ in range(5):
             engine.send("go infinite")
             engine.send("isready")

@@ -22,6 +22,8 @@ namespace chess0live {
 class Position;
 namespace nnue { class Network; }
 
+enum class CaptureOrdering { mvv_lva, see };
+
 /** Limits are intersections: the first exhausted hard limit stops the search.
  * Negative clock values mean unspecified; zero is a real exhausted clock.
  * Depth and nodes zero mean unlimited. Explicit movetime takes precedence over
@@ -43,6 +45,7 @@ struct SearchLimits {
     TimePolicy time_policy = TimePolicy::classic;
     bool diagnostics = false;
     bool late_move_reductions = false;
+    CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Empty means all legal moves; entries must be generated for the root. */
     std::vector<Move> searchmoves;
 };
@@ -99,6 +102,16 @@ struct LateMoveStatistics {
     std::uint64_t verified_cutoffs = 0;
 };
 
+/** Rankings performed, including work later interrupted by a search limit.
+ * TT moves and promotions retain their priority without calling SEE. Counters
+ * are zero in the default MVV-LVA mode; no capture is pruned by either policy.
+ */
+struct OrderingStatistics {
+    CaptureOrdering policy = CaptureOrdering::mvv_lva;
+    std::uint64_t see_calls = 0;
+    std::uint64_t losing_captures = 0;
+};
+
 struct SearchResult {
     Move best;
     Move ponder;
@@ -107,6 +120,7 @@ struct SearchResult {
     std::uint64_t nodes = 0;
     std::optional<SearchDiagnostics> diagnostics;
     LateMoveStatistics lmr;
+    OrderingStatistics ordering;
 };
 
 /** Independent, single-worker iterative deepening search.

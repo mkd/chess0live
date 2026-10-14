@@ -8,6 +8,7 @@
  */
 #include "chess0live/search.hpp"
 
+#include "chess0live/exchange.hpp"
 #include "chess0live/nnue.hpp"
 #include "chess0live/position.hpp"
 #include "chess0live/search_policy.hpp"
@@ -150,6 +151,7 @@ struct Search::Impl {
     bool aborted = false;
     StopReason stop_reason = StopReason::depth_limit;
     LateMoveStatistics lmr;
+    OrderingStatistics ordering;
     bool cache_policy_valid = false;
 
     explicit Impl(const nnue::Network& weights) : network(weights), evaluator(weights) {}
@@ -278,7 +280,36 @@ struct Search::Impl {
         return history_score[static_cast<unsigned>(position.turn())][move.from][move.to];
     }
 
-    void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply) const {
+    void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply) {
+        if (limits.capture_ordering == CaptureOrdering::see) {
+            struct RankedMove { Move move; int score; };
+            std::vector<RankedMove> ranked;
+            ranked.reserve(moves.size());
+            // Compute each exchange once, never in the sort comparator. Only
+            // losing ordinary captures change rank: they follow every quiet
+            // history score, while TT moves and all promotions retain priority.
+            for (const auto move : moves) {
+                auto score = ordering_score(position, move, tt_move, ply);
+                if (move != tt_move && move.is_capture() && move.promotion == PieceType::none) {
+                    ++ordering.see_calls;
+                    if (static_exchange(position, move) < 0) {
+                        ++ordering.losing_captures;
+                        score -= 2000000;
+                    }
+                }
+                ranked.push_back({move, score});
+            }
+            std::sort(ranked.begin(), ranked.end(), [](const RankedMove& left, const RankedMove& right) {
+                if (left.score != right.score) return left.score > right.score;
+                if (left.move.from != right.move.from) return left.move.from < right.move.from;
+                if (left.move.to != right.move.to) return left.move.to < right.move.to;
+                return left.move.promotion < right.move.promotion;
+            });
+            std::transform(ranked.begin(), ranked.end(), moves.begin(),
+                           [](const RankedMove& ranked_move) { return ranked_move.move; });
+            return;
+        }
+        // Preserve the baseline's ordering and ties exactly when SEE is off.
         std::sort(moves.begin(), moves.end(), [&](Move left, Move right) {
             const auto left_score = ordering_score(position, left, tt_move, ply);
             const auto right_score = ordering_score(position, right, tt_move, ply);
@@ -484,7 +515,9 @@ struct Search::Impl {
         // hard deadline must age from before that work. An explicit clear/new
         // game invalidates cache_policy_valid and avoids this work inside go.
         const auto search_started_ns = now_ns();
-        if (cache_policy_valid && request.late_move_reductions != limits.late_move_reductions) clear();
+        if (cache_policy_valid
+            && (request.late_move_reductions != limits.late_move_reductions
+                || request.capture_ordering != limits.capture_ordering)) clear();
         limits = request;
         cache_policy_valid = true;
         time = allocate_time(position, limits);
@@ -495,6 +528,8 @@ struct Search::Impl {
         stop_reason = StopReason::depth_limit;
         lmr = {};
         lmr.enabled = limits.late_move_reductions;
+        ordering = {};
+        ordering.policy = limits.capture_ordering;
         evaluator.reset();
         ++generation;
         for (auto& side : history_score)
@@ -525,6 +560,7 @@ struct Search::Impl {
         const auto finish = [&]() {
             result.nodes = nodes;
             result.lmr = lmr;
+            result.ordering = ordering;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;

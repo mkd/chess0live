@@ -76,11 +76,11 @@ ifneq ($(SYSROOT),)
   LDFLAGS += --sysroot="$(SYSROOT)"
 endif
 
-SOURCES := src/position.cpp src/nnue.cpp src/search.cpp src/main.cpp
+SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/main.cpp
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -111,8 +111,11 @@ $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) -o "$@"
 
-$(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/search.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/search.o $(LDFLAGS) -o "$@"
+$(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(LDFLAGS) -o "$@"
+
+$(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) -o "$@"
 
 $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/chess0live/time_management.hpp $(BUILD)/toolchain.ok
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) -o "$@"
@@ -137,7 +140,10 @@ test-time: $(BUILD)/time-management-test$(EXE)
 test-search-policy: $(BUILD)/search-policy-test$(EXE)
 	"$(BUILD)/search-policy-test$(EXE)"
 
-test: test-core test-nnue test-search test-search-policy test-time
+test-exchange: $(BUILD)/exchange-test$(EXE)
+	"$(BUILD)/exchange-test$(EXE)"
+
+test: test-core test-nnue test-exchange test-search test-search-policy test-time
 
 # Optional independent referee checks: install requirements-match.txt first.
 # Keep the engine's ordinary correctness suite free of third-party Python deps.
@@ -153,6 +159,8 @@ test-profile:
 
 test-profile-lmr:
 	$(PYTHON) tests/profile_lmr_test.py
+
+test-profile-ordering: test-profile-lmr
 
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
@@ -173,6 +181,7 @@ help:
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
 	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
+	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'

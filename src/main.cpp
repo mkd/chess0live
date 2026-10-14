@@ -131,6 +131,7 @@ private:
     TimePolicy time_policy_ = TimePolicy::classic;
     bool diagnostics_ = false;
     bool late_move_reductions_ = false;
+    CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     std::thread worker_;
     std::mutex output_mutex_;
     std::mutex result_mutex_;
@@ -156,6 +157,7 @@ private:
         output("option name Time Policy type combo default classic var classic var forecast");
         output("option name Search Diagnostics type check default false");
         output("option name Late Move Reductions type check default false");
+        output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("uciok");
     }
 
@@ -242,6 +244,12 @@ private:
             // actual search policy changes, including calls outside this UCI UI.
             return;
         }
+        if (name == "Capture Ordering") {
+            if (value == "mvv-lva") capture_ordering_ = CaptureOrdering::mvv_lva;
+            else if (value == "see") capture_ordering_ = CaptureOrdering::see;
+            else output("info string error: Capture Ordering expects mvv-lva or see");
+            return; // Search also isolates the cache for direct API callers.
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -323,6 +331,14 @@ private:
         }
         {
             std::ostringstream line;
+            line << "info string ordering v1 policy "
+                 << (result.ordering.policy == CaptureOrdering::mvv_lva ? "mvv-lva" : "see")
+                 << " see_calls " << result.ordering.see_calls
+                 << " losing_captures " << result.ordering.losing_captures;
+            output(line.str());
+        }
+        {
+            std::ostringstream line;
             line << std::boolalpha << "info string lmr v1 enabled " << result.lmr.enabled
                  << " reductions " << result.lmr.reductions << " researches " << result.lmr.researches
                  << " fail_lows " << result.lmr.fail_lows
@@ -361,6 +377,7 @@ private:
         limits.time_policy = time_policy_;
         limits.diagnostics = diagnostics_;
         limits.late_move_reductions = late_move_reductions_;
+        limits.capture_ordering = capture_ordering_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};
         for (std::size_t i = 1; i < tokens.size(); ++i) {
             const auto& key = tokens[i];

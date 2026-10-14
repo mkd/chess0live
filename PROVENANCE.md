@@ -59,3 +59,13 @@ testing dependency, not part of the engine. The opening selection in
 The GNU GPL text in [LICENSE](LICENSE) is the unmodified FSF license text from
 <https://www.gnu.org/licenses/gpl-3.0.txt>. Original project sources are
 GPL-3.0-or-later, copyright Claudio M. Camacho.
+
+## Capture-ordering experiment
+
+The exchange model and its tests are independently authored. Conceptual context
+was checked on October 14, 2026 in the official Stockfish
+[move-ordering terminology](https://official-stockfish.github.io/docs/stockfish-wiki/Terminology.html#move-ordering)
+and the abstract of Fritz Reul's
+[Static Exchange Evaluation with alpha-beta Approach (2010)](https://doi.org/10.3233/ICG-2010-33102).
+No upstream engine implementation or test suite was copied. The local legal-LVA
+model is a limited material estimate, used only to change capture priority.

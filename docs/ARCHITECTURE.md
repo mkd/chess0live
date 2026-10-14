@@ -54,6 +54,13 @@ Changing reduction policy invalidates transposition bounds and learned ordering
 state through the search API, including callers outside the UCI controller.
 Keep the option off until strength qualification supports default promotion.
 
+The separate [capture-ordering experiment](MOVE_ORDERING.md) introduces a small
+position-dependent exchange module. It reads a Position into private bitboards,
+estimates a deterministic legal least-valuable-attacker sequence, and changes
+only move priority. It never modifies Position, NNUE, search depth, or move
+membership. Experimental ranks are computed once per move; the baseline
+comparator remains selectable. Search cache isolation covers both policy axes.
+
 The initial core has no variant framework, opening book, or puzzle service.
 Modularity means clear data and responsibility boundaries, not runtime machinery
 for extensions that do not yet exist.
