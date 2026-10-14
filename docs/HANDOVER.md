@@ -49,6 +49,14 @@ The owner is testing with Cute Chess while development continues. Snapshot
 `0.1-dev-4b8b35d` is preserved under ignored `build/test-baselines/`, including
 its own network and manifest. Read [manual testing](MANUAL_TESTING.md) and do not
 replace that copy during ordinary rebuilds. GUI feedback does not block work.
+The owner's [first two games](reports/2026-10-14-cutechess.md), submitted October
+14, replay legally to threefold repetition and checkmate. All 171 positions
+also passed legal-move and exact NNUE oracle checks. The owner reports working
+GUI integration; exact runtime options and GUI version were not captured.
+Prioritize an instrumented time-allocation experiment: long opening iterations
+spent much of the clock and left the black game in severe time pressure. No
+deadline, mate-reporting, or evaluator defect was reproduced. Treat these games
+as exploratory feedback, not a calibrated strength test or held-out suite.
 
 Next work should expand the predeclared opening sample and measure search
 improvements against the frozen comparison binary. Investigate incremental feature-list

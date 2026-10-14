@@ -1,0 +1,26 @@
+[Event "?"]
+[Site "?"]
+[Date "2026.10.14"]
+[Round "?"]
+[White "chess0live"]
+[Black "Gargantua 2.1"]
+[Result "1/2-1/2"]
+[ECO "C02"]
+[GameDuration "00:03:40"]
+[GameEndTime "2026-10-14T11:26:53.694 GMT+3"]
+[GameStartTime "2026-10-14T11:23:13.478 GMT+3"]
+[Opening "French"]
+[PlyCount "26"]
+[TimeControl "180+2"]
+[Variation "Advance, Euwe Variation"]
+
+1. e4 {+0.20/8 6.8s} e6 {-0.72/19 8.0s} 2. d4 {+0.44/7 5.8s} d5 {-0.87/22 7.8s}
+3. e5 {+0.38/7 11s} c5 {-0.93/21 7.6s} 4. c3 {+0.39/7 9.6s} Nc6 {-0.75/22 7.4s}
+5. Nf3 {+0.29/7 7.6s} Bd7 {-0.70/21 7.3s} 6. Bd3 {+0.31/7 10s}
+cxd4 {0.00/24 7.1s} 7. cxd4 {-0.15/7 11s} Qb6 {+0.17/23 6.9s}
+8. Be2 {-0.02/7 11s} Nh6 {+0.25/24 6.8s} 9. Nc3 {-0.02/7 9.3s}
+Nf5 {+0.25/25 6.6s} 10. Na4 {0.00/7 8.0s} Qa5+ {0.00/26 6.4s}
+11. Nc3 {0.00/7 4.0s} Qb6 {0.00/28 6.3s} 12. Na4 {0.00/7 22s}
+Qa5+ {0.00/28 6.1s} 13. Nc3 {0.00/8 14s}
+Qb6 {0.00/29 6.0s, Draw by 3-fold repetition} 1/2-1/2
+

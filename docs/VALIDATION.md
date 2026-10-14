@@ -59,6 +59,20 @@ opening suite, game records, PGNs, raw protocol logs, and summary. The manifest
 records source labels, runner/binary/network hashes, platform and actual options.
 See [match testing](MATCHES.md) for the separate opponent build and its PGO flags.
 
+## Owner-run GUI feedback — October 14, 2026
+
+Two newly supplied 180+2 Cute Chess games against Gargantua 2.1 completed with a
+draw as White and a checkmate loss as Black. The owner reports working UCI GUI
+integration. Independent replay verified all 169 plies and both terminations;
+the frozen snapshot's legal move sets and native/scalar/pinned-SF19 NNUE stages
+and raw/wrapped outputs agreed at all 171 recorded boards, including initial
+positions and repeats. The frozen snapshot's binary hash remains unchanged.
+
+The [feedback report](reports/2026-10-14-cutechess.md) preserves PGNs, digests,
+reproduction findings, metadata limits, and next hypotheses. Time allocation
+deserves further testing; no immediate engine correctness defect was reproduced.
+These two exploratory games establish neither a rating nor a strength gain.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

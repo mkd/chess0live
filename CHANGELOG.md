@@ -30,5 +30,8 @@ Versions describe tested deliverables. Research objectives are not results.
   work, preserve raw evidence, and report observed timing variability.
 - Recorded an inconclusive NNUE buffer-reuse experiment; the candidate was not
   retained and no speed or strength gain is claimed.
+- Recorded the first owner-run Cute Chess games, verified all 169 plies and
+  legal-move/NNUE agreement at 171 positions, and documented clock-allocation
+  findings. No runtime change or strength claim follows from these two games.
 
 No release or strength rating has been established yet.

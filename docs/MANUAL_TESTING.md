@@ -47,8 +47,10 @@ Its network SHA-256 is recorded in [NNUE](NNUE.md) and the bundle manifest.
 
 The bundle passed a UCI handshake, evaluation, and legal search when launched
 from an unrelated directory, proving it finds its adjacent network. Cute Chess
-GUI behavior itself remains subject to your test. Setup fields and executable
-browsing behavior were checked against the official
+GUI behavior received its first owner confirmation in two games on October 14;
+see the [replayed games and findings](reports/2026-10-14-cutechess.md). This is
+initial integration feedback, not exhaustive GUI validation. Setup fields and
+executable browsing behavior were checked against the official
 [Cute Chess dialog source](https://github.com/cutechess/cutechess/blob/5e84232be4546aaedc9d87a96c91867a1da06ada/projects/gui/src/engineconfigurationdlg.cpp)
 and [UI definition](https://github.com/cutechess/cutechess/blob/5e84232be4546aaedc9d87a96c91867a1da06ada/projects/gui/ui/engineconfigdlg.ui).
 

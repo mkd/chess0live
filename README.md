@@ -74,6 +74,9 @@ set `EvalFile` to its absolute path.
 
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
+The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
+replay and additional NNUE parity checks; they identify clock allocation and
+search efficiency as priorities without establishing an Elo rating.
 
 See [NNUE compatibility and evidence](docs/NNUE.md). UCI centipawn display uses
 SF19's normalization for its network scale; it is not a calibrated chess0live
