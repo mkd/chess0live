@@ -53,15 +53,29 @@ The owner's [first two games](reports/2026-10-14-cutechess.md), submitted Octobe
 14, replay legally to threefold repetition and checkmate. All 171 positions
 also passed legal-move and exact NNUE oracle checks. The owner reports working
 GUI integration; exact runtime options and GUI version were not captured.
-Prioritize an instrumented time-allocation experiment: long opening iterations
-spent much of the clock and left the black game in severe time pressure. No
-deadline, mate-reporting, or evaluator defect was reproduced. Treat these games
+Long opening iterations spent much of the clock and left the black game in
+severe time pressure. No deadline, mate-reporting, or evaluator defect was reproduced. Treat these games
 as exploratory feedback, not a calibrated strength test or held-out suite.
 
-Next work should expand the predeclared opening sample and measure search
-improvements against the frozen comparison binary. Investigate incremental feature-list
-maintenance, faster sliding attacks, selective search, and worker parallelism as
-separate hypotheses; no Elo gain follows automatically from adding them. Preserve
+The current work is **Phase 2: search efficiency and time management**; keep the
+[roadmap](ROADMAP.md) and user updates explicit about phase and step. Root-level
+diagnostics, an alternating clock-policy profiler, and per-engine match options
+support the [time-management experiment](TIME_MANAGEMENT.md). `Time Policy` stays
+`classic` by default; `forecast` is opt-in and `Search Diagnostics` defaults off.
+The first soft-target forecast gate was rejected after it stopped a full depth
+earlier on all 18 short-clock development comparisons. The narrower candidate
+uses the hard deadline for prediction and retains classic soft stopping.
+Do not treat reduced thinking time as a strength gain or enable diagnostics in
+real matches. Explicit limits and all ponder requests exclude forecast behavior.
+
+The new 32-root `openings-time-validation.json` is original, legal, and disjoint
+from the existing 24 roots. It remains held out until the predeclared longer
+match; no overnight job is scheduled. Use the frozen candidate and baseline
+with equal settings and swapped colors, preserving options and artifact hashes.
+
+Next investigate selective search and move ordering as separate hypotheses.
+Incremental feature-list maintenance, faster sliding attacks, and worker
+parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer
 integration, multi-platform runtime execution, and any public strength claim
 remain open. Avoid marking the overall world-leading-strength objective complete.

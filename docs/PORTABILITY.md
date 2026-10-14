@@ -27,6 +27,13 @@ a compiler or a successful cross-build does not establish runtime correctness.
 Use `native-tested`, `VM-tested`, `emulator-tested`, `cross-build-only`, or
 `unavailable` evidence labels with exact versions and commands.
 
+On October 14, the Phase 2 diagnostics and hard-deadline forecast revision
+rebuilt and linked successfully for Linux ARM64, Linux x86-64, and Windows
+x86-64 with these same toolchains and commands. File inspection again identified
+the intended ELF64/PE32+ architectures. No foreign executable was run; their
+status remains `cross-build-only`. Native ARM64 normal, scalar, and sanitizer
+suites passed. RISC-V64 and Windows ARM64 remain unverified.
+
 The successful commands on this host were:
 
 ```sh

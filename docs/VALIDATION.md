@@ -73,6 +73,38 @@ reproduction findings, metadata limits, and next hypotheses. Time allocation
 deserves further testing; no immediate engine correctness defect was reproduced.
 These two exploratory games establish neither a rating nor a strength gain.
 
+## Phase 2 time-policy checkpoint — October 14, 2026
+
+The opt-in hard-deadline forecast candidate passed native `make -j2 test`,
+`make -j2 SIMD=scalar test`, and `make -j2 MODE=sanitize test` on macOS ARM64.
+These include the real-network 537-position incremental/full-refresh check,
+perft/rule/state tests, deterministic forecast boundaries, interrupted-iteration
+accounting, explicit-limit/ponder exclusions, and UCI option/lifecycle checks.
+The evaluator and position implementations are unchanged; the full separate
+Stockfish parity corpus was not rerun for this time-control-only change.
+
+Tool checks passed: 15 profiler tests, 17 paired-statistics tests, 17 match-runner
+tests, and 11 equal-work comparison tests. New match checks verify per-engine
+options, advertised types, protected common settings, and frozen configuration.
+The profiler checks raw diagnostics, exact node totals, partial failures,
+artifact stability, resource changes, and timing-accounting consistency.
+
+Default classic search retained exactly the frozen `0.1-dev-4b8b35d` signatures
+at all 24 fixed-depth comparisons, including warmups (three roots, depth 5,
+three measured repetitions per binary). Timing variation does not establish a
+throughput improvement. The optional forecast changes clock allocation, so
+clock-managed profiles are assessed for completed depth and moves as well as
+time and interrupted work; they do not require identical final results.
+
+The [experiment record](TIME_MANAGEMENT.md) separates the rejected soft-target
+candidate from its hard-deadline revision and preserves both evidence sets.
+The two four-game operational smokes completed without errors or time forfeits.
+Independent replay verified 577 legal plies for the first and 467 for the revision;
+each produced two checkmates and two threefold draws. The revision scored
+2W/2D/0L, versus the first candidate's 1W/2D/1L, on the same two development pairs.
+Correctness and short operational matches are not a strength acceptance gate.
+Classic remains the default; the longer held-out blitz test has not run.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

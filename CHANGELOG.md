@@ -35,5 +35,13 @@ Versions describe tested deliverables. Research objectives are not results.
   findings. No runtime change or strength claim follows from these two games.
 - Added validated per-engine match options, frozen in experiment records, while
   preserving common resource settings and disabling search diagnostics in games.
+- Added opt-in root-iteration diagnostics and an alternating clock-policy
+  profiler with raw output, exact work accounting, and reproducible inputs.
+- Added an experimental hard-deadline forecast policy; classic remains the
+  default. Rejected its earlier soft-target gate after it stopped too early.
+- Added a 32-opening held-out time-policy suite, documented both candidate
+  results, and prepared a longer blitz test without starting or scheduling it.
+- Added a phase roadmap and checkpoints for continuing development; no playing
+  strength improvement is claimed from the short profiles or smoke games.
 
 No release or strength rating has been established yet.

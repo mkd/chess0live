@@ -9,11 +9,13 @@
 #pragma once
 
 #include "chess0live/types.hpp"
+#include "chess0live/time_management.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace chess0live {
@@ -38,6 +40,8 @@ struct SearchLimits {
     bool infinite = false;
     bool ponder = false;
     int move_overhead_ms = 20;
+    TimePolicy time_policy = TimePolicy::classic;
+    bool diagnostics = false;
     /** Empty means all legal moves; entries must be generated for the root. */
     std::vector<Move> searchmoves;
 };
@@ -51,12 +55,43 @@ struct SearchInfo {
     std::vector<Move> pv;
 };
 
+enum class StopReason {
+    external_stop, node_limit, hard_time, soft_time, forecast,
+    depth_limit, mate_limit, terminal, draw
+};
+
+/** Root-level measurements, never a per-node event stream. A failed aspiration
+ * window is part of its enclosing iteration. An interrupted iteration records
+ * all discarded work even though the returned move comes from the last complete
+ * iteration. Durations use a monotonic clock at greater precision than UCI time.
+ */
+struct IterationDiagnostics {
+    int depth = 0;
+    bool completed = false;
+    std::uint64_t nodes = 0;
+    double duration_ms = 0;
+    double elapsed_ms = 0;
+};
+
+struct SearchDiagnostics {
+    TimePolicy policy = TimePolicy::classic;
+    bool forecast_active = false;
+    StopReason stop_reason = StopReason::depth_limit;
+    double elapsed_ms = 0;
+    double soft_ms = 0;
+    double hard_ms = 0;
+    double target_ms = 0;
+    double predicted_next_ms = 0;
+    std::vector<IterationDiagnostics> iterations;
+};
+
 struct SearchResult {
     Move best;
     Move ponder;
     int score = 0;
     int depth = 0;
     std::uint64_t nodes = 0;
+    std::optional<SearchDiagnostics> diagnostics;
 };
 
 /** Independent, single-worker iterative deepening search.

@@ -292,6 +292,121 @@ void clock_limit(Fixture& fixture) {
             "A zero remaining clock must stop immediately with a legal fallback");
 }
 
+void root_diagnostics(Fixture& fixture) {
+    const auto position = Position::start();
+    auto limits = depth_limit(2);
+    fixture.search.clear();
+    const auto plain = fixture.run(position, limits);
+    require(!plain.diagnostics, "Diagnostics must not be allocated by default");
+    fixture.search.clear();
+    limits.diagnostics = true;
+    std::vector<SearchInfo> reports;
+    const auto traced = fixture.run(position, limits, {}, [&](const SearchInfo& info) { reports.push_back(info); });
+    require(traced.best == plain.best && traced.score == plain.score && traced.nodes == plain.nodes,
+            "Root tracing cannot change a fixed-depth search tree or returned move");
+    require(traced.diagnostics && traced.diagnostics->stop_reason == StopReason::depth_limit,
+            "Fixed-depth trace must identify its stop reason");
+    const auto& trace = *traced.diagnostics;
+    require(trace.iterations.size() == 2 && reports.size() == 2, "Every completed iteration must be measured");
+    std::uint64_t nodes = 0;
+    double duration = 0;
+    for (std::size_t i = 0; i < trace.iterations.size(); ++i) {
+        const auto& iteration = trace.iterations[i];
+        nodes += iteration.nodes;
+        duration += iteration.duration_ms;
+        require(iteration.completed && iteration.depth == int(i) + 1 && iteration.duration_ms >= 0,
+                "Completed trace depth and duration must be valid");
+        require(nodes == reports[i].nodes, "Iteration deltas must reconcile with cumulative UCI node counts");
+        require(iteration.elapsed_ms >= duration, "Elapsed time must include all measured iteration costs");
+    }
+    require(nodes == traced.nodes && trace.elapsed_ms >= trace.iterations.back().elapsed_ms,
+            "Summary must include every node and completed iteration time");
+
+    // A deterministic node cap allows one completed depth and then interrupts
+    // the next iteration. Record those discarded nodes without changing bestmove.
+    fixture.search.clear();
+    limits.depth = 0;
+    limits.nodes = trace.iterations.front().nodes + 1;
+    const auto interrupted = fixture.run(position, limits);
+    const auto& partial = *interrupted.diagnostics;
+    require(partial.stop_reason == StopReason::node_limit && interrupted.nodes == limits.nodes,
+            "Node-limited trace must account for the exact interrupted work");
+    require(interrupted.depth == 1 && interrupted.best == reports.front().pv.front(),
+            "Aborted depth must preserve the last completed result");
+    require(partial.iterations.size() == 2 && partial.iterations.front().completed
+            && !partial.iterations.back().completed && partial.iterations.back().nodes == 1,
+            "The one interrupted attempt must appear as the final iteration");
+    require(partial.iterations.front().nodes + partial.iterations.back().nodes == interrupted.nodes,
+            "Completed and discarded work must sum to the final node total");
+
+    limits = depth_limit();
+    limits.diagnostics = true;
+    const auto mate = fixture.run(fen("7k/6Q1/6K1/8/8/8/8/8 b - - 100 51"), limits);
+    require(mate.diagnostics->stop_reason == StopReason::terminal
+            && mate.diagnostics->iterations.empty() && mate.nodes == 0 && mate.depth == 0,
+            "A terminal root must not invent an iteration");
+    const auto draw = fixture.run(fen("7k/8/5K2/8/8/8/8/8 w - - 0 1"), limits);
+    require(draw.diagnostics->stop_reason == StopReason::draw && draw.diagnostics->iterations.empty(),
+            "A drawn root must report its reason without invented search work");
+}
+
+void forecast_scope_and_clock_budgets(Fixture& fixture) {
+    const auto position = Position::start();
+    SearchLimits base;
+    base.time_policy = TimePolicy::forecast;
+    base.diagnostics = true;
+    base.wtime_ms = 5000;
+    base.btime_ms = 10000;
+    base.winc_ms = 2000;
+    base.binc_ms = 4000;
+    // Stop before entering the search tree to inspect policy selection and
+    // clock allocation deterministically, without sleeping or doing long work.
+    const auto inspect = [&](Position root, const SearchLimits& limits) {
+        fixture.search.reset_stop();
+        fixture.search.stop();
+        return fixture.search.search(root, {}, limits);
+    };
+    auto result = inspect(position, base);
+    require(result.diagnostics->forecast_active && result.diagnostics->policy == TimePolicy::forecast
+            && result.diagnostics->stop_reason == StopReason::external_stop,
+            "Only an ordinary clock-managed forecast request enables prediction");
+    require(result.nodes == 0 && result.diagnostics->iterations.empty(), "Prepublished stop must do no search work");
+    const auto white_soft = result.diagnostics->soft_ms;
+    auto black = position;
+    black.make_move(move(black, "e2e4"));
+    const auto black_result = inspect(black, base);
+    require(black_result.diagnostics->soft_ms > white_soft, "Use the moving side's clock and increment");
+    require(result.diagnostics->hard_ms <= 4980 && black_result.diagnostics->hard_ms <= 9980,
+            "Neither side can spend its next increment before completing a move");
+
+    for (int exclusion = 0; exclusion < 8; ++exclusion) {
+        auto limits = base;
+        switch (exclusion) {
+            case 0: limits.movetime_ms = 100; break;
+            case 1: limits.depth = 2; break;
+            case 2: limits.nodes = 100; break;
+            case 3: limits.mate = 2; break;
+            case 4: limits.infinite = true; break;
+            case 5: limits.ponder = true; break;
+            case 6: limits.wtime_ms = -1; break;
+            case 7: limits.time_policy = TimePolicy::classic; break;
+        }
+        require(!inspect(position, limits).diagnostics->forecast_active,
+                "Explicit limits, ponder, absent moving-side clock, and classic policy exclude forecasting");
+    }
+
+    auto exhausted = base;
+    exhausted.wtime_ms = 0;
+    result = fixture.run(position, exhausted);
+    require(result.diagnostics->stop_reason == StopReason::hard_time && result.nodes == 0
+            && legal(position, result.best) && result.diagnostics->hard_ms == 0,
+            "Forecast cannot spend increment on an exhausted current clock");
+    auto tiny = base;
+    tiny.wtime_ms = 21;
+    require(inspect(position, tiny).diagnostics->hard_ms == 1,
+            "A large increment cannot raise the deadline above the remaining spendable millisecond");
+}
+
 void missing_network() {
     nnue::Network empty_network;
     Search search(empty_network, 1);
@@ -319,6 +434,8 @@ int main(int argc, char** argv) {
         limits_and_principal_variations(fixture);
         cancellation_and_pondering(fixture);
         clock_limit(fixture);
+        root_diagnostics(fixture);
+        forecast_scope_and_clock_budgets(fixture);
         std::cout << "Search correctness checks passed\n";
     } catch (const std::exception& error) {
         std::cerr << "Search test failed: " << error.what() << '\n';

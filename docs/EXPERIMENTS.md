@@ -4,6 +4,31 @@ Record unsuccessful and inconclusive experiments as well as improvements.
 Performance observations are not Elo estimates. Large raw records and experimental
 binaries stay in ignored local output directories.
 
+## 2026-10-14 — forecast time allocation: opt-in, not promoted
+
+**Hypothesis:** observed completed-iteration cost can predict when the next
+depth is unlikely to finish before the hard deadline, avoiding long thinks
+that return the previous depth's result. This follows the owner's manual
+feedback for frozen GUI snapshot `0.1-dev-4b8b35d`, not an NNUE throughput change.
+
+The first soft-target gate was rejected: all 18 short-clock comparisons lost a
+completed depth relative to classic. A separately frozen revision changes only
+that gate to the hard deadline and retains classic soft stopping. It preserved
+completed depth in 32/36 development comparisons and best move in 36/36. At the
+manual 5...c6 root it returned the same depth-7 move/score/PV in 5.788 seconds
+versus classic's 26.926 seconds, avoiding an unfinished depth 8.
+
+Both candidates passed native, scalar, and sanitizer correctness checks and
+retained all 24 sampled default-classic fixed-depth signatures. Their four-game
+operational smokes scored 1W/2D/1L and 2W/2D/0L respectively, with no errors or
+time forfeits. These very small exploratory games establish no strength margin.
+
+**Decision:** retain instrumentation, the profiler, and the hard-deadline policy
+as an optional experiment. Classic remains the default. The 32-root held-out
+blitz campaign is prepared, not started or scheduled. Exact candidate hashes,
+settings, commands, limitations, and local evidence paths are recorded in the
+[time-management experiment](TIME_MANAGEMENT.md).
+
 ## 2026-10-13 — NNUE feature-buffer reuse: not retained
 
 **Hypothesis:** retaining and swapping worker-local feature-list buffers would

@@ -25,6 +25,8 @@ Read [requirements](docs/REQUIREMENTS.md), [handover](docs/HANDOVER.md), and
   rewrite history.
 - Record failed and inconclusive experiments honestly. Do not release v0.1 or
   advertise a rating before its acceptance gates pass.
+- Keep docs/ROADMAP.md current. Progress updates should identify the active
+  phase and step, what was learned, and what remains before the next checkpoint.
 - Preserve the owner's stable GUI test bundle recorded in docs/MANUAL_TESTING.md;
   normal rebuilds use a different directory. Include its snapshot name in any
   investigation of manual feedback.

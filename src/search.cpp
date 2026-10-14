@@ -147,6 +147,7 @@ struct Search::Impl {
     std::uint64_t nodes = 0;
     int seldepth = 0;
     bool aborted = false;
+    StopReason stop_reason = StopReason::depth_limit;
 
     explicit Impl(const nnue::Network& weights) : network(weights), evaluator(weights) {}
 
@@ -174,13 +175,12 @@ struct Search::Impl {
 
     bool must_stop() {
         if (aborted) return true;
-        if (stopped.load(std::memory_order_relaxed)
-            || (limits.nodes && nodes >= limits.nodes)
-            || (time.active && clock_elapsed_ms() >= time.hard_ms)) {
-            aborted = true;
-            return true;
-        }
-        return false;
+        if (stopped.load(std::memory_order_relaxed)) stop_reason = StopReason::external_stop;
+        else if (limits.nodes && nodes >= limits.nodes) stop_reason = StopReason::node_limit;
+        else if (time.active && clock_elapsed_ms() >= time.hard_ms) stop_reason = StopReason::hard_time;
+        else return false;
+        aborted = true;
+        return true;
     }
 
     bool visit(int ply) {
@@ -443,6 +443,7 @@ struct Search::Impl {
         nodes = 0;
         seldepth = 0;
         aborted = false;
+        stop_reason = StopReason::depth_limit;
         evaluator.reset();
         ++generation;
         for (auto& side : history_score)
@@ -456,11 +457,41 @@ struct Search::Impl {
         game_history.reserve(game_history.size() + max_ply);
 
         SearchResult result;
+        // The first forecast policy is deliberately limited to ordinary clocks.
+        // Fixed limits remain authoritative. Ponder searches retain the classic
+        // policy even after ponderhit, so uncharged ponder iterations never seed
+        // this estimator or consume the newly started clock through prediction.
+        const bool forecast_active = limits.time_policy == TimePolicy::forecast
+            && time.active && limits.movetime_ms < 0 && limits.depth == 0
+            && limits.nodes == 0 && limits.mate == 0 && !limits.infinite && !limits.ponder;
+        const bool measure_iterations = forecast_active || limits.diagnostics;
+        time_management::IterationForecast forecast;
+        double target_ms = time.soft_ms;
+        if (limits.diagnostics) {
+            result.diagnostics.emplace();
+            result.diagnostics->iterations.reserve(max_ply - 2);
+        }
+        const auto finish = [&]() {
+            result.nodes = nodes;
+            if (result.diagnostics) {
+                auto& diagnostics = *result.diagnostics;
+                diagnostics.policy = limits.time_policy;
+                diagnostics.forecast_active = forecast_active;
+                diagnostics.stop_reason = stop_reason;
+                diagnostics.elapsed_ms = double(now_ns() - started_ns) / 1000000.0;
+                diagnostics.soft_ms = time.soft_ms;
+                diagnostics.hard_ms = time.hard_ms;
+                diagnostics.target_ms = target_ms;
+                diagnostics.predicted_next_ms = forecast.predicted_next_ms();
+            }
+            return std::move(result);
+        };
         auto root_moves = position.legal_moves();
         if (root_moves.empty()) {
+            stop_reason = StopReason::terminal;
             result.score = position.in_check(position.turn()) ? -mate_score : 0;
             if (report) report({0, 0, 0, elapsed_ms(), result.score, {}});
-            return result;
+            return finish();
         }
         if (!limits.searchmoves.empty()) {
             std::erase_if(root_moves, [&](Move move) {
@@ -468,11 +499,12 @@ struct Search::Impl {
                     == limits.searchmoves.end();
             });
         }
-        if (root_moves.empty()) return result;
+        if (root_moves.empty()) { stop_reason = StopReason::terminal; return finish(); }
         result.best = root_moves.front(); // Always retain a legal move under immediate stop.
         if (draw(position)) {
+            stop_reason = StopReason::draw;
             if (report) report({0, 0, 0, elapsed_ms(), 0, {result.best}});
-            return result;
+            return finish();
         }
 
         std::uint64_t digest = 0;
@@ -487,6 +519,8 @@ struct Search::Impl {
         int stable_iterations = 0;
         for (int depth = 1; depth <= depth_limit; ++depth) {
             if (must_stop()) break;
+            const auto iteration_start_ns = measure_iterations ? now_ns() : 0;
+            const auto iteration_start_nodes = nodes;
             seldepth = 0;
             int window = depth >= 4 ? 64 : infinity * 2;
             int score = 0;
@@ -496,6 +530,15 @@ struct Search::Impl {
                 score = alphabeta(position, depth, alpha, beta, 0, true, digest);
                 if (aborted || (score > alpha && score < beta)) break;
                 window = std::min(infinity * 2, window * 2);
+            }
+            if (measure_iterations) {
+                const auto iteration_end_ns = now_ns();
+                const double duration_ms = double(iteration_end_ns - iteration_start_ns) / 1000000.0;
+                if (!aborted && forecast_active) forecast.observe(duration_ms);
+                if (result.diagnostics)
+                    result.diagnostics->iterations.push_back({
+                        depth, !aborted, nodes - iteration_start_nodes, duration_ms,
+                        double(iteration_end_ns - started_ns) / 1000000.0});
             }
             if (aborted) break;
             std::vector<Move> line;
@@ -512,16 +555,25 @@ struct Search::Impl {
             if (report) report({depth, seldepth, nodes, elapsed_ms(), score, line});
 
             if (limits.mate > 0 && score >= mate_threshold
-                && mate_score - score <= 2LL * limits.mate) break;
+                && mate_score - score <= 2LL * limits.mate) {
+                stop_reason = StopReason::mate_limit;
+                break;
+            }
             if (time.active && limits.movetime_ms < 0) {
-                double multiplier = stable_iterations >= 3 ? 0.7 : 1.0;
-                if (stable_iterations == 0 || score_drop > 80) multiplier = 1.5;
-                const double target = std::min(time.hard_ms, time.soft_ms * multiplier);
-                if (clock_elapsed_ms() >= target) break;
+                target_ms = time_management::iteration_target(
+                    time.soft_ms, time.hard_ms, stable_iterations, score_drop);
+                const double charged_ms = clock_elapsed_ms();
+                if (charged_ms >= target_ms) { stop_reason = StopReason::soft_time; break; }
+                // Forecast only potentially discarded work at the hard deadline.
+                // Finishing after the soft target is permitted while the current
+                // elapsed time is below it, preserving the classic soft decision.
+                if (forecast_active && !forecast.should_start_next(depth, charged_ms, time.hard_ms)) {
+                    stop_reason = StopReason::forecast;
+                    break;
+                }
             }
         }
-        result.nodes = nodes;
-        return result;
+        return finish();
     }
 };
 

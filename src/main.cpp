@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
 #include <mutex>
 #include <sstream>
@@ -127,6 +128,8 @@ private:
     std::string eval_file_ = default_network;
     bool network_dirty_ = true;
     int overhead_ms_ = 20;
+    TimePolicy time_policy_ = TimePolicy::classic;
+    bool diagnostics_ = false;
     std::thread worker_;
     std::mutex output_mutex_;
     std::mutex result_mutex_;
@@ -149,6 +152,8 @@ private:
         output(std::string("option name EvalFile type string default ") + default_network);
         output("option name Move Overhead type spin default 20 min 0 max 5000");
         output("option name Ponder type check default false");
+        output("option name Time Policy type combo default classic var classic var forecast");
+        output("option name Search Diagnostics type check default false");
         output("uciok");
     }
 
@@ -215,6 +220,18 @@ private:
             if (value != "true" && value != "false") output("info string error: Ponder expects true or false");
             return; // go ponder, not this option, controls the current search.
         }
+        if (name == "Time Policy") {
+            if (value == "classic") time_policy_ = TimePolicy::classic;
+            else if (value == "forecast") time_policy_ = TimePolicy::forecast;
+            else output("info string error: Time Policy expects classic or forecast");
+            return;
+        }
+        if (name == "Search Diagnostics") {
+            if (value == "true") diagnostics_ = true;
+            else if (value == "false") diagnostics_ = false;
+            else output("info string error: Search Diagnostics expects true or false");
+            return;
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -279,10 +296,52 @@ private:
         output(line.str());
     }
 
+    /** Versioned, opt-in diagnostics are ordinary UCI string messages. Emit the
+     * compact root trace only after searching, so writing diagnostics cannot
+     * alter the work of a later iteration or create a per-node output cost.
+     */
+    void report_diagnostics(const SearchResult& result) {
+        if (!result.diagnostics) return;
+        const auto& diagnostics = *result.diagnostics;
+        for (const auto& iteration : diagnostics.iterations) {
+            std::ostringstream line;
+            line << std::fixed << std::setprecision(3) << std::boolalpha
+                 << "info string search-iteration v1 depth " << iteration.depth
+                 << " completed " << iteration.completed << " nodes " << iteration.nodes
+                 << " duration_ms " << iteration.duration_ms << " elapsed_ms " << iteration.elapsed_ms;
+            output(line.str());
+        }
+        const char* reason = "depth_limit";
+        switch (diagnostics.stop_reason) {
+            case StopReason::external_stop: reason = "external_stop"; break;
+            case StopReason::node_limit: reason = "node_limit"; break;
+            case StopReason::hard_time: reason = "hard_time"; break;
+            case StopReason::soft_time: reason = "soft_time"; break;
+            case StopReason::forecast: reason = "forecast"; break;
+            case StopReason::depth_limit: break;
+            case StopReason::mate_limit: reason = "mate_limit"; break;
+            case StopReason::terminal: reason = "terminal"; break;
+            case StopReason::draw: reason = "draw"; break;
+        }
+        std::ostringstream line;
+        line << std::fixed << std::setprecision(3) << std::boolalpha
+             << "info string search-summary v1 policy "
+             << (diagnostics.policy == TimePolicy::classic ? "classic" : "forecast")
+             << " forecast_active " << diagnostics.forecast_active
+             << " stop_reason " << reason << " nodes " << result.nodes
+             << " completed_depth " << result.depth << " elapsed_ms " << diagnostics.elapsed_ms
+             << " soft_ms " << diagnostics.soft_ms << " hard_ms " << diagnostics.hard_ms
+             << " target_ms " << diagnostics.target_ms
+             << " predicted_next_ms " << diagnostics.predicted_next_ms;
+        output(line.str());
+    }
+
     void go(const std::vector<std::string>& tokens) {
         stop();
         SearchLimits limits;
         limits.move_overhead_ms = overhead_ms_;
+        limits.time_policy = time_policy_;
+        limits.diagnostics = diagnostics_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};
         for (std::size_t i = 1; i < tokens.size(); ++i) {
             const auto& key = tokens[i];
@@ -331,6 +390,7 @@ private:
                 std::unique_lock lock(result_mutex_);
                 result_ready_.wait(lock, [this] { return !hold_result_; });
             }
+            report_diagnostics(result);
             std::string line = "bestmove " + result.best.uci();
             if (result.ponder.valid()) line += " ponder " + result.ponder.uci();
             output(line);

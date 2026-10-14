@@ -7,6 +7,10 @@ stronger play than Stockfish 19 on equal desktop hardware. No Elo rating or
 competitive superiority has been established. The current search is an early
 single-worker implementation; strength testing and further optimization remain.
 
+**Current phase: 2 — search efficiency and time management.** Follow the
+[development plan](docs/ROADMAP.md) for completed steps, active experiments,
+and the evidence required before a candidate becomes the default.
+
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
 ## Build and run
@@ -72,6 +76,12 @@ an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
 set `EvalFile` to its absolute path.
 
+The development executable also offers `Time Policy` (`classic`, the default,
+or experimental `forecast`) and optional `Search Diagnostics` (default off).
+Forecast estimates whether another search iteration will fit the hard deadline;
+it is not yet a demonstrated strength improvement. See
+[the time-management experiment](docs/TIME_MANAGEMENT.md) before enabling it.
+
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
@@ -119,6 +129,8 @@ For changes intended to preserve search behavior, use the
 and candidate runs verify identical search work before reporting timing ratios.
 The [experiment log](docs/EXPERIMENTS.md) records decisions, including candidates
 that were not retained.
+`make test-profile` checks the bounded clock-policy profiler; `make test` also
+includes deterministic time-policy and iteration-accounting tests.
 
 ## Cross-compilation
 
