@@ -41,6 +41,10 @@ for line in sys.stdin:
         output("option name EvalFile type string default none")
         output("option name Move Overhead type spin default 0 min 0 max 5000")
         output("option name Ponder type check default false")
+        output("option name Time Policy type combo default classic var classic var forecast")
+        output("option name Search Diagnostics type check default false")
+        output("option name Research Toggle type check default true")
+        output("option name Clear Hash type button")
         output("uciok")
     elif command == "isready":
         if mode == "slow_ready": time.sleep(0.12)
@@ -100,14 +104,14 @@ class MatchTests(unittest.TestCase):
                                  arguments=(str(self.fake), mode), source_revision="unverified-test-label")
                 for role, mode in (("candidate", candidate), ("opponent", opponent))]
 
-    def play(self, candidate="normal", opponent="normal", settings=None, opening=None):
+    def play(self, candidate="normal", opponent="normal", settings=None, opening=None, specs=None):
         self.sequence += 1
         output = self.root / f"game-{self.sequence}"
         output.mkdir()
         if opening is None:
             opening = match.read_openings(self.suite)[1][0]
         records = []
-        record = asyncio.run(match.play_game(self.specs(candidate, opponent), settings or self.settings,
+        record = asyncio.run(match.play_game(specs or self.specs(candidate, opponent), settings or self.settings,
                                              opening, "p1", "p1-1", "white", self.budget,
                                              output, records.append))
         self.assertEqual(records, [record])
@@ -265,6 +269,50 @@ class MatchTests(unittest.TestCase):
         summary = json.loads((output / "summary.json").read_text())
         self.assertFalse(summary["experiment_complete"])
         self.assertFalse(summary["inference_eligible"])
+
+    def test_experiment_options_are_sent_per_engine_and_recorded(self):
+        specs = self.specs()
+        specs[0] = replace(specs[0], extra_options=(("Time Policy", "forecast"), ("Research Toggle", "false")))
+        specs[1] = replace(specs[1], extra_options=(("Time Policy", "classic"),))
+        record, transcript, _ = self.play(specs=specs)
+        self.assertEqual(record["status"], "truncated")
+        commands = [line["line"] for line in transcript
+                    if line["engine"] == "candidate" and line["direction"] == "to_engine"]
+        self.assertIn("setoption name Time Policy value forecast", commands)
+        self.assertIn("setoption name Research Toggle value false", commands)
+        self.assertEqual(record["engines"]["candidate"]["options"]["Time Policy"], "forecast")
+        self.assertIs(record["engines"]["candidate"]["options"]["Search Diagnostics"], False)
+        self.assertEqual(record["engines"]["opponent"]["options"]["Time Policy"], "classic")
+
+    def test_experiment_options_cannot_bypass_settings_or_protocol(self):
+        invalid = (("Hash", "2"), ("hash", "2"), ("Threads", "8"), ("Ponder", "true"),
+                   ("EvalFile", "elsewhere"), ("Search Diagnostics", "true"),
+                   ("Clear Hash", ""), ("Absent", "forecast"), ("Time Policy", "invalid"),
+                   ("Research Toggle", "False"), ("Time Policy", "classic\nquit"))
+        for option in invalid:
+            with self.subTest(option=option):
+                specs = self.specs()
+                specs[0] = replace(specs[0], extra_options=(option,))
+                record, _, _ = self.play(specs=specs)
+                self.assertEqual(record["status"], "setup_failure")
+                self.assertEqual(record["played_plies"], 0)
+
+    def test_option_parser_rejects_duplicates_and_command_injection(self):
+        self.assertEqual(match.parse_options(["Time Policy=forecast", "Label=a=b"]),
+                         (("Time Policy", "forecast"), ("Label", "a=b")))
+        for entries in ([""], ["=x"], ["x=1", "X=2"], ["Time Policy=classic\nquit"], ["a\0=x"]):
+            with self.subTest(entries=entries), self.assertRaises(ValueError):
+                match.parse_options(entries)
+
+    def test_experiment_options_persist_in_frozen_manifest(self):
+        self.write_suite([{"id": "mate-fixture", "fen": "7k/8/5KQ1/8/8/8/8/8 w - - 0 1"}])
+        specs = self.specs("mate", "mate")
+        specs[0] = replace(specs[0], extra_options=(("Time Policy", "forecast"),))
+        output = self.root / "option-manifest"
+        asyncio.run(match.run_match(specs, self.settings, self.suite, output, 1, 7))
+        manifest = json.loads((output / "run.json").read_text())
+        self.assertEqual(manifest["engines"]["candidate"]["experiment_options"], {"Time Policy": "forecast"})
+        self.assertEqual(manifest["engines"]["opponent"]["experiment_options"], {})
 
 
 if __name__ == "__main__":

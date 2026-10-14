@@ -67,6 +67,7 @@ class EngineSpec:
     network_option: str = "EvalFile"
     arguments: tuple = ()
     source_revision: str = None
+    extra_options: tuple = ()
 
     def artifacts(self):
         """Freeze explicit executables/networks and script-file wrapper arguments."""
@@ -74,6 +75,57 @@ class EngineSpec:
         paths.extend(Path(arg).resolve() for arg in self.arguments if Path(arg).is_file())
         return [{"path": str(path), "sha256": sha256(path), "bytes": path.stat().st_size}
                 for path in dict.fromkeys(paths)]
+
+
+def parse_options(entries):
+    """Parse explicit experiment options without allowing ambiguous overrides.
+
+    Resource, network, book, tablebase, and protocol-managed options retain the
+    common match configuration. Research options such as Time Policy may differ
+    between the two engines and are frozen in the match manifest.
+    """
+    parsed = []
+    seen = set()
+    for entry in entries:
+        if not isinstance(entry, str) or "=" not in entry or any(c in entry for c in "\r\n\0"):
+            raise ValueError("Engine options must be single-line NAME=VALUE entries")
+        name, value = (part.strip() for part in entry.split("=", 1))
+        if not name or name.casefold() in seen:
+            raise ValueError("Engine option names must be nonempty and unique")
+        seen.add(name.casefold())
+        parsed.append((name, value))
+    return tuple(parsed)
+
+
+def experiment_options(spec, protocol, configured):
+    """Validate advertised option types before sending any experiment settings."""
+    protected = {name.casefold() for name in (
+        "Hash", "Threads", spec.network_option, "Ponder", "MultiPV", "UCI_Chess960",
+        "UCI_Variant", "OwnBook", "UseBook", "BookFile", "SyzygyPath", "GaviotaTbPath",
+        "UCI_LimitStrength", "UCI_AnalyseMode", "UCI_Elo", "Skill Level", "Move Overhead",
+        "Search Diagnostics", "Clear Hash")}
+    protected.update(name.casefold() for name in configured)
+    result = {}
+    seen = set()
+    for name, value in spec.extra_options:
+        if (not isinstance(name, str) or not isinstance(value, str)
+                or not name or name != name.strip()
+                or any(c in name + value for c in "\r\n\0")):
+            raise ValueError("Invalid experiment option name/value")
+        if name.casefold() in seen or name.casefold() in protected:
+            raise ValueError(f"Duplicate or match-controlled option: {name}")
+        seen.add(name.casefold())
+        if name not in protocol.options:
+            raise ValueError(f"{spec.role} does not advertise experiment option {name}")
+        option = protocol.options[name]
+        if option.is_managed() or option.type in ("button", "reset", "save"):
+            raise ValueError(f"Experiment option cannot be managed or a button: {name}")
+        if option.type == "check":
+            if value not in ("true", "false"):
+                raise ValueError(f"Check option {name} expects true or false")
+            value = value == "true"
+        result[option.name] = option.parse(value)
+    return result
 
 
 @dataclass(frozen=True)
@@ -259,11 +311,13 @@ async def start_engine(spec, settings, log):
         for name, value in (("OwnBook", False), ("UseBook", False), ("BookFile", ""),
                             ("SyzygyPath", ""), ("GaviotaTbPath", ""),
                             ("UCI_LimitStrength", False), ("UCI_AnalyseMode", False),
+                            ("Search Diagnostics", False),
                             ("Move Overhead", settings.move_overhead_ms)):
             if name in protocol.options:
                 configured[name] = value
         if "Skill Level" in protocol.options and protocol.options["Skill Level"].max is not None:
             configured["Skill Level"] = protocol.options["Skill Level"].max
+        configured.update(experiment_options(spec, protocol, configured))
         await asyncio.wait_for(protocol.configure(configured), settings.startup_timeout)
         await asyncio.wait_for(protocol.ping(), settings.startup_timeout)
         if protocol.errors:
@@ -482,6 +536,7 @@ async def run_match(specs, settings, suite_path, output, pairs, seed):
                 "seed": seed, "planned_pairs": pairs, "settings": vars(settings),
                 "engines": {spec.role: {"executable": str(spec.executable), "arguments": list(spec.arguments),
                                         "network": str(spec.network), "network_option": spec.network_option,
+                                        "experiment_options": dict(spec.extra_options),
                                         "source_revision": {"label": spec.source_revision, "verified_against_binary": False},
                                         "artifacts": frozen[spec.role]} for spec in specs},
                 "runner_sources": [{"path": str(path.relative_to(ROOT)), "sha256": sha256(path)}
@@ -549,6 +604,8 @@ def main():
         parser.add_argument(f"--{role}-network-option", default="EvalFile")
         parser.add_argument(f"--{role}-arg", action="append", default=[], help="Optional executable argument; wrapper processes must exec their engine")
         parser.add_argument(f"--{role}-revision", help="Optional source revision label; not independently verified against binary")
+        parser.add_argument(f"--{role}-option", action="append", default=[], metavar="NAME=VALUE",
+                            help="Repeatable advertised experiment option; common match settings cannot be overridden")
     parser.add_argument("--openings", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--pairs", required=True, type=int)
@@ -563,12 +620,12 @@ def main():
     parser.add_argument("--move-overhead-ms", type=int, default=20)
     parser.add_argument("--smoke", action="store_true", help="Mark a short operational check; disable strength inference")
     args = parser.parse_args()
-    specs = [EngineSpec(role, getattr(args, role).resolve(), getattr(args, role + "_network").resolve(),
-                        getattr(args, role + "_network_option"), tuple(getattr(args, role + "_arg")),
-                        getattr(args, role + "_revision"))
-             for role in ("candidate", "opponent")]
     settings = Settings(**{name: getattr(args, name) for name in Settings.__dataclass_fields__})
     try:
+        specs = [EngineSpec(role, getattr(args, role).resolve(), getattr(args, role + "_network").resolve(),
+                            getattr(args, role + "_network_option"), tuple(getattr(args, role + "_arg")),
+                            getattr(args, role + "_revision"), parse_options(getattr(args, role + "_option")))
+                 for role in ("candidate", "opponent")]
         result = asyncio.run(run_match(specs, settings, args.openings.resolve(), args.output.resolve(), args.pairs, args.seed))
         print(json.dumps(result, indent=2, allow_nan=False))
         failures = sum(count for status, count in result["game_status_counts"].items()

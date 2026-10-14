@@ -33,5 +33,7 @@ Versions describe tested deliverables. Research objectives are not results.
 - Recorded the first owner-run Cute Chess games, verified all 169 plies and
   legal-move/NNUE agreement at 171 positions, and documented clock-allocation
   findings. No runtime change or strength claim follows from these two games.
+- Added validated per-engine match options, frozen in experiment records, while
+  preserving common resource settings and disabling search diagnostics in games.
 
 No release or strength rating has been established yet.

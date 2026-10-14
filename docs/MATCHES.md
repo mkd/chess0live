@@ -53,6 +53,23 @@ isolate other applications, pin Apple performance cores, or enforce a hard OS
 utilization ceiling. Record unusual system load and do not interpret one noisy
 short run as a search improvement.
 
+To compare an experimental setting with its baseline in the same executable,
+pass repeatable `--candidate-option 'NAME=VALUE'` and
+`--opponent-option 'NAME=VALUE'` arguments. For example:
+
+```sh
+--candidate-option 'Time Policy=forecast' --opponent-option 'Time Policy=classic'
+```
+
+Each option must be advertised by its engine and match its declared type/range.
+Options cannot override the common thread/hash/network/overhead configuration,
+books, tablebases, playing-strength controls, diagnostics, or protocol-managed
+settings. Search diagnostics are disabled when advertised so profiling output
+does not distort a strength comparison. Requested experiment options are frozen
+in `run.json`; actual applied options appear in each game record and protocol
+log. A requested option unsupported by a frozen older executable is a setup
+failure, not a silently ignored experiment.
+
 The opening files contain complete move sequences, so the engines and the
 referee retain repetition history. A custom FEN cannot recover moves before
 that FEN. Our [initial suites](../tests/data/README.md) are small original
