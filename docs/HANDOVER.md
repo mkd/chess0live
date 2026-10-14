@@ -73,7 +73,25 @@ from the existing 24 roots. It remains held out until the predeclared longer
 match; no overnight job is scheduled. Use the frozen candidate and baseline
 with equal settings and swapped colors, preserving options and artifact hashes.
 
-Next investigate selective search and move ordering as separate hypotheses.
+Phase 2C now has a conservative one-ply late-move-reduction candidate, selectable
+with `Late Move Reductions=true`; the default remains false. Read
+[selective search](SELECTIVE_SEARCH.md) for guards, mandatory ordinary-depth
+verification, exact hashes, and results. Native/scalar/sanitizer checks passed,
+and the new fixed-depth/node profiler independently checks legal PVs. Turning
+LMR off preserves all 24 sampled frozen-parent signatures. At depth 5, reductions
+used 49.79% fewer nodes with matching final moves/scores/PVs on all 12 development
+roots, repeated twice. At 200,000 nodes, 8/12 roots completed an extra nominal
+depth, but a move and several scores/PVs changed. This supports further testing,
+not a strength claim. Keep classic timing for isolated LMR comparisons and use
+`build/experiments/lmr-20261014/` for the frozen candidate. The owner's GUI bundle
+and the separately frozen time-policy candidate are unchanged.
+The predeclared eight-game smoke scored 2W/2D/4L for LMR with no operational
+failures. This unfavorable small sample does not support default promotion;
+record it honestly and do not tune to these pairs as if they were held out.
+
+Next qualify LMR with a separately predeclared longer match, and investigate move
+ordering as an independent Phase 2C hypothesis. Do not combine it with forecast
+timing or change either default based on short development tests.
 Incremental feature-list maintenance, faster sliding attacks, and worker
 parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer

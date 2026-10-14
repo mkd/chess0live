@@ -45,6 +45,15 @@ single-worker evidence before enabling shared-memory search. Add pruning,
 reductions, parallelism, and speculative ideas through isolated experiments and
 matched-game testing, retaining changes only on appropriate evidence.
 
+The first selective-search experiment is optional, conservative late-move
+reduction. Its [policy and verification contract](SELECTIVE_SEARCH.md) are
+separate from time management and move ordering. A reduced result that improves
+alpha must be verified at ordinary depth before a cutoff. Reduced fail-lows
+remain heuristic; nominal depth does not imply all branches received that depth.
+Changing reduction policy invalidates transposition bounds and learned ordering
+state through the search API, including callers outside the UCI controller.
+Keep the option off until strength qualification supports default promotion.
+
 The initial core has no variant framework, opening book, or puzzle service.
 Modularity means clear data and responsibility boundaries, not runtime machinery
 for extensions that do not yet exist.

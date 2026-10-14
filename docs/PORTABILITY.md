@@ -34,6 +34,12 @@ the intended ELF64/PE32+ architectures. No foreign executable was run; their
 status remains `cross-build-only`. Native ARM64 normal, scalar, and sanitizer
 suites passed. RISC-V64 and Windows ARM64 remain unverified.
 
+Later on October 14, the Phase 2C guarded-LMR revision also compiled and linked
+for all three available foreign targets with the same commands below. Binary
+format inspection confirmed the expected architectures; no foreign execution
+was performed. Native ARM64, scalar, and ASan/UBSan checks passed with reductions
+both disabled and enabled.
+
 The successful commands on this host were:
 
 ```sh

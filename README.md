@@ -10,6 +10,10 @@ single-worker implementation; strength testing and further optimization remain.
 **Current phase: 2 — search efficiency and time management.** Follow the
 [development plan](docs/ROADMAP.md) for completed steps, active experiments,
 and the evidence required before a candidate becomes the default.
+The active step is **2C: selective search**, starting with an isolated late-move
+reduction experiment. Move ordering and the time-policy experiment stay separate.
+The first LMR candidate passed correctness checks; its eight-game smoke scored
+2W/2D/4L, so it remains experimental and off by default.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
@@ -82,6 +86,11 @@ Forecast estimates whether another search iteration will fit the hard deadline;
 it is not yet a demonstrated strength improvement. See
 [the time-management experiment](docs/TIME_MANAGEMENT.md) before enabling it.
 
+`Late Move Reductions` (default `false`) enables the separate Phase 2C search
+experiment: guarded one-ply reductions with ordinary-depth verification of
+promising probes. See [selective search](docs/SELECTIVE_SEARCH.md) for safeguards,
+comparison settings, and results. It is not yet an accepted strength improvement.
+
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
@@ -131,6 +140,9 @@ The [experiment log](docs/EXPERIMENTS.md) records decisions, including candidate
 that were not retained.
 `make test-profile` checks the bounded clock-policy profiler; `make test` also
 includes deterministic time-policy and iteration-accounting tests.
+`make test-profile-lmr` checks the optional selective-search profiler, using the
+same pinned referee dependency as matches. It compares LMR off/on at fixed
+depth or nodes and independently replays every reported principal variation.
 
 ## Cross-compilation
 

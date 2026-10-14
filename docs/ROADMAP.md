@@ -15,7 +15,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | --- | --- | --- |
 | 2A | Measure completed and interrupted iteration time/work, with reproducible profiles | Complete: diagnostics, profiler, and checked accounting |
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
-| 2C | Evaluate selective-search and move-ordering changes independently | Next, after the initial time-policy checkpoint |
+| 2C | Evaluate selective-search and move-ordering changes independently | Active: LMR implemented and profiled, opt-in; ordering experiment next |
 | 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Prepared as a gate; no strength gain established |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -27,6 +27,19 @@ playing strength can justify a claim that this improves chess strength. See the
 [results and decisions](TIME_MANAGEMENT.md): the revision retained completed
 depth in 32/36 development comparisons, and the same move in all 36. These
 results guide the next test; they do not establish an Elo gain.
+
+For 2C, the [selective-search plan](SELECTIVE_SEARCH.md) fixes the first reduction
+policy and development checks before measurements. Time policy remains classic
+on both sides of this comparison. Move-ordering changes follow as a separate
+experiment; the 2B validation openings remain reserved for 2B.
+The first candidate passed native/scalar/sanitizer checks and preserved the
+default-off search signatures. Depth-5 work dropped 49.79% across the sampled
+roots with matching final decisions; at equal nodes, deeper nominal searches
+also changed a move and some scores/PVs. This is a research checkpoint, not
+completed strength qualification or completion of all Phase 2C work.
+The eight-game operational smoke scored 2W/2D/4L for LMR with no protocol errors,
+time forfeits, or truncations. LMR stays off by default; the unfavorable small
+sample establishes no strength margin in either direction.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override

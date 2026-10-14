@@ -43,5 +43,14 @@ Versions describe tested deliverables. Research objectives are not results.
   results, and prepared a longer blitz test without starting or scheduling it.
 - Added a phase roadmap and checkpoints for continuing development; no playing
   strength improvement is claimed from the short profiles or smoke games.
+- Added experimental one-ply late-move reductions, protected tactical/special
+  moves, ordinary-depth verification of promising probes, and search-policy
+  cache isolation. The option remains disabled by default.
+- Added selective-search diagnostics, deterministic guard/verification tests,
+  and fixed-depth/node profiles with independent legal-PV checks and preserved
+  partial-failure evidence. Move ordering and time-policy experiments stay separate.
+- Recorded the LMR candidate's reduced depth-5 work and unfavorable 2W/2D/4L
+  operational smoke; retained it only as an opt-in experiment, with no strength
+  gain or default promotion claimed.
 
 No release or strength rating has been established yet.

@@ -105,6 +105,39 @@ each produced two checkmates and two threefold draws. The revision scored
 Correctness and short operational matches are not a strength acceptance gate.
 Classic remains the default; the longer held-out blitz test has not run.
 
+## Phase 2C selective-search checkpoint — October 14, 2026
+
+The conservative LMR candidate passed native `make -j2 test`,
+`make -j2 SIMD=scalar test`, and `make -j2 MODE=sanitize test` on macOS ARM64.
+The policy tests cover eligibility boundaries, checks, mate windows, special
+moves, advanced pawn pushes, and ordering hints. A bounded real-network search
+exercises both confirmed and rejected reduced probes, an interrupted iteration,
+legal PVs, and restoration of baseline results after switching policies. Existing
+rule, limit, cancellation, and ponder cases also run with LMR enabled.
+
+The new profiler passed 12 tests, including different search trees, PV/bestmove/
+ponder legality, counter accounting, exact node caps, partial search/readiness
+failures, and artifact mutation. The existing 15 clock-profiler, 17 statistics,
+17 match-runner, and 11 comparison tests passed. NNUE and position code are
+unchanged; their normal 537-position incremental checks passed in all three
+build modes. The separate full Stockfish oracle corpus was not rerun for LMR.
+
+The [selective-search experiment](SELECTIVE_SEARCH.md) records the frozen
+candidate, default-equivalence check, development profiles, and short game test.
+These are finite correctness and operational checks. Reduced fail-lows remain
+heuristic; this checkpoint does not establish playing strength or make LMR the
+default.
+
+Default-off search matched all 24 frozen-parent samples exactly. The depth-5
+profile completed 48 searches and the 200,000-node profile completed 24, with
+legal PVs and consistent accounting. The eight-game paired operational smoke
+scored 2W/2D/4L for LMR, with six checkmates and two threefold draws, no failures,
+time forfeits, or truncations. Its unfavorable score is documented without
+turning four development pairs into a strength estimate.
+The Linux ARM64, Linux x86-64, and Windows x86-64 binaries also rebuilt and linked
+successfully; file inspection confirmed target architectures. They remain
+cross-build-only. No RISC-V64 or Windows ARM64 build/runtime evidence was added.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

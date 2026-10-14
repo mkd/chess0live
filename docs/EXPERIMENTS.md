@@ -4,6 +4,33 @@ Record unsuccessful and inconclusive experiments as well as improvements.
 Performance observations are not Elo estimates. Large raw records and experimental
 binaries stay in ignored local output directories.
 
+## 2026-10-14 — conservative LMR: opt-in, not promoted
+
+**Hypothesis:** independently implemented one-ply reductions on later quiet
+scout moves can reduce search work while ordinary-depth re-search verifies
+promising probes. Checks, tactical/special moves, ordering hints, advanced pawn
+pushes, root/PV nodes, and mate windows retain ordinary depth. Reduced fail-lows
+remain a heuristic that can miss tactics. Classic timing and ordering are fixed.
+
+Native, scalar, and sanitizer suites passed, including real accepted/rejected
+verifications and policy-switch restoration. Default-off search matched all
+24 frozen-parent samples. At depth 5, all 24 development comparisons kept the
+same move/score/PV while total nodes fell 49.79%. At 200,000 nodes, 8/12 roots
+completed one more nominal depth; one move and several scores/PVs changed.
+These observations do not establish chess strength or equal-work throughput.
+
+The predeclared eight-game, four-pair 6+0.06 smoke scored **2W/2D/4L** for LMR,
+with no failures, time forfeits, or truncations. Independent replay checked all
+1,231 plies: six checkmates and two threefold draws. The result is unfavorable,
+but this tiny development sample cannot establish a strength difference.
+
+**Decision:** retain the guarded implementation, diagnostics, and profiler as
+an opt-in research checkpoint; leave LMR disabled. No default promotion or
+strength claim. Investigate tactical misses and qualify with a separately
+predeclared longer campaign. New move ordering is a separate next experiment.
+See [selective search](SELECTIVE_SEARCH.md) for exact hashes, commands, raw
+evidence paths, and the safeguards against combining this with forecast timing.
+
 ## 2026-10-14 — forecast time allocation: opt-in, not promoted
 
 **Hypothesis:** observed completed-iteration cost can predict when the next
