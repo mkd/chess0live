@@ -12,6 +12,13 @@ project. Published techniques such as bitboards, Zobrist hashing, iterative
 deepening, PVS, quiescence, transposition tables, and NNUE are used. An original
 implementation of an established technique is not a claim of inventing it.
 
+The optional late-move reduction experiment is independently implemented from
+the general published search technique. Conceptual background:
+[official Stockfish terminology](https://official-stockfish.github.io/docs/stockfish-wiki/Terminology.html#late-move-reductions),
+consulted October 14, 2026. Its conservative guards, tests, and measurements are
+documented in [selective search](docs/SELECTIVE_SEARCH.md). No upstream search
+implementation is copied into this engine.
+
 ## Compatibility reference
 
 The interoperability reference is official Stockfish 19, tag `sf_19`, commit

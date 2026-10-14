@@ -130,6 +130,7 @@ private:
     int overhead_ms_ = 20;
     TimePolicy time_policy_ = TimePolicy::classic;
     bool diagnostics_ = false;
+    bool late_move_reductions_ = false;
     std::thread worker_;
     std::mutex output_mutex_;
     std::mutex result_mutex_;
@@ -154,6 +155,7 @@ private:
         output("option name Ponder type check default false");
         output("option name Time Policy type combo default classic var classic var forecast");
         output("option name Search Diagnostics type check default false");
+        output("option name Late Move Reductions type check default false");
         output("uciok");
     }
 
@@ -230,6 +232,14 @@ private:
             if (value == "true") diagnostics_ = true;
             else if (value == "false") diagnostics_ = false;
             else output("info string error: Search Diagnostics expects true or false");
+            return;
+        }
+        if (name == "Late Move Reductions") {
+            if (value == "true") late_move_reductions_ = true;
+            else if (value == "false") late_move_reductions_ = false;
+            else output("info string error: Late Move Reductions expects true or false");
+            // Search::run clears both TT and learned ordering state when the
+            // actual search policy changes, including calls outside this UCI UI.
             return;
         }
         int numeric = 0;
@@ -311,6 +321,14 @@ private:
                  << " duration_ms " << iteration.duration_ms << " elapsed_ms " << iteration.elapsed_ms;
             output(line.str());
         }
+        {
+            std::ostringstream line;
+            line << std::boolalpha << "info string lmr v1 enabled " << result.lmr.enabled
+                 << " reductions " << result.lmr.reductions << " researches " << result.lmr.researches
+                 << " fail_lows " << result.lmr.fail_lows
+                 << " verified_cutoffs " << result.lmr.verified_cutoffs;
+            output(line.str());
+        }
         const char* reason = "depth_limit";
         switch (diagnostics.stop_reason) {
             case StopReason::external_stop: reason = "external_stop"; break;
@@ -342,6 +360,7 @@ private:
         limits.move_overhead_ms = overhead_ms_;
         limits.time_policy = time_policy_;
         limits.diagnostics = diagnostics_;
+        limits.late_move_reductions = late_move_reductions_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};
         for (std::size_t i = 1; i < tokens.size(); ++i) {
             const auto& key = tokens[i];

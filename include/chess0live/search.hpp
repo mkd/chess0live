@@ -42,6 +42,7 @@ struct SearchLimits {
     int move_overhead_ms = 20;
     TimePolicy time_policy = TimePolicy::classic;
     bool diagnostics = false;
+    bool late_move_reductions = false;
     /** Empty means all legal moves; entries must be generated for the root. */
     std::vector<Move> searchmoves;
 };
@@ -85,6 +86,19 @@ struct SearchDiagnostics {
     std::vector<IterationDiagnostics> iterations;
 };
 
+/** Counts for the optional selective-search hypothesis. Reductions and
+ * researches count attempts, including calls interrupted by a limit/stop.
+ * fail_lows and verified_cutoffs count only completed ordinary-depth
+ * verification outcomes. None of these counters implies a strength gain.
+ */
+struct LateMoveStatistics {
+    bool enabled = false;
+    std::uint64_t reductions = 0;
+    std::uint64_t researches = 0;
+    std::uint64_t fail_lows = 0;
+    std::uint64_t verified_cutoffs = 0;
+};
+
 struct SearchResult {
     Move best;
     Move ponder;
@@ -92,6 +106,7 @@ struct SearchResult {
     int depth = 0;
     std::uint64_t nodes = 0;
     std::optional<SearchDiagnostics> diagnostics;
+    LateMoveStatistics lmr;
 };
 
 /** Independent, single-worker iterative deepening search.

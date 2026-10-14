@@ -10,6 +10,7 @@
 
 #include "chess0live/nnue.hpp"
 #include "chess0live/position.hpp"
+#include "chess0live/search_policy.hpp"
 
 #include <algorithm>
 #include <array>
@@ -148,6 +149,8 @@ struct Search::Impl {
     int seldepth = 0;
     bool aborted = false;
     StopReason stop_reason = StopReason::depth_limit;
+    LateMoveStatistics lmr;
+    bool cache_policy_valid = false;
 
     explicit Impl(const nnue::Network& weights) : network(weights), evaluator(weights) {}
 
@@ -157,6 +160,18 @@ struct Search::Impl {
         const auto count = std::bit_floor(megabytes * 1024 * 1024 / sizeof(Bucket));
         std::vector<Bucket> replacement(count);
         table.swap(replacement);
+    }
+
+    /** Search-policy changes cannot reuse heuristic bounds or move histories
+     * from another policy. Do not clear the externally published stop flag.
+     */
+    void clear() {
+        std::fill(table.begin(), table.end(), Bucket{});
+        history_score = {};
+        killers = {};
+        generation = 0;
+        evaluator.reset();
+        cache_policy_valid = false;
     }
 
     std::int64_t elapsed_ms() const { return (now_ns() - started_ns) / 1000000; }
@@ -336,7 +351,11 @@ struct Search::Impl {
     /** Principal-variation search: only the first move needs a full window.
      * Subsequent moves first prove whether they can improve alpha; a successful
      * challenge receives a full-window re-search before becoming the PV.
-     * There is no unverified null-move, futility, or late-move pruning in v0.1.
+     * The optional late-move experiment first scouts selected quiet moves one
+     * ply shallower. Every reduced result above alpha must be verified at its
+     * ordinary depth before causing a cutoff or entering a full-window search.
+     * Reduced fail-lows are heuristic and may miss tactics; the default search
+     * remains unreduced, with no null-move or futility pruning.
      */
     int alphabeta(Position& position, int depth, int alpha, int beta, int ply,
                   bool pv_node, std::uint64_t digest) {
@@ -392,8 +411,31 @@ struct Search::Impl {
                 score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
                                    pv_node, child_digest);
             } else {
-                score = -alphabeta(position, depth - 1, -alpha - 1, -alpha, ply + 1,
+                bool reduce = false;
+                if (limits.late_move_reductions) {
+                    const search_policy::LateMoveContext context{
+                        depth, ply, move_number, pv_node, checked, false,
+                        std::abs(alpha) >= mate_threshold || std::abs(beta) >= mate_threshold,
+                        move, undo.moved, tt_move,
+                        killers[static_cast<std::size_t>(ply)][0],
+                        killers[static_cast<std::size_t>(ply)][1]};
+                    // Only pay for the additional attack test after all cheap
+                    // parent/move guards pass; a checking child is never reduced.
+                    reduce = search_policy::reduce_late_move(context)
+                        && !position.in_check(position.turn());
+                }
+                if (reduce) ++lmr.reductions;
+                score = -alphabeta(position, depth - 1 - int(reduce), -alpha - 1, -alpha, ply + 1,
                                    false, child_digest);
+                if (reduce && !aborted && score > alpha) {
+                    ++lmr.researches;
+                    score = -alphabeta(position, depth - 1, -alpha - 1, -alpha, ply + 1,
+                                       false, child_digest);
+                    if (!aborted) {
+                        if (score <= alpha) ++lmr.fail_lows;
+                        else if (score >= beta) ++lmr.verified_cutoffs;
+                    }
+                }
                 if (!aborted && score > alpha && score < beta)
                     score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
                                        pv_node, child_digest);
@@ -437,13 +479,22 @@ struct Search::Impl {
     SearchResult run(Position position, std::vector<std::uint64_t> history,
                      const SearchLimits& request, const Reporter& report) {
         if (!network.loaded()) throw std::runtime_error("A compatible NNUE network must be loaded before search");
+        // A mode change through the Search API may invalidate a large dirty
+        // table. The GUI already charges this preparation to the move, so the
+        // hard deadline must age from before that work. An explicit clear/new
+        // game invalidates cache_policy_valid and avoids this work inside go.
+        const auto search_started_ns = now_ns();
+        if (cache_policy_valid && request.late_move_reductions != limits.late_move_reductions) clear();
         limits = request;
+        cache_policy_valid = true;
         time = allocate_time(position, limits);
-        started_ns = now_ns();
+        started_ns = search_started_ns;
         nodes = 0;
         seldepth = 0;
         aborted = false;
         stop_reason = StopReason::depth_limit;
+        lmr = {};
+        lmr.enabled = limits.late_move_reductions;
         evaluator.reset();
         ++generation;
         for (auto& side : history_score)
@@ -473,6 +524,7 @@ struct Search::Impl {
         }
         const auto finish = [&]() {
             result.nodes = nodes;
+            result.lmr = lmr;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -598,11 +650,7 @@ void Search::ponderhit() noexcept {
     impl_->ponder_hit_ns.compare_exchange_strong(expected, now_ns(), std::memory_order_relaxed);
 }
 void Search::clear() {
-    std::fill(impl_->table.begin(), impl_->table.end(), Bucket{});
-    impl_->history_score = {};
-    impl_->killers = {};
-    impl_->generation = 0;
-    impl_->evaluator.reset();
+    impl_->clear();
 }
 void Search::set_hash(std::size_t megabytes) { impl_->resize(megabytes); }
 

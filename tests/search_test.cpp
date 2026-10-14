@@ -62,6 +62,7 @@ SearchLimits depth_limit(int depth = 2) {
 struct Fixture {
     nnue::Network network;
     Search search{network, 1};
+    bool enable_lmr = false;
 
     explicit Fixture(const std::filesystem::path& path) {
         std::string error;
@@ -71,7 +72,9 @@ struct Fixture {
     SearchResult run(Position position, const SearchLimits& limits = depth_limit(),
                      std::vector<std::uint64_t> history = {}, Search::Reporter reporter = {}) {
         search.reset_stop();
-        return search.search(std::move(position), std::move(history), limits, std::move(reporter));
+        auto request = limits;
+        request.late_move_reductions = request.late_move_reductions || enable_lmr;
+        return search.search(std::move(position), std::move(history), request, std::move(reporter));
     }
 };
 
@@ -230,16 +233,18 @@ void limits_and_principal_variations(Fixture& fixture) {
 void cancellation_and_pondering(Fixture& fixture) {
     const auto position = Position::start();
     auto limits = depth_limit();
+    limits.late_move_reductions = fixture.enable_lmr;
     fixture.search.reset_stop();
     fixture.search.stop();
     auto result = fixture.search.search(position, {}, limits);
-    require(result.nodes == 0 && legal(position, result.best),
+    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr,
             "A stop published before worker startup must not be lost");
 
     // No wall-clock racing is needed: the first completed iteration signals that
     // the worker has entered search, then cancellation is sent from this thread.
     fixture.search.reset_stop();
     limits = {};
+    limits.late_move_reductions = fixture.enable_lmr;
     limits.infinite = true;
     std::promise<void> iteration_started;
     auto started = iteration_started.get_future();
@@ -252,24 +257,27 @@ void cancellation_and_pondering(Fixture& fixture) {
     const auto status = started.wait_for(5s);
     fixture.search.stop();
     result = pending.get();
-    require(status == std::future_status::ready && legal(position, result.best),
+    require(status == std::future_status::ready && legal(position, result.best)
+            && result.lmr.enabled == fixture.enable_lmr,
             "Concurrent stop must preserve a completed iteration's legal result");
 
     // A hit can arrive before the search thread starts, just like immediate stop.
     limits = {};
+    limits.late_move_reductions = fixture.enable_lmr;
     limits.ponder = true;
     limits.movetime_ms = 0;
     fixture.search.reset_stop();
     fixture.search.ponderhit();
     result = fixture.search.search(position, {}, limits);
-    require(result.nodes == 0 && legal(position, result.best),
+    require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr,
             "Ponderhit before worker startup must activate the exhausted clock");
 
     // Clearing that hit for a new ponder must suspend even a zero-millisecond
     // clock. The UCI layer separately holds the completed depth-limited result.
     limits.depth = 1;
     result = fixture.run(position, limits);
-    require(result.depth == 1, "Ponder clock must remain inactive before its own ponderhit");
+    require(result.depth == 1 && result.lmr.enabled == fixture.enable_lmr,
+            "Ponder clock must remain inactive before its own ponderhit");
 }
 
 void clock_limit(Fixture& fixture) {
@@ -407,6 +415,104 @@ void forecast_scope_and_clock_budgets(Fixture& fixture) {
             "A large increment cannot raise the deadline above the remaining spendable millisecond");
 }
 
+void selective_search_verification_and_policy_switches(Fixture& fixture) {
+    // This ordinary, independently specified six-ply QGD position exercises
+    // both accepted and rejected reduced scout challenges. It is a code-path
+    // regression case, not a tactical benchmark or held-out strength sample.
+    auto position = Position::start();
+    std::vector<std::uint64_t> history{position.key()};
+    for (const auto text : {"d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "g8f6"}) {
+        position.make_move(move(position, text));
+        history.push_back(position.key());
+    }
+    const auto original_fen = position.fen();
+    const auto original_key = position.key();
+    fixture.search.clear();
+    const auto baseline = fixture.run(position, depth_limit(3), history);
+    require(!baseline.lmr.enabled && baseline.lmr.reductions == 0 && baseline.lmr.researches == 0,
+            "The default search must not perform selective reductions");
+
+    auto limits = depth_limit(6);
+    limits.nodes = 100000;
+    limits.late_move_reductions = true;
+    limits.diagnostics = true;
+    std::vector<SearchInfo> reports;
+    const auto candidate = fixture.run(position, limits, history, [&](const SearchInfo& info) {
+        auto replay = position;
+        for (const auto pv_move : info.pv) {
+            require(legal(replay, pv_move), "Selective re-searches must preserve legal principal variations");
+            replay.make_move(pv_move);
+        }
+        reports.push_back(info);
+    });
+    require(candidate.lmr.enabled && candidate.lmr.reductions > 0 && candidate.lmr.researches > 0,
+            "The regression must exercise reduced and ordinary-depth verification searches");
+    require(candidate.lmr.fail_lows > 0 && candidate.lmr.verified_cutoffs > 0,
+            "Reduced fail-highs must be both rejected and confirmed by ordinary-depth verification");
+    require(candidate.lmr.researches <= candidate.lmr.reductions
+            && candidate.lmr.fail_lows + candidate.lmr.verified_cutoffs <= candidate.lmr.researches,
+            "Completed verification outcomes cannot exceed the attempted searches");
+    require(candidate.nodes <= limits.nodes && legal(position, candidate.best)
+            && !reports.empty() && candidate.best == reports.back().pv.front(),
+            "An interrupted selective search retains its last completed legal result");
+    require(candidate.diagnostics->stop_reason == StopReason::node_limit
+            && !candidate.diagnostics->iterations.back().completed,
+            "The bounded regression must include an interrupted iteration");
+    require(position.fen() == original_fen && position.key() == original_key,
+            "Searching cannot mutate the caller's position");
+
+    // No explicit clear here: the public Search API, not just UCI, must isolate
+    // selective TT bounds and learned ordering from unreduced baseline searches.
+    const auto switched = fixture.run(position, depth_limit(3), history);
+    require(switched.best == baseline.best && switched.score == baseline.score
+            && switched.nodes == baseline.nodes && !switched.lmr.enabled,
+            "Returning from a warm selective search must reproduce a fresh baseline");
+    require(switched.lmr.reductions == 0 && switched.lmr.researches == 0
+            && switched.lmr.fail_lows == 0 && switched.lmr.verified_cutoffs == 0,
+            "Selective counters reset for every search");
+
+    fixture.search.reset_stop();
+    fixture.search.stop();
+    const auto stopped = fixture.search.search(position, history, limits);
+    require(stopped.nodes == 0 && stopped.lmr.enabled && stopped.lmr.reductions == 0
+            && stopped.diagnostics->stop_reason == StopReason::external_stop,
+            "Clearing policy state must preserve a stop published before startup");
+
+    // A stop sent from an iteration callback is deterministic and does not rely
+    // on a scheduling race. The next iteration must never start after it.
+    fixture.search.clear();
+    limits = depth_limit(6);
+    limits.late_move_reductions = true;
+    limits.diagnostics = true;
+    const auto cancelled = fixture.run(Position::start(), limits, {}, [&](const SearchInfo& info) {
+        if (info.depth == 5) fixture.search.stop();
+    });
+    require(cancelled.depth == 5 && cancelled.lmr.reductions > 0
+            && cancelled.diagnostics->stop_reason == StopReason::external_stop,
+            "External cancellation must remain effective after selective search work");
+}
+
+void selective_special_positions(Fixture& fixture) {
+    auto limits = depth_limit(3);
+    limits.late_move_reductions = true;
+    auto position = fen("k7/8/1QK5/8/8/8/8/8 w - - 0 1");
+    auto result = fixture.run(position, limits);
+    require(result.best == move(position, "b6b7") && result.score == Search::mate_score - 1,
+            "Selective mode must retain the unique quiet mate in one");
+    position = fen("R5k1/6p1/4K3/8/8/8/8/8 b - - 0 1");
+    result = fixture.run(position, limits);
+    require(result.best == move(position, "g8h7"), "Selective mode must preserve the sole quiet check evasion");
+    position = fen("8/k1P5/2K5/8/8/8/8/8 w - - 0 1");
+    limits.searchmoves = {move(position, "c7c8q")};
+    result = fixture.run(position, limits);
+    require(result.best == limits.searchmoves.front() && result.score == 0,
+            "A restricted queen promotion that stalemates must remain a draw");
+    position = fen("8/2k5/8/2K5/2P5/8/8/8 w - - 99 1");
+    limits.searchmoves = {move(position, "c5d5")};
+    result = fixture.run(position, limits);
+    require(result.score == 0, "A quiet move reaching rule 50 must remain a draw in selective mode");
+}
+
 void missing_network() {
     nnue::Network empty_network;
     Search search(empty_network, 1);
@@ -436,6 +542,20 @@ int main(int argc, char** argv) {
         clock_limit(fixture);
         root_diagnostics(fixture);
         forecast_scope_and_clock_budgets(fixture);
+        selective_search_verification_and_policy_switches(fixture);
+        selective_special_positions(fixture);
+        // Re-run the existing chess-rule cases with the experimental option on.
+        // Their exact expectations remain mandatory despite selective search.
+        fixture.search.clear();
+        fixture.enable_lmr = true;
+        terminal_positions(fixture);
+        mate_at_draw_boundary(fixture);
+        quiescence_terminals_and_evasions(fixture);
+        repetition_history(fixture);
+        move_restrictions_and_table_bounds(fixture);
+        limits_and_principal_variations(fixture);
+        cancellation_and_pondering(fixture);
+        clock_limit(fixture);
         std::cout << "Search correctness checks passed\n";
     } catch (const std::exception& error) {
         std::cerr << "Search test failed: " << error.what() << '\n';

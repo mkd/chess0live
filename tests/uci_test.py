@@ -34,6 +34,13 @@ def search_diagnostics(lines):
     assert sum(int(item["nodes"]) for item in iterations) == int(summary["nodes"])
     assert lines[-2] == summaries[0] and lines[-1].startswith("bestmove ")
     assert float(summary["predicted_next_ms"]) >= 0
+    lmr_lines = [line for line in lines if line.startswith("info string lmr v1 ")]
+    assert len(lmr_lines) == 1
+    fields = lmr_lines[0].split()[4:]
+    lmr = dict(zip(fields[::2], fields[1::2]))
+    assert lmr["enabled"] in ("true", "false")
+    assert int(lmr["researches"]) <= int(lmr["reductions"])
+    assert int(lmr["fail_lows"]) + int(lmr["verified_cutoffs"]) <= int(lmr["researches"])
     return summary, iterations
 
 
@@ -42,6 +49,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
     assert any(line.startswith("id name chess0live") for line in handshake)
     assert "option name Time Policy type combo default classic var classic var forecast" in handshake
     assert "option name Search Diagnostics type check default false" in handshake
+    assert "option name Late Move Reductions type check default false" in handshake
     engine.send("position startpos")
     engine.send("perft 4")
     assert engine.until("nodes ")[-1].split()[1] == "197281"
@@ -69,6 +77,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         default_output = engine.until("bestmove ")
         assert bestmove(default_output) == "e2e4"
         assert not any(line.startswith("info string search-") for line in default_output)
+        assert not any(line.startswith("info string lmr ") for line in default_output)
 
         engine.send("setoption name Time Policy value forecast")
         engine.send("setoption name Search Diagnostics value true")
@@ -81,6 +90,15 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert summary["policy"] == "forecast" and summary["forecast_active"] == "false"
         assert summary["stop_reason"] == "depth_limit" and summary["completed_depth"] == "2"
         assert len(iterations) == 2 and all(item["completed"] == "true" for item in iterations)
+        engine.send("setoption name Late Move Reductions value true")
+        engine.send("setoption name Late Move Reductions value invalid")
+        assert "Late Move Reductions expects" in engine.until("info string error:")[-1]
+        engine.send("go depth 5 nodes 20000")
+        selective_output = engine.until("bestmove ")
+        search_diagnostics(selective_output)
+        assert any(line.startswith("info string lmr v1 enabled true reductions ")
+                   and int(line.split()[7]) > 0 for line in selective_output)
+        engine.send("setoption name Late Move Reductions value false")
         engine.send("go wtime 0 btime 1000 winc 2000 binc 2000")
         summary, iterations = search_diagnostics(engine.until("bestmove "))
         assert summary["forecast_active"] == "true" and summary["stop_reason"] == "hard_time"
@@ -95,6 +113,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         engine.send("go depth 1")
         disabled_output = engine.until("bestmove ")
         assert not any(line.startswith("info string search-") for line in disabled_output)
+        assert not any(line.startswith("info string lmr ") for line in disabled_output)
         for _ in range(5):
             engine.send("go infinite")
             engine.send("isready")

@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/search.cpp src/main.cpp
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-search test-time test-match test-bench test-profile verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -117,6 +117,9 @@ $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/n
 $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/chess0live/time_management.hpp $(BUILD)/toolchain.ok
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) -o "$@"
 
+$(BUILD)/search-policy-test$(EXE): tests/search_policy_test.cpp include/chess0live/search_policy.hpp include/chess0live/types.hpp $(BUILD)/toolchain.ok
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) -o "$@"
+
 test-core: $(ENGINE) $(BUILD)/position-test$(EXE)
 	"$(BUILD)/position-test$(EXE)"
 	$(PYTHON) tests/uci_test.py "$(ENGINE)"
@@ -131,7 +134,10 @@ test-search: $(BUILD)/search-test$(EXE)
 test-time: $(BUILD)/time-management-test$(EXE)
 	"$(BUILD)/time-management-test$(EXE)"
 
-test: test-core test-nnue test-search test-time
+test-search-policy: $(BUILD)/search-policy-test$(EXE)
+	"$(BUILD)/search-policy-test$(EXE)"
+
+test: test-core test-nnue test-search test-search-policy test-time
 
 # Optional independent referee checks: install requirements-match.txt first.
 # Keep the engine's ordinary correctness suite free of third-party Python deps.
@@ -144,6 +150,9 @@ test-bench:
 
 test-profile:
 	$(PYTHON) tests/profile_search_test.py
+
+test-profile-lmr:
+	$(PYTHON) tests/profile_lmr_test.py
 
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
@@ -163,6 +172,7 @@ help:
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
+	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'
