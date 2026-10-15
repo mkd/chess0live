@@ -15,9 +15,11 @@ Both passed correctness checks and remain opt-in. LMR's eight-game smoke scored
 2W/2D/4L; [capture ordering](docs/MOVE_ORDERING.md) scored 2W/4D/2L. The latter
 used 4.72% fewer depth-5 nodes with matching sampled decisions, but neither
 experiment establishes stronger play. **2D: playing-strength qualification is
-active**, beginning with the [fixed 64-game time-policy screen](docs/PHASE_2D.md).
-Its pinned launcher and independent evidence audit passed their checks; the first
-run is ready. No result or strength gain is established.
+active.** Its [first 64-game time-policy screen](docs/reports/2026-10-15-phase2d-time-policy.md)
+completed and passed the independent audit: forecast scored 14W/43D/7L
+(35.5/64 points), with no operational failures. The predeclared result is
+**inconclusive**; classic timing remains the default. Fresh LMR qualification is
+next, with no further campaign running or scheduled.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

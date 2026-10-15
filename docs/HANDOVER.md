@@ -108,17 +108,29 @@ LMR-specific miss in its eight selected roots. All moves and all 40 common-depth
 scores/PVs agreed; no LMR parameter changed. This is post-hoc development evidence,
 not held-out qualification or proof that every reduction is safe.
 
-Phase 2C's initial experiments are complete. Phase 2D is now active, preparing
-its [fixed 64-game time-policy qualification screen](PHASE_2D.md). Read that
-predeclared rule before any play: all assets/settings are pinned, the normal
-launch is overnight, and the owner authorized one daytime exception on October
-15 with one active worker. The launcher and independent audit passed 35 checks;
-there is no campaign outcome yet. First complete this screen, then prepare a
-separate predeclared campaign for one isolated search candidate. Fresh search
-validation openings and acceptance/sample rules still need to be frozen. Do not
-reuse the reserved time suite or repeat the 12 general roots simply to cross
-the runner's 30-pair reporting floor. Keep experiments separate and do not change
-defaults based on short development tests. No automatic schedule is configured.
+Phase 2C's initial experiments are complete. Phase 2D's
+[first time-policy screen](reports/2026-10-15-phase2d-time-policy.md) finished on
+October 15, 14:24–17:18 Helsinki, using preparation commit `2cf55f7` and the
+owner's one-run daytime exception. All 64 games / 32 pairs passed the independent
+audit: forecast 14W/43D/7L, 35.5/64 points, conditional 95% score bounds
+31.46–79.48%, no exclusions, clock forfeits, protocol failures, or artifact drift.
+The predeclared result is **inconclusive**. Keep classic timing, LMR off, and
+MVV-LVA as defaults; no strength or equivalence claim follows.
+
+Evidence is in `results/phase2d-time-policy-20261015/`, including the immutable
+pre-play `protocol.md`, launch manifest, complete match records, and `audit.json`.
+Archive the whole directory when moving machines. The audited run's tool/protocol
+hashes stayed unchanged during play; later documentation updates do not rewrite
+that frozen record. The one-run exception is consumed. No long job or automatic
+schedule is active, and the GUI snapshot `0.1-dev-4b8b35d` is unchanged.
+
+Next prepare one isolated LMR qualification with fresh full-history openings,
+classic timing, and predeclared sample/acceptance rules. Its larger search change
+makes it a useful research priority, not a proven strength improvement. The
+completed time suite is no longer fresh validation; do not reuse it for tuning
+while calling it held out or repeat the 12 general roots to inflate the sample.
+Keep SEE separate, preserve the frozen candidates, and use normal overnight
+limits unless the owner explicitly authorizes another daytime long run.
 Incremental feature-list maintenance, faster sliding attacks, and worker
 parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer

@@ -201,12 +201,27 @@ It recorded the M5 Pro's 18 logical CPUs and 64 GiB RAM, a daytime 50% budget,
 one active search worker, and two resident engines estimated at 1.11 GiB total.
 This is a worker/memory estimate, not an OS-enforced utilization cap.
 
-These are tooling checks, not the 64-game result. The campaign changes no engine
-source or binary; prior engine correctness and platform results above retain
+These tooling checks are separate from the actual match result below. The
+campaign changes no engine source or binary; prior correctness and platform results retain
 only their stated scope. The [predeclared protocol](PHASE_2D.md) records the
 frozen executable, network, held-out suite, settings, decision rule, and the
 owner's one-run daytime exception. All 64 games and the independent evidence
-audit remain necessary before interpreting a result.
+audit were subsequently completed.
+
+## Phase 2D first campaign — completed October 15, 2026
+
+The [frozen time-policy screen](reports/2026-10-15-phase2d-time-policy.md) completed
+all 64 games / 32 color-reversed pairs in 2h54m on the M5 Pro. Its independent
+audit passed: 7,088 legal plies, 6,240 charged search events, exact game/clock/option
+agreement, unchanged pinned assets and tool sources, and zero exclusions,
+forfeits, protocol failures, or truncations. Terminations: 21 checkmates,
+38 threefold-repetition claims, and 5 insufficient-material draws.
+
+Forecast scored 14W/43D/7L (35.5/64, 55.47%). The conditional two-sided 95%
+Hoeffding pair-score interval was 31.46–79.48%; the predeclared decision is
+**inconclusive**. No default changes, strength-gain claim, or equivalence claim
+follow. Raw evidence and audit hashes are recorded in the linked report. The
+completed one-run daytime exception does not authorize another long campaign.
 
 ## Release gates
 

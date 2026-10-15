@@ -16,7 +16,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2A | Measure completed and interrupted iteration time/work, with reproducible profiles | Complete: diagnostics, profiler, and checked accounting |
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
-| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Active: pinned 64-game time-policy launch/audit checks passed; ready to run |
+| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | First time-policy screen complete and inconclusive; fresh LMR qualification next |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -52,20 +52,32 @@ LMR executable. All eight selected roots gave the same off/on best move, and
 40 common-depth scores/PVs matched. No reduction parameter changed; this finite
 post-hoc check does not establish that reductions are harmless.
 
-The initial Phase 2C experiment checkpoint is complete. **Phase 2D is active**,
-starting with the [predeclared time-policy screen](PHASE_2D.md): 32 opening pairs,
-64 games, 60+0.6, and one active search worker. The owner authorized one daytime
-exception on October 15; the ordinary overnight rule is unchanged. The fixed
-launcher, cutoff, and independent result audit passed their checks before play.
-A positive screen warrants fresh confirmation; it does not automatically promote
-a default. That limited sample may remain inconclusive. Search qualification is
-not yet prepared: select one isolated candidate, author fresh full-history
-openings, and predeclare/freeze the binaries, network, settings, pair count or
-stopping rule, and acceptance criteria before play. The existing 12 general
-validation openings are below the runner's 30-pair reporting floor; repeating
-them does not create independent evidence. Thirty pairs is a reporting floor,
-not a guarantee of decisive results. Keep LMR and SEE campaigns separate with
-classic timing; do not combine experimental options yet.
+The initial Phase 2C experiment checkpoint is complete. **Phase 2D remains active**:
+its [first time-policy screen](reports/2026-10-15-phase2d-time-policy.md) completed
+all 32 opening pairs / 64 games at 60+0.6 with one worker. It ran October 15,
+14:24–17:18 Helsinki, under the owner's one-run daytime exception, from preparation
+commit `2cf55f7`. Forecast scored **14W/43D/7L, 35.5/64 points (55.47%)**. The
+independent audit passed with no exclusions, operational failures, or artifact
+drift. Its conditional 95% pair-score interval is **31.46–79.48%**: the predeclared
+decision is **inconclusive**, so classic remains default and forecast remains
+experimental. A favorable point estimate does not establish a strength gain.
+The raw campaign is `results/phase2d-time-policy-20261015/`; no job is still running.
+
+**Next checkpoint: prepare isolated LMR qualification.** LMR is the next research
+priority because it changes the search more substantially, while its tactical
+risk remains unresolved; neither node savings nor the unfavorable eight-game
+smoke establishes its strength. Use the frozen LMR executable against itself,
+changing only LMR off/on, with classic timing and baseline capture ordering.
+Author fresh full-history openings and freeze sample/settings/decision criteria
+before play. The completed time suite is now exposed evidence; do not reuse it
+for search tuning or present it as fresh validation. The existing 12 general
+validation roots are below the reporting floor; repeating them adds no independent
+openings. Choose a practical sample before seeing results, using the first run's
+2h54m runtime as planning context, not a duration guarantee. Keep SEE separate.
+No further long campaign or automatic schedule is authorized by the completed
+one-run daytime exception; use the ordinary overnight policy or obtain a new
+explicit exception. Phase 3 has not started, and no experimental default has
+been promoted.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override

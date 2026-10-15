@@ -64,11 +64,15 @@ Versions describe tested deliverables. Research objectives are not results.
 
 - Recorded capture ordering's 4.72% lower sampled depth-5 work and 2W/4D/2L
   operational smoke. It remains opt-in; the initial Phase 2C experiments are
-  complete and Phase 2D strength qualification remains pending.
+  complete; playing-strength qualification is handled separately in Phase 2D.
 
 - Prepared Phase 2D's fixed 64-game time-policy qualification with pinned assets,
   readiness checks, an enforced Helsinki cutoff, preserved interrupted evidence,
   and an independent game/clock/statistics audit. Predeclared a conservative
   confirmation-review criterion; no automatic default promotion.
+- Completed the first Phase 2D screen: forecast timing scored 14W/43D/7L in
+  64 audited games (32 opening pairs), with no operational failures. The result
+  is inconclusive under the frozen rule; classic remains default. Recorded
+  evidence, reproducibility limits, and fresh LMR qualification as the next step.
 
 No release or strength rating has been established yet.

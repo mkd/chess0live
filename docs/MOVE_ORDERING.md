@@ -197,11 +197,12 @@ further investigation plausible; it is not a demonstrated Elo gain. Any promotio
 requires a separately predeclared larger strength campaign. Keep this candidate
 separate from LMR and forecast timing until their individual effects are tested.
 
-The initial Phase 2C experiments are complete. Phase 2D qualification is next;
-it has not started. Its time-policy test already has a reserved protocol;
-search-candidate qualification still needs fresh openings and its own frozen
-sample, settings, and acceptance rule. Long campaigns require a manually launched
-overnight session; no job or schedule was created by this checkpoint.
+The initial Phase 2C experiments are complete. The later [Phase 2D time-policy
+screen](reports/2026-10-15-phase2d-time-policy.md) finished inconclusively on
+October 15. Search-candidate qualification still needs fresh openings and its own
+frozen sample, settings, and acceptance rule; LMR is the next research priority,
+with SEE kept separate. Long campaigns require a manually launched overnight
+session or an explicit owner exception; no further job or schedule is active.
 
 ## Reproducing the checks
 

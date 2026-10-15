@@ -1,10 +1,14 @@
 # Phase 2D: playing-strength qualification
 
-Status: first fixed qualification screen prepared and tool checks passed on
-October 15, 2026; ready for the explicitly authorized daytime launch.
-No result is available. Engine defaults remain classic timing, LMR off, and
-MVV-LVA capture ordering. This phase measures game outcomes, not NPS or nominal
-depth. The full engine remains unreleased and unrated `0.1-dev`.
+Status: the first fixed qualification screen completed on October 15, 2026.
+Its [audited result](reports/2026-10-15-phase2d-time-policy.md) is **inconclusive**:
+forecast scored 14W/43D/7L (35.5/64), with all 32 pairs valid and no operational
+failures. Classic timing, LMR off, and MVV-LVA remain defaults. The full engine
+remains unreleased and unrated `0.1-dev`. Fresh LMR qualification is the next
+Phase 2D checkpoint; no new match is running or scheduled.
+
+The protocol below was frozen before play in the campaign's `protocol.md`.
+This status update follows the completed audit and does not change that record.
 
 ## First campaign: time management
 
@@ -129,8 +133,8 @@ All raw evidence remains locally ignored. The audit reads saved evidence without
 starting an engine, checks legal replay and actual clock/option records, recomputes
 pair statistics, and applies the rule above. It reports subsequent live-source
 changes separately from the frozen before/after integrity record. Existing
-campaigns and audit outputs are never overwritten. No result or completed launch
-is implied by these prepared commands. See [validation](VALIDATION.md) for the
+campaigns and audit outputs are never overwritten. Commands alone do not establish
+completed results; use the linked audited report. See [validation](VALIDATION.md) for the
 tool checks completed before play.
 
 On macOS, the authorized foreground run may be prefixed with
@@ -140,10 +144,12 @@ shutdown, or an explicit sleep command.
 
 ## Remaining Phase 2D work
 
-After this screen, record its outcome and keep/reject/follow-up decision. Then
-predeclare separate qualification for one search hypothesis (LMR or SEE) with
-fresh full-history openings and classic timing. The existing 12 general-validation
-roots are below the runner's 30-pair reporting floor; recycling them does not
-create independent evidence. Do not combine experimental options or reuse the
-time suite for tuning while calling it held out. Manual Cute Chess play is
-optional feedback, not a prerequisite for this controlled comparison.
+The first screen and its recorded decision are complete. Next predeclare isolated
+LMR qualification with fresh full-history openings, classic timing, and its
+frozen executable; choose sample size and acceptance rules before play. The
+existing 12 general-validation roots are below the runner's 30-pair reporting
+floor; recycling them does not create independent evidence. Do not combine
+experimental options or reuse the completed time suite for tuning while calling
+it held out. Keep SEE qualification separate. Manual Cute Chess play is optional
+feedback, not a prerequisite for controlled comparisons. The completed daytime
+exception covers no further campaign, and no automatic schedule is configured.

@@ -1,8 +1,9 @@
 # Phase 2: iteration timing and the forecast experiment
 
-Status: implemented and profiled; playing-strength qualification is pending. This is an
-experimental policy, not an accepted playing-strength improvement. The existing
-`classic` policy remains the default. See [the current plan](ROADMAP.md).
+Status: implemented, profiled, and screened in 64 audited games; the predeclared
+result was inconclusive. This remains an experimental policy, not an accepted
+playing-strength improvement. The existing `classic` policy remains the default.
+See [the current plan](ROADMAP.md).
 
 ## Hypothesis and scope
 
@@ -201,12 +202,17 @@ Use a single entry in the documented opening JSON format with that history,
 --binc 2000 --search-timeout 35`. The synthetic budget is not an exact replay
 of the owner's clock log.
 
-## Prepared longer test — Phase 2D
+## Completed longer test — Phase 2D
 
 The [Phase 2D protocol](PHASE_2D.md) now fixes the exact decision rule and provides
 a pinned launcher, preflight, cutoff, and independent result audit. The owner
 authorized one daytime exception on October 15 with one active worker. This
-section preserves the original test specification; no match result exists yet.
+section preserves the original test specification. The [audited 64-game result](reports/2026-10-15-phase2d-time-policy.md)
+is 14W/43D/7L for forecast (35.5/64 points), with no operational failures. The
+predeclared decision is **inconclusive**; classic remains default. Conditional
+95% score bounds are 31.46–79.48%, so this neither proves improvement nor equality.
+The match ran 14:24–17:18 Helsinki on October 15. Its exposed suite is not fresh
+validation for future tuning; a follow-up needs its own design and openings.
 
 After freezing the binary/options and passing correctness, the first longer
 comparison uses the new `openings-time-validation.json`: 32 distinct roots,
@@ -228,8 +234,11 @@ owner override. No automation has been created. If the window ends before the
 fixed sample completes, stop cleanly and retain an incomplete result; do not
 reinterpret completed games as the full predeclared experiment.
 
-Prepared command for the frozen revision, **not yet run** (requires the optional
-match dependencies, the archived revision binary, and a fresh output directory):
+The original equivalent runner invocation is retained below for provenance.
+The actual campaign used the checked `qualify_time_policy.py run --allow-daytime`
+wrapper and output `results/phase2d-time-policy-20261015/`; see the protocol for
+its exact invocation. Do not launch a duplicate campaign or treat these completed
+openings as fresh validation. Any reproduction needs a new output directory:
 
 ```sh
 python3 tools/match.py \

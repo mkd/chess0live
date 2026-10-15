@@ -27,7 +27,8 @@ favorable subset selected after measurement.
 The modest sampled work reduction merits further investigation, not an Elo
 claim. [Capture ordering](MOVE_ORDERING.md) records the algorithm's limits,
 predeclared checks, frozen hashes, exact results, and reproduction commands.
-Phase 2D strength qualification remains a separate next step.
+Separate search-candidate qualification remains pending; the completed first
+Phase 2D time-policy screen is recorded below.
 
 ## 2026-10-14 — bounded LMR loss diagnosis: no policy change
 
@@ -145,3 +146,21 @@ The reports record the original rebuild path of the candidate. That path now
 contains the restored baseline; use the archived candidate and verify its hash
 when reproducing this comparison. The retained comparison helper and its tests
 are described in [benchmarking](BENCHMARKING.md).
+
+## 2026-10-15 — Phase 2D time policy: inconclusive, classic retained
+
+The predeclared 32-pair, 64-game 60+0.6 campaign completed under the owner's
+one-worker daytime exception. Forecast scored **14W/43D/7L**, or **35.5/64 points
+(55.46875%)**. Its conditional pair-level 95% Hoeffding score interval was
+**31.46068%–79.47682%**: the result is inconclusive, not evidence for promotion
+or equality. All games were included, with no failures, clock forfeits, or
+truncations. Independent audit checked 7,088 legal plies, 6,240 searches,
+actual clocks/options, and unchanged frozen artifacts. Elapsed campaign time
+was 2 h 53 min 49.434 s.
+
+**Decision:** keep classic as default and forecast opt-in; do not extend or
+retune this completed sample. A fresh isolated LMR qualification is proposed,
+with classic timing and baseline ordering, but has not been launched or
+scheduled. The [full report](reports/2026-10-15-phase2d-time-policy.md) records
+preparation commit `2cf55f7`, exact settings, artifact/evidence hashes,
+uncertainty, and the remaining qualification requirements.
