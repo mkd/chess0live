@@ -15,7 +15,9 @@ Both passed correctness checks and remain opt-in. LMR's eight-game smoke scored
 2W/2D/4L; [capture ordering](docs/MOVE_ORDERING.md) scored 2W/4D/2L. The latter
 used 4.72% fewer depth-5 nodes with matching sampled decisions, but neither
 experiment establishes stronger play. **2D: playing-strength qualification is
-next**, with no long campaign currently running or scheduled.
+active**, beginning with the [fixed 64-game time-policy screen](docs/PHASE_2D.md).
+Its pinned launcher and independent evidence audit passed their checks; the first
+run is ready. No result or strength gain is established.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
@@ -139,6 +141,8 @@ development and validation opening fixtures are included. `make test-match`
 checks the runner; `make verify-moves` independently compares legal moves and
 perft against the same optional referee library. These tools do not add a
 Python dependency to the engine itself.
+The [fixed Phase 2D workflow](docs/PHASE_2D.md) adds pinned preflight, a wall-clock
+cutoff, and an independent evidence audit; `make test-qualification` checks it.
 
 For changes intended to preserve search behavior, use the
 [performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline

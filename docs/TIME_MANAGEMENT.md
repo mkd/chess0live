@@ -201,7 +201,12 @@ Use a single entry in the documented opening JSON format with that history,
 --binc 2000 --search-timeout 35`. The synthetic budget is not an exact replay
 of the owner's clock log.
 
-## Prepared longer test — not scheduled or started
+## Prepared longer test — Phase 2D
+
+The [Phase 2D protocol](PHASE_2D.md) now fixes the exact decision rule and provides
+a pinned launcher, preflight, cutoff, and independent result audit. The owner
+authorized one daytime exception on October 15 with one active worker. This
+section preserves the original test specification; no match result exists yet.
 
 After freezing the binary/options and passing correctness, the first longer
 comparison uses the new `openings-time-validation.json`: 32 distinct roots,

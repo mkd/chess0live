@@ -185,6 +185,29 @@ best moves and 40 common-depth scores/PVs agreed between policies. This is
 post-hoc, bounded diagnosis; it neither demonstrates an LMR-specific miss nor
 establishes strength or safety of all reduced fail-lows.
 
+## Phase 2D qualification tooling — October 15, 2026
+
+Before the first real campaign, `make test-qualification` passed 21 launcher
+checks and 14 independent-auditor checks. They cover immutable settings/assets,
+no-search UCI preflight, day/night and daylight-saving boundaries, preserving the
+original 07:00 cutoff across readiness, cancellation and child-process cleanup,
+incomplete PGNs/journals, legal full-history replay including Black to move,
+actual UCI options/clocks, late unplayed moves, pair identity, corrupted evidence,
+output-overwrite rejection, and exact predeclared decision boundaries.
+`make test-match` also passed all 17 statistics and 17 runner checks.
+The real no-search preflight passed with both frozen engine roles: 32 distinct
+legal roots, correct applied options and artifact digests, and zero `go` commands.
+It recorded the M5 Pro's 18 logical CPUs and 64 GiB RAM, a daytime 50% budget,
+one active search worker, and two resident engines estimated at 1.11 GiB total.
+This is a worker/memory estimate, not an OS-enforced utilization cap.
+
+These are tooling checks, not the 64-game result. The campaign changes no engine
+source or binary; prior engine correctness and platform results above retain
+only their stated scope. The [predeclared protocol](PHASE_2D.md) records the
+frozen executable, network, held-out suite, settings, decision rule, and the
+owner's one-run daytime exception. All 64 games and the independent evidence
+audit remain necessary before interpreting a result.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

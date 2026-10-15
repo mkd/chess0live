@@ -16,7 +16,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2A | Measure completed and interrupted iteration time/work, with reproducible profiles | Complete: diagnostics, profiler, and checked accounting |
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
-| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Next, not started: time-policy protocol ready; search protocols still to predeclare |
+| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Active: pinned 64-game time-policy launch/audit checks passed; ready to run |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -52,10 +52,13 @@ LMR executable. All eight selected roots gave the same off/on best move, and
 40 common-depth scores/PVs matched. No reduction parameter changed; this finite
 post-hoc check does not establish that reductions are harmless.
 
-The initial Phase 2C experiment checkpoint is complete. **Phase 2D is next and
-has not started.** First qualify the frozen time-policy candidate using its
-already specified 32-opening protocol during a manually launched overnight
-session. That limited sample may remain inconclusive. Search qualification is
+The initial Phase 2C experiment checkpoint is complete. **Phase 2D is active**,
+starting with the [predeclared time-policy screen](PHASE_2D.md): 32 opening pairs,
+64 games, 60+0.6, and one active search worker. The owner authorized one daytime
+exception on October 15; the ordinary overnight rule is unchanged. The fixed
+launcher, cutoff, and independent result audit passed their checks before play.
+A positive screen warrants fresh confirmation; it does not automatically promote
+a default. That limited sample may remain inconclusive. Search qualification is
 not yet prepared: select one isolated candidate, author fresh full-history
 openings, and predeclare/freeze the binaries, network, settings, pair count or
 stopping rule, and acceptance criteria before play. The existing 12 general

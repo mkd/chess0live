@@ -66,4 +66,9 @@ Versions describe tested deliverables. Research objectives are not results.
   operational smoke. It remains opt-in; the initial Phase 2C experiments are
   complete and Phase 2D strength qualification remains pending.
 
+- Prepared Phase 2D's fixed 64-game time-policy qualification with pinned assets,
+  readiness checks, an enforced Helsinki cutoff, preserved interrupted evidence,
+  and an independent game/clock/statistics audit. Predeclared a conservative
+  confirmation-review criterion; no automatic default promotion.
+
 No release or strength rating has been established yet.

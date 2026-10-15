@@ -119,6 +119,24 @@ favorable. Report exploratory experiments as exploratory. See
 
 ## Freeze a comparison baseline
 
+### Fixed Phase 2D workflow
+
+The first [Phase 2D campaign](PHASE_2D.md) uses a purpose-built wrapper around
+this runner. `python3 tools/qualify_time_policy.py check` verifies pinned assets,
+legal opening histories, resources, and UCI readiness without searching.
+`run --output NEW_DIRECTORY` launches the fixed 64-game protocol in the Helsinki
+overnight window; `--allow-daytime` requires an explicit owner exception.
+The next 07:00 cutoff is retained in either mode. Interrupted evidence stays
+incomplete; there is no resume, automatic scheduling, or outcome-based stopping.
+
+Afterward, `tools/audit_time_policy.py --campaign DIRECTORY --output FRESH_JSON`
+independently checks saved games, protocol clocks/options, artifact integrity,
+and pair statistics. It applies the predeclared decision without changing engine
+defaults. `make test-qualification` tests both tools using bounded synthetic and
+fake-process fixtures. See the campaign protocol for exact commands and limits.
+
+### General baseline guidance
+
 Preserve a known binary outside the rebuild directory, together with its source
 revision, compiler/flags, and network digest. Compare a changed candidate
 against that frozen baseline first. A Stockfish match is useful context, but

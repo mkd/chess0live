@@ -108,13 +108,17 @@ LMR-specific miss in its eight selected roots. All moves and all 40 common-depth
 scores/PVs agreed; no LMR parameter changed. This is post-hoc development evidence,
 not held-out qualification or proof that every reduction is safe.
 
-Phase 2C's initial experiments are complete. Phase 2D has not started: first
-use the already specified frozen time-policy overnight test; then prepare a
+Phase 2C's initial experiments are complete. Phase 2D is now active, preparing
+its [fixed 64-game time-policy qualification screen](PHASE_2D.md). Read that
+predeclared rule before any play: all assets/settings are pinned, the normal
+launch is overnight, and the owner authorized one daytime exception on October
+15 with one active worker. The launcher and independent audit passed 35 checks;
+there is no campaign outcome yet. First complete this screen, then prepare a
 separate predeclared campaign for one isolated search candidate. Fresh search
 validation openings and acceptance/sample rules still need to be frozen. Do not
 reuse the reserved time suite or repeat the 12 general roots simply to cross
 the runner's 30-pair reporting floor. Keep experiments separate and do not change
-defaults based on short development tests. No long job or schedule is active.
+defaults based on short development tests. No automatic schedule is configured.
 Incremental feature-list maintenance, faster sliding attacks, and worker
 parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
 the exact NNUE stage oracle and core rule tests while optimizing. Trainer
