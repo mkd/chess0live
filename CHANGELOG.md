@@ -74,5 +74,10 @@ Versions describe tested deliverables. Research objectives are not results.
   64 audited games (32 opening pairs), with no operational failures. The result
   is inconclusive under the frozen rule; classic remains default. Recorded
   evidence, reproducibility limits, and fresh LMR qualification as the next step.
+- Prepared isolated Phase 2D LMR qualification: 64 fresh original opening
+  histories, 128 color-reversed games, fixed settings and decision gates.
+  Shared the tested launch lifecycle across protocols while retaining an
+  independent evidence audit and historical time-policy audit compatibility.
+  LMR remains disabled by default pending qualification and confirmation.
 
 No release or strength rating has been established yet.

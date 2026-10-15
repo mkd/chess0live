@@ -166,6 +166,8 @@ test-profile-ordering: test-profile-lmr
 test-qualification:
 	$(PYTHON) tests/qualify_time_policy_test.py
 	$(PYTHON) tests/audit_time_policy_test.py
+	$(PYTHON) tests/qualify_lmr_test.py
+	$(PYTHON) tests/audit_lmr_test.py
 
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json

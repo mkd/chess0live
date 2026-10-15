@@ -164,3 +164,19 @@ with classic timing and baseline ordering, but has not been launched or
 scheduled. The [full report](reports/2026-10-15-phase2d-time-policy.md) records
 preparation commit `2cf55f7`, exact settings, artifact/evidence hashes,
 uncertainty, and the remaining qualification requirements.
+
+## 2026-10-15 — Phase 2D isolated LMR screen prepared
+
+The [predeclared 128-game protocol](PHASE_2D_LMR.md) freezes 64 fresh original
+full-history roots, seed `20261015`, 60+0.6, one active worker, and identical
+frozen LMR executables. Both use classic timing and baseline capture ordering;
+only the reduction toggle differs. A conditional 95% pair-score interval must
+clear 0.5 for confirmation review, requiring at least 86/128 points. At most
+42/128 is negative evidence; otherwise the screen is inconclusive. No default
+promotion is automatic. Candidate clock forfeits block a positive decision.
+
+All 100 workflow checks and real no-search preflight passed; the previous
+time-policy audit remains reproducible. These checks establish readiness,
+not a played result. Ordinary overnight limits and the original 07:00 Helsinki
+cutoff apply; the prior one-run daytime exception is consumed. The suite and
+candidate must remain frozen during play, with incomplete evidence retained.

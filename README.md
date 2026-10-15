@@ -18,8 +18,10 @@ experiment establishes stronger play. **2D: playing-strength qualification is
 active.** Its [first 64-game time-policy screen](docs/reports/2026-10-15-phase2d-time-policy.md)
 completed and passed the independent audit: forecast scored 14W/43D/7L
 (35.5/64 points), with no operational failures. The predeclared result is
-**inconclusive**; classic timing remains the default. Fresh LMR qualification is
-next, with no further campaign running or scheduled.
+**inconclusive**; classic timing remains the default. The next checkpoint is
+the [isolated LMR screen](docs/PHASE_2D_LMR.md): 128 games on 64 fresh openings,
+classic timing on both sides, frozen LMR on/off, and a 07:00 Helsinki cutoff.
+Its protocol is prepared; no result or automatic schedule is implied.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
@@ -145,6 +147,11 @@ perft against the same optional referee library. These tools do not add a
 Python dependency to the engine itself.
 The [fixed Phase 2D workflow](docs/PHASE_2D.md) adds pinned preflight, a wall-clock
 cutoff, and an independent evidence audit; `make test-qualification` checks it.
+The [LMR protocol](docs/PHASE_2D_LMR.md) uses the same lifecycle with independently
+pinned audit expectations. `python3 tools/qualify_lmr.py check` performs readiness
+checks without searching; `run --output NEW_DIRECTORY` starts the fixed sample
+within the normal overnight window. The completed time-policy daytime exception
+does not authorize a daytime LMR run.
 
 For changes intended to preserve search behavior, use the
 [performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline

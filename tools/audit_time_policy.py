@@ -9,6 +9,7 @@ the default engine policy. Failed and incomplete evidence remains reportable.
 """
 import argparse
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 import hashlib
 import json
@@ -31,6 +32,33 @@ PINNED_SHA256 = {
 SETTINGS = {"initial": 60.0, "increment": 0.6, "hash_mb": 64, "threads": 1,
             "max_plies": 512, "startup_timeout": 30.0, "protocol_timeout": 5.0,
             "move_overhead_ms": 20, "smoke": False}
+
+
+@dataclass(frozen=True)
+class AuditProtocol:
+    """Independently pinned expectations, never taken from a campaign manifest.
+
+    New comparisons supply their own constants; the default retains the original
+    time-policy protocol and can still audit its archived before/after evidence.
+    This descriptor is deliberately independent of the launcher's configuration.
+    """
+    protocol_id: str = PROTOCOL_ID
+    pairs: int = 32
+    seed: int = 20261014
+    protocol_document: str = "docs/PHASE_2D.md"
+    role_options: tuple = (("candidate", (("Time Policy", "forecast"),)),
+                           ("opponent", (("Time Policy", "classic"),)))
+    required_sources: tuple = ("tools/qualify_time_policy.py", "tools/audit_time_policy.py",
+                               "tools/match.py", "tools/match_statistics.py", "tools/resources.py")
+    pinned_sha256: tuple = ()
+    entrypoint: str = "tools/audit_time_policy.py"
+
+    def options(self, role):
+        return dict(dict(self.role_options)[role])
+
+    def pins(self):
+        # Resolve legacy module constants at call time for historical fixtures.
+        return dict(self.pinned_sha256) if self.pinned_sha256 else PINNED_SHA256
 
 
 def digest(path):
@@ -69,7 +97,7 @@ def relative_elo(score):
     return {"value": 400 * math.log10(score / (1-score)), "interpretation": "finite"}
 
 
-def statistics_for(records, plan, finished):
+def statistics_for(records, plan, finished, pairs=32):
     """Recompute pair statistics independently of the match statistics module."""
     included, excluded, wdl = [], [], Counter(wins=0, draws=0, losses=0)
     points_histogram = {f"{v/2:.1f}": 0 for v in range(5)}
@@ -92,8 +120,8 @@ def statistics_for(records, plan, finished):
         included.append({"pair_id": pair["pair_id"], "opening_key": pair["opening_key"],
                          "points": total, "score": total/2})
     score = math.fsum(p["score"] for p in included)/len(included) if included else None
-    eligible = finished and len(included) == 32 and not excluded
-    radius = math.sqrt(math.log(40)/(2*32)) if eligible else None
+    eligible = finished and len(included) == pairs and not excluded
+    radius = math.sqrt(math.log(40)/(2*pairs)) if eligible else None
     interval = {"lower": max(0., score-radius), "upper": min(1., score+radius)} if eligible else None
     return {"wdl": dict(wdl), "pair_point_counts": points_histogram, "score": score,
             "included_pairs": len(included), "excluded_pairs": len(excluded),
@@ -120,8 +148,9 @@ def classify(statistics, complete, errors, candidate_forfeits):
 
 class Audit:
     """Collect source digests and local failures while retaining a usable report."""
-    def __init__(self, campaign):
+    def __init__(self, campaign, protocol=None):
         self.campaign = Path(campaign).resolve()
+        self.protocol = protocol or AuditProtocol()
         self.inputs = {}
         self.errors = []
         self.games = []
@@ -147,29 +176,29 @@ class Audit:
 
     def manifest(self):
         launch = self.read(self.campaign / "launch.json")
-        require(launch["schema_version"] == 1 and launch["protocol_id"] == PROTOCOL_ID, "Unknown campaign protocol")
+        protocol_spec = self.protocol
+        require(launch["schema_version"] == 1 and launch["protocol_id"] == protocol_spec.protocol_id, "Unknown campaign protocol")
         require(chess.__version__ == launch["chess_version"] == "1.11.2", "Incorrect referee version")
         config = launch["configuration"]
-        require(config["pairs"] == 32 and config["seed"] == 20261014, "Campaign sample or seed changed")
+        require(config["pairs"] == protocol_spec.pairs and config["seed"] == protocol_spec.seed, "Campaign sample or seed changed")
         require(config["settings"] == SETTINGS and config["ponder"] is False and config["diagnostics"] is False,
                 "Campaign settings changed")
         require(canonical_digest(config) == launch["configuration_sha256"], "Configuration digest mismatch")
         assets = launch["assets"]
-        for key, expected in PINNED_SHA256.items():
+        for key, expected in protocol_spec.pins().items():
             require(assets[key]["sha256"] == expected, "Unpinned " + key)
             self.asset(assets[key]["path"], assets[key])
         engines = {entry["role"]: entry for entry in config["engines"]}
         require(len(config["engines"]) == 2 and set(engines) == {"candidate", "opponent"}, "Invalid engine roles")
-        for role, policy in (("candidate", "forecast"), ("opponent", "classic")):
+        for role in ("candidate", "opponent"):
             spec = engines[role]
             require(spec["executable"] == assets["engine"]["path"] and spec["network"] == assets["network"]["path"],
                     "Engine configuration does not use frozen assets")
             require(spec["arguments"] == [] and spec["network_option"] == "EvalFile" and
-                    spec["extra_options"] == {"Time Policy": policy}, "Experimental modes are not isolated")
+                    spec["extra_options"] == protocol_spec.options(role), "Experimental modes are not isolated")
         require(launch["match_directory"] == "match", "Unexpected match directory")
         sources = launch["sources"]
-        required = {"tools/qualify_time_policy.py", "tools/audit_time_policy.py", "tools/match.py",
-                    "tools/match_statistics.py", "tools/resources.py"}
+        required = set(protocol_spec.required_sources)
         require(required <= set(sources), "Required source hashes are missing")
         for path, expected in sources.items():
             require(re.fullmatch(r"[0-9a-f]{64}", expected["sha256"]) and expected["bytes"] > 0,
@@ -182,7 +211,7 @@ class Audit:
         require(after["unchanged"] is True and after["configuration_sha256"] == launch["configuration_sha256"]
                 and after["assets"] == assets and after["sources"] == sources, "Final integrity check failed")
         protocol = launch["protocol_document"]
-        require(protocol["frozen_copy"] == "protocol.md" and protocol["source"] == "docs/PHASE_2D.md", "Unexpected protocol snapshot path")
+        require(protocol["frozen_copy"] == "protocol.md" and protocol["source"] == protocol_spec.protocol_document, "Unexpected protocol snapshot path")
         raw = (self.campaign / "protocol.md").read_bytes()
         self.inputs[str(self.campaign / "protocol.md")] = hashlib.sha256(raw).hexdigest()
         require(hashlib.sha256(raw).hexdigest() == protocol["sha256"], "Protocol snapshot changed")
@@ -204,20 +233,21 @@ class Audit:
         if launch["status"] == "finished":
             finished = datetime.fromisoformat(launch["finished_utc"])
             require(started <= finished <= cutoff, "Completed campaign exceeds its declared window")
-        require(launch["preflight"]["opening_count"] == launch["preflight"]["distinct_roots"] == 32,
+        require(launch["preflight"]["opening_count"] == launch["preflight"]["distinct_roots"] == protocol_spec.pairs,
                 "Preflight root count mismatch")
         self.launch = launch
         self.assets = assets
         return launch
 
     def plan(self, run):
-        require(run["schema_version"] == 1 and run["settings"] == SETTINGS and run["planned_pairs"] == 32
-                and run["seed"] == 20261014 and run["chess_version"] == "1.11.2", "Match differs from frozen protocol")
+        require(run["schema_version"] == 1 and run["settings"] == SETTINGS and run["planned_pairs"] == self.protocol.pairs
+                and run["seed"] == self.protocol.seed and run["chess_version"] == "1.11.2", "Match differs from frozen protocol")
         suite_path = self.match_file("openings.json")
         require(digest(suite_path) == self.assets["openings"]["sha256"] == run["opening_suite"]["sha256"],
                 "Match opening suite differs from launch")
         entries = self.read(suite_path)["openings"]
-        require(len(entries) == 32 and len({e["id"] for e in entries}) == 32, "Expected 32 unique opening identifiers")
+        require(len(entries) == self.protocol.pairs and len({e["id"] for e in entries}) == self.protocol.pairs,
+                "Unexpected opening count or duplicate identifiers")
         definitions, final_roots = [], set()
         for entry in entries:
             board = chess.Board(entry.get("fen", chess.STARTING_FEN))
@@ -232,14 +262,14 @@ class Audit:
             key = hashlib.sha256(json.dumps({"fen": start, "moves": entry["moves"]}, sort_keys=True).encode()).hexdigest()
             definitions.append({"opening_id": entry["id"], "opening_key": key,
                                 "starting_fen": start, "moves": entry["moves"]})
-        randomizer = random.Random(20261014)
+        randomizer = random.Random(self.protocol.seed)
         randomizer.shuffle(definitions)
         expected = [dict(item, pair_id=f"p{i+1:06d}", first_candidate_color=randomizer.choice(("white", "black")))
                     for i, item in enumerate(definitions)]
         require(run["plan"] == expected, "Runner plan differs from fixed seed/full histories")
-        for role, policy in (("candidate", "forecast"), ("opponent", "classic")):
+        for role in ("candidate", "opponent"):
             spec = run["engines"][role]
-            require(spec["experiment_options"] == {"Time Policy": policy} and spec["arguments"] == []
+            require(spec["experiment_options"] == self.protocol.options(role) and spec["arguments"] == []
                     and spec["network_option"] == "EvalFile", "Runner experiment options changed")
             require(spec["executable"] == self.assets["engine"]["path"] and spec["network"] == self.assets["network"]["path"],
                     "Runner engine paths changed")
@@ -274,7 +304,7 @@ class Audit:
                 elif line.startswith("go "):
                     require(active is None and current["newgame"], "Overlapping search or missing new game")
                     require(index < len(contexts) or record["status"] != "complete", "Search absent from game journal")
-                    expected = dict(common, **{"Time Policy": "forecast" if role == "candidate" else "classic"})
+                    expected = dict(common, **self.protocol.options(role))
                     require(all(current["options"].get(k) == v for k, v in expected.items()), "Actual UCI options differ")
                     if index < len(contexts):
                         context = contexts[index]
@@ -291,7 +321,7 @@ class Audit:
                     active = (role, tick, index)
                     index += 1
             else:
-                require(event["direction"] != "stderr", "Unexpected stderr in frozen time-policy protocol")
+                require(event["direction"] != "stderr", "Unexpected stderr in frozen qualification protocol")
                 require(event["direction"] == "from_engine", "Unknown transcript direction")
                 option = re.match(r"option name (.+?) type (?:spin|check|combo|string) default (.*)", line)
                 if option:
@@ -387,10 +417,12 @@ def board_from_command(command):
     return board
 
 
-def audit(campaign):
-    checker = Audit(campaign)
-    report = {"schema_version": 1, "protocol_id": PROTOCOL_ID, "audited_utc": datetime.now(timezone.utc).isoformat(),
+def audit(campaign, protocol=None):
+    checker = Audit(campaign, protocol)
+    protocol = checker.protocol
+    report = {"schema_version": 1, "protocol_id": protocol.protocol_id, "audited_utc": datetime.now(timezone.utc).isoformat(),
               "campaign": str(checker.campaign), "audit_tool_sha256": digest(__file__),
+              "audit_entrypoint_sha256": digest(ROOT / protocol.entrypoint),
               "decision": "invalid_or_incomplete", "default_change": False,
               "interpretation": "Conditional on independent opening-pair sampling assumptions; limited to this suite and configuration. No general strength claim or automatic default change."}
     records, computed = [], {}
@@ -415,9 +447,9 @@ def audit(campaign):
                 checker.games.append(checker.game(record, pair))
             except (ValueError, KeyError, TypeError, OSError, IndexError) as error:
                 checker.errors.append(f"{record.get('game_id')}: {error}")
-        complete = (launch["status"] == run["status"] == "finished" and len(records) == 64
+        complete = (launch["status"] == run["status"] == "finished" and len(records) == 2*protocol.pairs
                     and all(g["status"] == "complete" for g in records))
-        computed = statistics_for(records, plan, run["status"] == "finished")
+        computed = statistics_for(records, plan, run["status"] == "finished", protocol.pairs)
         saved = checker.read(checker.match_file("summary.json"))
         for key in ("wdl", "pair_point_counts", "included_pairs", "excluded_pairs", "included_games", "excluded_games", "included_pair_scores"):
             require(saved[key] == computed[key], "Saved summary differs: " + key)
@@ -431,7 +463,7 @@ def audit(campaign):
         if computed["score"] is not None:
             close(saved["score"], computed["score"], "Saved score differs")
         compare_values(saved["relative_elo"], computed["relative_elo"], "Saved relative Elo differs")
-        require(saved["distinct_identified_openings"] == computed["included_pairs"] and saved["supplied_pairs"] == 32,
+        require(saved["distinct_identified_openings"] == computed["included_pairs"] and saved["supplied_pairs"] == protocol.pairs,
                 "Saved opening/pair counts differ")
         included_ids = {p["pair_id"] for p in computed["included_pair_scores"]}
         require(saved["included_time_forfeit_games"] == sum(g["termination"] == "time_forfeit" and g["pair_id"] in included_ids for g in records),
@@ -451,14 +483,14 @@ def audit(campaign):
     return report
 
 
-def main():
+def main(protocol=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--campaign", type=Path, required=True, help="Directory containing launch.json and match/")
     parser.add_argument("--output", type=Path, help="Fresh JSON file; omit to print to stdout")
     args = parser.parse_args()
     if args.output and args.output.exists():
         parser.error("Output exists; audit evidence is never overwritten")
-    result = audit(args.campaign)
+    result = audit(args.campaign, protocol)
     text = json.dumps(result, indent=2, allow_nan=False)+"\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

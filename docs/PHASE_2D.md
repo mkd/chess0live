@@ -5,7 +5,8 @@ Its [audited result](reports/2026-10-15-phase2d-time-policy.md) is **inconclusiv
 forecast scored 14W/43D/7L (35.5/64), with all 32 pairs valid and no operational
 failures. Classic timing, LMR off, and MVV-LVA remain defaults. The full engine
 remains unreleased and unrated `0.1-dev`. Fresh LMR qualification is the next
-Phase 2D checkpoint; no new match is running or scheduled.
+Phase 2D checkpoint, with its [128-game protocol](PHASE_2D_LMR.md) now prepared.
+No automatic schedule is configured.
 
 The protocol below was frozen before play in the campaign's `protocol.md`.
 This status update follows the completed audit and does not change that record.
@@ -144,9 +145,9 @@ shutdown, or an explicit sleep command.
 
 ## Remaining Phase 2D work
 
-The first screen and its recorded decision are complete. Next predeclare isolated
-LMR qualification with fresh full-history openings, classic timing, and its
-frozen executable; choose sample size and acceptance rules before play. The
+The first screen and its recorded decision are complete. The separately frozen
+[LMR protocol](PHASE_2D_LMR.md) now specifies 128 games on 64 fresh full-history
+openings, classic timing, its frozen executable, and decision rules before play. The
 existing 12 general-validation roots are below the runner's 30-pair reporting
 floor; recycling them does not create independent evidence. Do not combine
 experimental options or reuse the completed time suite for tuning while calling

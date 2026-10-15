@@ -5,6 +5,7 @@ Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
 SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 """
 import copy
+from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
@@ -34,6 +35,8 @@ def fingerprints(path):
 
 
 class CampaignTests(unittest.TestCase):
+    protocol_spec = auditor.AuditProtocol()
+
     @classmethod
     def setUpClass(cls):
         # Independently composed legal mate-in-one roots; no engines or game assets.
@@ -55,9 +58,9 @@ class CampaignTests(unittest.TestCase):
                     if child.is_checkmate():
                         cls.roots.append((board.fen(), move.uci()))
                         break
-                if len(cls.roots) == 32:
+                if len(cls.roots) == cls.protocol_spec.pairs:
                     return
-        raise AssertionError("Could not compose 32 test roots")
+        raise AssertionError("Could not compose enough test roots")
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="chess0live-audit-")
@@ -69,25 +72,24 @@ class CampaignTests(unittest.TestCase):
         write_json(openings, {"openings": entries})
         (self.match / "openings.json").write_bytes(openings.read_bytes())
         assets = {name: fingerprints(path) for name, path in (("engine", engine), ("network", network), ("openings", openings))}
-        self.pin = patch.object(auditor, "PINNED_SHA256", {key: value["sha256"] for key, value in assets.items()})
-        self.pin.start()
+        self.protocol = replace(self.protocol_spec, pinned_sha256=tuple(
+            (key, value["sha256"]) for key, value in assets.items()))
         sources = {}
-        for name in ("tools/qualify_time_policy.py", "tools/audit_time_policy.py", "tools/match.py",
-                     "tools/match_statistics.py", "tools/resources.py", "docs/PHASE_2D.md"):
+        for name in (*self.protocol.required_sources, self.protocol.protocol_document):
             source = fingerprints(auditor.ROOT / name)
             sources[name] = {key: source[key] for key in ("sha256", "bytes")}
-        (self.directory / "protocol.md").write_bytes((auditor.ROOT / "docs/PHASE_2D.md").read_bytes())
-        config = {"pairs": 32, "seed": 20261014, "settings": dict(auditor.SETTINGS), "ponder": False,
+        (self.directory / "protocol.md").write_bytes((auditor.ROOT / self.protocol.protocol_document).read_bytes())
+        config = {"pairs": self.protocol.pairs, "seed": self.protocol.seed, "settings": dict(auditor.SETTINGS), "ponder": False,
                   "diagnostics": False, "engines": []}
         specs = {}
-        for role, policy in (("candidate", "forecast"), ("opponent", "classic")):
+        for role in ("candidate", "opponent"):
             config["engines"].append({"role": role, "executable": str(engine), "network": str(network),
                                       "network_option": "EvalFile", "arguments": [],
-                                      "source_revision": "synthetic", "extra_options": {"Time Policy": policy}})
+                                      "source_revision": "synthetic", "extra_options": self.protocol.options(role)})
             specs[role] = {"executable": str(engine), "network": str(network), "network_option": "EvalFile",
-                           "arguments": [], "experiment_options": {"Time Policy": policy},
+                           "arguments": [], "experiment_options": self.protocol.options(role),
                            "artifacts": [assets["engine"], assets["network"]]}
-        self.launch = {"schema_version": 1, "protocol_id": auditor.PROTOCOL_ID, "status": "finished",
+        self.launch = {"schema_version": 1, "protocol_id": self.protocol.protocol_id, "status": "finished",
                        "chess_version": "1.11.2", "configuration": config,
                        "started_utc": "2026-10-15T10:00:00.001+00:00",
                        "finished_utc": "2026-10-15T10:30:00+00:00",
@@ -95,21 +97,21 @@ class CampaignTests(unittest.TestCase):
                                          "nighttime": False, "allow_daytime": True,
                                          "cutoff_local": "2026-10-16T07:00:00+03:00",
                                          "cutoff_utc": "2026-10-16T04:00:00+00:00", "remaining_seconds": 64800.},
-                       "preflight": {"opening_count": 32, "distinct_roots": 32},
+                       "preflight": {"opening_count": self.protocol.pairs, "distinct_roots": self.protocol.pairs},
                        "configuration_sha256": auditor.canonical_digest(config), "assets": assets, "sources": sources,
-                       "match_directory": "match", "protocol_document": {"source": "docs/PHASE_2D.md",
-                       "frozen_copy": "protocol.md", "sha256": sources["docs/PHASE_2D.md"]["sha256"]}}
+                       "match_directory": "match", "protocol_document": {"source": self.protocol.protocol_document,
+                       "frozen_copy": "protocol.md", "sha256": sources[self.protocol.protocol_document]["sha256"]}}
         self.launch["integrity_after"] = {"configuration_sha256": self.launch["configuration_sha256"],
                                           "assets": copy.deepcopy(assets), "sources": copy.deepcopy(sources), "unchanged": True}
         self.plan = []
-        shuffled = list(entries); generator = random.Random(20261014); generator.shuffle(shuffled)
+        shuffled = list(entries); generator = random.Random(self.protocol.seed); generator.shuffle(shuffled)
         for index, entry in enumerate(shuffled):
             definition = {"fen": entry["fen"], "moves": []}
             key = hashlib.sha256(json.dumps(definition, sort_keys=True).encode()).hexdigest()
             self.plan.append({"pair_id": f"p{index+1:06d}", "opening_id": entry["id"], "opening_key": key,
                               "starting_fen": entry["fen"], "moves": [],
                               "first_candidate_color": generator.choice(("white", "black"))})
-        self.run = {"schema_version": 1, "settings": dict(auditor.SETTINGS), "planned_pairs": 32, "seed": 20261014,
+        self.run = {"schema_version": 1, "settings": dict(auditor.SETTINGS), "planned_pairs": self.protocol.pairs, "seed": self.protocol.seed,
                     "chess_version": "1.11.2", "status": "finished", "plan": self.plan, "engines": specs,
                     "opening_suite": {"sha256": assets["openings"]["sha256"]},
                     "runner_sources": [{"path": key, "sha256": sources[key]["sha256"]} for key in
@@ -122,7 +124,7 @@ class CampaignTests(unittest.TestCase):
         self.save()
 
     def tearDown(self):
-        self.pin.stop(); self.temporary.cleanup()
+        self.temporary.cleanup()
 
     def make_game(self, pair, leg, color, late=False, bestmove=None):
         game_id = f"{pair['pair_id']}-{leg}"
@@ -151,7 +153,7 @@ class CampaignTests(unittest.TestCase):
             log.append({"engine": role, "direction": direction, "line": line, "monotonic_ns": tick})
         expected = {"Hash": "64", "Threads": "1", "Ponder": "false", "Search Diagnostics": "false",
                     "Move Overhead": "20", "EvalFile": self.launch["assets"]["network"]["path"],
-                    "Time Policy": "forecast" if role == "candidate" else "classic"}
+                    **self.protocol.options(role)}
         for key, value in expected.items(): emit("to_engine", f"setoption name {key} value {value}")
         emit("to_engine", "ucinewgame"); emit("to_engine", "isready")
         emit("from_engine", "readyok", 10_000_000_000)  # Deliberately long readiness is outside the clock.
@@ -181,34 +183,34 @@ class CampaignTests(unittest.TestCase):
         jsonl(self.match / "games.jsonl", self.records)
 
     def assert_invalid(self):
-        result = auditor.audit(self.directory)
+        result = auditor.audit(self.directory, self.protocol)
         self.assertEqual(result["decision"], "invalid_or_incomplete", result)
         self.assertTrue(result["input_sha256"])
         return result
 
     def test_complete_campaign_replays_all_games_and_excludes_readiness_time(self):
-        result = auditor.audit(self.directory)
+        result = auditor.audit(self.directory, self.protocol)
         self.assertEqual(result["errors"], [])
         self.assertEqual(result["decision"], "inconclusive")
-        self.assertEqual(len(result["games"]), 64)
-        self.assertEqual(result["statistics"]["wdl"], {"wins": 32, "draws": 0, "losses": 32})
+        self.assertEqual(len(result["games"]), self.protocol.pairs*2)
+        self.assertEqual(result["statistics"]["wdl"], {"wins": self.protocol.pairs, "draws": 0, "losses": self.protocol.pairs})
         self.assertFalse(result["default_change"])
 
     def test_candidate_flagfall_is_scored_without_pushing_or_increment(self):
         index = next(i for i, g in enumerate(self.records) if g["candidate_color"] == "white")
         old = self.records[index]; pair = next(p for p in self.plan if p["pair_id"] == old["pair_id"])
         self.records[index] = self.make_game(pair, int(old["game_id"].rsplit("-", 1)[1]), "white", late=True)
-        self.save(); result = auditor.audit(self.directory)
+        self.save(); result = auditor.audit(self.directory, self.protocol)
         self.assertEqual(result["errors"], [])
         self.assertEqual(result["decision"], "operational_regression")
         self.assertEqual(result["candidate_time_forfeits"], 1)
-        self.assertEqual(result["statistics"]["included_games"], 64)
+        self.assertEqual(result["statistics"]["included_games"], self.protocol.pairs*2)
         self.assertEqual(result["statistics"]["wdl"]["draws"], 1)  # Opponent has only a king.
 
     def test_partial_campaign_retains_observed_results_without_qualification(self):
         self.records = self.records[:-1]; self.run["status"] = self.launch["status"] = "interrupted"
         self.save(); result = self.assert_invalid()
-        self.assertEqual(result["statistics"]["included_pairs"], 31)
+        self.assertEqual(result["statistics"]["included_pairs"], self.protocol.pairs-1)
         self.assertIsNone(result["statistics"]["score_interval"])
 
     def test_charged_clock_and_transmitted_clock_tampering_are_detected(self):
@@ -240,7 +242,7 @@ class CampaignTests(unittest.TestCase):
         value = {"sha256": "a"*64, "bytes": 1}
         self.launch["sources"]["docs/README-later.md"] = value
         self.launch["integrity_after"]["sources"]["docs/README-later.md"] = value
-        self.save(); result = auditor.audit(self.directory)
+        self.save(); result = auditor.audit(self.directory, self.protocol)
         self.assertEqual(result["errors"], [])
         self.assertIn("docs/README-later.md", result["live_source_differences"])
 
@@ -275,7 +277,7 @@ class CampaignTests(unittest.TestCase):
     def test_full_opening_history_and_black_to_move_are_preserved(self):
         pair = dict(self.plan[0], starting_fen=chess.STARTING_FEN, moves=["f2f3", "e7e5", "g2g4"])
         record = self.make_game(pair, 1, "black", bestmove="d8h4")
-        checker = auditor.Audit(self.directory)
+        checker = auditor.Audit(self.directory, self.protocol)
         checker.assets = self.launch["assets"]
         result = checker.game(record, pair)
         self.assertEqual(result["legal_plies"], 4)
@@ -289,7 +291,7 @@ class CampaignTests(unittest.TestCase):
     def test_cli_refuses_to_overwrite_evidence(self):
         output = self.directory / "audit.json"; output.write_text("preserve")
         with patch.object(sys, "argv", ["audit", "--campaign", str(self.directory), "--output", str(output)]):
-            with self.assertRaises(SystemExit): auditor.main()
+            with self.assertRaises(SystemExit): auditor.main(self.protocol)
         self.assertEqual(output.read_text(), "preserve")
 
 

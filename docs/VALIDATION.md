@@ -103,7 +103,8 @@ Independent replay verified 577 legal plies for the first and 467 for the revisi
 each produced two checkmates and two threefold draws. The revision scored
 2W/2D/0L, versus the first candidate's 1W/2D/1L, on the same two development pairs.
 Correctness and short operational matches are not a strength acceptance gate.
-Classic remains the default; the longer held-out blitz test has not run.
+Classic remained the default; the longer held-out blitz test had not run at
+that checkpoint. Its subsequent Phase 2D result is recorded below.
 
 ## Phase 2C selective-search checkpoint — October 14, 2026
 
@@ -222,6 +223,37 @@ Hoeffding pair-score interval was 31.46–79.48%; the predeclared decision is
 **inconclusive**. No default changes, strength-gain claim, or equivalence claim
 follow. Raw evidence and audit hashes are recorded in the linked report. The
 completed one-run daytime exception does not authorize another long campaign.
+
+## Phase 2D LMR preparation — October 15, 2026
+
+Before starting the new fixed screen, `make test-qualification test-match`
+passed **100 checks**: 21 historical launcher, 14 historical audit, 13 LMR
+launcher, 18 LMR audit, 17 statistics, and 17 runner checks. The shared lifecycle
+preserves the original time-policy CLI and cutoff behavior. New tests require
+the exact LMR toggle, classic timing, 64 distinct roots, no later capture-ordering
+option, both 64-pair decision boundaries, and independent rejection of altered
+options, missing/extra evidence, wrong protocols, and corrupted game records.
+Synthetic replay covers all 128 games without playing the held-out openings.
+
+The actual no-search LMR preflight passed for both frozen engine roles, with
+the intended applied options and **zero position/go commands**. The suite has
+64 unique legal nonterminal roots, 992 history plies, and no final-root overlap
+with all 56 earlier development/general/time validation roots. Its SHA-256 is
+`1627ddfaf83191db1e74274c2de5a43d84a0c41658804314acbe2274eb07c2b7`.
+Composition and independent replay used the pinned referee only; no evaluation
+or outcome filtering. Source review and whitespace validation passed.
+
+The completed time-policy campaign was re-audited using the generalized audit
+code: zero errors and exactly matching original statistics/decision. Subsequent
+live-source differences are reported separately, not confused with in-run drift.
+Local evidence: `results/phase2d-lmr-preflight-20261015.json`,
+`results/openings-lmr-validation-20261015/validation.json`, and
+`results/phase2d-time-policy-20261015/audit-shared-protocol-20261015.json`.
+
+These are tooling and preparation checks, not LMR strength results. The
+[predeclared protocol](PHASE_2D_LMR.md) still requires all 128 actual games and
+their independent audit. No engine implementation, default, GUI bundle, or
+frozen network/binary changed.
 
 ## Release gates
 

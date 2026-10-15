@@ -68,10 +68,10 @@ uses the hard deadline for prediction and retains classic soft stopping.
 Do not treat reduced thinking time as a strength gain or enable diagnostics in
 real matches. Explicit limits and all ponder requests exclude forecast behavior.
 
-The new 32-root `openings-time-validation.json` is original, legal, and disjoint
-from the existing 24 roots. It remains held out until the predeclared longer
-match; no overnight job is scheduled. Use the frozen candidate and baseline
-with equal settings and swapped colors, preserving options and artifact hashes.
+The 32-root `openings-time-validation.json` is original, legal, and disjoint
+from the earlier 24 roots. It was held out until the completed time-policy
+campaign described below; it is now exposed evidence, not fresh validation.
+Use preserved binaries and complete records when auditing that comparison.
 
 Phase 2C now has a conservative one-ply late-move-reduction candidate, selectable
 with `Late Move Reductions=true`; the default remains false. Read
@@ -124,9 +124,20 @@ hashes stayed unchanged during play; later documentation updates do not rewrite
 that frozen record. The one-run exception is consumed. No long job or automatic
 schedule is active, and the GUI snapshot `0.1-dev-4b8b35d` is unchanged.
 
-Next prepare one isolated LMR qualification with fresh full-history openings,
-classic timing, and predeclared sample/acceptance rules. Its larger search change
-makes it a useful research priority, not a proven strength improvement. The
+The next [isolated LMR qualification](PHASE_2D_LMR.md) is now prepared: 64 fresh
+full histories, 128 games at 60+0.6, seed `20261015`, the frozen `b825a09` binary
+on both sides, and classic timing. Only LMR on/off differs. The shared launcher
+is `tools/qualification.py`; profile entrypoints preserve the historical time
+workflow and add `tools/qualify_lmr.py`. The independent audit descriptor in
+`tools/audit_lmr.py` requires the full sample and uses 64-pair uncertainty.
+At least 86/128 points qualifies only for fresh confirmation review; at most
+42/128 is negative evidence, otherwise inconclusive. Any candidate flagfall
+blocks a positive decision while remaining scored. No engine defaults changed.
+Run the real no-search preflight and commit the frozen protocol before play,
+then launch in the ordinary night window with the original 07:00 cutoff.
+The earlier runtime suggests about 5h48, not a guarantee. A partial sample
+cannot qualify or be enlarged after seeing results. Its larger search change
+makes LMR a useful research priority, not a proven strength improvement. The
 completed time suite is no longer fresh validation; do not reuse it for tuning
 while calling it held out or repeat the 12 general roots to inflate the sample.
 Keep SEE separate, preserve the frozen candidates, and use normal overnight
