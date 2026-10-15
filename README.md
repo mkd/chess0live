@@ -21,7 +21,9 @@ completed and passed the independent audit: forecast scored 14W/43D/7L
 **inconclusive**; classic timing remains the default. The next checkpoint is
 the [isolated LMR screen](docs/PHASE_2D_LMR.md): 128 games on 64 fresh openings,
 classic timing on both sides, frozen LMR on/off, and a 07:00 Helsinki cutoff.
-Its protocol is prepared; no result or automatic schedule is implied.
+It started October 15 at **23:00 Helsinki**, from preparation commit `842ee41`,
+within the ordinary overnight policy. The fixed sample and audit are pending;
+no result or automatic schedule is implied.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

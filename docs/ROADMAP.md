@@ -16,7 +16,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2A | Measure completed and interrupted iteration time/work, with reproducible profiles | Complete: diagnostics, profiler, and checked accounting |
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
-| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Time-policy screen inconclusive; fresh 128-game LMR protocol prepared |
+| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Time-policy screen inconclusive; isolated 128-game LMR screen running |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -61,16 +61,19 @@ independent audit passed with no exclusions, operational failures, or artifact
 drift. Its conditional 95% pair-score interval is **31.46–79.48%**: the predeclared
 decision is **inconclusive**, so classic remains default and forecast remains
 experimental. A favorable point estimate does not establish a strength gain.
-The raw campaign is `results/phase2d-time-policy-20261015/`; no job is still running.
+The raw completed campaign is `results/phase2d-time-policy-20261015/`.
 
-**Current checkpoint: isolated LMR qualification prepared.** The
+**Current checkpoint: isolated LMR qualification running.** Started October 15
+at 23:00 Helsinki from preparation commit `842ee41`, without a daytime override.
+Local evidence is `results/phase2d-lmr-20261015/`. The
 [fixed protocol](PHASE_2D_LMR.md) uses 64 fresh full-history openings / 128 games,
 60+0.6, seed `20261015`, classic timing, and the same frozen LMR binary in both
 roles. Only the reduction toggle differs. The conservative 95% pair-score rule
 requires at least 86/128 points for confirmation review; it never automatically
-promotes a default. The next step is the ordinary overnight run, followed by
-independent evidence replay and a recorded decision. Preparation is not a
-completed or active campaign; no automatic schedule is configured.
+promotes a default. The next checkpoint is completing the fixed sample, then
+independently replaying the evidence and recording its decision. The original
+October 16 07:00 Helsinki cutoff applies; an interrupted sample cannot qualify.
+No automatic schedule is configured, and no result is yet claimed.
 
 LMR is the next research
 priority because it changes the search more substantially, while its tactical
