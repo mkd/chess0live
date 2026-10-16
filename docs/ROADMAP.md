@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3A complete; Phase 3B next
+## Current checkpoint: Phase 3B complete; Phase 3C next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -18,7 +18,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
 | 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Initial time-policy and LMR screens complete, both inconclusive; further qualification deferred |
 | 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Complete: exact-search baseline, audited CPU sample, and bounded NNUE proposal |
-| 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Next checkpoint; proposal and acceptance gates fixed, implementation not started |
+| 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
+| 3C | Validate the retained speedup across middlegames and endgames | Next checkpoint; suite and protocol to be frozen before measurements |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -91,20 +92,29 @@ agree; the raw stacks and audits are retained in `results/phase3a-20261016/`.
 The profile covers shallow opening search and omits the active clock path.
 No engine optimization, speed gain, or strength gain was established.
 
-**Next checkpoint: Phase 3B — batch NNUE feature-column updates.** The
-[proposal](PHASE_3B.md) fixes one implementation boundary and correctness/timing
-criteria before code changes: keep features, inference, search, and defaults
-unchanged; preserve exact modular accumulator/PSQT arithmetic and arbitrary
-position transitions. Require native/scalar/sanitizer tests, full pinned NNUE
-stage parity, and exact legal search signatures. Two depth-5 timing comparisons
-and one depth-6 comparison must each meet a 1.03 median ratio, with no root's
-pooled median below 0.98 at either depth, before retaining a measured speedup.
-These are engineering gates, not Elo evidence or statistical confidence bounds.
+**Phase 3B is complete and retained.** The [result](reports/2026-10-16-phase3b-nnue-batching.md)
+records streaming batches of eight feature-column views and 32-lane hidden tiles.
+Features, inference, search, and default policies are unchanged. Native, scalar,
+and sanitizer suites passed, including 360 independent arithmetic transitions;
+the full 2,057-position SF19 oracle retained exact corpus/stage/output digests.
+All 576 benchmark searches matched exactly and replayed legally. The three
+declared timing medians were **1.078081, 1.079836, 1.083612**, above the 1.03
+gate; all 24 pooled root/depth medians exceeded the 0.98 guard. This is roughly
+8% higher sampled opening-search throughput, not a strength improvement.
 
-Phase 3B implementation has not started. Further LMR, forecast, and SEE strength
+**Next checkpoint: Phase 3C — broader game-phase performance validation.**
+Select and freeze a small original middlegame/endgame suite for structural
+coverage, without choosing roots by candidate timings or scores. Keep it separate
+from strength-validation openings. Fix the repeatability/comparison protocol
+and regression guards before running either engine; require exact signatures
+and independent legal-PV replay, then report every root. This follow-up checks
+whether the improvement generalizes beyond openings; it has not started.
+Clock-managed strength, further optimization, and parallel search remain separate.
+
+Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. No engine/profiling job or automatic schedule is active.
+inputs and rules. All Phase 3B jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long

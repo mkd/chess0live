@@ -223,3 +223,26 @@ gates in [Phase 3B](PHASE_3B.md). Do not change engine code or defaults in this
 measurement checkpoint. The [full report](reports/2026-10-16-phase3a-baseline.md)
 records inputs, figures, interpretation limits, and reproduction. No speedup,
 release, Elo gain, or additional platform execution is established.
+
+## 2026-10-16 — Phase 3B: retain batched NNUE feature-column updates
+
+Starting at `710523e`, one candidate applied the existing sorted multiset
+differences in streaming batches of eight column views, with 32 hidden lanes
+per tile. Enumeration, inference, search, and policies stayed unchanged. Native,
+scalar, and sanitizer suites passed, including 360 independent synthetic update
+transitions; the pinned external 2,057-position stage oracle matched all original
+corpus and output digests for native and scalar.
+
+All 576 searches in correctness and timing comparisons matched exactly; the
+independent audit replayed 3,024 PV lines / 10,572 legal PV plies and verified
+all bestmoves and ponders. The two depth-5 timing medians were **1.078081** and
+**1.079836**, and the depth-6 median was **1.083612**. All cleared the declared
+1.03 gate, and all 24 pooled root/depth medians exceeded 0.98. No observed
+individual measured slowdown, discarded run, or threshold change occurred.
+
+**Decision: retain**, as a sampled implementation speedup on the M5 Pro. No
+playing-strength gain follows from throughput alone. The [full report](reports/2026-10-16-phase3b-nnue-batching.md)
+contains per-root times, order effects, dispersion, limits, and evidence hashes.
+Raw evidence is `results/phase3b-20261016/`; the frozen candidate is under
+`build/experiments/phase3b-20261016/`. Next is broader middlegame/endgame
+performance validation, with new structural coverage fixed before measurements.

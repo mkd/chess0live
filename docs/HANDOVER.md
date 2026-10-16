@@ -41,8 +41,8 @@ no strength rating or improvement is established by their smoke tests.
 
 A deterministic comparison helper now checks equal per-depth search work before
 reporting throughput. The first buffer-reuse candidate passed correctness but
-had inconclusive timing results, so it was not retained. The original evaluator
-remains current; [the experiment log](EXPERIMENTS.md) preserves the decision and
+had inconclusive timing results, so it was not retained. The later Phase 3B
+batching change is separate; [the experiment log](EXPERIMENTS.md) preserves the decision and
 local evidence paths. Do not count this experiment as a strength improvement.
 
 The owner is testing with Cute Chess while development continues. Snapshot
@@ -164,19 +164,36 @@ coverage but raw stacks still need independent identity/attribution inspection.
 Do not use sampled timings as throughput results or include main-thread idle
 observations in the search denominator. All measurement jobs have ended.
 
-**Next checkpoint: Phase 3B**, the [batched NNUE update proposal](PHASE_3B.md).
-Implementation has not started. Fix exactly the scoped delta-application change;
-keep enumeration, sorting, inference, search, and options unchanged. Follow its
-native/scalar/sanitizer, full pinned stage-oracle, exact-search, and predeclared
-multi-run timing gates. Reduced hidden-vector memory traffic is a hypothesis,
-not a proven cause of the sampled cost. If measurements fail the gates, preserve
-the baseline and document the result. NPS is not Elo. Quiescence legal generation
-still protects stalemate/checkmate precedence and is outside this proposal.
+**Phase 3B is complete and retained.** The [result](reports/2026-10-16-phase3b-nnue-batching.md)
+records one isolated change: stream up to eight feature columns and update
+32 hidden lanes per tile, preserving modulo arithmetic, all multiset deltas,
+enumeration, inference, search, and options. All three native/scalar/sanitizer
+suites passed, including 360 independent arithmetic transitions and the existing
+537-position incremental suite. The external 2,057-position oracle matched the
+original corpus and every integer-stage/raw digest for both native and scalar.
+
+All 576 comparison searches retained exact signatures and legal output.
+The three fixed timing runs yielded median ratios **1.078081, 1.079836, 1.083612**,
+above the 1.03 gate; all 24 pooled root/depth medians passed the 0.98 guard.
+This establishes a sampled opening-search speedup on the M5 Pro, not Elo.
+Keep `results/phase3b-20261016/`, all three candidate build configurations in
+`build/experiments/phase3b-20261016/`, and `build/nnue-oracle-phase3b-20261016/`.
+The normal native executable is byte-identical to the tested candidate:
+`2b780105e53033d8070b280d43a37b7f4e474471896611c512cff8863f1879ae`.
+
+**Next checkpoint: Phase 3C — broader game-phase performance validation.**
+Freeze an original middlegame/endgame suite for structural coverage before
+examining candidate results. Establish same-baseline repeatability, then check
+exact searches, legal PVs, and predeclared per-root regression guards against
+the preserved Phase 3A binary. Do not change the batch implementation while
+collecting this evidence. This follow-up has not started; no jobs are active.
+Quiescence legal generation still protects stalemate/checkmate precedence and
+is outside this optimization. No new search-policy default was promoted.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner
-can push the local commits; no GUI retest is required for Phase 3A because neither
-engine code nor GUI `0.1-dev-4b8b35d` changed. Keep user-facing CHANGELOG entries
+can push the local commits. GUI `0.1-dev-4b8b35d` remains preserved; testing the
+updated normal build is optional and must be labeled separately. Keep CHANGELOG entries
 concise and create real version milestones when tested release gates pass;
 research phases do not determine version numbers.
 

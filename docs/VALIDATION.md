@@ -323,8 +323,47 @@ All frozen engine/network/build/benchmark artifacts matched after measurement;
 the new Makefile test target and final docs were added afterward. Raw evidence,
 failure records, and independent audits are in `results/phase3a-20261016/`.
 GUI `0.1-dev-4b8b35d` remains intact. Scalar/sanitizer/full oracle suites were
-not rerun for this measurement-only checkpoint. They are required for the next
-[NNUE update experiment](PHASE_3B.md), whose implementation has not started.
+not rerun for this measurement-only checkpoint. The subsequent
+[NNUE update experiment](PHASE_3B.md) reran them as recorded below.
+
+## Phase 3B batched NNUE updates — October 16, 2026
+
+The [isolated batch update](reports/2026-10-16-phase3b-nnue-batching.md) passed
+native, forced-scalar, and ASan/UBSan engine suites. These include perft/rule/state,
+UCI, search, exchange, timing/search-policy checks, and the 537-position real
+network incremental/full-refresh suite. The new test-only arithmetic oracle
+adds 360 transitions per build, checking all hidden/PSQT lanes with signed
+int8/int16 columns, duplicates, extreme modular arithmetic, empty/partial/full
+batches, large changes, and reversal. Its independent multiplicity map and
+column-at-a-time arithmetic do not share the production batching kernel.
+
+A fresh external SF19 oracle run passed all **2,057 positions** for native and
+scalar, with unchanged corpus, feature/accumulator/layer-stage, and raw/wrapped
+output hashes. It used a copied isolated reference checkout and new output
+directory `build/nnue-oracle-phase3b-20261016/`; previous oracle evidence survives.
+
+Before timing, all 96 depth-5/depth-6 searches matched exact per-iteration
+depth/seldepth/nodes/score/PV, bestmove, and ponder, with independent legal replay.
+The three subsequent timing runs also matched. The independent final audit
+checked **576 searches**, 3,024 PV lines / 10,572 legal PV plies, and all bestmoves
+and ponders, plus identities, raw-reply signatures, runner/asset hashes, histories,
+counts, options evidence, independently recomputed timings, and acceptance gates.
+Negative checks confirmed rejection of tampered ratio metadata and an illegal PV.
+
+Median baseline/candidate elapsed ratios were **1.078081, 1.079836, 1.083612**;
+all exceeded 1.03 and all 24 pooled root/depth medians exceeded 0.98. There were
+no observed individual measured slowdowns. The declared result is **retain**
+for sampled opening-search performance, without a statistical confidence or Elo
+claim. Settings, thresholds, implementation, and all runs were preserved.
+
+Raw records and test logs: `results/phase3b-20261016/`. Candidate release SHA-256:
+`2b780105e53033d8070b280d43a37b7f4e474471896611c512cff8863f1879ae`.
+The ordinary native executable was rebuilt after measurement and is byte-identical.
+All prior frozen candidates, GUI `0.1-dev-4b8b35d`, and the pinned network remain
+intact. One active worker/two resident engines were used during comparisons,
+within the ordinary daytime budget. All jobs ended; no match or schedule exists.
+Broader game phases, clock-managed strength, scalar throughput, and foreign
+runtime execution were not established by these measurements.
 
 ## Release gates
 

@@ -1,8 +1,11 @@
-# Phase 3B proposal: batch NNUE accumulator updates
+# Phase 3B: batch NNUE accumulator updates
 
-Status: proposed after [Phase 3A measurement](reports/2026-10-16-phase3a-baseline.md),
-not implemented or benchmarked. Fix this scope and these gates before changing
-the engine. The ordinary defaults and all frozen Phase 2 candidates stay intact.
+Status: [completed and retained October 16, 2026](reports/2026-10-16-phase3b-nnue-batching.md).
+All correctness and timing gates passed: median ratios 1.078081, 1.079836,
+and 1.083612, with every root above the 0.98 guard. The original scope and gates
+below were frozen before implementation in `results/phase3b-20261016/protocol.md`.
+This later status update does not change that record. Search-policy defaults and
+all prior frozen binaries remain intact; no Elo or release claim follows.
 
 ## Evidence and hypothesis
 
@@ -12,8 +15,9 @@ enumeration, sorting, and delta application. The two delta-application call site
 accounted for 2,582 exclusive observations (34.83%), subject to optimized source
 line attribution. These are sampled costs, not hardware bandwidth measurements.
 
-Current `differences` applies each added or removed feature by walking the entire
-hidden accumulator through `adjust`. The hypothesis is that collecting the same
+The pre-change `differences` implementation applied each added or removed feature
+by walking the entire hidden accumulator through `adjust`. The hypothesis was
+that collecting the same
 feature changes and applying them in batches can reduce repeated hidden-vector
 loads/stores. The profile supports investigating this boundary; it does not
 prove that these loads/stores are the cause or that batching will be faster.

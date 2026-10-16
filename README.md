@@ -7,21 +7,22 @@ stronger play than Stockfish 19 on equal desktop hardware. No Elo rating or
 competitive superiority has been established. The current search is an early
 single-worker implementation; strength testing and further optimization remain.
 
-**Current checkpoint: Phase 2D's initial time-policy and LMR screens are complete.**
+**Search qualification: Phase 2D's initial time-policy and LMR screens are complete.**
 Both passed their independent evidence audits and were inconclusive under their
 predeclared rules. The [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md)
 scored **35W/82D/11L, 76/128 points (59.38%)**, with no operational failures.
 Its conditional 95% paired-score interval is **42.40–76.35%**; the favorable
 point estimate does not qualify LMR for promotion. Classic timing, LMR off,
-and MVV-LVA remain defaults. The engine and GUI test bundle are unchanged.
+and MVV-LVA remain defaults. The frozen GUI test bundle is unchanged.
 
-**Phase 3A is complete:** the [performance baseline](docs/reports/2026-10-16-phase3a-baseline.md)
-verified exact results across 240 benchmark searches and a separate audited CPU sample. NNUE
-accounted for about 85% of sampled search work, with accumulator updates at 59%.
-**Next: Phase 3B — batch NNUE accumulator updates**, under the fixed
-[correctness and timing gates](docs/PHASE_3B.md). This optimization has not been
-implemented. Follow the [development plan](docs/ROADMAP.md); further strength
-qualification remains deferred. No engine change or speed gain is claimed here.
+**Phase 3B is complete:** [batched NNUE accumulator updates](docs/reports/2026-10-16-phase3b-nnue-batching.md)
+improved throughput by **7.8–8.4% in the three declared opening-search runs** on
+the M5 Pro. All 576 benchmark searches preserved exact results; native, scalar,
+sanitizer, and full 2,057-position SF19 oracle checks passed. The optimization is
+retained; search-policy defaults remain unchanged. This is a sampled speed gain,
+not a measured playing-strength gain or a new release.
+**Next: Phase 3C — validate performance across middlegames and endgames.**
+Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

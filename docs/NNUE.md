@@ -54,6 +54,15 @@ that appeared. Consequently, arbitrary transitions, undo, sibling traversal,
 king moves, and special moves all use the same correctness path. Reload/reset
 invalidates worker accumulators through a network generation identifier.
 
+Feature differences now stream through batches of up to eight column views.
+Each batch updates a 32-lane tile before storing it, reducing repeated hidden
+accumulator loads/stores; singleton batches retain the simple column path.
+Every difference is consumed, including duplicates and arbitrary transitions:
+the batch capacity never limits feature counts. Hidden and PSQT lanes preserve
+the same modulo-2^16 and modulo-2^32 arithmetic in NEON and scalar code.
+The [Phase 3B result](reports/2026-10-16-phase3b-nnue-batching.md) records exact
+parity and the measured opening-search speedup, without a strength claim.
+
 This implementation deliberately retains a full-refresh reference. Enumerating
 all threats and sorting feature sets each evaluation is a performance limitation.
 A future position-state delta stack and refresh cache should replace that work
@@ -176,6 +185,13 @@ tests cover sibling make/unmake, reset/reload, failed-load preservation,
 malformed compression, twelve pinned raw/wrapped golden cases, and rejection of
 an architecture-valid network with an extreme final-layer bias.
 
+`make test-nnue` also runs 360 synthetic update transitions against an independent
+column-at-a-time arithmetic reference. It checks signed weight widths, duplicate
+multiplicities, batch boundaries, empty and large changes, reversibility, and
+extreme modular lane values. This reference never calls the production batch
+kernel: both ordinary incremental and full-refresh evaluation do, so their
+agreement alone cannot exclude a shared arithmetic error.
+
 ## Recorded validation: 2026-10-13
 
 On macOS ARM64, Apple Clang 21.0.0, the reproducible harness passed **2,057
@@ -195,6 +211,12 @@ resource allowance, pins, corpus digest, source-file digests, and all output
 digests. Full dumps and build logs remain beside it for inspection. A future
 move-generator ordering change may change the seeded corpus digest; rerun both
 oracles and investigate changes rather than relabeling old evidence.
+
+The Phase 3B rerun on October 16 passed the same 2,057 positions and all recorded
+stage/raw digests for native and scalar builds. New evidence is in
+`build/nnue-oracle-phase3b-20261016/`; the original directory is preserved.
+The full native/scalar/sanitizer engine suites also passed, including the new
+independent arithmetic checks. No foreign-platform throughput is inferred.
 
 ## Extending the evaluator
 

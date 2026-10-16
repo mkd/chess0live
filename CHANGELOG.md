@@ -15,6 +15,9 @@ release numbers; detailed measurements live in the linked experiment records.
   Feature, accumulator, and output agreement have dedicated oracle checks.
 - Added strict FEN input, `perft`, and move-by-move divide output for investigating
   positions and move-generation problems.
+- Batched NNUE accumulator updates now complete the same opening searches with
+  7.8–8.4% higher measured throughput on the M5 Pro. Exact evaluation/search
+  checks passed; broader performance and playing-strength validation remain open.
 - Added Cute Chess setup instructions and preserved a separate GUI test bundle
   so development rebuilds do not replace the owner's test executable.
 
@@ -43,8 +46,9 @@ release numbers; detailed measurements live in the linked experiment records.
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).
 - Added a bounded CPU profiler and completed the [Phase 3A performance baseline](docs/reports/2026-10-16-phase3a-baseline.md).
-  Search results remained identical. NNUE accumulator updates are the next
-  optimization target; no engine speedup is claimed yet.
+  Its findings led to the retained [Phase 3B accumulator improvement](docs/reports/2026-10-16-phase3b-nnue-batching.md),
+  with independent arithmetic tests and audited comparisons. Next is validation
+  across middlegame and endgame positions.
 
 No release or strength rating has been established yet. Version 0.1 remains
 subject to the [release acceptance gates](docs/VALIDATION.md#release-gates).
