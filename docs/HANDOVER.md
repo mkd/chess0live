@@ -181,12 +181,14 @@ Keep `results/phase3b-20261016/`, all three candidate build configurations in
 The normal native executable is byte-identical to the tested candidate:
 `2b780105e53033d8070b280d43a37b7f4e474471896611c512cff8863f1879ae`.
 
-**Next checkpoint: Phase 3C — broader game-phase performance validation.**
-Freeze an original middlegame/endgame suite for structural coverage before
-examining candidate results. Establish same-baseline repeatability, then check
-exact searches, legal PVs, and predeclared per-root regression guards against
-the preserved Phase 3A binary. Do not change the batch implementation while
-collecting this evidence. This follow-up has not started; no jobs are active.
+**Active checkpoint: Phase 3C — broader game-phase performance validation.**
+The [fixed protocol](PHASE_3C.md) and original 12-root composed suite are being
+prepared before engine measurements. Use six middlegames at depth 6, six
+endgames at depth 8, same-baseline controls, and two candidate runs per phase.
+Require exact searches/legal PVs, repeatability and 50 ms duration gates, and
+predeclared root guards. The campaign is capped at 15 minutes with one worker.
+Do not change the batch implementation or adapt positions/depths during this
+checkpoint. Measurements have not started; no jobs are active.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 

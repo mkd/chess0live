@@ -21,7 +21,9 @@ the M5 Pro. All 576 benchmark searches preserved exact results; native, scalar,
 sanitizer, and full 2,057-position SF19 oracle checks passed. The optimization is
 retained; search-policy defaults remain unchanged. This is a sampled speed gain,
 not a measured playing-strength gain or a new release.
-**Next: Phase 3C — validate performance across middlegames and endgames.**
+**Active: Phase 3C — preparing broader middlegame/endgame validation.**
+The [fixed protocol](docs/PHASE_3C.md) requires fresh positions, repeatability
+checks, exact search results, and per-position regression guards.
 Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.

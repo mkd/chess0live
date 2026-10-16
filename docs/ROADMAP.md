@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3B complete; Phase 3C next
+## Current checkpoint: Phase 3C preparation
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -19,7 +19,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Initial time-policy and LMR screens complete, both inconclusive; further qualification deferred |
 | 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Complete: exact-search baseline, audited CPU sample, and bounded NNUE proposal |
 | 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
-| 3C | Validate the retained speedup across middlegames and endgames | Next checkpoint; suite and protocol to be frozen before measurements |
+| 3C | Validate the retained speedup across middlegames and endgames | Preparing original 12-root suite and fixed protocol; measurements pending |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -102,13 +102,13 @@ declared timing medians were **1.078081, 1.079836, 1.083612**, above the 1.03
 gate; all 24 pooled root/depth medians exceeded the 0.98 guard. This is roughly
 8% higher sampled opening-search throughput, not a strength improvement.
 
-**Next checkpoint: Phase 3C — broader game-phase performance validation.**
-Select and freeze a small original middlegame/endgame suite for structural
-coverage, without choosing roots by candidate timings or scores. Keep it separate
-from strength-validation openings. Fix the repeatability/comparison protocol
-and regression guards before running either engine; require exact signatures
-and independent legal-PV replay, then report every root. This follow-up checks
-whether the improvement generalizes beyond openings; it has not started.
+**Active checkpoint: Phase 3C — broader game-phase performance validation.**
+The [protocol](PHASE_3C.md) fixes six original middlegames at depth 6 and six
+endgames at depth 8, with same-baseline controls followed by two candidate runs
+per phase. Freeze the suite and protocol before any measurements. Exact
+signatures, independent legal-PV replay, repeatability/duration gates, and
+per-root guards are required. Report every root, including inconclusive data.
+The engine stays unchanged; measurements have not started at this checkpoint.
 Clock-managed strength, further optimization, and parallel search remain separate.
 
 Further LMR, forecast, and SEE strength
