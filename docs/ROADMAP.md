@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3C preparation
+## Current checkpoint: Phase 3C complete; Phase 3D next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -19,7 +19,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Initial time-policy and LMR screens complete, both inconclusive; further qualification deferred |
 | 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Complete: exact-search baseline, audited CPU sample, and bounded NNUE proposal |
 | 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
-| 3C | Validate the retained speedup across middlegames and endgames | Preparing original 12-root suite and fixed protocol; measurements pending |
+| 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
+| 3D | Characterize the short endgame workload before new qualification | Next: bounded baseline-only depth ladder; no candidate rerun or engine change |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -102,19 +103,25 @@ declared timing medians were **1.078081, 1.079836, 1.083612**, above the 1.03
 gate; all 24 pooled root/depth medians exceeded the 0.98 guard. This is roughly
 8% higher sampled opening-search throughput, not a strength improvement.
 
-**Active checkpoint: Phase 3C — broader game-phase performance validation.**
-The [protocol](PHASE_3C.md) fixes six original middlegames at depth 6 and six
-endgames at depth 8, with same-baseline controls followed by two candidate runs
-per phase. Freeze the suite and protocol before any measurements. Exact
-signatures, independent legal-PV replay, repeatability/duration gates, and
-per-root guards are required. Report every root, including inconclusive data.
-The engine stays unchanged; measurements have not started at this checkpoint.
+**Phase 3C is complete.** The [result](reports/2026-10-16-phase3c-gamephases.md)
+records all 432 exact/legal searches on 12 original composed roots. Both
+middlegame runs passed the frozen gates, at **1.087243 and 1.088055** median
+ratios. Endgame runs were favorable, but the sparse pawn root's 30–32 ms searches
+failed the 50 ms duration floor; endgame and combined qualification remain
+**inconclusive**. Nothing was omitted or retuned. The six-run campaign completed
+in 844.997 seconds under the normal daytime budget, with no engine changes.
+
+**Next checkpoint: Phase 3D — characterize the short endgame workload.**
+Predeclare a small bounded baseline-only depth ladder on that same pawn FEN.
+Record exact work and duration growth, then propose a longer fixed workload for
+separate qualification. Do not compare the candidate in the diagnostic, change
+the implementation, or relabel 3C as passed. All 3C evidence remains preserved.
 Clock-managed strength, further optimization, and parallel search remain separate.
 
 Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. All Phase 3B jobs have ended; no automatic schedule is active.
+inputs and rules. All Phase 3C jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long

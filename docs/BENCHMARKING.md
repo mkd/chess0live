@@ -53,6 +53,16 @@ comparison. If a follow-up is needed because variation obscures the result,
 record that fact and preserve both runs. Never discard an unfavorable run or
 present exploratory tuning as a predeclared statistical strength experiment.
 
+## Broader game-phase results
+
+The [Phase 3C protocol](PHASE_3C.md) adds an original composed middlegame/endgame
+suite with predeclared same-binary noise controls, duration floors, and root
+regression guards. The [completed report](reports/2026-10-16-phase3c-gamephases.md)
+preserves every root and all six runs: middlegames qualified; endgame inference
+remains inconclusive because one pawn root was below the 50 ms floor. Do not
+remove short roots or repeatedly adapt the workload after candidate results.
+Any revised workload needs a separately frozen protocol and preserved evidence.
+
 ## CPU attribution on macOS
 
 `tools/profile_cpu.py` records bounded CPU samples of the default engine using

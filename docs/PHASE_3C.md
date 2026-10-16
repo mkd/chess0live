@@ -1,9 +1,13 @@
 # Phase 3C: performance across game phases
 
-Status: preparation; no engine measurements yet. This is validation of the
-retained Phase 3B batching implementation, with no engine or default changes.
-Freeze a copy of this protocol, the suite, and artifact hashes before running
-either executable. Publish every result, including failed or noisy comparisons.
+Status: [completed October 16, 2026](reports/2026-10-16-phase3c-gamephases.md).
+Middlegames qualified with median ratios 1.087243 and 1.088055; endgames and
+overall qualification remain inconclusive because the sparse pawn root failed
+the 50 ms duration floor. All 432 searches matched exactly and replayed legally.
+No engine or default changed. The original protocol below was frozen before
+measurement in `results/phase3c-20261016/protocol.md`, SHA-256
+`b404ce1f1b23171c36c37eb3acf2d561ae1c1601f08c4aa77f748dca64f82c3e`.
+This later status note does not change those rules or that immutable record.
 
 ## Scope and original positions
 

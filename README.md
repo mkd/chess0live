@@ -21,9 +21,11 @@ the M5 Pro. All 576 benchmark searches preserved exact results; native, scalar,
 sanitizer, and full 2,057-position SF19 oracle checks passed. The optimization is
 retained; search-policy defaults remain unchanged. This is a sampled speed gain,
 not a measured playing-strength gain or a new release.
-**Active: Phase 3C — preparing broader middlegame/endgame validation.**
-The [fixed protocol](docs/PHASE_3C.md) requires fresh positions, repeatability
-checks, exact search results, and per-position regression guards.
+**Phase 3C is complete:** [broader validation](docs/reports/2026-10-16-phase3c-gamephases.md)
+confirmed **8.7–8.8% higher throughput on six composed middlegames**, with all
+432 searches across both game phases matching exactly. Endgame qualification
+remains inconclusive: one sparse pawn position was below the fixed timing floor.
+**Next: Phase 3D — characterize that short endgame workload using the baseline.**
 Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.

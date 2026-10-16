@@ -246,3 +246,24 @@ contains per-root times, order effects, dispersion, limits, and evidence hashes.
 Raw evidence is `results/phase3b-20261016/`; the frozen candidate is under
 `build/experiments/phase3b-20261016/`. Next is broader middlegame/endgame
 performance validation, with new structural coverage fixed before measurements.
+
+## 2026-10-16 — Phase 3C: middlegames qualified, endgames inconclusive
+
+The unchanged retained batching candidate was compared with the preserved
+baseline on 12 original composed FENs. Six predeclared runs completed within
+15 minutes using one worker; all 432 searches matched exactly and replayed
+legally. Both same-binary controls were stable. Middlegame ratios **1.087243**
+and **1.088055** passed every noise, duration, positive, and root-regression gate.
+
+The endgame ratios and root guards were also favorable, but the sparse pawn
+root took only 30–32 ms, below the frozen 50 ms floor. **Endgame and overall
+qualification are inconclusive.** No root was dropped, no depth changed, and
+no extra run was added. No candidate slowdown appeared in 120 measured pairs,
+but that cannot override the duration gate or establish playing strength.
+
+The [full report](reports/2026-10-16-phase3c-gamephases.md) records every root,
+order effects, dispersion, exact hashes, and independent audit/check evidence.
+Keep `results/phase3c-20261016/`. No engine/default/binary changed; the existing
+batching implementation remains retained. Next is baseline-only characterization
+of the short pawn workload before separately frozen qualification, not tuning
+or repeating this completed experiment toward a preferred result.

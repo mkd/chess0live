@@ -365,6 +365,38 @@ within the ordinary daytime budget. All jobs ended; no match or schedule exists.
 Broader game phases, clock-managed strength, scalar throughput, and foreign
 runtime execution were not established by these measurements.
 
+## Phase 3C game-phase validation — October 16, 2026
+
+The [completed comparison](reports/2026-10-16-phase3c-gamephases.md) used 12
+original composed FENs, selected before engine evaluation/timing: six middlegames
+at depth 6 and six endgames at depth 8, with balanced turns and all eight NNUE
+material buckets. The pinned referee confirmed validity, nonterminal/non-drawn
+roots, uniqueness, and no overlap with 120 earlier opening roots. Historical
+reachability and earlier repetition history are not claimed.
+
+All six frozen comparisons completed in 844.997 seconds with one active worker
+under the normal daytime budget. All **432 searches** matched exact per-depth
+results; independent raw-reply replay verified **3,024 PVs / 14,904 plies** and
+432 bestmoves/ponders. There were no timeouts, exclusions, operational failures,
+or asset/source changes. The 11 comparison-tool checks, synthetic descendant
+cleanup check, five audit corruption checks, and eight classification/boundary
+checks passed. Raw evidence is `results/phase3c-20261016/`.
+
+Both same-binary controls passed repeatability gates. Middlegame ratios
+**1.087243 / 1.088055** passed the positive, duration, and pooled-root guards.
+The endgame ratios/guards were favorable too, but `gamephases-eg-05` took
+30–32 ms, below the predeclared 50 ms floor in all six role/run medians. Endgame
+and combined qualification are therefore **inconclusive**. No candidate
+slowdown appeared among 120 measured candidate pairs, but favorable ratios
+cannot override the duration gate. No roots or thresholds were changed.
+
+Engine code, normal/frozen binaries, defaults, and GUI `0.1-dev-4b8b35d` are
+unchanged. Native/scalar/sanitizer/full NNUE oracle checks retain their Phase 3B
+scope; they were not rerun for this validation-only phase. No strength gain,
+release, new platform execution, or universally faster endgame play is claimed.
+Next is a separately declared baseline-only characterization of the short pawn
+workload, not a retrospective pass or an immediate candidate rerun.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

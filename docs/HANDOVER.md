@@ -181,14 +181,29 @@ Keep `results/phase3b-20261016/`, all three candidate build configurations in
 The normal native executable is byte-identical to the tested candidate:
 `2b780105e53033d8070b280d43a37b7f4e474471896611c512cff8863f1879ae`.
 
-**Active checkpoint: Phase 3C — broader game-phase performance validation.**
-The [fixed protocol](PHASE_3C.md) and original 12-root composed suite are being
-prepared before engine measurements. Use six middlegames at depth 6, six
-endgames at depth 8, same-baseline controls, and two candidate runs per phase.
-Require exact searches/legal PVs, repeatability and 50 ms duration gates, and
-predeclared root guards. The campaign is capped at 15 minutes with one worker.
-Do not change the batch implementation or adapt positions/depths during this
-checkpoint. Measurements have not started; no jobs are active.
+**Phase 3C is complete with a mixed qualification outcome.** The
+[report](reports/2026-10-16-phase3c-gamephases.md) records six original middlegames
+at depth 6 and six endgames at depth 8, with baseline controls and two candidate
+runs per phase. All 432 searches matched exactly; independent replay checked
+3,024 PVs / 14,904 plies and all 432 bestmoves/ponders. Middlegames qualified:
+ratios 1.087243 and 1.088055, stable control, all floor/root guards passed.
+Endgame controls/ratios were favorable, but sparse pawn root `gamephases-eg-05`
+took about 30–32 ms, below the frozen 50 ms floor in all six role/run medians.
+Endgame and combined qualification are therefore **inconclusive**; no root was
+excluded or workload changed. No engine code, binary, or default changed.
+
+Preserve `results/phase3c-20261016/`, especially the frozen protocol, suite,
+manifest, all six complete JSON/log comparisons, campaign lifecycle, audits,
+and final integrity checks. Preparation commit: `ae5853a`. The full campaign
+ran 11:57–12:11 Helsinki on October 16 in 844.997 seconds, within its 900-second
+ceiling and normal daytime budget. All processes ended; no schedule is active.
+
+**Next checkpoint: Phase 3D — baseline-only short-endgame characterization.**
+Predeclare a small bounded depth ladder on the same sparse pawn FEN, record
+work/duration growth, then propose a longer fixed workload for separately frozen
+qualification. Do not compare the candidate in that diagnostic or relabel 3C
+as passed. Further implementation optimization and parallel search remain later
+work. The retained batching implementation stays unchanged.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 
