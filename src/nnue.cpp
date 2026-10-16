@@ -382,22 +382,114 @@ template<class Weight> void adjust(Accumulation& state, const Weight* weights,
     }
 }
 
+/** A batch holds column views, never copied weights or a capped feature set. */
+template<class Weight> struct FeatureDelta {
+    const Weight* weights;
+    const std::int32_t* values;
+    bool add;
+};
+
+/** Keep a small hidden-lane tile live while applying several feature columns.
+ * Regrouping additions/subtractions is exact in the accumulator's modular
+ * arithmetic. A singleton retains the simple column path; no scratch heap
+ * allocation or assumption about legal-transition delta counts is required.
+ */
+template<class Weight> void adjust_batch(Accumulation& state,
+                                        std::span<const FeatureDelta<Weight>> changes) {
+    if (changes.empty()) return;
+    if (changes.size() == 1) {
+        const auto& change = changes.front();
+        adjust(state, change.weights, change.values, change.add ? 1 : -1);
+        return;
+    }
+    constexpr std::size_t tile = 32;
+    static_assert(width % tile == 0);
+    for (std::size_t base = 0; base < width; base += tile) {
+#if CHESS0LIVE_NNUE_NEON
+        auto a = vld1q_s16(state.hidden.data() + base);
+        auto b = vld1q_s16(state.hidden.data() + base + 8);
+        auto c = vld1q_s16(state.hidden.data() + base + 16);
+        auto d = vld1q_s16(state.hidden.data() + base + 24);
+        for (const auto& change : changes) {
+            const auto* column = change.weights + base;
+            int16x8_t wa, wb, wc, wd;
+            if constexpr (sizeof(Weight) == 1) {
+                const auto low = vld1q_s8(column);
+                const auto high = vld1q_s8(column + 16);
+                wa = vmovl_s8(vget_low_s8(low)); wb = vmovl_high_s8(low);
+                wc = vmovl_s8(vget_low_s8(high)); wd = vmovl_high_s8(high);
+            } else {
+                wa = vld1q_s16(column); wb = vld1q_s16(column + 8);
+                wc = vld1q_s16(column + 16); wd = vld1q_s16(column + 24);
+            }
+            if (change.add) {
+                a = vaddq_s16(a, wa); b = vaddq_s16(b, wb);
+                c = vaddq_s16(c, wc); d = vaddq_s16(d, wd);
+            } else {
+                a = vsubq_s16(a, wa); b = vsubq_s16(b, wb);
+                c = vsubq_s16(c, wc); d = vsubq_s16(d, wd);
+            }
+        }
+        vst1q_s16(state.hidden.data() + base, a);
+        vst1q_s16(state.hidden.data() + base + 8, b);
+        vst1q_s16(state.hidden.data() + base + 16, c);
+        vst1q_s16(state.hidden.data() + base + 24, d);
+#else
+        std::array<std::uint16_t, tile> lanes;
+        for (std::size_t lane = 0; lane < tile; ++lane)
+            lanes[lane] = std::bit_cast<std::uint16_t>(state.hidden[base + lane]);
+        for (const auto& change : changes) {
+            for (std::size_t lane = 0; lane < tile; ++lane) {
+                const auto delta = static_cast<std::uint16_t>(change.weights[base + lane]);
+                lanes[lane] = static_cast<std::uint16_t>(change.add
+                    ? lanes[lane] + delta : lanes[lane] - delta);
+            }
+        }
+        for (std::size_t lane = 0; lane < tile; ++lane)
+            state.hidden[base + lane] = std::bit_cast<std::int16_t>(lanes[lane]);
+#endif
+    }
+    // Unsigned arithmetic also preserves adversarial PSQT wraparound exactly.
+    for (std::size_t bucket = 0; bucket < buckets; ++bucket) {
+        auto total = std::bit_cast<std::uint32_t>(state.psqt[bucket]);
+        for (const auto& change : changes) {
+            const auto value = std::bit_cast<std::uint32_t>(change.values[bucket]);
+            total += change.add ? value : 0U - value;
+        }
+        state.psqt[bucket] = std::bit_cast<std::int32_t>(total);
+    }
+}
+
 template<class Weights> void differences(Accumulation& state,
     const std::vector<std::uint32_t>& before, const std::vector<std::uint32_t>& after,
     const Weights& weights, const std::vector<std::int32_t>& values) {
+    using Weight = typename Weights::value_type;
+    // This is a streaming capacity, not a limit on features or changed columns.
+    // Flush and reuse it until the entire sorted multiset difference is applied.
+    std::array<FeatureDelta<Weight>, 8> batch;
+    std::size_t count = 0;
+    const auto append = [&](std::uint32_t feature, bool add) {
+        batch[count++] = {weights.data() + std::size_t(feature) * width,
+                          values.data() + std::size_t(feature) * buckets, add};
+        if (count == batch.size()) {
+            adjust_batch<Weight>(state, {batch.data(), count});
+            count = 0;
+        }
+    };
     std::size_t old_index = 0, new_index = 0;
     while (old_index != before.size() || new_index != after.size()) {
         if (new_index == after.size() || (old_index != before.size() && before[old_index] < after[new_index])) {
             const auto feature = before[old_index++];
-            adjust(state, weights.data() + feature * width, values.data() + feature * buckets, -1);
+            append(feature, false);
         } else if (old_index == before.size() || after[new_index] < before[old_index]) {
             const auto feature = after[new_index++];
-            adjust(state, weights.data() + feature * width, values.data() + feature * buckets, 1);
+            append(feature, true);
         } else {
             ++old_index;
             ++new_index;
         }
     }
+    adjust_batch<Weight>(state, {batch.data(), count});
 }
 
 void update(const Model& model, const Position& position, Color side, Accumulation& state) {
