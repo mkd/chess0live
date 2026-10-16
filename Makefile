@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/mai
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering test-qualification verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -162,6 +162,10 @@ test-profile-lmr:
 
 test-profile-ordering: test-profile-lmr
 
+# Optional macOS CPU recorder; these mock tests need no process inspection.
+test-profile-cpu:
+	$(PYTHON) tests/profile_cpu_test.py
+
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
 test-qualification:
 	$(PYTHON) tests/qualify_time_policy_test.py
@@ -190,6 +194,7 @@ help:
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
 	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
 	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'
+	@echo 'make test-profile-cpu  Test bounded CPU-profile recording and cleanup'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'
