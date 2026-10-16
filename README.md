@@ -15,10 +15,13 @@ Its conditional 95% paired-score interval is **42.40–76.35%**; the favorable
 point estimate does not qualify LMR for promotion. Classic timing, LMR off,
 and MVV-LVA remain defaults. The engine and GUI test bundle are unchanged.
 
-**Next: Phase 3A — a reproducible performance baseline and one measured
-bottleneck proposal.** Follow the [development plan](docs/ROADMAP.md).
-Further experimental strength qualification, including SEE, remains deferred;
-no job or automatic schedule is active. Phase 3 implementation has not started.
+**Phase 3A is complete:** the [performance baseline](docs/reports/2026-10-16-phase3a-baseline.md)
+verified exact results across 240 benchmark searches and a separate audited CPU sample. NNUE
+accounted for about 85% of sampled search work, with accumulator updates at 59%.
+**Next: Phase 3B — batch NNUE accumulator updates**, under the fixed
+[correctness and timing gates](docs/PHASE_3B.md). This optimization has not been
+implemented. Follow the [development plan](docs/ROADMAP.md); further strength
+qualification remains deferred. No engine change or speed gain is claimed here.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

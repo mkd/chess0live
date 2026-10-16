@@ -73,6 +73,14 @@ authentication or pushes. Use small tested commits directly on `main`.
 Branches/PRs are unnecessary unless an exceptional practical reason arises.
 Test first, commit locally second. Update README, concise
 version-oriented changelog, implementation decisions, and handover instructions.
+Use semantic version milestones for tested, user-visible deliverables: patch
+releases for compatible fixes and minor releases for new capabilities, with
+compatibility breaks explicitly documented. Research phases are planning labels,
+not release numbers. Keep pending work under `Unreleased`; when a genuine
+release is accepted, record its version, actual release date, and concise
+user-facing improvements in README and CHANGELOG instead of retaining the same
+version indefinitely. Do not declare version 0.1 before its documented
+[acceptance gates](VALIDATION.md#release-gates) pass.
 Every release must distinguish measured strength from aspiration, and tested
 platforms from merely intended targets. Source files have consistent copyright,
 license, and explanatory comments; explain invariants and non-obvious decisions.

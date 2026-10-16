@@ -288,6 +288,44 @@ and the two expected live status-document changes (`SELECTIVE_SEARCH.md` and
 `PHASE_2D_LMR.md`). Local record:
 `results/phase2d-lmr-20261015/audit-after-documentation.json`.
 
+## Phase 3A performance baseline — October 16, 2026
+
+The [measurement checkpoint](reports/2026-10-16-phase3a-baseline.md) completed
+on the M5 Pro under the normal 50% daytime budget. Engine source is unchanged
+from `9daaade`; the separate release build is byte-identical to the frozen
+capture-ordering executable. Position/perft, exchange, NNUE (537 incremental
+positions), search, policy/time, UCI, and resource checks passed. An initial
+PATH smoke in the custom nested build directory failed to find its default
+network; an adjacent symlink to the pinned network fixed the bundle setup,
+and `test-core` then passed. Both logs are retained; no engine fix was required.
+
+All 11 comparison-tool checks and 16 new CPU-recorder mock tests passed. The
+recorder tests fixed UCI settings, legality, sampling-window bounds, partial
+evidence, failures/cleanup, resource changes, and artifact drift. Its first real
+attempt was denied process inspection by the sandbox; the approved retry used
+a new output path and completed. No failed record was discarded.
+
+All **192 same-binary searches** (12 roots, depth 5, seven measured repetitions
+plus warmups) matched exactly. All **48 optimized-symbol/release searches**
+also matched. Independent replay verified every iteration's PV, bestmove, and
+ponder. Median same-binary time ratio was 0.998546, paired MAD 0.008123; these
+describe repeatability, not a speedup or confidence interval.
+
+The separate 120-second CPU sample verified target identity, 1 ms requested
+interval, 12 warmups, and all **24 sampled searches** within its conservative
+window. Their signatures and moves also matched the release baseline. Two
+independent call-tree aggregations agreed: 7,413 search observations, of which
+6,304 were in NNUE, including 4,351 in update and 1,935 in inference. Nested
+counts overlap. Main-thread idle observations were excluded; aggregate stacks
+do not establish per-root sample counts or exact CPU-cycle percentages.
+
+All frozen engine/network/build/benchmark artifacts matched after measurement;
+the new Makefile test target and final docs were added afterward. Raw evidence,
+failure records, and independent audits are in `results/phase3a-20261016/`.
+GUI `0.1-dev-4b8b35d` remains intact. Scalar/sanitizer/full oracle suites were
+not rerun for this measurement-only checkpoint. They are required for the next
+[NNUE update experiment](PHASE_3B.md), whose implementation has not started.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

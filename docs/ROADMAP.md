@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 2D initial screens complete; Phase 3A next
+## Current checkpoint: Phase 3A complete; Phase 3B next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -17,7 +17,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
 | 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Initial time-policy and LMR screens complete, both inconclusive; further qualification deferred |
-| 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Next checkpoint; not started |
+| 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Complete: exact-search baseline, audited CPU sample, and bounded NNUE proposal |
+| 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Next checkpoint; proposal and acceptance gates fixed, implementation not started |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -76,30 +77,35 @@ result is **inconclusive**, so LMR stays off. The favorable score does not
 establish strength or equivalence. Raw evidence is
 `results/phase2d-lmr-20261015/`; the job and its sleep assertion have ended.
 
-**Next checkpoint: Phase 3A measurement only.** Freeze the current default
-baseline (classic timing, LMR off, MVV-LVA) and record binary/source/network,
-compiler, flags, and CPU identities. Establish timing repeatability with the
-existing alternating benchmark harness and identical builds, then collect one
-bounded CPU profile on development positions separately from timed comparisons.
-Deliver the reproducible baseline and one optimization proposal supported by
-measured cost, before changing engine behavior or implementation.
+**Phase 3A is complete.** The [result report](reports/2026-10-16-phase3a-baseline.md)
+records a frozen default release baseline and optimized symbol build, all 12
+original development histories, and the ordinary 50% daytime budget. All 192
+same-binary depth-5 searches matched exactly; median paired ratio was 0.998546,
+with observed MAD 0.008123. Another 48 searches verified the symbol build's
+search equivalence. All reported moves/PVs passed independent legal replay.
 
-Source inspection suggests NNUE feature enumeration/sorting, move-list
-allocations, and ray-based attacks as possible costs; these are hypotheses,
-not measured bottlenecks. Select only one after profiling. Predeclare exact
-search-equivalence and timing criteria before implementing it. Depending on
-scope, require perft/legal-move/reversible-state checks or full-refresh versus
-incremental NNUE agreement and pinned feature/accumulator/output parity, plus
-relevant native/scalar/sanitizer and UCI checks. Preserve stalemate/checkmate
-precedence in quiescence. Measured speed does not establish an Elo gain.
+A separate 120-second CPU sample contained 7,413 observations inside search
+frames. NNUE accounted for 85.04%, including 58.69% in accumulator update and
+26.10% in inference. These nested shares overlap. Both independent aggregations
+agree; the raw stacks and audits are retained in `results/phase3a-20261016/`.
+The profile covers shallow opening search and omits the active clock path.
+No engine optimization, speed gain, or strength gain was established.
 
-Phase 3A has not started. Further LMR, forecast, and SEE strength qualification
-remains explicitly deferred, not passed. Do not opportunistically extend or
-retune either completed sample. A later campaign needs fresh openings and a
-predeclared sample/decision rule that justifies its cost. Both completed suites
-are now exposed evidence; repeated roots add no independent openings.
-No long job or automatic schedule is active. Keep the preserved GUI bundle
-`0.1-dev-4b8b35d`, all frozen candidates, and exact NNUE oracle intact.
+**Next checkpoint: Phase 3B — batch NNUE feature-column updates.** The
+[proposal](PHASE_3B.md) fixes one implementation boundary and correctness/timing
+criteria before code changes: keep features, inference, search, and defaults
+unchanged; preserve exact modular accumulator/PSQT arithmetic and arbitrary
+position transitions. Require native/scalar/sanitizer tests, full pinned NNUE
+stage parity, and exact legal search signatures. Two depth-5 timing comparisons
+and one depth-6 comparison must each meet a 1.03 median ratio, with no root's
+pooled median below 0.98 at either depth, before retaining a measured speedup.
+These are engineering gates, not Elo evidence or statistical confidence bounds.
+
+Phase 3B implementation has not started. Further LMR, forecast, and SEE strength
+qualification remains deferred, not passed. Do not opportunistically extend or
+retune either completed match sample; future campaigns need fresh predeclared
+inputs and rules. No engine/profiling job or automatic schedule is active.
+GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override

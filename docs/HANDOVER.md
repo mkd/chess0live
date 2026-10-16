@@ -57,7 +57,7 @@ Long opening iterations spent much of the clock and left the black game in
 severe time pressure. No deadline, mate-reporting, or evaluator defect was reproduced. Treat these games
 as exploratory feedback, not a calibrated strength test or held-out suite.
 
-The current work is **Phase 2: search efficiency and time management**; keep the
+Phase 2 covered **search efficiency and time management**; keep the
 [roadmap](ROADMAP.md) and user updates explicit about phase and step. Root-level
 diagnostics, an alternating clock-policy profiler, and per-engine match options
 support the [time-management experiment](TIME_MANAGEMENT.md). `Time Policy` stays
@@ -148,19 +148,37 @@ is `tools/qualification.py`, with historical time-policy and LMR entrypoints;
 `tools/audit_lmr.py` independently pins the LMR protocol. Both completed suites
 are exposed evidence, not fresh validation. Do not extend or retune their samples.
 
-**Next checkpoint: Phase 3A measurement only**, as specified in the
-[roadmap](ROADMAP.md). Freeze the default baseline, prove timing repeatability
-with identical builds, collect a bounded CPU profile on development positions,
-and propose one measured bottleneck to address. No engine optimization starts
-before its exact-equivalence/timing criteria are fixed. Relevant rule/perft,
-NNUE oracle and reversible-state, native/scalar/sanitizer, and UCI gates must
-remain intact. Quiescence legal-move generation currently protects stalemate
-and checkmate precedence; do not remove that work casually. NPS gains are not
-Elo gains. Phase 3A has not started; further experimental strength qualification
-(including SEE) is deferred rather than passed. Trainer integration,
-multi-platform execution, release acceptance, and public strength claims remain
-open. The owner can push the local commits; no GUI retest is required for this
-checkpoint because neither engine code nor the frozen GUI binary changed.
+**Phase 3A is complete**, as recorded in the
+[performance report](reports/2026-10-16-phase3a-baseline.md). Frozen builds are
+`build/experiments/phase3a-20261016/release/` and `symbols/`; the release hash
+matches the preserved capture-ordering binary, with experimental options off.
+All 192 same-binary searches and 48 symbol-equivalence searches matched, with
+independent legal-PV replay. A separate CPU profile and independent audit found
+85.04% of 7,413 search observations in NNUE, including 58.69% in update.
+
+Preserve all of `results/phase3a-20261016/`, including the denied sampler attempt,
+corrected nested-bundle network setup, raw stacks, independent audits, and frozen
+protocol/source hashes. The new `tools/profile_cpu.py` is macOS-only tooling;
+`make test-profile-cpu` checks it with mocks. Its report records sampling-window
+coverage but raw stacks still need independent identity/attribution inspection.
+Do not use sampled timings as throughput results or include main-thread idle
+observations in the search denominator. All measurement jobs have ended.
+
+**Next checkpoint: Phase 3B**, the [batched NNUE update proposal](PHASE_3B.md).
+Implementation has not started. Fix exactly the scoped delta-application change;
+keep enumeration, sorting, inference, search, and options unchanged. Follow its
+native/scalar/sanitizer, full pinned stage-oracle, exact-search, and predeclared
+multi-run timing gates. Reduced hidden-vector memory traffic is a hypothesis,
+not a proven cause of the sampled cost. If measurements fail the gates, preserve
+the baseline and document the result. NPS is not Elo. Quiescence legal generation
+still protects stalemate/checkmate precedence and is outside this proposal.
+
+Further experimental strength qualification, trainer integration, multi-platform
+execution, release acceptance, and public strength claims remain open. The owner
+can push the local commits; no GUI retest is required for Phase 3A because neither
+engine code nor GUI `0.1-dev-4b8b35d` changed. Keep user-facing CHANGELOG entries
+concise and create real version milestones when tested release gates pass;
+research phases do not determine version numbers.
 
 The unmodified SF19 match opponent is in ignored `build/stockfish19-reference`;
 the instrumented NNUE oracle is separate. Never substitute one for the other.

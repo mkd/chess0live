@@ -203,3 +203,23 @@ baseline with those settings; further LMR and separate SEE qualification are
 deferred, not completed or promoted. The [full report](reports/2026-10-16-phase2d-lmr.md)
 records preparation commit `842ee41`, launch-record commit `57e21fd`, exact
 settings, evidence digests, sampling limitations, and data-only audit reproduction.
+
+## 2026-10-16 — Phase 3A baseline: NNUE update selected for investigation
+
+The [fixed measurement protocol](PHASE_3A.md) completed on the M5 Pro with
+classic timing, LMR off, and MVV-LVA. All 192 same-binary searches matched;
+median paired ratio was 0.998546 with MAD 0.008123. All 48 symbol-build/release
+searches also matched. Independent replay checked every reported move/PV.
+
+A separate CPU sample attributed 85.04% of 7,413 active-search observations
+to NNUE, including 58.69% in accumulator update. These are overlapping sampled
+costs, not exact CPU time or strength evidence. The profiler and 16 mocked
+lifecycle/evidence checks are reusable; denied inspection and the corrected
+custom-bundle network setup are retained in the evidence record.
+
+**Decision:** propose isolated batched feature-column updates, with exact
+modular arithmetic, native/scalar/full-oracle parity, and fixed throughput
+gates in [Phase 3B](PHASE_3B.md). Do not change engine code or defaults in this
+measurement checkpoint. The [full report](reports/2026-10-16-phase3a-baseline.md)
+records inputs, figures, interpretation limits, and reproduction. No speedup,
+release, Elo gain, or additional platform execution is established.

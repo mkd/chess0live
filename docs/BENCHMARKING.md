@@ -52,3 +52,42 @@ Declare the positions, depth, repeat count, and decision criterion before a
 comparison. If a follow-up is needed because variation obscures the result,
 record that fact and preserve both runs. Never discard an unfavorable run or
 present exploratory tuning as a predeclared statistical strength experiment.
+
+## CPU attribution on macOS
+
+`tools/profile_cpu.py` records bounded CPU samples of the default engine using
+the built-in `/usr/bin/sample`. It is a development tool for macOS; the engine's
+platform support does not depend on this sampler. Install `requirements-match.txt`
+for independent legal-history and PV replay. Build with release optimization
+and symbols in a separate directory, preserving the normal and GUI executables:
+
+```sh
+make -j2 BUILD=build/profile-symbols \
+  CXXFLAGS='-std=c++2c -Wall -Wextra -Wpedantic -pthread -O3 -DNDEBUG -g'
+xcrun dsymutil build/profile-symbols/chess0live
+python3 tools/profile_cpu.py build/profile-symbols/chess0live \
+  --output results/cpu-profile-new --duration 120 --depth 5 --repeats 2
+```
+
+First verify sampled search equivalence against the ordinary release build
+with `compare_bench.py`. The recorder explicitly pins classic timing, LMR off,
+MVV-LVA, Threads 1, Hash 64, Ponder and diagnostics off, and Move Overhead 20 ms.
+It warms up all 12 development roots at depth 5, waits for the sampler's startup
+message, and records full output and monotonic boundaries for each fixed-depth
+search. It keeps the target idle afterward until sampling completes naturally.
+
+Outputs are `report.json`, `sample.txt`, and `sampler.log` in a new directory.
+Failures, incomplete searches, changed assets, and late sampling coverage remain
+recorded; existing output is never overwritten. On systems that deny process
+inspection, grant permission through the host's normal approval mechanism and
+use a fresh directory for another attempt. `make test-profile-cpu` checks the
+recorder's settings, evidence validation, and process cleanup with mocks.
+
+Inspect the raw sample's target identity, requested interval, and useful active
+search stacks before interpreting it. The recorder checks lifecycle and window
+coverage but does not parse Apple's stack format. Aggregate stacks cannot prove
+that every root contributed an observation. Exclude idle/readiness stacks from
+the active-search denominator; do not add nested inclusive costs. Sampling
+perturbs execution and is separate from throughput timing. These opening-only,
+depth-limited searches do not measure the active clock-management path or
+establish an Elo improvement. See [Phase 3A](PHASE_3A.md) for the fixed checkpoint.
