@@ -1,7 +1,9 @@
 # Phase 2C: conservative late-move reductions
 
-Status: first candidate implemented and tested; retained as opt-in research,
-not promoted after an unfavorable eight-game smoke. This experiment
+Status: first candidate implemented and tested; retained as opt-in research.
+The initial eight-game smoke was unfavorable; the subsequent 128-game
+[Phase 2D screen](reports/2026-10-16-phase2d-lmr.md) had a favorable point
+estimate but remained inconclusive under its predeclared rule. This experiment
 changes search selectivity, not evaluation or time allocation. The existing
 search remains the default; no playing-strength improvement is established.
 
@@ -86,9 +88,9 @@ test with adequate uncertainty reporting. Long campaigns belong overnight and
 are not automatically scheduled. Never tune against validation results while
 continuing to label that suite held out.
 
-After this checkpoint, evaluate move ordering independently. Combine accepted
-changes only after isolated comparisons can identify their effects. The pending
-time-policy campaign must continue using its own frozen executable.
+Move ordering was subsequently evaluated independently. Combine accepted
+changes only after isolated comparisons can identify their effects. The separate
+time-policy campaign used its own frozen executable.
 
 ## Frozen candidate and profile results
 
@@ -181,6 +183,21 @@ post-hoc evidence does not establish strength or validate all reduced fail-lows.
 The raw match is in `results/lmr-20261014/match-smoke/`: `run.json`, frozen
 openings, per-game records, PGNs, protocol logs, and `summary.json`. The independent
 audit of profiles and game replay is saved locally in `results/lmr-20261014/audit.json`.
+
+## Subsequent isolated qualification — October 16, 2026
+
+The same frozen candidate completed the predeclared 128-game Phase 2D screen
+on 64 fresh opening histories at 60+0.6, with only LMR toggled and classic timing
+on both sides. LMR on scored **35W/82D/11L**, or **76/128 points (59.375%)**.
+All games passed independent replay with no operational failures. The
+conditional two-sided 95% Hoeffding pair-score interval was **42.40–76.35%**;
+the predeclared decision is **inconclusive**, so the default remains off.
+
+See the [audited result](reports/2026-10-16-phase2d-lmr.md) for immutable input
+and evidence hashes, sampling assumptions, and replay instructions. These
+results neither supersede the small development smoke nor establish a rating.
+Further strength qualification is deferred. Phase 3A performance measurement
+is next, with all experimental search defaults unchanged.
 
 ## Reproducing the short development checks
 

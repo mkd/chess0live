@@ -4,9 +4,10 @@ Status: the first fixed qualification screen completed on October 15, 2026.
 Its [audited result](reports/2026-10-15-phase2d-time-policy.md) is **inconclusive**:
 forecast scored 14W/43D/7L (35.5/64), with all 32 pairs valid and no operational
 failures. Classic timing, LMR off, and MVV-LVA remain defaults. The full engine
-remains unreleased and unrated `0.1-dev`. Fresh LMR qualification is the next
-Phase 2D checkpoint, with its [128-game protocol](PHASE_2D_LMR.md) now prepared.
-No automatic schedule is configured.
+remains unreleased and unrated `0.1-dev`. The subsequent
+[128-game LMR screen](reports/2026-10-16-phase2d-lmr.md) also completed and was
+inconclusive: 35W/82D/11L, with no operational failures.
+Both initial screens are recorded; no job or automatic schedule is active.
 
 The protocol below was frozen before play in the campaign's `protocol.md`.
 This status update follows the completed audit and does not change that record.
@@ -146,8 +147,10 @@ shutdown, or an explicit sleep command.
 ## Remaining Phase 2D work
 
 The first screen and its recorded decision are complete. The separately frozen
-[LMR protocol](PHASE_2D_LMR.md) now specifies 128 games on 64 fresh full-history
-openings, classic timing, its frozen executable, and decision rules before play. The
+[LMR protocol](PHASE_2D_LMR.md) subsequently completed its 128 games on 64 fresh
+full-history openings with classic timing. Its result was also inconclusive.
+Further experimental qualification is deferred; the next bounded checkpoint
+is the [Phase 3A performance baseline](ROADMAP.md), not yet started. The
 existing 12 general-validation roots are below the runner's 30-pair reporting
 floor; recycling them does not create independent evidence. Do not combine
 experimental options or reuse the completed time suite for tuning while calling

@@ -7,23 +7,18 @@ stronger play than Stockfish 19 on equal desktop hardware. No Elo rating or
 competitive superiority has been established. The current search is an early
 single-worker implementation; strength testing and further optimization remain.
 
-**Current phase: 2 — search efficiency and time management.** Follow the
-[development plan](docs/ROADMAP.md) for completed steps, active experiments,
-and the evidence required before a candidate becomes the default.
-**2C's initial selective-search and move-ordering experiments are complete.**
-Both passed correctness checks and remain opt-in. LMR's eight-game smoke scored
-2W/2D/4L; [capture ordering](docs/MOVE_ORDERING.md) scored 2W/4D/2L. The latter
-used 4.72% fewer depth-5 nodes with matching sampled decisions, but neither
-experiment establishes stronger play. **2D: playing-strength qualification is
-active.** Its [first 64-game time-policy screen](docs/reports/2026-10-15-phase2d-time-policy.md)
-completed and passed the independent audit: forecast scored 14W/43D/7L
-(35.5/64 points), with no operational failures. The predeclared result is
-**inconclusive**; classic timing remains the default. The next checkpoint is
-the [isolated LMR screen](docs/PHASE_2D_LMR.md): 128 games on 64 fresh openings,
-classic timing on both sides, frozen LMR on/off, and a 07:00 Helsinki cutoff.
-It started October 15 at **23:00 Helsinki**, from preparation commit `842ee41`,
-within the ordinary overnight policy. The fixed sample and audit are pending;
-no result or automatic schedule is implied.
+**Current checkpoint: Phase 2D's initial time-policy and LMR screens are complete.**
+Both passed their independent evidence audits and were inconclusive under their
+predeclared rules. The [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md)
+scored **35W/82D/11L, 76/128 points (59.38%)**, with no operational failures.
+Its conditional 95% paired-score interval is **42.40–76.35%**; the favorable
+point estimate does not qualify LMR for promotion. Classic timing, LMR off,
+and MVV-LVA remain defaults. The engine and GUI test bundle are unchanged.
+
+**Next: Phase 3A — a reproducible performance baseline and one measured
+bottleneck proposal.** Follow the [development plan](docs/ROADMAP.md).
+Further experimental strength qualification, including SEE, remains deferred;
+no job or automatic schedule is active. Phase 3 implementation has not started.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

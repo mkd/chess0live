@@ -79,5 +79,10 @@ Versions describe tested deliverables. Research objectives are not results.
   Shared the tested launch lifecycle across protocols while retaining an
   independent evidence audit and historical time-policy audit compatibility.
   LMR remains disabled by default pending qualification and confirmation.
+- Completed the isolated LMR screen: 35W/82D/11L in 128 audited games, with
+  no operational failures. Its favorable point estimate remains inconclusive
+  under the frozen rule, so LMR stays off. Recorded the evidence and Phase 3A
+  performance measurement as the next checkpoint; further strength qualification
+  is deferred.
 
 No release or strength rating has been established yet.

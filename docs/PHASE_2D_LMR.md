@@ -1,10 +1,14 @@
 # Phase 2D: isolated LMR qualification
 
-Status: protocol prepared before play on October 15, 2026. This document defines
-one fixed screen, `phase2d-lmr-128-v1`; a launch freezes its exact bytes as
-`protocol.md`. Preparation and passing checks are not a completed match.
-Classic timing, LMR off, and MVV-LVA remain defaults. No result is yet available
-for this protocol, and no automatic schedule is created.
+Status: the fixed `phase2d-lmr-128-v1` screen completed on October 16, 2026.
+Its [audited result](reports/2026-10-16-phase2d-lmr.md) is **inconclusive**:
+35W/82D/11L, 76/128 points (59.375%), conditional 95% score bounds
+42.40–76.35%, with all 64 pairs valid and no operational failures. Classic
+timing, LMR off, and MVV-LVA remain defaults. No job or schedule is active.
+
+The protocol below was fixed before play on October 15 and preserved verbatim
+in the campaign's `protocol.md`. This later status update does not change its
+sample, decision rule, frozen record, or completed audit.
 
 ## Hypothesis and isolation
 

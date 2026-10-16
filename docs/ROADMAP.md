@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current: Phase 2 — search efficiency and time management
+## Current checkpoint: Phase 2D initial screens complete; Phase 3A next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -16,7 +16,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 2A | Measure completed and interrupted iteration time/work, with reproducible profiles | Complete: diagnostics, profiler, and checked accounting |
 | 2B | Test a forecast policy that avoids starting an iteration unlikely to fit its budget | Implemented and profiled; opt-in, awaiting strength qualification |
 | 2C | Evaluate selective-search and move-ordering changes independently | Initial experiments complete: both opt-in; bounded LMR loss diagnosis complete |
-| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Time-policy screen inconclusive; isolated 128-game LMR screen running |
+| 2D | Qualify promising candidates with frozen, paired-opening blitz matches | Initial time-policy and LMR screens complete, both inconclusive; further qualification deferred |
+| 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Next checkpoint; not started |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -31,7 +32,7 @@ results guide the next test; they do not establish an Elo gain.
 For 2C, the [selective-search plan](SELECTIVE_SEARCH.md) fixes the first reduction
 policy and development checks before measurements. Time policy remains classic
 on both sides of this comparison. Move ordering has a separate
-experiment; the 2B validation openings remain reserved for 2B.
+experiment; the 2B validation openings were reserved for that time-policy screen.
 The first candidate passed native/scalar/sanitizer checks and preserved the
 default-off search signatures. Depth-5 work dropped 49.79% across the sampled
 roots with matching final decisions; at equal nodes, deeper nominal searches
@@ -52,8 +53,9 @@ LMR executable. All eight selected roots gave the same off/on best move, and
 40 common-depth scores/PVs matched. No reduction parameter changed; this finite
 post-hoc check does not establish that reductions are harmless.
 
-The initial Phase 2C experiment checkpoint is complete. **Phase 2D remains active**:
-its [first time-policy screen](reports/2026-10-15-phase2d-time-policy.md) completed
+The initial Phase 2C experiment checkpoint is complete. **Phase 2D has completed
+its first two screens**, without promoting an experimental default. Its
+[first time-policy screen](reports/2026-10-15-phase2d-time-policy.md) completed
 all 32 opening pairs / 64 games at 60+0.6 with one worker. It ran October 15,
 14:24–17:18 Helsinki, under the owner's one-run daytime exception, from preparation
 commit `2cf55f7`. Forecast scored **14W/43D/7L, 35.5/64 points (55.47%)**. The
@@ -63,33 +65,41 @@ decision is **inconclusive**, so classic remains default and forecast remains
 experimental. A favorable point estimate does not establish a strength gain.
 The raw completed campaign is `results/phase2d-time-policy-20261015/`.
 
-**Current checkpoint: isolated LMR qualification running.** Started October 15
-at 23:00 Helsinki from preparation commit `842ee41`, without a daytime override.
-Local evidence is `results/phase2d-lmr-20261015/`. The
-[fixed protocol](PHASE_2D_LMR.md) uses 64 fresh full-history openings / 128 games,
-60+0.6, seed `20261015`, classic timing, and the same frozen LMR binary in both
-roles. Only the reduction toggle differs. The conservative 95% pair-score rule
-requires at least 86/128 points for confirmation review; it never automatically
-promotes a default. The next checkpoint is completing the fixed sample, then
-independently replaying the evidence and recording its decision. The original
-October 16 07:00 Helsinki cutoff applies; an interrupted sample cannot qualify.
-No automatic schedule is configured, and no result is yet claimed.
+The [isolated LMR screen](reports/2026-10-16-phase2d-lmr.md) completed all
+64 fresh opening pairs / 128 games at 60+0.6 with classic timing. It ran from
+October 15 23:00:08 to October 16 05:41:20 Helsinki, inside the ordinary night
+window, from preparation commit `842ee41`. LMR scored **35W/82D/11L,
+76/128 points (59.375%)**, with no exclusions, operational failures, or artifact
+drift. Independent audit verified 17,175 legal plies and 15,191 searches.
+The conditional 95% pair-score interval is **42.40–76.35%**: the predeclared
+result is **inconclusive**, so LMR stays off. The favorable score does not
+establish strength or equivalence. Raw evidence is
+`results/phase2d-lmr-20261015/`; the job and its sleep assertion have ended.
 
-LMR is the next research
-priority because it changes the search more substantially, while its tactical
-risk remains unresolved; neither node savings nor the unfavorable eight-game
-smoke establishes its strength. Use the frozen LMR executable against itself,
-changing only LMR off/on, with classic timing and baseline capture ordering.
-Author fresh full-history openings and freeze sample/settings/decision criteria
-before play. The completed time suite is now exposed evidence; do not reuse it
-for search tuning or present it as fresh validation. The existing 12 general
-validation roots are below the reporting floor; repeating them adds no independent
-openings. Choose a practical sample before seeing results, using the first run's
-2h54m runtime as planning context, not a duration guarantee. Keep SEE separate.
-No further long campaign or automatic schedule is authorized by the completed
-one-run daytime exception; use the ordinary overnight policy or obtain a new
-explicit exception. Phase 3 has not started, and no experimental default has
-been promoted.
+**Next checkpoint: Phase 3A measurement only.** Freeze the current default
+baseline (classic timing, LMR off, MVV-LVA) and record binary/source/network,
+compiler, flags, and CPU identities. Establish timing repeatability with the
+existing alternating benchmark harness and identical builds, then collect one
+bounded CPU profile on development positions separately from timed comparisons.
+Deliver the reproducible baseline and one optimization proposal supported by
+measured cost, before changing engine behavior or implementation.
+
+Source inspection suggests NNUE feature enumeration/sorting, move-list
+allocations, and ray-based attacks as possible costs; these are hypotheses,
+not measured bottlenecks. Select only one after profiling. Predeclare exact
+search-equivalence and timing criteria before implementing it. Depending on
+scope, require perft/legal-move/reversible-state checks or full-refresh versus
+incremental NNUE agreement and pinned feature/accumulator/output parity, plus
+relevant native/scalar/sanitizer and UCI checks. Preserve stalemate/checkmate
+precedence in quiescence. Measured speed does not establish an Elo gain.
+
+Phase 3A has not started. Further LMR, forecast, and SEE strength qualification
+remains explicitly deferred, not passed. Do not opportunistically extend or
+retune either completed sample. A later campaign needs fresh openings and a
+predeclared sample/decision rule that justifies its cost. Both completed suites
+are now exposed evidence; repeated roots add no independent openings.
+No long job or automatic schedule is active. Keep the preserved GUI bundle
+`0.1-dev-4b8b35d`, all frozen candidates, and exact NNUE oracle intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
@@ -101,7 +111,7 @@ Do not describe a pending campaign as active or completed.
 1. **Playable foundation:** legal moves, reversible state, pinned SF19 NNUE
    parity, single-worker UCI search, perft, tests, and initial GUI feedback are
    implemented. This remains `0.1-dev`, not a completed release or rated engine.
-2. **Search and time management:** the active work above. Keep changes isolated
+2. **Search and time management:** the recorded experiments above. Keep changes isolated
    enough to attribute their effects and record rejected/inconclusive results.
 3. **Desktop performance and parallel search:** efficient move generation and
    NNUE updates, CPU backends, then multicore search with aggregate resource

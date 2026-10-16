@@ -27,8 +27,8 @@ favorable subset selected after measurement.
 The modest sampled work reduction merits further investigation, not an Elo
 claim. [Capture ordering](MOVE_ORDERING.md) records the algorithm's limits,
 predeclared checks, frozen hashes, exact results, and reproduction commands.
-Separate search-candidate qualification remains pending; the completed first
-Phase 2D time-policy screen is recorded below.
+The completed time-policy and isolated LMR screens are recorded below;
+further search-candidate qualification remains deferred.
 
 ## 2026-10-14 — bounded LMR loss diagnosis: no policy change
 
@@ -159,9 +159,9 @@ actual clocks/options, and unchanged frozen artifacts. Elapsed campaign time
 was 2 h 53 min 49.434 s.
 
 **Decision:** keep classic as default and forecast opt-in; do not extend or
-retune this completed sample. A fresh isolated LMR qualification is proposed,
-with classic timing and baseline ordering, but has not been launched or
-scheduled. The [full report](reports/2026-10-15-phase2d-time-policy.md) records
+retune this completed sample. The subsequently completed isolated LMR screen
+used classic timing and baseline ordering; its October 16 result appears below.
+The [full time-policy report](reports/2026-10-15-phase2d-time-policy.md) records
 preparation commit `2cf55f7`, exact settings, artifact/evidence hashes,
 uncertainty, and the remaining qualification requirements.
 
@@ -180,3 +180,26 @@ time-policy audit remains reproducible. These checks establish readiness,
 not a played result. Ordinary overnight limits and the original 07:00 Helsinki
 cutoff apply; the prior one-run daytime exception is consumed. The suite and
 candidate must remain frozen during play, with incomplete evidence retained.
+
+## 2026-10-16 — Phase 2D isolated LMR: inconclusive, default off
+
+The predeclared 64-pair, 128-game 60+0.6 overnight screen completed in
+**6 h 41 min 12.439774 s**. LMR on scored **35W/82D/11L**, or **76/128 points
+(59.375%)**. Its conditional pair-level 95% Hoeffding score interval was
+**42.398731053%–76.351268947%**; 76 points did not reach the predeclared
+86-point confirmation threshold. The favorable point estimate remains
+**inconclusive**, not a proven strength gain, rating, or equivalence result.
+
+All 128 games passed the independent audit with no exclusions, clock forfeits,
+protocol failures, or truncations. Replay checked 17,175 legal plies and 15,191
+searches: 46 checkmates, 71 threefold draws, 10 insufficient-material draws,
+and one rule-50 draw. Frozen campaign sources/assets and all five separately
+preserved engine/network hashes remained unchanged, including GUI snapshot
+`0.1-dev-4b8b35d`.
+
+**Decision:** keep classic timing, LMR off, and MVV-LVA as defaults. Do not
+extend or retune this completed sample. Propose Phase 3A's measured performance
+baseline with those settings; further LMR and separate SEE qualification are
+deferred, not completed or promoted. The [full report](reports/2026-10-16-phase2d-lmr.md)
+records preparation commit `842ee41`, launch-record commit `57e21fd`, exact
+settings, evidence digests, sampling limitations, and data-only audit reproduction.

@@ -251,9 +251,42 @@ Local evidence: `results/phase2d-lmr-preflight-20261015.json`,
 `results/phase2d-time-policy-20261015/audit-shared-protocol-20261015.json`.
 
 These are tooling and preparation checks, not LMR strength results. The
-[predeclared protocol](PHASE_2D_LMR.md) still requires all 128 actual games and
-their independent audit. No engine implementation, default, GUI bundle, or
-frozen network/binary changed.
+actual games required by the [predeclared protocol](PHASE_2D_LMR.md) completed
+separately below. No engine implementation, default, GUI bundle, or frozen
+network/binary changed.
+
+## Phase 2D LMR completion — October 16, 2026
+
+The [isolated LMR screen](reports/2026-10-16-phase2d-lmr.md) completed all
+128 games / 64 color-reversed pairs at 60+0.6 on the M5 Pro, from October 15
+23:00 to October 16 05:41 Helsinki. It used the ordinary nighttime resource
+budget, one active search worker, and no daytime override. Both sides used
+the frozen LMR executable, classic timing, one thread, 64 MiB hash, and the
+pinned network; only the LMR option differed.
+
+The independent data-only audit passed with zero errors: 17,175 legal plies
+(including opening histories), 15,191 charged search events, exact game/clock/
+option agreement, and unchanged pinned assets and tool/protocol sources during
+play. There were no exclusions, forfeits, protocol failures, unexpected stderr,
+or truncations. Terminations were 46 checkmates, 71 threefold draws,
+10 insufficient-material draws, and one rule-50 draw. A separate independent
+review replayed the evidence and confirmed the statistics and decision.
+
+LMR on scored **35W/82D/11L (76/128 points, 59.375%)**. The conditional two-sided
+95% Hoeffding pair-score interval was **42.398731053%–76.351268947%**. The
+predeclared decision is **inconclusive**; LMR remains off and no strength gain
+or equivalence is established. The report records sampling limitations, raw
+evidence hashes, and reproduction instructions. The original audit and frozen
+protocol remain intact; later documentation edits are separate live-source
+differences. All frozen executables, the network, and GUI `0.1-dev-4b8b35d`
+were preserved. No engine rebuild or additional GUI validation was needed for
+this tooling/evidence checkpoint. All campaign processes have exited.
+
+A post-documentation re-audit also passed with identical game/statistical
+evidence. Its only differences from the original audit are the audit timestamp
+and the two expected live status-document changes (`SELECTIVE_SEARCH.md` and
+`PHASE_2D_LMR.md`). Local record:
+`results/phase2d-lmr-20261015/audit-after-documentation.json`.
 
 ## Release gates
 

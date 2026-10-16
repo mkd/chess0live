@@ -122,36 +122,45 @@ pre-play `protocol.md`, launch manifest, complete match records, and `audit.json
 Archive the whole directory when moving machines. The audited run's tool/protocol
 hashes stayed unchanged during play; later documentation updates do not rewrite
 that frozen record. The one-run exception is consumed. The GUI snapshot
-`0.1-dev-4b8b35d` is unchanged; the subsequent LMR run uses ordinary night limits.
+`0.1-dev-4b8b35d` is unchanged; the subsequent LMR run used ordinary night limits.
 
-The next [isolated LMR qualification](PHASE_2D_LMR.md) is now running: 64 fresh
-full histories, 128 games at 60+0.6, seed `20261015`, the frozen `b825a09` binary
-on both sides, and classic timing. Only LMR on/off differs. The shared launcher
-is `tools/qualification.py`; profile entrypoints preserve the historical time
-workflow and add `tools/qualify_lmr.py`. The independent audit descriptor in
-`tools/audit_lmr.py` requires the full sample and uses 64-pair uncertainty.
-At least 86/128 points qualifies only for fresh confirmation review; at most
-42/128 is negative evidence, otherwise inconclusive. Any candidate flagfall
-blocks a positive decision while remaining scored. No engine defaults changed.
-All 100 workflow checks and the real no-search preflight passed. Preparation
-was committed as `842ee41` before launch at October 15 23:00:08 Helsinki.
-The active campaign is `results/phase2d-lmr-20261015/`, with its immutable
-protocol and source fingerprints. It uses one active worker and the original
-October 16 07:00 cutoff, with a process-scoped macOS idle-sleep assertion.
-No automatic schedule or resume exists. Do not modify frozen sources, engine
-assets, or `PHASE_2D_LMR.md` during play; preserve and audit whatever completes.
-The earlier runtime suggests about 5h48, not a guarantee. A partial sample
-cannot qualify or be enlarged after seeing results. Its larger search change
-makes LMR a useful research priority, not a proven strength improvement. The
-completed time suite is no longer fresh validation; do not reuse it for tuning
-while calling it held out or repeat the 12 general roots to inflate the sample.
-Keep SEE separate, preserve the frozen candidates, and use normal overnight
-limits unless the owner explicitly authorizes another daytime long run.
-Incremental feature-list maintenance, faster sliding attacks, and worker
-parallelism remain candidates; no Elo gain follows automatically from adding them. Preserve
-the exact NNUE stage oracle and core rule tests while optimizing. Trainer
-integration, multi-platform runtime execution, and any public strength claim
-remain open. Avoid marking the overall world-leading-strength objective complete.
+The [isolated LMR screen](reports/2026-10-16-phase2d-lmr.md) is complete:
+64 fresh full histories / 128 games at 60+0.6, seed `20261015`, frozen `b825a09`
+binary on both sides, classic timing, only LMR on/off differing. It scored
+**35W/82D/11L, 76/128 points (59.375%)**. The conditional 95% interval is
+**42.40–76.35%**, so the predeclared result is **inconclusive**; LMR stays off.
+No strength-gain or equivalence claim follows from the favorable point estimate.
+
+All 100 workflow checks and real no-search preflight passed before play.
+Preparation commit: `842ee41`; launch-record commit: `57e21fd`. The match ran
+October 15 23:00:08–October 16 05:41:20 Helsinki (6h41m12s), within the ordinary
+night window with one active worker. Audit and independent replay verified all
+17,175 legal plies / 15,191 searches, exact clocks/options/outcomes, no exclusions,
+failures, forfeits, truncations, or artifact drift. The runner and its macOS
+idle-sleep assertion have ended; no automatic schedule or resume exists.
+
+Preserve all of `results/phase2d-lmr-20261015/`: the immutable pre-play protocol,
+launch/configuration/source hashes, match records, `audit.json`, and
+`preserved-assets.json`. All five frozen binary/network artifacts, including
+GUI `0.1-dev-4b8b35d`, remain unchanged. Later status-document edits are separate
+from the audited unchanged before/after integrity record. The shared launcher
+is `tools/qualification.py`, with historical time-policy and LMR entrypoints;
+`tools/audit_lmr.py` independently pins the LMR protocol. Both completed suites
+are exposed evidence, not fresh validation. Do not extend or retune their samples.
+
+**Next checkpoint: Phase 3A measurement only**, as specified in the
+[roadmap](ROADMAP.md). Freeze the default baseline, prove timing repeatability
+with identical builds, collect a bounded CPU profile on development positions,
+and propose one measured bottleneck to address. No engine optimization starts
+before its exact-equivalence/timing criteria are fixed. Relevant rule/perft,
+NNUE oracle and reversible-state, native/scalar/sanitizer, and UCI gates must
+remain intact. Quiescence legal-move generation currently protects stalemate
+and checkmate precedence; do not remove that work casually. NPS gains are not
+Elo gains. Phase 3A has not started; further experimental strength qualification
+(including SEE) is deferred rather than passed. Trainer integration,
+multi-platform execution, release acceptance, and public strength claims remain
+open. The owner can push the local commits; no GUI retest is required for this
+checkpoint because neither engine code nor the frozen GUI binary changed.
 
 The unmodified SF19 match opponent is in ignored `build/stockfish19-reference`;
 the instrumented NNUE oracle is separate. Never substitute one for the other.
