@@ -1,6 +1,6 @@
 # Phase 3F: profile the retained engine and test one NNUE improvement
 
-Status: profiling preparation. This phase profiles the retained Phase 3B engine
+Status: profiling audited; implementation hypothesis frozen below. This phase profiles the retained Phase 3B engine
 across existing game phases, fixes one implementation hypothesis from the
 findings, and accepts it only with exact correctness and measured performance.
 No search policy, network architecture, or strength claim changes here.
@@ -146,3 +146,47 @@ result and failed/inconclusive observations. Commit tested work locally on main;
 the owner publishes manually. A retained implementation permits an optional GUI
 retest with a separately labeled build; never overwrite the preserved snapshot.
 No release or strength rating follows from this research checkpoint.
+
+## Selected hypothesis — frozen after profiling, before implementation
+
+Preparation commit `dd3d269` produced 96 exact/legal release/symbol equivalence
+searches and 72 exact/legal profile searches. Independent audits passed; evidence
+is in `results/phase3f-20261017/`. All profiles finished within their windows.
+The symbol binary SHA-256 is
+`74d27965680eb1bfaf8d4e58c9e439bd67d4665c44e747d21ff49684dc687e18`;
+its Mach-O/dSYM UUID is `A175FC5E-C7ED-39A6-B764-7CA894FAE6EA`.
+
+| Profile | Search observations | NNUE share | Inclusive inference | Exclusive first-layer call site |
+| --- | ---: | ---: | ---: | ---: |
+| Opening | 7,455 | 83.84% | 28.92% | 26.22% |
+| Middlegame | 24,888 | 79.63% | 29.62% | 27.09% |
+| Endgame | 16,293 | 74.36% | 46.76% | 42.39% |
+
+First-layer attribution is to optimized `infer` source line 533, containing
+`stack.first.run`; it is approximate inline source attribution, not measured
+load latency or bandwidth. Categories overlap and are not added together.
+
+**Hypothesis:** processing four output rows together in the existing NEON dense
+kernel can reuse each 16-byte activation load and expose four independent
+accumulation chains. Apply this one transformation to the existing 1024×32 and
+64×32 layers. Keep row-major weights, file format, feature generation, accumulator
+updates, activations, evaluation calibration, and search unchanged. No transpose,
+sparsity, dot-product extension, new instruction requirement, or parameter tuning.
+The scalar path and the 128×1 output fallback remain unchanged.
+
+Use four explicit int32 vector accumulators and a compile-time multiple-of-four
+output branch. Assert positive input dimensions divisible by 16 and a proven
+product-sum bound. Activations are in [0,127], weights in [-128,127]; at most
+1024 products have magnitude at most 16,646,144 in total. Partial and horizontal
+product sums fit int32. Bias may be any int32 value: widen the product sum and
+bias to int64 before preserving the existing modulo-2^32 conversion. No signed
+C++ overflow, saturation, intermediate narrowing, or changed integer grouping
+outside this proven domain.
+
+Add an independent int64 dense arithmetic test for all three actual shapes,
+covering zero/max activations, extreme signed weights and biases, cancellation,
+one-hot values at vector/tile boundaries, deterministic random inputs, repeated
+calls, and input/model immutability. Integrate it into the standard NNUE target
+for native, forced-scalar, and sanitizer builds; do not compare only two shared
+production paths. The previously fixed correctness, full SF19 oracle, and all
+three game-phase performance gates remain unchanged.

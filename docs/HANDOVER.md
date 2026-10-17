@@ -233,11 +233,13 @@ schedule is active. Production code, defaults, normal and frozen binaries are
 unchanged. Phase 3C's original decision remains inconclusive; no old data was
 pooled into 3E, and this completed campaign must not be extended selectively.
 
-**Next checkpoint: Phase 3F — profile and improve one NNUE bottleneck.** Profile
+**Active checkpoint: Phase 3F — profile and improve one NNUE bottleneck.** Profile
 the retained updated engine across game phases before choosing the next isolated
 implementation hypothesis. Freeze its scope, preserve exact semantics, run
 independent correctness/oracle checks, and apply predeclared performance gates.
-No 3F profile or implementation has started. Parallel search and clock-managed
+The 96 equivalence and 72 profile searches passed independent audits. The
+four-output dense-kernel hypothesis is frozen; implementation and qualification
+are next. Parallel search and clock-managed
 strength qualification remain later work.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
@@ -272,5 +274,6 @@ GitHub pushes to the owner. Do not amend unrelated commits or rewrite history.
 The [fixed protocol](PHASE_3F.md) is active: profile the retained engine across
 opening, middlegame, and revised endgame workloads before selecting one isolated
 NNUE change. The CPU recorder now supports 1–64 roots and per-root depths 1–12;
-21 mock tests passed. No candidate is implemented or qualified at this checkpoint.
+21 mock tests passed. The profiles support the frozen four-output dense-kernel hypothesis; no
+candidate is implemented or qualified at this checkpoint.
 Preserve all earlier evidence and GUI `0.1-dev-4b8b35d`.
