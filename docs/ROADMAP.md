@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3E preparation
+## Current checkpoint: Phase 3E complete; Phase 3F next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -21,7 +21,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
 | 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
-| 3E | Requalify endgames using the longer pawn workload | Preparing: fixed six-root protocol, fresh controls and two candidate rounds; measurements pending |
+| 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
+| 3F | Profile the updated engine and implement one justified NNUE improvement | Next: identify the current bottleneck and freeze one isolated hypothesis before code changes |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -120,20 +121,26 @@ Three pairs and a near-limit MAD do not establish lasting repeatability.
 The campaign completed in 7.441256 seconds within the normal daytime budget;
 engine code, binaries, defaults, and Phase 3C's decision are unchanged.
 
-**Active checkpoint: Phase 3E — endgame requalification preparation.** The
-[protocol](PHASE_3E.md) fixes all six endgames: five at depth 8 and the short pawn
-root at depth 12. Six split comparisons provide fresh baseline controls and two
-candidate rounds, with 216 searches total and a ten-minute campaign ceiling.
-Each complete round pools 30 individual pair ratios, equally weighted by root;
-all original exactness/noise/duration/regression gates remain explicit. No old
-timings enter this new campaign and Phase 3C's decision stays unchanged.
-Measurements have not started. Clock-managed strength, further optimization,
-and parallel search remain separate work.
+**Phase 3E is complete.** The [result](reports/2026-10-17-phase3e-endgames.md)
+qualified performance on the revised six-root endgame sample: complete-round
+ratios **1.089113 / 1.084243**, all 216 exact/legal searches, all control,
+duration, and root guards passed. The 353.663-second campaign used one active
+worker under the ordinary daytime budget. Two individual candidate slowdowns,
+control outliers, and upward absolute-time drift remain in the report. No old
+timings were pooled; Phase 3C's earlier decision remains unchanged.
+
+**Next checkpoint: Phase 3F — the next measured NNUE bottleneck.** Profile the
+retained updated engine on opening, middlegame, and endgame workloads, then
+freeze and implement one isolated improvement if the measurements justify it.
+Require independent correctness/oracle checks, exact search agreement, and
+predeclared performance gates before retention. No 3F work has started.
+Clock-managed strength, parallel search, broader runtime validation, and release
+acceptance remain separate work.
 
 Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. All Phase 3D jobs have ended; no automatic schedule is active.
+inputs and rules. All Phase 3E jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long

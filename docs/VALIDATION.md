@@ -427,6 +427,39 @@ GUI `0.1-dev-4b8b35d` is unchanged. Raw evidence is
 comparison with fresh controls. Phase 3C remains inconclusive for endgames;
 no release, Elo gain, or new platform execution is claimed.
 
+## Phase 3E endgame requalification — October 17, 2026
+
+The [new complete comparison](reports/2026-10-17-phase3e-endgames.md) tested all
+six original endgames with the Phase 3D pawn workload at depth 12 and other roots
+at depth 8. Fresh controls and two candidate rounds each used five measured
+pairs per root plus warmups; no older timing data was pooled. All **216 searches**
+matched exact per-depth signatures across roles/repetitions/rounds. Independent
+replay checked **1,872 PV lines / 10,512 plies**, 216 bestmoves, and 216 ponders.
+
+The complete control passed median 0.998927 and MAD 0.003985 plus all root
+guards. Both complete candidate rounds passed the positive gate at **1.089113 /
+1.084243**. All 36 role/root/round medians exceeded 50 ms (minimum 298.212 ms),
+and all pooled ten-pair root medians exceeded 0.98 (minimum 1.049976). The result
+is **qualified on this revised composed endgame sample**. Two individual
+candidate slowdowns, control outliers, and absolute-time drift remain included.
+The 16/14 role-order imbalance is documented. No confidence or Elo claim follows.
+
+The 11 comparison-tool tests, three launcher mock cases, syntax checks, suite
+referee checks, 29 independent auditor checks, and 37 frozen-input checks passed.
+The auditor also checked settings/identity, raw summaries, canonical root mapping,
+complete-round aggregation, expected counts/order, resources, and campaign
+lifecycle; a separate reviewer independently replayed all searches and recomputed
+gates. Cleanup functions match the previously tested Phase 3C implementation;
+the real descendant cleanup test was not rerun. Native/scalar/sanitizer/full
+NNUE oracle suites retain their unchanged Phase 3B scope and were not rerun.
+
+The campaign completed in 353.663077 seconds within its 600-second cap under
+the ordinary daytime budget, with one active worker and two resident engines.
+All jobs ended; no schedule is active. Raw evidence is
+`results/phase3e-20261017/`. Engine code, defaults, normal build, and GUI
+`0.1-dev-4b8b35d` are unchanged. Phase 3C's original endgame/combined decisions
+remain inconclusive; this result establishes no new release or platform runtime.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

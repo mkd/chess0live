@@ -213,17 +213,32 @@ was unchanged. All 35 integrity checks and 20 audit checks passed. The campaign
 ran 21:10:32–21:10:40 Helsinki on October 17, using one active worker in the normal
 daytime budget. All jobs ended; no schedule is active.
 
-**Active checkpoint: Phase 3E — endgame requalification preparation.** The
-[protocol](PHASE_3E.md) fixes five original endgames at depth 8 and pawn root
-`gamephases-eg-05` at depth 12. Six split comparisons cover fresh control and
-candidate A/B rounds, each with five measured pairs per root plus warmups:
-216 searches, 30-second search/300-second comparison/600-second campaign limits.
-Pool all 30 individual pair ratios in each round, not the two group medians.
-Retain local index ordering (16 baseline-first/14 candidate-first pairs per round).
-All six roots participate in fresh exactness/noise/duration/regression gates;
-never pool old timings or relabel Phase 3C. Measurements have not started.
-The retained batching implementation and all frozen binaries stay unchanged;
-further optimization and parallel search remain later work.
+**Phase 3E is complete and qualified on the revised composed endgame sample.**
+The [report](reports/2026-10-17-phase3e-endgames.md) records all six roots (pawn
+`gamephases-eg-05` depth 12; other five depth 8), fresh controls and two candidate
+rounds. All 216 searches matched exactly; replay verified 1,872 PV lines /
+10,512 plies and 216 bestmoves/ponders. The complete control ratio was 0.998927,
+MAD 0.003985; candidate ratios **1.089113 / 1.084243** passed with all duration
+and root guards. Each round pools 30 pairs, five per root, with 16 baseline-first
+and 14 candidate-first. Two candidate slowdowns, control outliers, and absolute
+time drift are retained; no Elo or universal performance claim follows.
+
+Preserve all of `results/phase3e-20261017/`, especially frozen protocol/manifest,
+six raw JSON/log pairs, campaign, preflight/suite/integrity checks, auditor/check
+scripts and outputs. Preparation commit: `c38bd9c`. Final audit `audit.json`
+passed with zero errors; 29 auditor checks and 37 frozen-input checks passed.
+The campaign ran 21:25:48–21:31:42 Helsinki on October 17 in 353.663077 seconds,
+with one active worker under the normal daytime budget. All jobs ended and no
+schedule is active. Production code, defaults, normal and frozen binaries are
+unchanged. Phase 3C's original decision remains inconclusive; no old data was
+pooled into 3E, and this completed campaign must not be extended selectively.
+
+**Next checkpoint: Phase 3F — profile and improve one NNUE bottleneck.** Profile
+the retained updated engine across game phases before choosing the next isolated
+implementation hypothesis. Freeze its scope, preserve exact semantics, run
+independent correctness/oracle checks, and apply predeclared performance gates.
+No 3F profile or implementation has started. Parallel search and clock-managed
+strength qualification remain later work.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 

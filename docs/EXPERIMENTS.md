@@ -289,3 +289,24 @@ checks passed. No production code, default, or binary changed. Phase 3E should
 freeze a new complete six-root endgame comparison using the longer pawn workload
 and fresh controls before measuring; old favorable roots must not be pooled
 with a new pawn result to claim a retrospective pass.
+
+## 2026-10-17 — Phase 3E: revised endgame workload qualifies
+
+The [separately frozen campaign](PHASE_3E.md) retained all six original endgames,
+with the pawn root at depth 12 and other five at depth 8. Fresh baseline controls
+and two candidate rounds completed all 216 exact/legal searches in 353.663077
+seconds under the normal daytime budget. Each round pools all 30 individual
+pairs, five per root, with no older campaign timings.
+
+The complete control passed at median 0.998927/MAD 0.003985. Candidate ratios
+**1.089113 / 1.084243** passed with all duration and root guards. The result is
+**qualified on this revised composed endgame sample**. All 29 auditor checks
+passed. The [report](reports/2026-10-17-phase3e-endgames.md) preserves every
+measured slowdown, including two candidate pairs, and the substantial absolute
+time drift in later samples. Nothing was excluded or rerun.
+
+Keep `results/phase3e-20261017/` intact. No engine/default/binary changed, no Elo
+gain follows, and Phase 3C's original decisions remain unchanged. Next is Phase
+3F: profile the updated engine and choose one justified, isolated NNUE improvement
+with exact correctness and predeclared performance gates. Do not extend this
+completed campaign or pool favorable old roots into it.

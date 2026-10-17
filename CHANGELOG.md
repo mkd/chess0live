@@ -16,9 +16,9 @@ release numbers; detailed measurements live in the linked experiment records.
 - Added strict FEN input, `perft`, and move-by-move divide output for investigating
   positions and move-generation problems.
 - Batched NNUE accumulator updates improve measured throughput on the M5 Pro:
-  7.8–8.4% in the opening tests and 8.7–8.8% in the composed middlegame tests.
-  Exact evaluation/search checks passed; endgame qualification and measured
-  playing-strength improvement remain open.
+  7.8–8.4% in opening tests, 8.7–8.8% in composed middlegames, and 8.4–8.9%
+  in the revised composed endgame test. Exact evaluation/search checks passed;
+  measured playing-strength improvement remains open.
 - Added Cute Chess setup instructions and preserved a separate GUI test bundle
   so development rebuilds do not replace the owner's test executable.
 
@@ -54,8 +54,11 @@ release numbers; detailed measurements live in the linked experiment records.
   position was too short for the fixed timing rule. No unfavorable root was omitted.
 - Completed a [baseline-only depth ladder](docs/reports/2026-10-17-phase3d-workload.md)
   to propose a longer pawn-ending test. All 40 searches matched exactly and
-  replayed legally. Endgame speed qualification remains open; this measurement
-  checkpoint changes no engine behavior or release version.
+  replayed legally, preparing the subsequent endgame comparison.
+- Completed [endgame requalification](docs/reports/2026-10-17-phase3e-endgames.md)
+  with fresh controls and all six roots. All 216 searches matched exactly;
+  the declared performance gates passed. Individual slowdowns and timing drift
+  remain documented. These checkpoints change no engine behavior or release version.
 
 No release or strength rating has been established yet. Version 0.1 remains
 subject to the [release acceptance gates](docs/VALIDATION.md#release-gates).

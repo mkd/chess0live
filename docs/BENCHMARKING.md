@@ -68,8 +68,15 @@ same pawn root using only the baseline at depths 8–12. All 40 searches matched
 exactly and replayed legally. Depth 12 meets the diagnostic proposal rule at
 323–330 ms; three measured pairs and a near-limit MAD require fresh noise
 controls in the future comparison. Depth 10's timing instability is preserved.
-Phase 3E must freeze a new complete endgame campaign; no candidate endgame
-qualification or retrospective Phase 3C pass follows from this diagnostic.
+No candidate endgame qualification followed from this diagnostic alone.
+
+The separately frozen [Phase 3E comparison](reports/2026-10-17-phase3e-endgames.md)
+subsequently qualified all six revised endgames, with 1.089113/1.084243 complete
+round ratios and 216 exact/legal searches. It pools 30 individual pairs per
+round across depth groups, not an average of group medians. Fresh controls and
+all duration/root guards passed. Two candidate slowdowns and absolute-time drift
+remain recorded; Phase 3C's earlier decision is unchanged. No data from the
+older campaign is pooled into this result.
 
 ## CPU attribution on macOS
 

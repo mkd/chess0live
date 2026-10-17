@@ -28,10 +28,13 @@ remains inconclusive: one sparse pawn position was below the fixed timing floor.
 **Phase 3D is complete:** the [baseline-only depth ladder](docs/reports/2026-10-17-phase3d-workload.md)
 proposes depth 12 for that pawn ending, taking about 323–330 ms. All 40 searches
 matched exactly and replayed legally; this phase changed no engine code or defaults.
-**Active: Phase 3E — preparing endgame requalification.** The
-[fixed protocol](docs/PHASE_3E.md) preserves all six roots, uses the longer pawn
-workload, and declares fresh controls plus two candidate comparisons before
-measurement. Engine code and defaults remain unchanged.
+**Phase 3E is complete:** the [new six-root endgame comparison](docs/reports/2026-10-17-phase3e-endgames.md)
+qualified the retained optimization at **8.4–8.9% higher sampled throughput**.
+All 216 searches matched exactly and replayed legally. Two individual slowdowns
+and timing drift are preserved in the report; no Elo gain or engine change is
+claimed. Phase 3C's original decision remains unchanged.
+**Next: Phase 3F — profile the updated engine and pursue one isolated NNUE
+improvement**, with correctness and performance gates before retention.
 Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.

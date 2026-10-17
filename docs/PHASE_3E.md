@@ -1,9 +1,13 @@
 # Phase 3E: endgame requalification with a longer pawn workload
 
-Status: preparation, before measurements. This is a new complete endgame
-comparison of the unchanged retained Phase 3B optimization. Phase 3C's endgame
-and combined decisions remain inconclusive; none of its timing data is pooled
-into this campaign. No implementation or search-default changes belong here.
+Status: **complete; qualified on this revised composed endgame sample**. The
+[result report](reports/2026-10-17-phase3e-endgames.md) records ratios 1.089113
+and 1.084243, all 216 exact/legal searches, two individual candidate slowdowns,
+and absolute-time drift. Engine code and defaults are unchanged; Phase 3C's
+original endgame/combined decisions remain inconclusive. This later status note
+does not alter the frozen protocol at `results/phase3e-20261017/protocol.md`,
+SHA-256 `07a0407459d98f1f0237cc38fe53f00e263e2b9d9383114c33f2ce2b775e09a3`.
+The original instructions below govern the complete new comparison.
 
 ## Fixed roots and artifacts
 
