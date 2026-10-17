@@ -25,7 +25,9 @@ not a measured playing-strength gain or a new release.
 confirmed **8.7–8.8% higher throughput on six composed middlegames**, with all
 432 searches across both game phases matching exactly. Endgame qualification
 remains inconclusive: one sparse pawn position was below the fixed timing floor.
-**Next: Phase 3D — characterize that short endgame workload using the baseline.**
+**Active: Phase 3D — preparing a baseline-only depth ladder for that pawn ending.**
+The [fixed protocol](docs/PHASE_3D.md) characterizes a longer workload before
+another candidate comparison; engine code and defaults stay unchanged.
 Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.

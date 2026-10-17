@@ -198,8 +198,10 @@ and final integrity checks. Preparation commit: `ae5853a`. The full campaign
 ran 11:57–12:11 Helsinki on October 16 in 844.997 seconds, within its 900-second
 ceiling and normal daytime budget. All processes ended; no schedule is active.
 
-**Next checkpoint: Phase 3D — baseline-only short-endgame characterization.**
-Predeclare a small bounded depth ladder on the same sparse pawn FEN, record
+**Active checkpoint: Phase 3D — baseline-only short-endgame characterization.**
+The [protocol](PHASE_3D.md) fixes depths 8–12, three measured pairs per level,
+200 ms minimum role medians, repeatability gates, and a 300-second campaign cap.
+Measurements have not started at this preparation checkpoint. Record
 work/duration growth, then propose a longer fixed workload for separately frozen
 qualification. Do not compare the candidate in that diagnostic or relabel 3C
 as passed. Further implementation optimization and parallel search remain later

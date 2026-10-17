@@ -54,6 +54,22 @@ executable browsing behavior were checked against the official
 [Cute Chess dialog source](https://github.com/cutechess/cutechess/blob/5e84232be4546aaedc9d87a96c91867a1da06ada/projects/gui/src/engineconfigurationdlg.cpp)
 and [UI definition](https://github.com/cutechess/cutechess/blob/5e84232be4546aaedc9d87a96c91867a1da06ada/projects/gui/ui/engineconfigdlg.ui).
 
+## Owner observations — October 17, 2026
+
+The owner reports that chess0live beats chess0x and plays approximately level
+with sic, which they consider slightly weaker than Gargantua. They observed
+reported depths above 20 for sic versus roughly 5–6 for chess0live. These are
+exploratory owner observations, not a controlled score, rating, or equivalence
+claim. Game counts, PGNs, exact engine revisions, hardware, clocks, and options
+were not supplied with this update.
+
+The preserved GUI bundle remains `0.1-dev-4b8b35d`; the new feedback did not
+identify whether that bundle or a newer development executable was tested.
+Do not silently attach these observations to a specific binary. Reported depth
+alone is not a common work/strength scale across different selective searches;
+the current chess0live default still has LMR disabled. No opponent source or
+testing asset is reused as a result of this feedback.
+
 ## Useful feedback
 
 - Does the engine register and start a game without manual workarounds?
