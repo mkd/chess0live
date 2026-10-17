@@ -46,6 +46,8 @@ release numbers; detailed measurements live in the linked experiment records.
 - Preserved rejected and inconclusive work, including the discarded NNUE
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).
+- Extended CPU profiling to cover legal opening, middlegame, and endgame suites
+  with explicit per-position depths and saved workload identities.
 - Added a bounded CPU profiler and completed the [Phase 3A performance baseline](docs/reports/2026-10-16-phase3a-baseline.md).
   Its findings led to the retained [Phase 3B accumulator improvement](docs/reports/2026-10-16-phase3b-nnue-batching.md),
   with independent arithmetic tests and audited comparisons. The subsequent

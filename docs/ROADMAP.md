@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3E complete; Phase 3F next
+## Current checkpoint: Phase 3F — profiling preparation
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -22,7 +22,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
 | 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
-| 3F | Profile the updated engine and implement one justified NNUE improvement | Next: identify the current bottleneck and freeze one isolated hypothesis before code changes |
+| 3F | Profile the updated engine and implement one justified NNUE improvement | Active: extend profiling across game phases, then freeze one isolated hypothesis before code changes |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -133,7 +133,8 @@ timings were pooled; Phase 3C's earlier decision remains unchanged.
 retained updated engine on opening, middlegame, and endgame workloads, then
 freeze and implement one isolated improvement if the measurements justify it.
 Require independent correctness/oracle checks, exact search agreement, and
-predeclared performance gates before retention. No 3F work has started.
+predeclared performance gates before retention. The [Phase 3F protocol](PHASE_3F.md) fixes all inputs, correctness checks, and
+performance gates before profiling. Profiling preparation is active.
 Clock-managed strength, parallel search, broader runtime validation, and release
 acceptance remain separate work.
 

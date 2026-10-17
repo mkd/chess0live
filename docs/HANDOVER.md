@@ -266,3 +266,11 @@ large networks, external oracle source, and raw match output out of Git. Record
 what actually ran and what did not. Update these documents when APIs, commands,
 test evidence, or limitations change. Make a small local commit on main and leave
 GitHub pushes to the owner. Do not amend unrelated commits or rewrite history.
+
+## Phase 3F preparation
+
+The [fixed protocol](PHASE_3F.md) is active: profile the retained engine across
+opening, middlegame, and revised endgame workloads before selecting one isolated
+NNUE change. The CPU recorder now supports 1–64 roots and per-root depths 1–12;
+21 mock tests passed. No candidate is implemented or qualified at this checkpoint.
+Preserve all earlier evidence and GUI `0.1-dev-4b8b35d`.

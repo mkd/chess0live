@@ -33,9 +33,10 @@ qualified the retained optimization at **8.4–8.9% higher sampled throughput**.
 All 216 searches matched exactly and replayed legally. Two individual slowdowns
 and timing drift are preserved in the report; no Elo gain or engine change is
 claimed. Phase 3C's original decision remains unchanged.
-**Next: Phase 3F — profile the updated engine and pursue one isolated NNUE
-improvement**, with correctness and performance gates before retention.
-Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
+**Active: Phase 3F — profile the updated engine and pursue one isolated NNUE
+improvement.** The [fixed protocol](docs/PHASE_3F.md) covers all three game phases,
+with correctness and performance gates before retention.
+Follow the [development plan](docs/ROADMAP.md). No automatic schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

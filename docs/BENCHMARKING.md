@@ -97,9 +97,16 @@ python3 tools/profile_cpu.py build/profile-symbols/chess0live \
 First verify sampled search equivalence against the ordinary release build
 with `compare_bench.py`. The recorder explicitly pins classic timing, LMR off,
 MVV-LVA, Threads 1, Hash 64, Ponder and diagnostics off, and Move Overhead 20 ms.
-It warms up all 12 development roots at depth 5, waits for the sampler's startup
-message, and records full output and monotonic boundaries for each fixed-depth
-search. It keeps the target idle afterward until sampling completes naturally.
+By default it uses all 12 development roots. `--positions` accepts 1–64 distinct
+legal, nonterminal roots in the opening-suite JSON format, preserving complete
+move histories. An entry may set an integer `profile_depth` from 1 through 12 to
+override `--depth` for that root's sampled searches. All roots receive one fixed
+depth-5 warmup before sampling; overrides do not change warmups. The report
+records each chosen depth in `positions` and `settings.position_depths`.
+The recorder waits for the sampler's startup message, records full output and
+monotonic boundaries for each search, and keeps the target idle afterward until
+sampling completes naturally. Input validation finishes before starting the
+engine, including root uniqueness, draw status, histories and depth ranges.
 
 Outputs are `report.json`, `sample.txt`, and `sampler.log` in a new directory.
 Failures, incomplete searches, changed assets, and late sampling coverage remain
@@ -113,6 +120,6 @@ search stacks before interpreting it. The recorder checks lifecycle and window
 coverage but does not parse Apple's stack format. Aggregate stacks cannot prove
 that every root contributed an observation. Exclude idle/readiness stacks from
 the active-search denominator; do not add nested inclusive costs. Sampling
-perturbs execution and is separate from throughput timing. These opening-only,
-depth-limited searches do not measure the active clock-management path or
-establish an Elo improvement. See [Phase 3A](PHASE_3A.md) for the fixed checkpoint.
+perturbs execution and is separate from throughput timing. Fixed-depth searches
+do not measure the active clock-management path or establish an Elo improvement.
+See [Phase 3A](PHASE_3A.md) for the original opening-only checkpoint.

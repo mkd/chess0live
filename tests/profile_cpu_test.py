@@ -164,7 +164,13 @@ class ProfileTests(unittest.TestCase):
         return {"active_search_workers": 1, "percent": 50}
 
     def run_profile(self, **kwargs):
-        return profiler.profile(self.binary, self.network, profiler.DEFAULT_POSITIONS, self.output, **kwargs)
+        positions = kwargs.pop("positions", profiler.DEFAULT_POSITIONS)
+        return profiler.profile(self.binary, self.network, positions, self.output, **kwargs)
+
+    def write_positions(self, name, entries):
+        path = self.directory / (name + ".json")
+        path.write_text(json.dumps({"openings": entries}))
+        return path
 
     def report(self):
         return json.loads((self.output / "report.json").read_text())
@@ -174,6 +180,8 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(report["status"], "complete")
         self.assertEqual(len(report["samples"]), 36)
         self.assertEqual(sum(item["warmup"] for item in report["samples"]), 12)
+        self.assertEqual(report["settings"]["root_count"], 12)
+        self.assertEqual(list(report["settings"]["position_depths"].values()), [5] * 12)
         self.assertEqual(self.resource_calls, 37)
         self.assertEqual(report["artifact_drift"], [])
         self.assertTrue(self.peer.closed)
@@ -194,6 +202,36 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual([s["depth"] for s in report["samples"]], [5] * 12 + [2] * 12)
         self.assertEqual(self.sampler.command[2], "10")
 
+    def test_one_six_and_twelve_roots_preserve_histories_and_search_counts(self):
+        original = json.loads(profiler.DEFAULT_POSITIONS.read_text())["openings"]
+        for count in (1, 6, 12):
+            with self.subTest(count=count):
+                self.output = self.directory / f"roots-{count}"
+                self.resource_calls = 0
+                path = self.write_positions(f"input-{count}", original[:count])
+                report = self.run_profile(positions=path, repeats=2)
+                self.assertEqual(report["settings"]["root_count"], count)
+                self.assertEqual(len(report["samples"]), count * 3)
+                self.assertEqual(self.resource_calls, count * 3 + 1)
+                self.assertEqual([item["position_index"] for item in report["samples"]], list(range(count)) * 3)
+                expected = ["position startpos moves " + " ".join(entry["moves"]) for entry in original[:count]]
+                self.assertEqual([command for command in self.peer.sent if command.startswith("position ")], expected * 3)
+                self.assertEqual(["position " + item["position"] for item in report["positions"]], expected)
+
+    def test_per_root_depths_override_default_only_for_sampled_searches(self):
+        original = json.loads(profiler.DEFAULT_POSITIONS.read_text())["openings"][:6]
+        original[0]["profile_depth"], original[-1]["profile_depth"] = 1, 12
+        path = self.write_positions("mixed-depths", original)
+        report = self.run_profile(positions=path, depth=6, repeats=2)
+        depths = [1, 6, 6, 6, 6, 12]
+        self.assertEqual(report["settings"]["depth"], 6)
+        self.assertEqual(list(report["settings"]["position_depths"].values()), depths)
+        self.assertEqual([item["profile_depth"] for item in report["positions"]], depths)
+        self.assertEqual([item["depth"] for item in report["samples"]], [5] * 6 + depths * 2)
+        self.assertEqual([command for command in self.peer.sent if command.startswith("go ")],
+                         [f"go depth {depth}" for depth in [5] * 6 + depths * 2])
+        self.assertTrue(all(len(item["signature"]["iterations"]) == item["depth"] for item in report["samples"]))
+
     def test_existing_directory_is_not_reused_even_when_empty(self):
         self.output.mkdir()
         with self.assertRaisesRegex(ValueError, "already exists"):
@@ -203,7 +241,11 @@ class ProfileTests(unittest.TestCase):
     def test_cli_ranges_and_platform_fail_before_starting_a_child(self):
         for kwargs in ({"duration": 9}, {"duration": 301}, {"depth": 0}, {"depth": 13},
                        {"repeats": 0}, {"repeats": 11}, {"search_timeout": 31},
-                       {"search_timeout": 0}, {"search_timeout": float("nan")}):
+                       {"search_timeout": 0}, {"search_timeout": float("nan")},
+                       {"search_timeout": float("inf")}, {"search_timeout": True},
+                       {"search_timeout": "1"}, {"depth": True}, {"depth": 5.0},
+                       {"depth": "5"}, {"depth": None}, {"repeats": True},
+                       {"repeats": 2.0}, {"duration": 120.0}, {"duration": True}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 self.run_profile(**kwargs)
         with patch("profile_cpu.sys.platform", "linux"), self.assertRaisesRegex(ValueError, "macOS"):
@@ -300,7 +342,8 @@ class ProfileTests(unittest.TestCase):
 
     def test_invalid_full_history_or_wrong_root_count_fails_before_engine(self):
         original = json.loads(profiler.DEFAULT_POSITIONS.read_text())
-        for name, document in (("count", {"openings": original["openings"][:11]}),
+        excess = [dict(original["openings"][0], id=f"root-{index}") for index in range(65)]
+        for name, document in (("empty", {"openings": []}), ("count", {"openings": excess}),
                                ("illegal", dict(original, openings=[dict(original["openings"][0], moves=["e2e5"])] + original["openings"][1:])),
                                ("duplicate", dict(original, openings=[dict(original["openings"][1], id="duplicate-root")] + original["openings"][1:]))):
             path = self.directory / (name + ".json")
@@ -310,6 +353,51 @@ class ProfileTests(unittest.TestCase):
         self.assertIsNone(self.peer)
         with patch.object(profiler.chess, "__version__", "0"), self.assertRaisesRegex(ValueError, "chess==1.11.2"):
             self.run_profile()
+
+    def test_invalid_per_root_depth_is_rejected_before_engine_or_sampler(self):
+        original = json.loads(profiler.DEFAULT_POSITIONS.read_text())["openings"][:6]
+        for index, value in enumerate((True, False, 0, 13, 5.0, "5", None)):
+            with self.subTest(value=value):
+                self.output = self.directory / f"bad-depth-{index}"
+                entries = original[:-1] + [dict(original[-1], profile_depth=value)]
+                path = self.write_positions(f"bad-depth-input-{index}", entries)
+                with self.assertRaisesRegex(ValueError, "profile_depth"):
+                    self.run_profile(positions=path)
+                self.assertEqual(self.report()["status"], "invalid_or_interrupted")
+                self.assertEqual(self.report()["samples"], [])
+                self.assertIsNone(self.peer)
+                self.assertIsNone(self.sampler)
+
+    def test_terminal_drawn_invalid_or_duplicate_roots_fail_before_engine(self):
+        cases = {
+            "mate": [{"id": "mate", "moves": ["f2f3", "e7e5", "g2g4", "d8h4"]}],
+            "draw": [{"id": "draw", "moves": ["g1f3", "g8f6", "f3g1", "f6g8"] * 2}],
+            "invalid-fen": [{"id": "invalid", "fen": "8/8/8/8/8/8/8/8 w - - 0 1", "moves": []}],
+            "same-board-history": [{"id": "start", "moves": []},
+                                   {"id": "cycle", "moves": ["g1f3", "g8f6", "f3g1", "f6g8"]}],
+        }
+        for name, entries in cases.items():
+            with self.subTest(name=name):
+                self.output = self.directory / name
+                path = self.write_positions(name + "-input", entries)
+                with self.assertRaises(ValueError):
+                    self.run_profile(positions=path)
+                self.assertIsNone(self.peer)
+                self.assertIsNone(self.sampler)
+
+    def test_maximum_sixty_four_distinct_roots_is_supported(self):
+        board = profiler.board_for("startpos")
+        entries = []
+        for first in list(board.legal_moves)[:4]:
+            after = board.copy()
+            after.push(first)
+            for second in after.legal_moves:
+                entries.append({"id": f"root-{len(entries)}", "moves": [first.uci(), second.uci()]})
+        path = self.write_positions("maximum", entries[:64])
+        report = self.run_profile(positions=path, repeats=1, depth=1)
+        self.assertEqual(report["settings"]["root_count"], 64)
+        self.assertEqual(len(report["samples"]), 128)
+        self.assertEqual([item["depth"] for item in report["samples"]], [5] * 64 + [1] * 64)
 
     def test_cleanup_escalates_to_kill_when_helper_ignores_terminate(self):
         class Stuck:

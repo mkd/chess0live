@@ -129,12 +129,35 @@ def hashes(paths):
     return {name: digest(path) if path.is_file() else None for name, path in paths.items()}
 
 
+def profile_positions(document, depth):
+    """Resolve bounded per-root depths while preserving complete UCI histories.
+
+    Final-position uniqueness ignores the move counters but retains side,
+    castling rights and legal en-passant availability. Histories are replayed by
+    the referee before any engine starts, including claimable-draw detection.
+    """
+    positions = positions_from(document, 0)
+    if not 1 <= len(positions) <= 64:
+        raise ValueError("This profile requires 1..64 roots")
+    for position, entry in zip(positions, document["openings"]):
+        requested = entry.get("profile_depth", depth)
+        if type(requested) is not int or not 1 <= requested <= 12:
+            raise ValueError("profile_depth must be an integer in 1..12: " + position["id"])
+        position["profile_depth"] = requested
+    boards = [board_for(position["position"]) for position in positions]
+    if len({" ".join(board.fen().split()[:4]) for board in boards}) != len(positions):
+        raise ValueError("Profile roots must be distinct")
+    return positions, boards
+
+
 def profile(binary, network, input_path, output, duration=120, depth=5, repeats=2, search_timeout=20.):
     if sys.platform != "darwin":
         raise ValueError("CPU sampling requires macOS /usr/bin/sample")
-    if not 10 <= duration <= 300 or not 1 <= depth <= 12 or not 1 <= repeats <= 10:
+    if any(type(value) is not int or not lower <= value <= upper for value, lower, upper in
+           ((duration, 10, 300), (depth, 1, 12), (repeats, 1, 10))):
         raise ValueError("Use duration 10..300, depth 1..12 and repeats 1..10")
-    if not math.isfinite(search_timeout) or not 0 < search_timeout <= 30:
+    if (not isinstance(search_timeout, (int, float)) or isinstance(search_timeout, bool)
+            or not math.isfinite(search_timeout) or not 0 < search_timeout <= 30):
         raise ValueError("search-timeout must be finite and in (0, 30] seconds")
     binary, network, input_path, output = (Path(path).resolve() for path in (binary, network, input_path, output))
     if output.exists():
@@ -157,13 +180,10 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
     publish(report_path, report)
     try:
         document = json.loads(input_path.read_text(encoding="utf-8"))
-        positions = positions_from(document, 0)
-        if len(positions) != 12:
-            raise ValueError("This profile requires exactly 12 development roots")
-        boards = [board_for(position["position"]) for position in positions]
-        if len({" ".join(board.fen().split()[:4]) for board in boards}) != 12:
-            raise ValueError("Profile roots must be distinct")
+        positions, boards = profile_positions(document, depth)
         report["positions"] = positions
+        report["settings"]["position_depths"] = {position["id"]: position["profile_depth"] for position in positions}
+        report["settings"]["root_count"] = len(positions)
         report["initial_resource_policy"] = resource_check(network, 64)
         with ExitStack() as stack:
             engine = stack.enter_context(Engine(binary))
@@ -172,7 +192,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
             expected = {}
 
             def search(index, repetition, warmup):
-                requested_depth = 5 if warmup else depth
+                requested_depth = 5 if warmup else positions[index]["profile_depth"]
                 item = {"position_index": index, "repetition": repetition, "warmup": warmup,
                         "depth": requested_depth, "status": "preparing", "resource_policy": resource_check(network, 64)}
                 report["samples"].append(item)
@@ -207,7 +227,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
                 item.update(status="complete", signature=signature)
                 publish(report_path, report)
 
-            for index in range(12):
+            for index in range(len(positions)):
                 search(index, 0, True)
             log = stack.enter_context(log_path.open("w", encoding="utf-8"))
             command = [str(SAMPLER), str(engine.process.pid), str(duration), "1", "-mayDie", "-file", str(sample_path)]
@@ -220,7 +240,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
             report["sampler"]["ready_monotonic_ns"] = await_sampling(sampler, log_path, engine.process.pid, duration, launched_ns)
             publish(report_path, report)
             for repetition in range(repeats):
-                for index in range(12):
+                for index in range(len(positions)):
                     search(index, repetition, False)
             report["sampler"]["sweep_ended_monotonic_ns"] = time.monotonic_ns()
             # Keep the target alive; do not depend on SIGINT flushing a report.
@@ -250,10 +270,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("engine", type=Path)
     parser.add_argument("--network", type=Path, default=ROOT / "networks/nn-1a298aa575a0.nnue")
-    parser.add_argument("--positions", type=Path, default=DEFAULT_POSITIONS)
+    parser.add_argument("--positions", type=Path, default=DEFAULT_POSITIONS,
+                        help="JSON suite with 1..64 distinct legal nonterminal roots; optional per-entry profile_depth")
     parser.add_argument("--output", type=Path, required=True, help="New directory; existing evidence is never overwritten")
     parser.add_argument("--duration", type=int, default=120)
-    parser.add_argument("--depth", type=int, default=5)
+    parser.add_argument("--depth", type=int, default=5,
+                        help="Sampled search depth unless overridden by profile_depth; warmups remain depth 5")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--search-timeout", type=float, default=20.)
     args = parser.parse_args()
