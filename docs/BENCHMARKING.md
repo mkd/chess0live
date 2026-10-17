@@ -63,6 +63,14 @@ remains inconclusive because one pawn root was below the 50 ms floor. Do not
 remove short roots or repeatedly adapt the workload after candidate results.
 Any revised workload needs a separately frozen protocol and preserved evidence.
 
+The [Phase 3D ladder](reports/2026-10-17-phase3d-workload.md) characterized that
+same pawn root using only the baseline at depths 8–12. All 40 searches matched
+exactly and replayed legally. Depth 12 meets the diagnostic proposal rule at
+323–330 ms; three measured pairs and a near-limit MAD require fresh noise
+controls in the future comparison. Depth 10's timing instability is preserved.
+Phase 3E must freeze a new complete endgame campaign; no candidate endgame
+qualification or retrospective Phase 3C pass follows from this diagnostic.
+
 ## CPU attribution on macOS
 
 `tools/profile_cpu.py` records bounded CPU samples of the default engine using

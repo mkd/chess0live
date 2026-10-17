@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3D preparation
+## Current checkpoint: Phase 3D complete; Phase 3E next
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -20,7 +20,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 3A | Establish a reproducible performance baseline and identify one measured bottleneck | Complete: exact-search baseline, audited CPU sample, and bounded NNUE proposal |
 | 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
 | 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
-| 3D | Characterize the short endgame workload before new qualification | Preparing fixed baseline-only depths 8–12; measurements pending |
+| 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
+| 3E | Requalify endgames using the longer pawn workload | Next: freeze a new complete six-root campaign with fresh controls before measuring |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -111,19 +112,26 @@ failed the 50 ms duration floor; endgame and combined qualification remain
 **inconclusive**. Nothing was omitted or retuned. The six-run campaign completed
 in 844.997 seconds under the normal daytime budget, with no engine changes.
 
-**Active checkpoint: Phase 3D — characterize the short endgame workload.**
-The [protocol](PHASE_3D.md) fixes baseline-only depths 8–12 on the same pawn FEN,
-three measured pairs per level, a 200 ms target, and a five-minute campaign cap.
-Measurements have not started at this preparation checkpoint.
-Record exact work and duration growth, then propose a longer fixed workload for
-separate qualification. Do not compare the candidate in the diagnostic, change
-the implementation, or relabel 3C as passed. All 3C evidence remains preserved.
-Clock-managed strength, further optimization, and parallel search remain separate.
+**Phase 3D is complete.** The [report](reports/2026-10-17-phase3d-workload.md)
+records all 40 exact/legal baseline-only searches at depths 8–12. Depth 12
+meets the fixed proposal rule, with 329.881/322.562 ms role medians, ratio
+0.999090 and MAD 0.028507. Depth 10's timing instability remains recorded.
+Three pairs and a near-limit MAD do not establish lasting repeatability.
+The campaign completed in 7.441256 seconds within the normal daytime budget;
+engine code, binaries, defaults, and Phase 3C's decision are unchanged.
+
+**Next checkpoint: Phase 3E — endgame requalification.** Prepare and freeze
+a new complete six-root endgame campaign, proposing depth 12 for the short pawn
+root and depth 8 for the other five. Predeclare depth groups, equal pair counts,
+full aggregation, fresh controls, and exactness/noise/duration/regression gates.
+Do not pool old favorable results with a newly tested root or relabel 3C as
+passed. No 3E measurements have started. Clock-managed strength, further
+optimization, and parallel search remain separate work.
 
 Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. All Phase 3C jobs have ended; no automatic schedule is active.
+inputs and rules. All Phase 3D jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long

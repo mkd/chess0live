@@ -1,7 +1,11 @@
 # Phase 3D: characterize the short pawn-ending workload
 
-Status: preparation, before engine measurements. This is a baseline-only
-diagnostic. Preserve a frozen copy and input hashes before the first search.
+Status: **complete**; see the [result report](reports/2026-10-17-phase3d-workload.md).
+Depth 12 meets the diagnostic proposal rule; all 40 searches matched exactly
+and replayed legally. Only this status note changed after measurement. The
+premeasurement protocol is preserved in `results/phase3d-20261017/protocol.md`,
+SHA-256 `43b0edf0197b7a247a4cc3794e3d28fb48c4b5f3e1e69cb99faf1d9015995682`.
+The frozen instructions below define a baseline-only diagnostic.
 No engine implementation, search default, or candidate performance comparison
 belongs in this phase. Phase 3C's inconclusive endgame result stays unchanged.
 

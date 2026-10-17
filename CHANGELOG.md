@@ -52,6 +52,10 @@ release numbers; detailed measurements live in the linked experiment records.
   [game-phase validation](docs/reports/2026-10-16-phase3c-gamephases.md) confirmed
   the middlegame gain; endgame inference remains inconclusive because one pawn
   position was too short for the fixed timing rule. No unfavorable root was omitted.
+- Completed a [baseline-only depth ladder](docs/reports/2026-10-17-phase3d-workload.md)
+  to propose a longer pawn-ending test. All 40 searches matched exactly and
+  replayed legally. Endgame speed qualification remains open; this measurement
+  checkpoint changes no engine behavior or release version.
 
 No release or strength rating has been established yet. Version 0.1 remains
 subject to the [release acceptance gates](docs/VALIDATION.md#release-gates).

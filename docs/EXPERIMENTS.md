@@ -267,3 +267,25 @@ Keep `results/phase3c-20261016/`. No engine/default/binary changed; the existing
 batching implementation remains retained. Next is baseline-only characterization
 of the short pawn workload before separately frozen qualification, not tuning
 or repeating this completed experiment toward a preferred result.
+
+## 2026-10-17 — Phase 3D: propose depth 12 for the short pawn workload
+
+The [frozen diagnostic](PHASE_3D.md) used only the Phase 3A baseline at depths
+8–12 on `gamephases-eg-05`. All 40 searches matched exact per-iteration results,
+with matching common-depth prefixes and independent legal replay. The bounded
+campaign completed in 7.441256 seconds under the ordinary daytime budget.
+
+Depth 12 was the shallowest level meeting the fixed proposal rule, at
+329.881/322.562 ms role medians, ratio 0.999090 and MAD 0.028507. Depth 10's
+ratio/MAD failures remain in the evidence. Three pairs, including a near-limit
+MAD at depth 12, do not prove durable repeatability. The result is a proposed
+workload, not a candidate speed gain, strength result, or change to Phase 3C.
+
+The [report](reports/2026-10-17-phase3d-workload.md) preserves every duration,
+score, move/PV, order effect, and evidence hash. Keep
+`results/phase3d-20261017/`, including the failed auditor-only API-typo attempt
+and successful `audit-final.json`; no raw measurement was changed. All 20 audit
+checks passed. No production code, default, or binary changed. Phase 3E should
+freeze a new complete six-root endgame comparison using the longer pawn workload
+and fresh controls before measuring; old favorable roots must not be pooled
+with a new pawn result to claim a retrospective pass.

@@ -394,8 +394,38 @@ Engine code, normal/frozen binaries, defaults, and GUI `0.1-dev-4b8b35d` are
 unchanged. Native/scalar/sanitizer/full NNUE oracle checks retain their Phase 3B
 scope; they were not rerun for this validation-only phase. No strength gain,
 release, new platform execution, or universally faster endgame play is claimed.
-Next is a separately declared baseline-only characterization of the short pawn
-workload, not a retrospective pass or an immediate candidate rerun.
+The subsequent baseline-only characterization is recorded below; Phase 3C's
+decision remains unchanged.
+
+## Phase 3D workload characterization — October 17, 2026
+
+The [completed diagnostic](reports/2026-10-17-phase3d-workload.md) ran the same
+frozen Phase 3A baseline in both roles at depths 8–12 for `gamephases-eg-05`.
+All **40 searches** matched exactly within depth and all common iteration
+prefixes matched across depths. Independent replay verified **400 PV lines /
+2,296 plies**, 40 bestmoves, and 40 ponders. No engine code or binary changed.
+
+Depth 12 is the shallowest tested level meeting the predeclared 200 ms minimum,
+5-second maximum, ratio [0.97, 1.03], and MAD ≤0.03 proposal rule. Role medians
+were 329.881/322.562 ms; ratio 0.999090 and MAD 0.028507. Depth 10's ratio/MAD
+failures are retained. This is a three-pair engineering heuristic with a
+near-limit MAD, not proof of durable repeatability or candidate improvement.
+
+The 11 comparison-tool tests, two launcher mock cases, syntax check, 35 frozen
+input integrity checks, and 20 auditor corruption/selection/prefix checks passed.
+Cleanup functions were AST-checked against the previously tested Phase 3C
+launcher; its real descendant test was not rerun. The first auditor attempt
+failed on an auditor-only API typo before reading search data. Its `audit.json`
+is preserved; the repaired auditor passed in **`audit-final.json`** without raw
+measurement changes. Native/scalar/sanitizer/full NNUE oracle checks retain
+their Phase 3B scope and were not rerun.
+
+The campaign completed in 7.441256 seconds with one active worker under the
+ordinary daytime budget. All jobs ended, no schedule is active, and preserved
+GUI `0.1-dev-4b8b35d` is unchanged. Raw evidence is
+`results/phase3d-20261017/`. Phase 3E needs a separately frozen complete endgame
+comparison with fresh controls. Phase 3C remains inconclusive for endgames;
+no release, Elo gain, or new platform execution is claimed.
 
 ## Release gates
 

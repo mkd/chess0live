@@ -198,14 +198,30 @@ and final integrity checks. Preparation commit: `ae5853a`. The full campaign
 ran 11:57–12:11 Helsinki on October 16 in 844.997 seconds, within its 900-second
 ceiling and normal daytime budget. All processes ended; no schedule is active.
 
-**Active checkpoint: Phase 3D — baseline-only short-endgame characterization.**
-The [protocol](PHASE_3D.md) fixes depths 8–12, three measured pairs per level,
-200 ms minimum role medians, repeatability gates, and a 300-second campaign cap.
-Measurements have not started at this preparation checkpoint. Record
-work/duration growth, then propose a longer fixed workload for separately frozen
-qualification. Do not compare the candidate in that diagnostic or relabel 3C
-as passed. Further implementation optimization and parallel search remain later
-work. The retained batching implementation stays unchanged.
+**Phase 3D is complete.** The [report](reports/2026-10-17-phase3d-workload.md)
+records baseline-only depths 8–12 and all 40 exact/legal searches. Depth 12
+was the shallowest tested level meeting the frozen diagnostic rule: role medians
+329.881/322.562 ms, paired ratio 0.999090 and MAD 0.028507. Its MAD is near the
+0.03 limit; three pairs do not establish lasting repeatability. Depth 10's
+ratio/MAD failures are retained. No candidate was compared or engine changed.
+
+Preserve `results/phase3d-20261017/`: frozen protocol/manifest, five raw JSON/log
+pairs, launcher/preflight, campaign, final integrity, and auditor/check scripts
+and results. Preparation commit: `ec88195`. The failed `audit.json` records an
+auditor-only API typo; the successful audit is **`audit-final.json`**. Raw evidence
+was unchanged. All 35 integrity checks and 20 audit checks passed. The campaign
+ran 21:10:32–21:10:40 Helsinki on October 17, using one active worker in the normal
+daytime budget. All jobs ended; no schedule is active.
+
+**Next checkpoint: Phase 3E — separately frozen endgame requalification.**
+Propose the same six original endgame roots, pawn root `gamephases-eg-05` at
+depth 12 and the other five at depth 8. Before measuring, freeze grouping,
+balanced pair counts, full aggregation, fresh same-binary controls, and exactness,
+noise, duration, and regression gates. Run the complete new endgame campaign;
+do not combine old favorable roots with the revised pawn result or relabel 3C
+as passed. No 3E measurements have started. Further implementation optimization
+and parallel search remain later work. The retained batching implementation
+stays unchanged.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 
