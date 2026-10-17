@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3D complete; Phase 3E next
+## Current checkpoint: Phase 3E preparation
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -21,7 +21,7 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 3B | Test batched NNUE feature-column updates with exact arithmetic and search parity | Complete and retained: correctness/oracle parity, all three timing gates, all root guards passed |
 | 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
-| 3E | Requalify endgames using the longer pawn workload | Next: freeze a new complete six-root campaign with fresh controls before measuring |
+| 3E | Requalify endgames using the longer pawn workload | Preparing: fixed six-root protocol, fresh controls and two candidate rounds; measurements pending |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -120,13 +120,15 @@ Three pairs and a near-limit MAD do not establish lasting repeatability.
 The campaign completed in 7.441256 seconds within the normal daytime budget;
 engine code, binaries, defaults, and Phase 3C's decision are unchanged.
 
-**Next checkpoint: Phase 3E — endgame requalification.** Prepare and freeze
-a new complete six-root endgame campaign, proposing depth 12 for the short pawn
-root and depth 8 for the other five. Predeclare depth groups, equal pair counts,
-full aggregation, fresh controls, and exactness/noise/duration/regression gates.
-Do not pool old favorable results with a newly tested root or relabel 3C as
-passed. No 3E measurements have started. Clock-managed strength, further
-optimization, and parallel search remain separate work.
+**Active checkpoint: Phase 3E — endgame requalification preparation.** The
+[protocol](PHASE_3E.md) fixes all six endgames: five at depth 8 and the short pawn
+root at depth 12. Six split comparisons provide fresh baseline controls and two
+candidate rounds, with 216 searches total and a ten-minute campaign ceiling.
+Each complete round pools 30 individual pair ratios, equally weighted by root;
+all original exactness/noise/duration/regression gates remain explicit. No old
+timings enter this new campaign and Phase 3C's decision stays unchanged.
+Measurements have not started. Clock-managed strength, further optimization,
+and parallel search remain separate work.
 
 Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or

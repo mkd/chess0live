@@ -28,8 +28,10 @@ remains inconclusive: one sparse pawn position was below the fixed timing floor.
 **Phase 3D is complete:** the [baseline-only depth ladder](docs/reports/2026-10-17-phase3d-workload.md)
 proposes depth 12 for that pawn ending, taking about 323–330 ms. All 40 searches
 matched exactly and replayed legally; this phase changed no engine code or defaults.
-**Next: Phase 3E — separately frozen endgame requalification**, preserving all
-six roots and using the longer workload for the short pawn position.
+**Active: Phase 3E — preparing endgame requalification.** The
+[fixed protocol](docs/PHASE_3E.md) preserves all six roots, uses the longer pawn
+workload, and declares fresh controls plus two candidate comparisons before
+measurement. Engine code and defaults remain unchanged.
 Follow the [development plan](docs/ROADMAP.md). No job or schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.

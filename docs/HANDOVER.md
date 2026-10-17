@@ -213,15 +213,17 @@ was unchanged. All 35 integrity checks and 20 audit checks passed. The campaign
 ran 21:10:32–21:10:40 Helsinki on October 17, using one active worker in the normal
 daytime budget. All jobs ended; no schedule is active.
 
-**Next checkpoint: Phase 3E — separately frozen endgame requalification.**
-Propose the same six original endgame roots, pawn root `gamephases-eg-05` at
-depth 12 and the other five at depth 8. Before measuring, freeze grouping,
-balanced pair counts, full aggregation, fresh same-binary controls, and exactness,
-noise, duration, and regression gates. Run the complete new endgame campaign;
-do not combine old favorable roots with the revised pawn result or relabel 3C
-as passed. No 3E measurements have started. Further implementation optimization
-and parallel search remain later work. The retained batching implementation
-stays unchanged.
+**Active checkpoint: Phase 3E — endgame requalification preparation.** The
+[protocol](PHASE_3E.md) fixes five original endgames at depth 8 and pawn root
+`gamephases-eg-05` at depth 12. Six split comparisons cover fresh control and
+candidate A/B rounds, each with five measured pairs per root plus warmups:
+216 searches, 30-second search/300-second comparison/600-second campaign limits.
+Pool all 30 individual pair ratios in each round, not the two group medians.
+Retain local index ordering (16 baseline-first/14 candidate-first pairs per round).
+All six roots participate in fresh exactness/noise/duration/regression gates;
+never pool old timings or relabel Phase 3C. Measurements have not started.
+The retained batching implementation and all frozen binaries stay unchanged;
+further optimization and parallel search remain later work.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 
