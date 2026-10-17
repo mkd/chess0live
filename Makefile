@@ -111,9 +111,12 @@ $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) -o "$@"
 
-# The arithmetic oracle includes NNUE internals for testing only; do not also
+# Arithmetic oracles include NNUE internals for testing only; do not also
 # link nnue.o. Dependency files track its included source and header changes.
 $(BUILD)/nnue-updates-test$(EXE): tests/nnue_updates_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
+
+$(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
 
 $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o
@@ -133,9 +136,10 @@ test-core: $(ENGINE) $(BUILD)/position-test$(EXE)
 	$(PYTHON) tests/uci_test.py "$(ENGINE)"
 	$(PYTHON) tests/resources_test.py
 
-test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE)
+test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nnue-dense-test$(EXE)
 	"$(BUILD)/nnue-test$(EXE)" --network "$(NET)"
 	"$(BUILD)/nnue-updates-test$(EXE)"
+	"$(BUILD)/nnue-dense-test$(EXE)"
 
 test-search: $(BUILD)/search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
@@ -211,4 +215,4 @@ help:
 clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
--include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d
+-include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d

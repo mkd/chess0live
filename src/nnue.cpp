@@ -137,6 +137,49 @@ template<std::size_t Inputs, std::size_t Outputs> struct Dense {
     }
     [[nodiscard]] std::array<std::int32_t, Outputs> run(const std::uint8_t* input) const {
         std::array<std::int32_t, Outputs> result{};
+#if CHESS0LIVE_NNUE_NEON
+        static_assert(Inputs > 0 && Inputs % 16 == 0);
+        static_assert(Inputs <= static_cast<std::size_t>(
+            std::numeric_limits<std::int32_t>::max() / (127 * 128)),
+            "Dense product sums must fit int32 before adding the bias");
+        if constexpr (Outputs % 4 == 0) {
+            // Reuse each activation vector across four row-major weight rows.
+            // Independent accumulation chains require no new instruction set
+            // or weight layout. Activations are [0,127] and weights [-128,127]:
+            // the bound above protects every partial and horizontal sum.
+            const auto finish = [](std::int32_t bias_value, int32x4_t products) {
+                // A valid bias can still overflow int32 when added to the dot
+                // product. Widen first, then preserve the format's wraparound.
+                const std::int64_t sum = std::int64_t(bias_value) + vaddvq_s32(products);
+                return std::bit_cast<std::int32_t>(static_cast<std::uint32_t>(sum));
+            };
+            for (std::size_t output = 0; output < Outputs; output += 4) {
+                int32x4_t sum0 = vdupq_n_s32(0), sum1 = vdupq_n_s32(0);
+                int32x4_t sum2 = vdupq_n_s32(0), sum3 = vdupq_n_s32(0);
+                for (std::size_t index = 0; index < Inputs; index += 16) {
+                    const auto activation = vreinterpretq_s8_u8(vld1q_u8(input + index));
+                    const auto low = vget_low_s8(activation);
+                    const auto w0 = vld1q_s8(weight.data() + output * Inputs + index);
+                    const auto w1 = vld1q_s8(weight.data() + (output + 1) * Inputs + index);
+                    const auto w2 = vld1q_s8(weight.data() + (output + 2) * Inputs + index);
+                    const auto w3 = vld1q_s8(weight.data() + (output + 3) * Inputs + index);
+                    sum0 = vpadalq_s16(sum0, vmull_s8(low, vget_low_s8(w0)));
+                    sum0 = vpadalq_s16(sum0, vmull_high_s8(activation, w0));
+                    sum1 = vpadalq_s16(sum1, vmull_s8(low, vget_low_s8(w1)));
+                    sum1 = vpadalq_s16(sum1, vmull_high_s8(activation, w1));
+                    sum2 = vpadalq_s16(sum2, vmull_s8(low, vget_low_s8(w2)));
+                    sum2 = vpadalq_s16(sum2, vmull_high_s8(activation, w2));
+                    sum3 = vpadalq_s16(sum3, vmull_s8(low, vget_low_s8(w3)));
+                    sum3 = vpadalq_s16(sum3, vmull_high_s8(activation, w3));
+                }
+                result[output] = finish(bias[output], sum0);
+                result[output + 1] = finish(bias[output + 1], sum1);
+                result[output + 2] = finish(bias[output + 2], sum2);
+                result[output + 3] = finish(bias[output + 3], sum3);
+            }
+            return result;
+        }
+#endif
         for (std::size_t output = 0; output < Outputs; ++output) {
             std::int64_t sum = bias[output];
 #if CHESS0LIVE_NNUE_NEON
