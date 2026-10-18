@@ -877,3 +877,33 @@ scope limits, and the retain decision are in the
 [report](reports/2026-10-18-phase4a-cache.md). No new GUI visual test, foreign
 execution, full SF19 stage-oracle rerun, long campaign, or release is claimed.
 Both GUI snapshots, frozen Phase 3L assets, and search defaults remain intact.
+
+## Phase 4B parallel search — October 18, 2026
+
+Native `make -j2 test` and `make test-smp`, scalar
+`make -j2 SIMD=scalar test test-smp`, ASan/UBSan
+`make -j2 MODE=sanitize test test-smp`, and ThreadSanitizer
+`make -j2 MODE=thread-sanitize test-search test-smp` passed on macOS ARM64.
+The optional UCI suite contains 43 bounded cases with an independent legal
+referee, and passed under all four build configurations. Direct API checks cover
+shared Hash storage, exact global node caps, exceptions/join/reuse, immediate
+stop, clock/pondering, root restrictions, and repetition/mate/rule-50 boundaries.
+ThreadSanitizer reported no race in the exercised schedules. Twenty-four
+profiler tests passed, including input/accounting/failure-path checks.
+
+All 24 parent/candidate one-worker searches matched completed-depth signatures
+exactly. Their timing summary suggests a possible small one-worker cost, not a
+speedup. The fixed scaling screen completed 72 searches: 18 warmups and 54
+measured samples, using three exposed roots, one/two/four workers, 1,000 ms and
+depth 6. An independent raw-evidence audit recomputed every ratio and replayed
+2,608 legal PV/bestmove/ponder plies. Four workers achieved 3.2505× aggregate
+throughput and 2.0933× faster depth-6 latency, with +1 depth in all nine timed
+pairs. All current source/binary pins, old GUI bundles, frozen Phase 3L assets,
+and the README introduction matched. Four active workers fit the daytime limit
+of nine. No long match campaign or automatic schedule was started.
+
+The [report](reports/2026-10-18-phase4b-smp.md) contains exact settings, hashes,
+timing variability, reproduction commands, and scope limits. These checks do
+not establish an Elo gain, every possible thread interleaving, 64-worker scaling,
+foreign-platform execution, or a new GUI visual pass. Threads remains 1 by
+default. Phase 4C Syzygy is next; release acceptance remains open.

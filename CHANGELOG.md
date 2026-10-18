@@ -7,6 +7,16 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added configurable Lazy SMP parallel search with shared hash/network memory,
+  private worker state, and coordinated stopping, clocks, and total node limits.
+  `Threads` accepts 1–64 and still defaults to 1. Final UCI node/NPS reports
+  include unfinished iterations and all workers; extra work alone is not an
+  established playing-strength improvement.
+- Measured useful multicore scaling on the M5 Pro: four workers delivered
+  3.25× aggregate throughput, finished nominal depth-6 searches 2.09× faster,
+  and completed one extra depth in all nine timed comparisons. Single-worker
+  search behavior stayed exact, with a small possible timing cost recorded.
+  See the [bounded results and limitations](docs/reports/2026-10-18-phase4b-smp.md).
 - Added standard UCI `hashfull` reporting so chess GUIs can show recent
   transposition-table occupancy during analysis and play.
 - Reduced transposition-table storage by one third while preserving entry
@@ -29,7 +39,8 @@ release numbers; detailed measurements live in the linked experiment records.
   operating-system or transport delays.
 - Added a playable, independently written UCI engine with legal bitboard moves,
   draw detection, time management, pondering, and responsive search cancellation.
-  Search currently uses one worker.
+  The initial baseline used one worker; configurable parallel search is now
+  available through `Threads`.
 - Added evaluation using the pinned Stockfish 19 NNUE network, with incremental
   updates, a portable reference implementation, and ARM64 NEON acceleration.
   Feature, accumulator, and output agreement have dedicated oracle checks.

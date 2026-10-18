@@ -76,17 +76,45 @@ Counts include interrupted work and are not updated when diagnostics are off.
 The [cache profiler](../tools/profile_cache.py) checks exposed cold/warm roots;
 warm behavior includes retained ordering history, while the evaluator resets.
 
-The table still has one owning search thread; smaller/aligned entries do not
-make its access race-safe. Future changes must preserve repetition, rule-50,
-and policy-isolation correctness even when a faster key looks attractive. See
-the [Phase 4A decision](reports/2026-10-18-phase4a-cache.md).
+Lazy SMP (`Threads=1..64`, default 1) uses one `SharedSearch` and private
+`SearchWorker` objects. The single-worker cache path acquires no mutex. With
+multiple workers, 1,024 striped mutexes protect complete entry reads/writes;
+probes return value snapshots, never pointers into a concurrently modified
+bucket. Hash occupancy samples take the same locks. Generation and table sizing
+change only while workers are joined. A seqlock around ordinary non-atomic entry
+fields would still be a C++ data race and is deliberately avoided. The existing
+history/rule-50-aware key and search-policy invalidation remain unchanged.
 
-Lazy SMP is planned as separate worker-local position, history, and NNUE state
-over immutable shared weights, with explicitly safe transposition sharing and
-coordinated time/stop handling. Syzygy is a later optional endgame-probing module
-with its own correctness and configuration boundary. Neither feature exists in
-the current executable. These work areas follow the bounded qualification
-preparation checkpoint; they do not require repeatedly retuning the same screen.
+Worker zero owns the returned move, PV, score, completed depth, and soft/forecast
+time decisions. Helpers vary equally ranked root-move tie ordering, without new
+pruning or reductions. Positions, repetition histories, killers, history scores,
+PV arrays, and NNUE accumulators are private. Only immutable weights, the cache,
+and atomic cancellation/ponder/node-accounting state are shared. Helpers run on
+separate threads created per search; startup consumes the accepted go budget.
+All workers use the same receipt/ponder origin and hard deadline. The leader's
+completion cancels helpers; normal and exceptional exits join them before return.
+Changing Threads transactionally replaces workers and clears learned/cache state.
+
+Explicit node-limited searches reserve one global atomic ticket per visited
+node; the limit is not multiplied by Threads. Other searches publish padded
+worker counters every 128 nodes and on iteration/worker completion. Intermediate
+UCI totals may therefore lag helper work by up to 127 nodes per helper. Final
+`info nodes ... time ... nps ... hashfull ...` totals follow helper joins and are
+exact. Depth/score/PV are not repeated in that final totals record. Redundant
+worker effort contributes to node counts and is not a strength measure.
+
+With diagnostics enabled, `smp v1` identifies worker count, leader nodes, total
+nodes, and comma-separated per-worker node/completed-depth arrays. Existing
+`search-iteration v1` records describe only the leader; their nodes sum to
+`leader_nodes`. Search-summary, cache events, ordering, and LMR counters aggregate
+all workers. Cache geometry still describes just one table. Single-worker
+diagnostic accounting stays unchanged and emits no SMP record. Historical
+single-worker profilers remain single-worker tools.
+
+See the [Phase 4B contract](PHASE_4B.md) and the
+[Phase 4A cache decision](reports/2026-10-18-phase4a-cache.md). Syzygy remains a
+separate, unimplemented endgame-probing module with its own draw-rule and
+configuration boundary.
 
 The first selective-search experiment is optional, conservative late-move
 reduction. Its [policy and verification contract](SELECTIVE_SEARCH.md) are

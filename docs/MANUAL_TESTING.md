@@ -207,3 +207,26 @@ Do not spend time running a large tournament just to unblock development.
 
 Both snapshots are playable and single-threaded, with no established rating.
 Neither represents a release or a competitive-strength milestone.
+
+## Optional parallel-search test bundle
+
+Phase 4B has a separate `0.1-dev-phase4b-20261018` bundle at
+`build/test-baselines/0.1-dev-phase4b-20261018/chess0live`, with its pinned network
+beside the executable and a manifest. Existing `0.1-dev-4b8b35d` and
+`0.1-dev-phase3f-20261017` bundles remain unchanged; they do not support parallel
+search. Ordinary `make` also builds the new implementation in the normal release
+directory, independently of all three snapshots.
+
+For a small Cute Chess integration check, use Threads=4, Hash=64, Move Overhead=20,
+Ponder=false, Search Diagnostics=false, classic Time Policy, LMR=false, and
+MVV-LVA Capture Ordering. Use the bundled EvalFile. Give the opponent the same
+thread/hash allowance and time control (for example, 3 minutes + 2 seconds),
+with no book and one game at a time. If it cannot use four workers, use an
+equal-supported configuration rather than call the comparison equal-resource.
+
+Record the snapshot name, both engines' options, full PGNs, and any protocol or
+clock problems. Check that nodes/NPS reflect aggregate work and hash occupancy
+appears. Depth remains the leader's nominal completed depth; more workers do
+not guarantee a particular depth increase or a win. Two games are integration
+feedback, not a strength qualification. No fresh GUI visual check is implied
+by the automated UCI checks.

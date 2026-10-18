@@ -35,7 +35,8 @@ Normal and sanitizer suites passed natively on macOS ARM64. SF19 integer parity
 has a separate reproducible oracle harness. ARM64 NEON is implemented; the
 reference remains selectable with `SIMD=scalar`. Three other platform binaries
 cross-build, with execution still outstanding. RISC-V64 and Windows ARM64 lack
-configured local toolchains. Search deliberately remains single-worker.
+configured local toolchains. Search now supports configurable Lazy SMP (Phase 4B),
+while Threads=1 remains the default.
 
 An original paired-opening runner now records clocks, game files, binary/network
 hashes, and pair-level statistics. Small development and validation suites are
@@ -449,11 +450,40 @@ representations; the 36-search timing comparison passed the declared guards
 with effectively neutral timing. Evidence is in `results/phase4a-20261018/`;
 the retained native SHA-256 is
 `9caa5ccc3716ef25c289c8c43d63762c811163f2a4c7f1e8432fd9e012d8168c`.
-Next is **Phase 4B: Lazy SMP**. The table is still single-worker owned, and its
+At the Phase 4A checkpoint, the next step was **Phase 4B: Lazy SMP**. The table was
+still single-worker owned, and its
 packed/aligned representation provides no concurrency guarantees. Keep the
 Phase 3L binary/manifest and both GUI bundles frozen. To see hash reporting in
 Cute Chess, select the newly rebuilt normal executable, not a preserved bundle;
 the UCI bytes are tested, but GUI rendering has not been rechecked in this phase.
+
+**Phase 4B is complete**; implementation/tools commit `b0c22d2` adds configurable
+Lazy SMP. Read [the report](reports/2026-10-18-phase4b-smp.md) and
+[architecture](ARCHITECTURE.md) before changing shared state. One synchronized
+table and immutable network are shared; mutable worker state stays private.
+All helpers join before return/exception/resize/reload. `Threads=1` remains
+default; 1–64 is configurable. Standard final node totals include unfinished
+work; optional SMP diagnostics distinguish leader iterations from aggregate
+events. Historical profilers/qualifications still use one worker.
+
+Native/scalar/ASan+UBSan suites, 43 parallel UCI checks under all four native
+build modes (including ThreadSanitizer), direct concurrent-search tests, and
+24 profiler tests passed. The 24 parent/candidate one-worker searches were
+exact; timing suggests a small possible one-worker cost. The independently
+audited 72-search screen measured 3.25× aggregate throughput and 2.09× faster
+nominal depth-6 completion with four workers; all nine timed four-worker pairs
+completed +1 depth. No Elo gain, new GUI visual pass, or 64-worker/foreign runtime
+qualification is claimed. Do not tune repeatedly against this bounded screen.
+
+Current native/frozen candidate SHA-256:
+`0abcb60f7271f17c9e8735095fbb48c72e425beef2647ae0ed24af6f7a5471e9`.
+Raw checks/results/audit: `results/phase4b-20261018/`. New optional GUI bundle:
+`build/test-baselines/0.1-dev-phase4b-20261018/`, with copied network and manifest.
+Old GUI bundles, all frozen Phase 3L inputs/tools, and README introduction are
+unchanged. The 512-game LMR campaign remains unstarted. **Next: Phase 4C,
+optional Syzygy**; keep rule-50 semantics, absent-table fallback, provenance,
+and independent reference validation explicit. No further SMP tuning subphase
+is required before moving forward.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner

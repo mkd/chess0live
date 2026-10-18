@@ -97,7 +97,27 @@ mate, and a trailing `bm ... M7` annotation never supplies the answer to search.
 - UCI cancellation, pondering, search limits, and soft/hard clock allocation.
 
 `Hash`, `Clear Hash`, `EvalFile`, `Move Overhead`, and `Ponder` are configurable.
-`Threads` currently accepts **1**. Parallel search is future work. A missing or
+`Threads` accepts **1–64**, with **1** as the default. Set it to `4` to use four
+Lazy SMP search workers, for example:
+
+```text
+setoption name Threads value 4
+setoption name Hash value 64
+isready
+position startpos
+go movetime 1000
+```
+
+Wait for `readyok` before sending the position and search commands. All workers
+share one hash table and network; `Hash` is not multiplied by `Threads`. Each
+worker has its own board, search history, and NNUE accumulators. Search depth,
+score, and PV come from the leading worker; nodes/NPS include all workers and
+can include repeated work. A final `info nodes ... time ... nps ... hashfull ...`
+line includes unfinished iterations. Additional threads do not guarantee a
+particular depth or playing-strength gain. Keep the total active workers within
+your local resource allowance, including other engines running concurrently.
+
+A missing or
 incompatible network produces an explicit error; the engine does not substitute
 an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
@@ -110,6 +130,21 @@ the value may drop at the next search. It is neither a cache hit rate nor a RAM
 usage percentage. `Hash` sets a memory ceiling; bucket sizing can allocate less.
 The compact table preserves its established entry capacity: `Hash=64` currently
 uses 32 MiB of entry storage. Network/evaluator and other engine memory are extra.
+
+For repeatable parallel measurements, install `requirements-match.txt`, then run
+`make test-smp test-profile-smp`. The bounded profiler accepts `--threads 1,2,4`,
+`--mode movetime|depth|both`, and a new output filename:
+
+```sh
+python3 tools/profile_smp.py --engine build/macos-arm64-generic-release/chess0live \
+  --network networks/nn-1a298aa575a0.nnue --output results/smp-check.json \
+  --threads 1,2,4 --mode both --movetime-ms 1000 --depth 6
+```
+
+It saves raw output, artifact hashes, legal-PV checks, throughput, and completed
+depth/latency comparisons. These are performance measurements, not an Elo test.
+Use `make MODE=thread-sanitize test-search test-smp` for a separate race-detection
+build on a toolchain/platform with ThreadSanitizer support.
 
 Timed requests include preparation after the engine receives `go`, including
 worker startup. Send `isready` and wait for `readyok` before starting a timed
