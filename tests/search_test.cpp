@@ -129,6 +129,7 @@ struct Fixture {
     Search search{network, 1};
     bool enable_lmr = false;
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
+    bool enable_countermove = false;
 
     explicit Fixture(const std::filesystem::path& path) {
         std::string error;
@@ -141,6 +142,7 @@ struct Fixture {
         auto request = limits;
         request.late_move_reductions = request.late_move_reductions || enable_lmr;
         if (capture_ordering == CaptureOrdering::see) request.capture_ordering = capture_ordering;
+        request.countermove_ordering = request.countermove_ordering || enable_countermove;
         return search.search(std::move(position), std::move(history), request, std::move(reporter));
     }
 };
@@ -302,11 +304,13 @@ void cancellation_and_pondering(Fixture& fixture) {
     auto limits = depth_limit();
     limits.late_move_reductions = fixture.enable_lmr;
     limits.capture_ordering = fixture.capture_ordering;
+    limits.countermove_ordering = fixture.enable_countermove;
     fixture.search.reset_stop();
     fixture.search.stop();
     auto result = fixture.search.search(position, {}, limits);
     require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr
-            && result.ordering.policy == fixture.capture_ordering,
+            && result.ordering.policy == fixture.capture_ordering
+            && result.countermove.enabled == fixture.enable_countermove,
             "A stop published before worker startup must not be lost");
 
     // No wall-clock racing is needed: the first completed iteration signals that
@@ -315,6 +319,7 @@ void cancellation_and_pondering(Fixture& fixture) {
     limits = {};
     limits.late_move_reductions = fixture.enable_lmr;
     limits.capture_ordering = fixture.capture_ordering;
+    limits.countermove_ordering = fixture.enable_countermove;
     limits.infinite = true;
     std::promise<void> iteration_started;
     auto started = iteration_started.get_future();
@@ -328,20 +333,23 @@ void cancellation_and_pondering(Fixture& fixture) {
     fixture.search.stop();
     result = pending.get();
     require(status == std::future_status::ready && legal(position, result.best)
-            && result.lmr.enabled == fixture.enable_lmr && result.ordering.policy == fixture.capture_ordering,
+            && result.lmr.enabled == fixture.enable_lmr && result.ordering.policy == fixture.capture_ordering
+            && result.countermove.enabled == fixture.enable_countermove,
             "Concurrent stop must preserve a completed iteration's legal result");
 
     // A hit can arrive before the search thread starts, just like immediate stop.
     limits = {};
     limits.late_move_reductions = fixture.enable_lmr;
     limits.capture_ordering = fixture.capture_ordering;
+    limits.countermove_ordering = fixture.enable_countermove;
     limits.ponder = true;
     limits.movetime_ms = 0;
     fixture.search.reset_stop();
     fixture.search.ponderhit();
     result = fixture.search.search(position, {}, limits);
     require(result.nodes == 0 && legal(position, result.best) && result.lmr.enabled == fixture.enable_lmr
-            && result.ordering.policy == fixture.capture_ordering,
+            && result.ordering.policy == fixture.capture_ordering
+            && result.countermove.enabled == fixture.enable_countermove,
             "Ponderhit before worker startup must activate the exhausted clock");
 
     // Clearing that hit for a new ponder must suspend even a zero-millisecond
@@ -349,7 +357,8 @@ void cancellation_and_pondering(Fixture& fixture) {
     limits.depth = 1;
     result = fixture.run(position, limits);
     require(result.depth == 1 && result.lmr.enabled == fixture.enable_lmr
-            && result.ordering.policy == fixture.capture_ordering,
+            && result.ordering.policy == fixture.capture_ordering
+            && result.countermove.enabled == fixture.enable_countermove,
             "Ponder clock must remain inactive before its own ponderhit");
 }
 
@@ -424,6 +433,8 @@ void command_time_accounting(Fixture& fixture) {
     fixture.search.reset_stop();
     fixture.search.ponderhit();
     limits.late_move_reductions = fixture.enable_lmr;
+    limits.capture_ordering = fixture.capture_ordering;
+    limits.countermove_ordering = fixture.enable_countermove;
     result = fixture.search.search(position, {}, limits);
     require(result.depth == 1, "Ponderhit uses its own origin rather than command receipt");
 
@@ -838,6 +849,7 @@ void parallel_search(Fixture& fixture) {
         fixture.search.stop();
         limits = depth_limit(3);
         limits.late_move_reductions = true;
+        limits.countermove_ordering = fixture.enable_countermove;
         limits.diagnostics = true;
         const auto stopped = fixture.search.search(root, {}, limits);
         require(stopped.nodes == 0 && legal(root, stopped.best)
@@ -973,6 +985,133 @@ void capture_ordering_and_policy_switches(Fixture& fixture) {
             "A combined policy transition must preserve a prepublished stop");
 }
 
+/** Exercise actual learned replies and API isolation without requiring a
+ * particular tied move or an improvement in search work. The exposed start
+ * position is a mechanism regression, never a strength qualification sample.
+ */
+void countermove_ordering_and_policy_switches(Fixture& fixture) {
+    const auto position = Position::start();
+    const auto original_fen = position.fen();
+    const auto original_key = position.key();
+    auto limits = depth_limit(4);
+    fixture.search.clear();
+    const auto baseline = fixture.run(position, limits);
+    require(!baseline.countermove.enabled && baseline.countermove.lookups == 0
+            && baseline.countermove.matches == 0 && baseline.countermove.updates == 0,
+            "Default searches must not use or count countermove ordering");
+
+    limits.countermove_ordering = true;
+    std::vector<SearchInfo> plain_reports;
+    const auto candidate = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+        plain_reports.push_back(info);
+    });
+    require(candidate.countermove.enabled && candidate.depth == 4
+            && candidate.score == baseline.score && legal(position, candidate.best),
+            "Quiet reply ordering must preserve the completed value in this regression");
+    require(candidate.countermove.lookups == 0 && candidate.countermove.matches == 0
+            && candidate.countermove.updates == 0,
+            "Reply statistics must remain disabled outside diagnostic searches");
+
+    // Both transition directions are checked through the API, with no UCI
+    // controller reset that could hide leaked TT or learned-history state.
+    limits.countermove_ordering = false;
+    const auto restored = fixture.run(position, limits);
+    require(restored.best == baseline.best && restored.score == baseline.score
+            && restored.nodes == baseline.nodes && !restored.countermove.enabled,
+            "Disabling reply ordering must restore a fresh default search");
+    fixture.search.clear();
+    limits.countermove_ordering = true;
+    const auto fresh = fixture.run(position, limits);
+    require(fresh.best == candidate.best && fresh.score == candidate.score
+            && fresh.nodes == candidate.nodes,
+            "Enabling reply ordering after a warm default must match a fresh candidate");
+
+    fixture.search.clear();
+    limits.diagnostics = true;
+    std::vector<SearchInfo> traced_reports;
+    const auto traced = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+        auto replay = position;
+        for (const auto pv_move : info.pv) {
+            require(legal(replay, pv_move), "Learned replies must preserve complete legal PVs");
+            replay.make_move(pv_move);
+        }
+        traced_reports.push_back(info);
+    });
+    require(traced.countermove.lookups > 0 && traced.countermove.matches > 0
+            && traced.countermove.updates > 0
+            && traced.countermove.matches <= traced.countermove.lookups
+            && traced.countermove.updates <= traced.countermove.lookups,
+            "The real search must learn and match replies with coherent per-node accounting");
+    require(traced.best == candidate.best && traced.score == candidate.score
+            && traced.nodes == candidate.nodes && traced_reports.size() == plain_reports.size(),
+            "Reply diagnostics must not change the completed search tree");
+    for (std::size_t index = 0; index < traced_reports.size(); ++index) {
+        const auto& plain = plain_reports[index];
+        const auto& trace = traced_reports[index];
+        require(plain.depth == trace.depth && plain.seldepth == trace.seldepth
+                && plain.nodes == trace.nodes && plain.score == trace.score && plain.pv == trace.pv,
+                "Every completed iteration must be identical with reply diagnostics on or off");
+    }
+    require(position.fen() == original_fen && position.key() == original_key,
+            "Learning replies cannot change the caller's position");
+
+    // Cut off the second iteration deterministically, preserving the first
+    // completed move rather than exposing any partially searched reply.
+    fixture.search.clear();
+    limits.depth = 0;
+    limits.nodes = plain_reports.front().nodes + 1;
+    const auto partial = fixture.run(position, limits);
+    require(partial.nodes == limits.nodes && partial.depth == 1
+            && partial.best == plain_reports.front().pv.front()
+            && !partial.diagnostics->iterations.back().completed,
+            "Interrupted reply searches must retain the completed result and exact node cap");
+
+    for (bool enabled : {false, true}) {
+        fixture.search.reset_stop();
+        fixture.search.stop();
+        limits.countermove_ordering = enabled;
+        const auto stopped = fixture.search.search(position, {}, limits);
+        require(stopped.nodes == 0 && legal(position, stopped.best)
+                && stopped.countermove.enabled == enabled
+                && stopped.countermove.lookups == 0 && stopped.countermove.matches == 0
+                && stopped.countermove.updates == 0
+                && stopped.diagnostics->stop_reason == StopReason::external_stop,
+                "Reply-policy transitions must preserve prepublished stop and reset counters");
+    }
+}
+
+/** A forced root special move supplies the next node's previous-move context.
+ * Check both colors and replay full PVs, including pawn-to-knight promotion;
+ * no stored reply may insert an illegal move or widen the root restriction.
+ */
+void countermove_special_move_contexts(Fixture& fixture) {
+    struct Case { const char* fen; const char* forced_move; };
+    const Case cases[] = {
+        {"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "e1g1"},
+        {"r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1", "e8c8"},
+        {"7k/8/8/3pP3/8/8/8/K7 w - d6 0 1", "e5d6"},
+        {"7k/8/8/8/3Pp3/8/8/K7 b - d3 0 1", "e4d3"},
+        {"7k/P6p/8/8/8/8/8/K7 w - - 0 1", "a7a8n"},
+        {"7k/8/8/8/8/8/p6P/7K b - - 0 1", "a2a1n"},
+    };
+    auto limits = depth_limit(3);
+    limits.countermove_ordering = true;
+    for (const auto& item : cases) {
+        const auto position = fen(item.fen);
+        limits.searchmoves = {move(position, item.forced_move)};
+        fixture.search.clear();
+        const auto result = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+            auto replay = position;
+            for (const auto pv_move : info.pv) {
+                require(legal(replay, pv_move), "Special-move reply context must preserve legal PVs");
+                replay.make_move(pv_move);
+            }
+        });
+        require(result.best == limits.searchmoves.front() && result.depth == 3,
+                "Reply ordering must honor a forced special root move to the requested depth");
+    }
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1000,6 +1139,8 @@ int main(int argc, char** argv) {
         selective_search_verification_and_policy_switches(fixture);
         selective_special_positions(fixture);
         capture_ordering_and_policy_switches(fixture);
+        countermove_ordering_and_policy_switches(fixture);
+        countermove_special_move_contexts(fixture);
         parallel_search(fixture);
         // Re-run the existing chess-rule cases with the experimental option on.
         // Their exact expectations remain mandatory despite selective search.
@@ -1027,6 +1168,22 @@ int main(int argc, char** argv) {
         limits_and_principal_variations(fixture);
         cancellation_and_pondering(fixture);
         clock_limit(fixture);
+        // Isolate full-depth reply ordering from SEE and LMR, and repeat the
+        // rule/lifecycle suite with worker-local histories in both serial and
+        // parallel searches. Existing default-mode checks remain unchanged.
+        fixture.search.clear();
+        fixture.capture_ordering = CaptureOrdering::mvv_lva;
+        fixture.enable_countermove = true;
+        terminal_positions(fixture);
+        mate_at_draw_boundary(fixture);
+        quiescence_terminals_and_evasions(fixture);
+        repetition_history(fixture);
+        move_restrictions_and_table_bounds(fixture);
+        limits_and_principal_variations(fixture);
+        cancellation_and_pondering(fixture);
+        clock_limit(fixture);
+        command_time_accounting(fixture);
+        parallel_search(fixture);
         std::cout << "Search correctness checks passed\n";
     } catch (const std::exception& error) {
         std::cerr << "Search test failed: " << error.what() << '\n';

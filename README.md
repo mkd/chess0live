@@ -182,6 +182,25 @@ exchanges and searches apparently losing captures later. All captures remain
 available to search. It is evaluated independently with LMR off and classic
 timing; see [the ordering experiment](docs/MOVE_ORDERING.md).
 
+`Countermove Ordering` (default `false`) is a separate experimental ordering
+option. It remembers successful quiet replies to the preceding move and tries
+them before ordinary quiet-history moves, without reducing depth or pruning.
+Enable it with `setoption name Countermove Ordering value true`. Changing the
+policy clears learned search state. Leave it off for baseline comparisons;
+playing-strength qualification remains open. With `Search Diagnostics=true`,
+the final `countermove v1` record reports lookups, legal matches, and updates
+summed across workers. Check it with `make test-countermove test-profile-countermove`
+after installing `requirements-match.txt`. The bounded, independently replayed
+profiler records cold and warm searches separately:
+
+```sh
+python3 tools/profile_countermove.py --engine build/macos-arm64-generic-release/chess0live \
+  --network networks/nn-1a298aa575a0.nnue --output results/countermove-check.json
+```
+
+See the [comparison protocol](docs/experiments/phase4d-countermove.md) for fixed
+settings, resource limits, and interpretation. Use a new output filename each run.
+
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal

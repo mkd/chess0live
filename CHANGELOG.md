@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added experimental quiet countermove ordering, with worker-local reply memory
+  and diagnostic counters. It changes move order without reducing search depth
+  or pruning. It remains disabled pending playing-strength qualification.
 - Added optional Syzygy endgame probing through a pinned Fathom reader, with
   UCI path/piece/depth settings and `tbhits` reporting. Table files are downloaded
   separately and excluded from Git. Root move ranking respects the fifty-move

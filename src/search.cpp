@@ -191,6 +191,11 @@ struct SearchWorker {
     const std::size_t id;
     std::array<std::array<std::array<int, 64>, 64>, 2> history_score{};
     std::array<std::array<Move, 2>, max_ply> killers{};
+    // Six piece types per color, then the previous move's destination. The
+    // original piece is used even for a promotion; no game-history move is
+    // inferred at the root. Context travels by value through re-searches.
+    static constexpr std::size_t no_previous_move = 12 * 64;
+    std::array<Move, no_previous_move> countermoves{};
     std::array<std::array<Move, max_ply>, max_ply> pv{};
     std::array<int, max_ply> pv_length{};
     std::vector<std::uint64_t> game_history;
@@ -203,6 +208,7 @@ struct SearchWorker {
     StopReason stop_reason = StopReason::depth_limit;
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
+    CountermoveStatistics countermove;
     CacheStatistics cache;
     int completed_depth = 0;
 
@@ -215,6 +221,7 @@ struct SearchWorker {
     void clear() {
         history_score = {};
         killers = {};
+        countermoves = {};
         evaluator.reset();
     }
 
@@ -367,7 +374,8 @@ struct SearchWorker {
                    static_cast<std::uint8_t>(depth), bound, shared.generation};
     }
 
-    int ordering_score(const Position& position, Move move, Move tt_move, int ply) const {
+    int ordering_score(const Position& position, Move move, Move tt_move, int ply,
+                       Move reply) const {
         if (move == tt_move) return 2000000;
         if (move.promotion != PieceType::none)
             return 1200000 + piece_order_value[static_cast<unsigned>(move.promotion)];
@@ -379,6 +387,7 @@ struct SearchWorker {
         }
         if (move == killers[static_cast<std::size_t>(ply)][0]) return 900000;
         if (move == killers[static_cast<std::size_t>(ply)][1]) return 800000;
+        if (move == reply) return 700000;
         return history_score[static_cast<unsigned>(position.turn())][move.from][move.to];
     }
 
@@ -399,7 +408,8 @@ struct SearchWorker {
         return left.promotion < right.promotion;
     }
 
-    void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply) {
+    void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply,
+               Move reply = {}) {
         if (limits.capture_ordering == CaptureOrdering::see) {
             struct RankedMove { Move move; int score; };
             std::vector<RankedMove> ranked;
@@ -408,7 +418,7 @@ struct SearchWorker {
             // losing ordinary captures change rank: they follow every quiet
             // history score, while TT moves and all promotions retain priority.
             for (const auto move : moves) {
-                auto score = ordering_score(position, move, tt_move, ply);
+                auto score = ordering_score(position, move, tt_move, ply, reply);
                 if (move != tt_move && move.is_capture() && move.promotion == PieceType::none) {
                     ++ordering.see_calls;
                     if (static_exchange(position, move) < 0) {
@@ -428,8 +438,8 @@ struct SearchWorker {
         }
         // Preserve the baseline's ordering and ties exactly when SEE is off.
         std::sort(moves.begin(), moves.end(), [&](Move left, Move right) {
-            const auto left_score = ordering_score(position, left, tt_move, ply);
-            const auto right_score = ordering_score(position, right, tt_move, ply);
+            const auto left_score = ordering_score(position, left, tt_move, ply, reply);
+            const auto right_score = ordering_score(position, right, tt_move, ply, reply);
             // Tie-breaking makes benchmark searches reproducible across libraries.
             if (left_score != right_score) return left_score > right_score;
             return tie_before(left, right, ply);
@@ -506,7 +516,8 @@ struct SearchWorker {
      * remains unreduced, with no null-move or futility pruning.
      */
     int alphabeta(Position& position, int depth, int alpha, int beta, int ply,
-                  bool pv_node, std::uint64_t digest) {
+                  bool pv_node, std::uint64_t digest,
+                  std::size_t previous_move = no_previous_move) {
         if (depth <= 0) return quiescence(position, alpha, beta, ply);
         if (!visit(ply)) return 0;
         auto moves = position.legal_moves();
@@ -561,7 +572,18 @@ struct SearchWorker {
                 }
             }
         }
-        order(position, moves, tt_move, ply);
+        Move reply;
+        if (limits.countermove_ordering && previous_move != no_previous_move) {
+            reply = countermoves[previous_move];
+            if (limits.diagnostics) {
+                ++countermove.lookups;
+                if (reply.valid() && std::find(moves.begin(), moves.end(), reply) != moves.end())
+                    ++countermove.matches;
+            }
+        }
+        // Only an exact legal-list match receives a rank. Stale suggestions
+        // are never inserted, and quiescence retains its original ordering.
+        order(position, moves, tt_move, ply, reply);
 
         int best_score = -infinity;
         Move best_move;
@@ -570,6 +592,10 @@ struct SearchWorker {
         std::size_t move_number = 0;
         for (const auto move : moves) {
             const auto undo = position.make_move(move);
+            const auto child_context = limits.countermove_ordering
+                ? (6 * static_cast<std::size_t>(color_of(undo.moved))
+                   + static_cast<std::size_t>(type_of(undo.moved)) - 1) * 64 + move.to
+                : no_previous_move;
             const auto child_key = position.key();
             const auto child_digest = position.halfmove_clock() == 0
                 ? mix(child_key) : digest + mix(child_key);
@@ -578,7 +604,7 @@ struct SearchWorker {
             int score;
             if (move_number == 0) {
                 score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
-                                   pv_node, child_digest);
+                                   pv_node, child_digest, child_context);
             } else {
                 bool reduce = false;
                 if (limits.late_move_reductions) {
@@ -596,11 +622,11 @@ struct SearchWorker {
                 }
                 if (reduce) ++lmr.reductions;
                 score = -alphabeta(position, depth - 1 - int(reduce), -alpha - 1, -alpha, ply + 1,
-                                   false, child_digest);
+                                   false, child_digest, child_context);
                 if (reduce && !aborted && score > alpha) {
                     ++lmr.researches;
                     score = -alphabeta(position, depth - 1, -alpha - 1, -alpha, ply + 1,
-                                       false, child_digest);
+                                       false, child_digest, child_context);
                     if (!aborted) {
                         if (score <= alpha) ++lmr.fail_lows;
                         else if (score >= beta) ++lmr.verified_cutoffs;
@@ -608,7 +634,7 @@ struct SearchWorker {
                 }
                 if (!aborted && score > alpha && score < beta)
                     score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
-                                       pv_node, child_digest);
+                                       pv_node, child_digest, child_context);
             }
             game_history.pop_back();
             position.unmake_move(move, undo);
@@ -625,6 +651,10 @@ struct SearchWorker {
             }
             if (score >= beta) {
                 if (!move.is_capture() && move.promotion == PieceType::none) {
+                    if (limits.countermove_ordering && previous_move != no_previous_move) {
+                        countermoves[previous_move] = move;
+                        if (limits.diagnostics) ++countermove.updates;
+                    }
                     auto& pair = killers[static_cast<std::size_t>(ply)];
                     if (move != pair[0]) { pair[1] = pair[0]; pair[0] = move; }
                     const int bonus = std::min(2048, depth * depth * 24);
@@ -669,6 +699,8 @@ struct SearchWorker {
         lmr.enabled = limits.late_move_reductions;
         ordering = {};
         ordering.policy = limits.capture_ordering;
+        countermove = {};
+        countermove.enabled = limits.countermove_ordering;
         cache = {};
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
@@ -708,6 +740,7 @@ struct SearchWorker {
             result.nodes = nodes;
             result.lmr = lmr;
             result.ordering = ordering;
+            result.countermove = countermove;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -829,6 +862,7 @@ struct Search::Impl {
     bool cache_policy_valid = false;
     bool previous_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
+    bool previous_countermove = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
 
@@ -866,10 +900,12 @@ struct Search::Impl {
                                          int(shared.tablebases.largest()));
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
             || request.capture_ordering != previous_ordering
+            || request.countermove_ordering != previous_countermove
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
         previous_ordering = request.capture_ordering;
+        previous_countermove = request.countermove_ordering;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
@@ -965,6 +1001,9 @@ struct Search::Impl {
             result.lmr.verified_cutoffs += worker.lmr.verified_cutoffs;
             result.ordering.see_calls += worker.ordering.see_calls;
             result.ordering.losing_captures += worker.ordering.losing_captures;
+            result.countermove.lookups += worker.countermove.lookups;
+            result.countermove.matches += worker.countermove.matches;
+            result.countermove.updates += worker.countermove.updates;
             if (result.diagnostics) {
                 auto& cache = result.diagnostics->cache;
                 cache.probes += worker.cache.probes;

@@ -506,7 +506,16 @@ small timing variation is not a performance gain. Current normal binary SHA-256:
 Raw evidence: `results/phase4c-20261018/`. No new GUI snapshot was created; normal
 rebuilds continue to leave the owner's existing snapshots untouched.
 
-**Next: Phase 4D**, beginning with one bounded full-depth move-ordering candidate.
+**Phase 4D.1 is in progress:** one opt-in quiet countermove ordering candidate
+is implemented. The worker-local table keys the preceding move's original
+colored piece and destination; root context is absent. Quiet beta-cutoff replies
+rank below killers and above history, without changing quiescence, depth, or
+pruning. Context is passed by value and policy changes clear cache/history.
+`Countermove Ordering=false` remains the default. Native/scalar/ASan+UBSan/TSan
+search checks and 57 independent-referee UCI cases per build passed. The
+[predeclared profile](experiments/phase4d-countermove.md) uses 15 exposed roots,
+fresh/warm state, depth 6 and 500 ms; strength qualification is separate.
+
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning
 hypotheses must be isolated and strength-qualified; do not enable existing LMR

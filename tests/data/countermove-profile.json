@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "description": "Exposed structural corpus frozen before Phase 4D.1 countermove measurements; all three bench openings plus all twelve game-phase roots. No strength or held-out interpretation.",
+  "license": "GPL-3.0-or-later",
+  "copyright": "Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>",
+  "sources": {
+    "tests/data/performance-gamephases.json": "38e1eb26401232b0129191c18f0a0c63f2caae3dc110eddee1a76ef0d1a3133c",
+    "tools/bench.py": "910b92db76f16aa7e6513707afaa185d6508d9ecfe74720626a037d8de967489"
+  },
+  "history_limitations": "The three opening positions preserve complete game history. The twelve composed FEN roots retain their existing reachability and missing-history limitations; no previous game history is invented.",
+  "positions": [
+    {
+      "id": "opening-01",
+      "position": "startpos",
+      "category": "full_history_opening",
+      "source": "tools/bench.py"
+    },
+    {
+      "id": "opening-02",
+      "position": "startpos moves e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3",
+      "category": "full_history_opening",
+      "source": "tools/bench.py"
+    },
+    {
+      "id": "opening-03",
+      "position": "startpos moves d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 c1g5 f8e7 e2e3",
+      "category": "full_history_opening",
+      "source": "tools/bench.py"
+    },
+    {
+      "id": "gamephases-mg-01",
+      "position": "fen r1bq1rk1/pp1nbppp/3p1n2/2pPp3/2P1P3/2N5/PP1NBPPP/R1BQ1RK1 w - - 0 30",
+      "category": "quiet_closed_center",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-mg-02",
+      "position": "fen r1b2rk1/ppp1qpbp/2nppnp1/8/8/2NBPNP1/PPP1QPBP/2KR3R b - - 0 30",
+      "category": "quiet_opposite_castled_structure",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-mg-03",
+      "position": "fen r1bqr1k1/ppp2pbp/3p1np1/4P1B1/2B5/2N5/PPPQ1PPP/R3R1K1 w - - 0 30",
+      "category": "tactical_minor_piece_contacts",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-mg-04",
+      "position": "fen 2r2rk1/pp3pbp/1q1p1np1/4p3/4P3/3B1N2/PPPQ1PPP/2KR3R b - - 0 30",
+      "category": "tactical_open_file_king_pressure",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-mg-05",
+      "position": "fen r3k2r/1b2nppp/3p4/8/2BP4/5N2/5PPP/R3R1K1 w - - 0 30",
+      "category": "tactical_queenless_pin",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-mg-06",
+      "position": "fen 2r2r2/p2bnpk1/1p4p1/2p4p/2P4P/1P1NB1P1/P4PK1/2R2R2 b - - 0 30",
+      "category": "quiet_queenless_maneuvering",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-01",
+      "position": "fen 8/3r4/p1p2kpp/8/P1P5/R4KPP/8/8 w - - 0 50",
+      "category": "rook_activity",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-02",
+      "position": "fen 8/1R6/5p1k/8/8/p7/1P2r1P1/6K1 b - - 0 50",
+      "category": "rook_advanced_pawn",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-03",
+      "position": "fen 8/5k2/p1n2p2/2p3p1/6P1/P1P1KP2/4N3/8 w - - 0 50",
+      "category": "knight_and_pawns",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-04",
+      "position": "fen 8/8/6kp/1p1b1p2/7P/1P2BP2/5K2/8 b - - 0 50",
+      "category": "opposite_colored_bishops",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-05",
+      "position": "fen 8/8/5k2/7p/2K2P2/8/8/8 w - - 0 50",
+      "category": "sparse_pawn_race",
+      "source": "tests/data/performance-gamephases.json"
+    },
+    {
+      "id": "gamephases-eg-06",
+      "position": "fen 8/r7/1p3kpp/p3p3/P3Pn2/1PK2BPP/8/2R5 b - - 0 50",
+      "category": "mixed_rook_and_minor",
+      "source": "tests/data/performance-gamephases.json"
+    }
+  ]
+}

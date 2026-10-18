@@ -153,6 +153,14 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 test-search: $(BUILD)/search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 
+# Optional independent-referee checks for the isolated quiet-reply experiment.
+.PHONY: test-countermove test-profile-countermove
+test-countermove: $(ENGINE)
+	$(PYTHON) tests/countermove_uci_test.py "$(ENGINE)" --network "$(NET)"
+
+test-profile-countermove:
+	$(PYTHON) tests/profile_countermove_test.py
+
 test-time: $(BUILD)/time-management-test$(EXE)
 	"$(BUILD)/time-management-test$(EXE)"
 
@@ -264,6 +272,7 @@ help:
 	@echo 'make test-syzygy       Test local Syzygy data, probing and UCI lifecycle'
 	@echo 'make test-smp          Parallel UCI/PV checks (requirements-match.txt)'
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
+	@echo 'make test-countermove test-profile-countermove  Check experimental quiet reply ordering'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'

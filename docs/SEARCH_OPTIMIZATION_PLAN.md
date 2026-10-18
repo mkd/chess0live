@@ -1,7 +1,7 @@
 # Phase 4D: search efficiency with strength gates
 
-Status: planned immediately after Phase 4C Syzygy, following the owner's
-October 18 request. This is a sequence of bounded experiments, not an enabled
+Status: Phase 4D.1 implementation and validation in progress after Phase 4C,
+following the owner's October 18 request. This is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
 network tooling. No campaign or schedule is started by this document.
 
@@ -27,8 +27,11 @@ includes helper work; compare equal thread counts and distinguish leader depth
 from aggregate work. The next candidate must improve useful equal-time results,
 not merely imitate the other engine's reported depth.
 
-chess0live already has PVS, aspiration windows, transposition bounds, history and
-killer ordering, quiescence, and an opt-in conservative LMR experiment. The
+chess0live already has mate-distance bounds, PVS, aspiration windows, interior
+check extensions, transposition bounds, MVV-LVA, killer ordering, bounded
+positive/negative history-gravity updates, quiescence, and an opt-in conservative
+LMR experiment. Outer iterative deepening is implemented; internal iterative
+deepening at a node without a useful hash move is a separate, unimplemented idea. The
 [LMR development record](SELECTIVE_SEARCH.md) reported 49.79% fewer nodes at
 depth 5 on its exposed sample, but that was not strength qualification. Later
 qualification was inconclusive or failed an operational gate. These results
@@ -49,6 +52,24 @@ phases tuning a single unsuccessful heuristic.
 | 4D.4 | Conservative reverse futility | Separate shallow interior non-PV candidate, disabled in check and near mate/tablebase score bands. Freeze depth-dependent margins before testing; keep checks, tactical exceptions, and draw handling explicit. |
 | 4D.5 | Quiescence work reduction | Test SEE-based capture pruning and delta pruning separately. Preserve all check evasions, promotions, mate/stalemate handling, and designated tactical exceptions. Static material estimates do not justify silently dropping a forced line. |
 | 4D.6 | Late quiet-move pruning or broader reductions | Consider only after earlier ordering/reduction evidence is understood. Keep this a separate higher-risk hypothesis with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. |
+| 4D.7 | ProbCut | A separate later candidate: bounded reduced-depth tactical probes at an elevated cutoff threshold, with frozen margins and explicit check, mate/tablebase, and draw exclusions. A successful reduced probe is heuristic evidence, not proof of a full-depth bound. Require sacrificed-material and quiet-defense regressions and an isolated strength comparison. |
+
+The owner supplied Gargantua's optimization list during 4D.1. Treat it as a list
+of techniques to consider, not source or assets to copy. After this single
+ordering checkpoint, prioritize the existing LMR qualification and verified
+null-move experiment for larger work reductions. Add internal iterative
+deepening as a separate later ordering candidate: at eligible nodes without a
+useful TT move, a bounded shallower search may supply a hint, but the original
+depth search must still run. Its extra search cost must be measured. Do not
+combine it with the current countermove experiment.
+
+Forward futility (skipping individual late quiet moves) and reverse futility
+(returning a static bound at a node) must use separate candidates, despite the
+shared name. The former belongs with 4D.6, the latter with 4D.4. Null-move depth
+reduction is part of the reduced null probe in 4D.3, not a license to remove its
+verification or zugzwang safeguards. Neither those techniques nor ProbCut can
+be promised to lose no strength at all; full-depth ordering also needs
+equal-time evidence because it changes allocation of finite search time.
 
 4D.1 is the first implementation checkpoint after tablebases. Its exit is one
 tested candidate and a reproducible decision, not completion of every row.

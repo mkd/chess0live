@@ -148,6 +148,7 @@ private:
     bool diagnostics_ = false;
     bool late_move_reductions_ = false;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
+    bool countermove_ordering_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -181,6 +182,7 @@ private:
         output("option name Search Diagnostics type check default false");
         output("option name Late Move Reductions type check default false");
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
+        output("option name Countermove Ordering type check default false");
         output("uciok");
     }
 
@@ -281,6 +283,12 @@ private:
             else if (value == "see") capture_ordering_ = CaptureOrdering::see;
             else output("info string error: Capture Ordering expects mvv-lva or see");
             return; // Search also isolates the cache for direct API callers.
+        }
+        if (name == "Countermove Ordering") {
+            if (value == "true") countermove_ordering_ = true;
+            else if (value == "false") countermove_ordering_ = false;
+            else output("info string error: Countermove Ordering expects true or false");
+            return; // Search isolates both cache and worker-local histories.
         }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
@@ -436,6 +444,13 @@ private:
             output(line.str());
         }
         const char* reason = "depth_limit";
+        if (result.countermove.enabled) {
+            std::ostringstream line;
+            line << "info string countermove v1 enabled true lookups " << result.countermove.lookups
+                 << " matches " << result.countermove.matches
+                 << " updates " << result.countermove.updates;
+            output(line.str());
+        }
         switch (diagnostics.stop_reason) {
             case StopReason::external_stop: reason = "external_stop"; break;
             case StopReason::node_limit: reason = "node_limit"; break;
@@ -473,6 +488,7 @@ private:
         limits.diagnostics = diagnostics_;
         limits.late_move_reductions = late_move_reductions_;
         limits.capture_ordering = capture_ordering_;
+        limits.countermove_ordering = countermove_ordering_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};

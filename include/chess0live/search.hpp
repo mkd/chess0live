@@ -54,6 +54,8 @@ struct SearchLimits {
     bool diagnostics = false;
     bool late_move_reductions = false;
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
+    /** Experimental quiet reply ordering; changes neither depth nor pruning. */
+    bool countermove_ordering = false;
     /** Zero disables probing. Interior probes require at least this depth;
      * root DTZ ranking is independent of the interior depth threshold. */
     int syzygy_probe_limit = 7;
@@ -155,6 +157,19 @@ struct OrderingStatistics {
     std::uint64_t losing_captures = 0;
 };
 
+/** Optional positive-depth reply-table measurements, summed across workers.
+ * A lookup uses the preceding move's original piece/color and destination.
+ * A match means its stored quiet reply occurs in the legal list (possibly
+ * already favored by TT/killers); updates count completed quiet beta cutoffs.
+ * Counters include interrupted tree work and require diagnostics to be enabled.
+ */
+struct CountermoveStatistics {
+    bool enabled = false;
+    std::uint64_t lookups = 0;
+    std::uint64_t matches = 0;
+    std::uint64_t updates = 0;
+};
+
 /** Final accounting for independent workers sharing a transposition table.
  * Worker zero is the leader and supplies the result/PV. Helpers contribute
  * bounds and move ordering, never an unverified vote for the returned move.
@@ -183,6 +198,7 @@ struct SearchResult {
     std::optional<SearchDiagnostics> diagnostics;
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
+    CountermoveStatistics countermove;
 };
 
 /** Independent iterative deepening with optional shared-table Lazy SMP.
