@@ -49,9 +49,11 @@ tested executable. Both still report the development version over UCI.
 This bundle passed a command-line handshake and depth-5 search from an unrelated
 temporary working directory with its default adjacent network. All reported PVs,
 bestmove, and ponder replayed legally. The record is
-`results/phase3f-20261017/gui-bundle-smoke.json`. **Cute Chess GUI testing of this
-new bundle has not yet been reported.** A few optional 3+2 games can check its
-integration; they are not required to continue development.
+`results/phase3f-20261017/gui-bundle-smoke.json`. The owner's October 18 feedback
+reports two draws against Gargantua with no engine errors or disconnections.
+This was the intended bundle; the partial PGN and screenshots do not independently
+record executable identity or actual options. See the
+[review and evidence limits](reports/2026-10-18-cutechess.md).
 
 Phase 3F improves measured local search throughput while preserving exact
 evaluation and search results in the fixed comparisons; it establishes no
@@ -77,12 +79,13 @@ Elo gain. See the [Phase 3F report](reports/2026-10-17-phase3f-dense.md).
 5. Save the configuration and select this named engine for a normal standard
    chess game. A few 3+2 games are a useful first manual check.
 
-For the owner's current Phase 3F check, play two **3+2** games against Gargantua,
+For any further optional Phase 3F check, play two **3+2** games against Gargantua,
 reversing colors. Give both engines Threads 1, Hash 64 MB, and Ponder false.
 Save the PGNs and label feedback **`0.1-dev-phase3f-20261017`**. This is an
-integration check, not a strength estimate. Phase 3G tool preparation can proceed
-alongside these games; its controlled overnight match must wait until GUI games
-and other heavy work have stopped. The GUI copy keeps LMR off.
+integration check, not a strength estimate. Phase 3G preparation is complete;
+its controlled overnight match must wait until GUI games and other heavy work
+have stopped. The GUI copy keeps LMR off. The October 18 feedback is sufficient
+for this initial integration check; no additional manual tournament is required.
 
 The original `0.1-dev-4b8b35d` bundle passed a UCI handshake, evaluation, and legal
 search when launched from an unrelated directory, proving it finds its adjacent
@@ -109,6 +112,18 @@ Do not silently attach these observations to a specific binary. Reported depth
 alone is not a common work/strength scale across different selective searches;
 the current chess0live default still has LMR disabled. No opponent source or
 testing asset is reused as a result of this feedback.
+
+## Owner observations — October 18, 2026
+
+The owner supplied two-game tournament results, seven screenshots, and one
+partial 180+2 PGN against Gargantua 2.1: two reported draws, no errors or
+disconnections, shallow nominal depth and early clock depletion. The intended
+snapshot is `0.1-dev-phase3f-20261017`; actual options and binary identity are not
+captured. The [review](reports/2026-10-18-cutechess.md) verifies all 121 saved
+plies and the snapshot's depth-2 divide at all 122 positions. The PGN stops at
+61.Nc3 with an unfinished result; neither final draw can be independently replayed.
+The summary lists user adjudication and insufficient material, so the reported
+fifty-move ending remains unverified. No strength or default change follows.
 
 ## Useful feedback
 

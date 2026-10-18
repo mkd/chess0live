@@ -26,6 +26,9 @@ release numbers; detailed measurements live in the linked experiment records.
   slowdowns remain recorded. This is not a measured playing-strength gain.
 - Added Cute Chess setup instructions and preserved a separate GUI test bundle
   so development rebuilds do not replace the owner's test executable.
+- Recorded [October 18 Cute Chess feedback](docs/reports/2026-10-18-cutechess.md):
+  two reported draws without engine errors, a legally checked partial PGN, and
+  early clock depletion for further investigation. Defaults remain unchanged.
 
 ### Building, testing, and contributing
 

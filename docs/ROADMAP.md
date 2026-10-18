@@ -7,9 +7,13 @@ The owner handles GitHub pushes. Phase numbers are work areas, not release names
 
 ## Current checkpoint: Phase 3F retained; Phase 3G prepared and tested
 
-The October 14 Cute Chess feedback confirms useful initial GUI integration and
-exposes expensive opening iterations and severe subsequent time pressure.
-The [game review](reports/2026-10-14-cutechess.md) records the evidence and limits.
+The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
+provide useful initial GUI integration evidence and expose expensive opening
+iterations and severe subsequent time pressure. The latest report records two
+draws without reported errors, a partial PGN, and matching legal moves/depth-2
+divides at all 122 saved positions. The intended Phase 3F snapshot's actual GUI
+settings were not captured; the missing final positions limit termination checks.
+Clock allocation remains a separate research priority after the fixed LMR screen.
 
 | Step | Deliverable | Status |
 | --- | --- | --- |
@@ -145,7 +149,9 @@ absolute-time drift remain included. No rating, release, or search-default chang
 match workers share aggregate resource checks and one 07:00 Helsinki cutoff.
 The original suite, launcher, and independent auditor have passed their checks.
 The next checkpoint is one controlled overnight run followed by a full audit,
-only after the owner's GUI games stop. Manual launch is 23:00–23:15 Helsinki.
+only when no GUI games or other heavy work are running. The initial owner check
+has been reported; no additional manual tournament is required. Manual launch
+is 23:00–23:15 Helsinki.
 No real Phase 3G game has run. A positive result would warrant separate fresh
 confirmation, not automatic LMR promotion. Prior Phase 2D samples are exposed
 and must not be extended or pooled into the new decision.

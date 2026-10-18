@@ -263,8 +263,14 @@ The qualified candidate, normal native executable, and optional
 `edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b`.
 The original `0.1-dev-4b8b35d` remains intact. The new bundle passed CLI startup,
 adjacent-network discovery and legal depth-5 search from an unrelated directory;
-Cute Chess testing is optional; no Phase 3F GUI result has been reported yet. The normal executable was
-intentionally promoted **after** the passing audit; the frozen manifest records
+The owner subsequently reported two draws against Gargantua with no GUI errors
+on October 18. This was the intended snapshot; runtime options and executable
+identity were not captured. The [review](reports/2026-10-18-cutechess.md)
+preserves the partial PGN: 121 legal plies, matching depth-2 divides at 122
+positions, and early clock depletion. The file ends unfinished at 61.Nc3; the
+two final draw reasons cannot be assigned from the supplied evidence. Treat
+these as exposed diagnostic games, not strength qualification or Phase 3G inputs.
+The normal executable was intentionally promoted **after** the passing audit; the frozen manifest records
 its old hash. Those old bytes remain at the retained Phase 3B path. Use the final
 integrity record to distinguish promotion from unexplained artifact drift.
 
@@ -283,8 +289,10 @@ half-width is 8.488 percentage points: at least 299.5/512 points is only eligibl
 for fresh confirmation, never automatic promotion; at most 212.5 is negative.
 Candidate clock forfeits take precedence. Do not resume, replace, or selectively
 extend a sample, and do not pool the exposed Phase 2D result. No Phase 3G strength
-game or schedule exists. The owner is testing the separate Phase 3F GUI bundle;
-do not start controlled matches while those games are running. LMR remains off.
+game or schedule exists. Initial owner feedback on the intended Phase 3F GUI
+bundle is recorded; no more manual games are required. Do not start controlled
+matches while any GUI games are running. LMR remains off. Investigate clock
+allocation separately after this fixed comparison; do not change its time policy.
 `tools/qualify_phase3g.py` supervises the run; `tools/audit_phase3g.py` checks all
 four raw campaigns and one pooled decision. `make test-phase3g` checks the new
 tools, while `make test-qualification test-match` includes historical regressions.

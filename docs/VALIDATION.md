@@ -540,6 +540,25 @@ synthetic lifecycle tests and readiness do not establish its completion,
 playing strength, or foreign-platform execution. LMR remains off, and no
 automatic schedule or new release exists.
 
+## Owner-run GUI feedback — October 18, 2026
+
+The owner reports two draws against Gargantua 2.1 with no engine errors or
+disconnections. Intended snapshot: `0.1-dev-phase3f-20261017`; actual executable
+identity and UCI options were not captured. The [review](reports/2026-10-18-cutechess.md)
+preserves the supplied partial 180+2 PGN byte for byte. `chess==1.11.2` accepted
+all 121 plies / 122 positions, and the preserved Phase 3F executable's legal
+root sets and all depth-2 divide branches matched at every saved position.
+
+The PGN ends unfinished at 61.Nc3. The tournament summary records user-adjudicated
+and insufficient-material draws; it cannot map them to individual games or
+verify the owner's described fifty-move ending. Rounded thinking times support
+early clock depletion, not a proven deadline overrun. No NNUE oracle rerun,
+timed search, rebuild, strength match, or new schedule was performed. The review's
+local script initially failed on an integrity-record field name after move
+checks; its corrected rerun passed. Both GUI binaries and all Phase 3G source
+and artifact pins remain unchanged. This is exploratory feedback, not strength
+qualification; Phase 3G is still unstarted.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;
