@@ -200,7 +200,8 @@ def verify_unchanged(profile, report, specs, settings):
     return current
 
 
-async def run(profile, output, allow_daytime=False, *, preflight, request, clock, window):
+async def run(profile, output, allow_daytime=False, *, preflight, request, clock, window,
+              run_guard=None, fail_fast=False, manage_deadline=True):
     """Run once with deadline cancellation; match.py owns process cleanup/PGNs."""
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -216,7 +217,10 @@ async def run(profile, output, allow_daytime=False, *, preflight, request, clock
     policy.update(cutoff_local=initial_policy["cutoff_local"], cutoff_utc=initial_policy["cutoff_utc"],
                   remaining_seconds=remaining)
     specs, settings = request()
-    verify_unchanged(profile, report, specs, settings)
+    if run_guard is None:
+        verify_unchanged(profile, report, specs, settings)
+    else:
+        await asyncio.to_thread(verify_unchanged, profile, report, specs, settings)
     match.resource_check(settings, specs)
     output.mkdir(parents=True, exist_ok=False)
     protocol_source = profile.root / profile.protocol_document
@@ -236,8 +240,16 @@ async def run(profile, output, allow_daytime=False, *, preflight, request, clock
         remaining = (datetime.fromisoformat(policy["cutoff_utc"]) - clock()).total_seconds()
         if remaining <= 0:
             raise asyncio.TimeoutError("The overnight window ended before match startup")
-        result = await asyncio.wait_for(match.run_match(
-            specs, settings, profile.frozen["openings"][0], output / "match", profile.pairs, profile.seed), remaining)
+        hooks = {}
+        if run_guard is not None:
+            hooks["before_game"] = run_guard
+        if fail_fast:
+            hooks["fail_fast"] = True
+        running = match.run_match(specs, settings, profile.frozen["openings"][0],
+                                  output / "match", profile.pairs, profile.seed, **hooks)
+        # A coordinated supervisor owns its one shared deadline and cancels
+        # each child only once, allowing every cleanup finally block to finish.
+        result = await asyncio.wait_for(running, remaining) if manage_deadline else await running
         if not result.get("experiment_complete"):
             raise ValueError("The fixed qualification sample did not complete")
         report.update(status="finished", match_summary=result)
@@ -252,7 +264,9 @@ async def run(profile, output, allow_daytime=False, *, preflight, request, clock
         raise
     finally:
         try:
-            report["integrity_after"] = verify_unchanged(profile, report, specs, settings)
+            report["integrity_after"] = (verify_unchanged(profile, report, specs, settings)
+                                         if run_guard is None else await asyncio.to_thread(
+                                             verify_unchanged, profile, report, specs, settings))
         except (ValueError, OSError) as error:
             report.update(status="invalidated", integrity_after={"unchanged": False, "error": str(error)})
             raise

@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/mai
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification test-phase3g verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -177,11 +177,16 @@ test-profile-cpu:
 	$(PYTHON) tests/profile_cpu_test.py
 
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
-test-qualification:
+test-qualification: test-phase3g
 	$(PYTHON) tests/qualify_time_policy_test.py
 	$(PYTHON) tests/audit_time_policy_test.py
 	$(PYTHON) tests/qualify_lmr_test.py
 	$(PYTHON) tests/audit_lmr_test.py
+
+test-phase3g:
+	$(PYTHON) tests/phase3g_openings_test.py
+	$(PYTHON) tests/qualify_phase3g_test.py
+	$(PYTHON) tests/audit_phase3g_test.py
 
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
@@ -199,7 +204,8 @@ help:
 	@echo 'make MODE=sanitize test   Address/undefined-behavior checks'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
-	@echo 'make test-qualification Test fixed Phase 2D launcher and evidence audit'
+	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'
+	@echo 'make test-phase3g      Test fresh openings, coordinated launcher, and aggregate audit'
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
 	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'

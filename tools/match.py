@@ -267,6 +267,7 @@ class RecordingProtocol(chess.engine.UciProtocol):
         self.bestmove_ns = None
         self.go_started = asyncio.Event()
         self.errors = []
+        self.stderr_seen = False
 
     def record(self, direction, line, stamp):
         self.log.write(json.dumps({"monotonic_ns": stamp, "engine": self.role,
@@ -290,6 +291,7 @@ class RecordingProtocol(chess.engine.UciProtocol):
         super()._line_received(line)
 
     def error_line_received(self, line):
+        self.stderr_seen = True
         self.record("stderr", line, time.monotonic_ns())
 
 
@@ -332,17 +334,40 @@ async def start_engine(spec, settings, log):
         raise
 
 
-async def close_engine(transport, protocol):
+async def finish_cleanup(coroutine):
+    """Finish bounded subprocess cleanup, then propagate any late cancellation.
+
+    Cancellation during a normal game's quit must never disappear and permit
+    another game to start. Shield a separate task so repeated cancellation also
+    cannot strand the second resident engine or interrupt evidence persistence.
+    """
+    task = asyncio.create_task(coroutine)
+    cancelled = False
     try:
-        await asyncio.wait_for(protocol.quit(), 1.0)
-    except (Exception, asyncio.CancelledError):
-        transport.close()
+        while not task.done():
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                cancelled = True
+        return task.result()
     finally:
-        transport.close()
+        if cancelled:
+            raise asyncio.CancelledError
+
+
+async def close_engine(transport, protocol):
+    async def close():
         try:
-            await asyncio.wait_for(asyncio.shield(protocol.returncode), 1.0)
-        except (Exception, asyncio.CancelledError):
-            pass
+            await asyncio.wait_for(protocol.quit(), 1.0)
+        except Exception:
+            transport.close()
+        finally:
+            transport.close()
+            try:
+                await asyncio.wait_for(asyncio.shield(protocol.returncode), 1.0)
+            except Exception:
+                pass
+    await finish_cleanup(close())
 
 
 async def timed_play(protocol, board, limit, game_id, remaining, settings):
@@ -486,17 +511,27 @@ async def play_game(specs, settings, opening, pair_id, game_id, candidate_color,
             record.update(status="setup_failure" if stage == "setup" else "protocol_failure",
                           termination="engine_setup" if stage == "setup" else "runner_error", error=str(error))
         finally:
-            for transport, protocol in running.values():
-                await close_engine(transport, protocol)
+            async def close_all():
+                for transport, protocol in running.values():
+                    await close_engine(transport, protocol)
+            cleanup_cancelled = False
+            try:
+                await finish_cleanup(close_all())
+            except asyncio.CancelledError:
+                cleanup_cancelled = True
             record.update(finished_utc=utc_now(), final_fen=board.fen(),
                           candidate_score=candidate_score(record["result"], candidate_color),
                           clocks={"white": clocks[chess.WHITE], "black": clocks[chess.BLACK]})
+            if any(getattr(protocol, "stderr_seen", False) for _, protocol in running.values()):
+                record["unexpected_stderr"] = True
             game.headers["Result"] = record["result"]
             game.headers["Termination"] = record["termination"]
             node.comment = (node.comment + " " + record["status"] + ": " + record["termination"]).strip()
             (output / record["pgn"]).write_text(str(game) + "\n\n", encoding="utf-8")
             log.flush()
             append_record(record)
+            if cleanup_cancelled:
+                raise asyncio.CancelledError
     return record
 
 
@@ -517,7 +552,14 @@ def summary(plan, records, complete, smoke):
     return result
 
 
-async def run_match(specs, settings, suite_path, output, pairs, seed):
+async def run_match(specs, settings, suite_path, output, pairs, seed, *, before_game=None, fail_fast=False):
+    """Run the fixed schedule, optionally under an aggregate campaign guard.
+
+    The async guard receives the next game ID before any engine is started.
+    Existing standalone protocols retain their historical continue-and-record
+    behavior; coordinated campaigns may stop after a recorded invalid game.
+    A completed clock forfeit is a valid scored result, never an invalid game.
+    """
     settings.validate()
     if chess.__version__ != SUPPORTED_CHESS_VERSION:
         raise ValueError(f"This runner is verified with chess=={SUPPORTED_CHESS_VERSION}; installed {chess.__version__}")
@@ -526,7 +568,16 @@ async def run_match(specs, settings, suite_path, output, pairs, seed):
     plan = plan_pairs(openings, pairs, seed)
     if output.exists() and any(output.iterdir()):
         raise ValueError("Output directory must be new or empty; existing results are never overwritten")
-    frozen = {spec.role: spec.artifacts() for spec in specs}
+    def artifact_snapshot():
+        return {spec.role: spec.artifacts() for spec in specs}
+
+    # Coordinated matches share an event loop with other live chess clocks.
+    # Stream large network hashes in a worker thread so their UCI pipes remain
+    # responsive. Standalone historical runs keep the same execution path.
+    async def artifacts():
+        return await asyncio.to_thread(artifact_snapshot) if before_game is not None else artifact_snapshot()
+
+    frozen = await artifacts()
     resource_check(settings, specs)
     output.mkdir(parents=True, exist_ok=True)
     (output / "openings.json").write_bytes(suite_contents)
@@ -556,9 +607,14 @@ async def run_match(specs, settings, suite_path, output, pairs, seed):
                             "truncation": "excluded, never scored as a draw", "evaluation_adjudication": False,
                             "process_cleanup": "Direct engine subprocess; executable wrappers must exec their engine, not leave child processes."},
                 "interpretation": "Fixed-sample paired comparison; no universal or absolute Elo claim."}
-    for key, command in (("runner_checkout_commit", ["git", "rev-parse", "HEAD"]), ("runner_checkout_status", ["git", "status", "--porcelain"])):
-        git = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, check=False)
-        manifest[key] = git.stdout.strip() if git.returncode == 0 else None
+    def checkout_metadata():
+        result = {}
+        for key, command in (("runner_checkout_commit", ["git", "rev-parse", "HEAD"]),
+                             ("runner_checkout_status", ["git", "status", "--porcelain"])):
+            git = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, check=False)
+            result[key] = git.stdout.strip() if git.returncode == 0 else None
+        return result
+    manifest.update(await asyncio.to_thread(checkout_metadata) if before_game is not None else checkout_metadata())
     atomic_json(output / "run.json", manifest)
     records = []
     with (output / "games.jsonl").open("w", encoding="utf-8") as journal:
@@ -572,18 +628,21 @@ async def run_match(specs, settings, suite_path, output, pairs, seed):
             for pair in plan:
                 first = pair["first_candidate_color"]
                 for leg, color in enumerate((first, "black" if first == "white" else "white"), start=1):
-                    policy = resource_check(settings, specs)
-                    for spec in specs:
-                        if spec.artifacts() != frozen[spec.role]:
-                            raise ValueError(f"Frozen {spec.role} executable/network/script changed during the experiment")
                     game_id = f"{pair['pair_id']}-{leg}"
-                    await play_game(specs, settings, pair["opening"], pair["pair_id"], game_id,
-                                    color, policy, output, append_record)
+                    if before_game is not None:
+                        await before_game(game_id)
+                    policy = resource_check(settings, specs)
+                    if await artifacts() != frozen:
+                        raise ValueError("Frozen executable/network/script changed during the experiment")
+                    record = await play_game(specs, settings, pair["opening"], pair["pair_id"], game_id,
+                                             color, policy, output, append_record)
+                    if fail_fast and (record["status"] != "complete" or record.get("unexpected_stderr")):
+                        reason = "unexpected engine stderr" if record.get("unexpected_stderr") else record["termination"]
+                        raise ValueError(f"Invalid game {game_id}: {record['status']}: {reason}")
             # A modification during the last game must not escape the next-game
             # checks merely because the predeclared schedule has just ended.
-            for spec in specs:
-                if spec.artifacts() != frozen[spec.role]:
-                    raise ValueError(f"Frozen {spec.role} executable/network/script changed during the experiment")
+            if await artifacts() != frozen:
+                raise ValueError("Frozen executable/network/script changed during the experiment")
             manifest["status"] = "finished"
         except BaseException as error:
             manifest.update(status="interrupted", error=f"{type(error).__name__}: {error}")
