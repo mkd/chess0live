@@ -254,11 +254,12 @@ def resource_check(settings, specs):
 
 
 class RecordingProtocol(chess.engine.UciProtocol):
-    """Timestamp actual protocol clock boundaries and preserve every raw line.
+    """Timestamp protocol callback boundaries and preserve every raw line.
 
-    The incoming-line hook is version-pinned and covered by subprocess tests.
+    The incoming parser is version-pinned and covered by boundary tests.
     Unlike timing an entire play() call, these boundaries exclude its new-game
-    readiness handshake. Host transport/scheduling latency remains charged.
+    readiness handshake. Receipt is a Python callback observation, not kernel
+    arrival; host transport/scheduling latency still remains charged.
     """
     def __init__(self, role, log):
         super().__init__()
@@ -268,6 +269,7 @@ class RecordingProtocol(chess.engine.UciProtocol):
         self.go_started = asyncio.Event()
         self.errors = []
         self.stderr_seen = False
+        self._received_lines = None
 
     def record(self, direction, line, stamp):
         self.log.write(json.dumps({"monotonic_ns": stamp, "engine": self.role,
@@ -281,18 +283,54 @@ class RecordingProtocol(chess.engine.UciProtocol):
         super().send_line(line)
         self.record("to_engine", line, stamp)
 
-    def _line_received(self, line):
+    def pipe_data_received(self, fd, data):
+        """Stamp all completed lines before logging or parsing can delay them.
+
+        Let python-chess retain ownership of byte buffering, UTF-8 decoding, and
+        CRLF handling. A partial line takes the callback time that completes its
+        newline. Pre-record the entire completed batch before dispatch: parsing
+        readyok can synchronously send position/go, which must follow the input
+        bytes already received. Equal receipt timestamps are intentionally valid.
+        This excludes processing within this callback, not earlier loop stalls.
+        """
         stamp = time.monotonic_ns()
+        lines = []
+        self._received_lines = lines
+        try:
+            super().pipe_data_received(fd, data)
+        finally:
+            self._received_lines = None
+        for direction, line in lines:
+            self.record(direction, line, stamp)
+        for direction, line in lines:
+            self._dispatch_received(direction, line, stamp)
+
+    def _dispatch_received(self, direction, line, stamp):
+        """Process an already-recorded complete line at its receipt boundary."""
+        if direction == "stderr":
+            self.stderr_seen = True
+            return
         if line.startswith("bestmove "):
             self.bestmove_ns = stamp
         if line.lower().startswith(("info string error:", "info string search error:")):
             self.errors.append(line)
-        self.record("from_engine", line, stamp)
         super()._line_received(line)
 
+    def _line_received(self, line):
+        if self._received_lines is not None:
+            self._received_lines.append(("from_engine", line))
+            return
+        stamp = time.monotonic_ns()
+        self.record("from_engine", line, stamp)
+        self._dispatch_received("from_engine", line, stamp)
+
     def error_line_received(self, line):
-        self.stderr_seen = True
-        self.record("stderr", line, time.monotonic_ns())
+        if self._received_lines is not None:
+            self._received_lines.append(("stderr", line))
+            return
+        stamp = time.monotonic_ns()
+        self.record("stderr", line, stamp)
+        self._dispatch_received("stderr", line, stamp)
 
 
 async def start_engine(spec, settings, log):
@@ -602,7 +640,7 @@ async def run_match(specs, settings, suite_path, output, pairs, seed, *, before_
                           "moves": [move.uci() for move in pair["opening"].board.move_stack],
                           "first_candidate_color": pair["first_candidate_color"]} for pair in plan],
                 "referee": {"draw_claims": "automatic when available to side to move",
-                            "clock": "monotonic outgoing go to incoming bestmove; transport latency charged",
+                            "clock": "monotonic outgoing go to callback receipt completing bestmove; transport/scheduling latency charged, within-callback processing excluded",
                             "flag_fall_material": "python-chess has_insufficient_material(winner); conservative, not full helpmate proof",
                             "truncation": "excluded, never scored as a draw", "evaluation_adjudication": False,
                             "process_cleanup": "Direct engine subprocess; executable wrappers must exec their engine, not leave child processes."},

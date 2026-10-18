@@ -133,14 +133,17 @@ development and validation opening fixtures are included. `make test-match`
 checks the runner; `make verify-moves` independently compares legal moves and
 perft against the same optional referee library. These tools do not add a
 Python dependency to the engine itself.
-The [fixed Phase 2D workflow](docs/PHASE_2D.md) adds pinned preflight, a wall-clock
-cutoff, and an independent evidence audit; `make test-qualification` checks it.
-The [LMR protocol](docs/PHASE_2D_LMR.md) uses the same lifecycle with independently
-pinned audit expectations. Both historical Phase 2D campaigns are complete;
-do not rerun them as fresh validation. The new [Phase 3G plan](docs/PHASE_3G.md)
-prepares a separate comparison on the current engine with original fresh roots.
-Its manual launch window is 23:00–23:15 Helsinki, after GUI games have stopped,
-with a shared 07:00 cutoff. Preparing the tools creates no scheduled job.
+The qualification workflows add pinned preflight, a wall-clock cutoff, and an
+independent evidence audit; `make test-qualification test-phase3g` checks them.
+Recorded campaigns are completed evidence: do not resume or rerun their exposed
+openings as fresh validation. Prepare a new protocol before another campaign;
+the [match guide](docs/MATCHES.md) explains resource and evidence requirements.
+Preparing the tools creates no scheduled job.
+
+`make test-clock-probes` checks saved-position and response-timing diagnostics.
+The [receipt diagnostic guide](docs/MATCHES.md#response-timing-diagnostics)
+explains how to distinguish consumer delay from observed engine response time.
+Its process-pause control requires POSIX signals; it does not change engine play.
 
 For changes intended to preserve search behavior, use the
 [performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline

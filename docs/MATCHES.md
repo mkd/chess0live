@@ -79,8 +79,12 @@ fixtures; they are not a calibrated rating pool or broad opening database.
 
 Keep the JSON records and PGNs together. The record identifies binaries,
 networks, inputs, options, seed, clocks, platform, and resource policy. Clock
-time runs from the outgoing UCI `go` to the incoming `bestmove`, including
-communication overhead. Readiness and new-game preparation occur before the
+time runs from outgoing UCI `go` to the callback receiving the bytes that complete
+`bestmove`, including communication and scheduling overhead. All complete lines
+in a delivered batch share its timestamp, before logging or dispatch; a partial
+line takes the timestamp of the callback supplying its newline. This is a Python
+callback observation, not kernel arrival. Logging or scheduling delays before a
+later callback still count. Readiness and new-game preparation occur before the
 clock starts. Increment is credited after a move that completes within its clock.
 
 `run.json` freezes the configuration; `games.jsonl` records finished or interrupted
@@ -135,10 +139,10 @@ and pair statistics. It applies the predeclared decision without changing engine
 defaults. `make test-qualification` tests both tools using bounded synthetic and
 fake-process fixtures. See the campaign protocol for exact commands and limits.
 
-### Fresh Phase 3G screen
+### Completed Phase 3G screen
 
-Both Phase 2D campaigns are completed, exposed evidence. The new
-[Phase 3G protocol](PHASE_3G.md) prepares 256 fresh opening pairs / 512 games
+Both Phase 2D campaigns and Phase 3G are completed, exposed evidence. The
+[Phase 3G protocol](PHASE_3G.md) recorded 256 opening pairs / 512 games
 using the retained Phase 3F executable in both roles, changing only LMR.
 `tools/qualify_phase3g.py check` validates inputs and UCI readiness without
 searching an opening. `run --output NEW_DIRECTORY` starts four coordinated
@@ -161,7 +165,41 @@ replacement game, or automatic default promotion is supported. Use
 `make test-phase3g` for the opening, lifecycle, and aggregate-auditor tests;
 `make test-qualification` also includes the historical qualification checks.
 
-### General baseline guidance
+## Response-timing diagnostics
+
+Install `requirements-match.txt`, then run `make test-clock-probes` to check
+the diagnostic tools. `tools/probe_clocks.py` replays the saved clock-loss
+histories with fresh state; `tools/probe_receipt.py` separates receipt in a
+reader thread from later consumption by the caller:
+
+```sh
+python3 tools/probe_receipt.py \
+  --engine build/macos-arm64-generic-release/chess0live \
+  --network networks/nn-1a298aa575a0.nnue \
+  --output results/receipt-diagnostic-new.jsonl
+```
+
+The receipt diagnostic runs a fixed 12-search matrix, sequentially, with
+readiness before each 620 ms movetime request. It compares normal consumption,
+an intentional 900 ms consumer sleep, and an intentional engine-process pause
+around 400–900 ms. Both LMR settings are tested twice. The pause control requires
+POSIX signals and resumes only the child it owns, including on interruption.
+Intentional late replies demonstrate measurement boundaries, not match losses.
+This is not a strength test or an engine feature.
+
+The tool records legal PV/bestmove checks, input hashes, resource policy, and
+protocol observations. Output must be a new filename; failures are retained
+without retry/resumption. The reader is a thread in the same Python process:
+consumer sleep can be separated, but a whole-process or interpreter-lock stall
+can affect both. Reader-minus-internal time combines request transport,
+post-search/output work, and reader delay; it does not isolate network latency.
+
+The [clock-accounting report](reports/2026-10-18-phase3h-clocks.md) and
+[receipt-timing report](reports/2026-10-18-phase3i-receipt.md) document the observed
+limits. Historical campaign logs and outcomes remain unchanged; use a fresh
+declared protocol and inputs for future qualification.
+
+## General baseline guidance
 
 Preserve a known binary outside the rebuild directory, together with its source
 revision, compiler/flags, and network digest. Compare a changed candidate

@@ -52,6 +52,9 @@ release numbers; detailed measurements live in the linked experiment records.
   checks; normal resource limits, fixed samples, and cancellation rules remain.
 - Added saved-position clock diagnostics with both LMR modes, legal-PV checks,
   and preserved command/response timestamps for investigating late moves.
+- Fixed match-clock measurements so logging cannot charge extra time to moves
+  already received in the same input batch. Added controlled receipt-delay
+  diagnostics; historical match results and engine playing behavior are unchanged.
 - Added GPL-3.0-or-later licensing, architecture and handover documentation,
   a development roadmap, and local resource controls with manual overrides.
 

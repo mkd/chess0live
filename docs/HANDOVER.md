@@ -348,12 +348,37 @@ Do not claim all clock losses fixed or reinterpret Phase 3G as qualifying LMR.
 Both original GUI bundles remain unchanged. The normal build contains the repair;
 a frozen copy is at `build/experiments/phase3h-20261018/chess0live`.
 
-**Phase 3I is next:** separate scheduling/receiver stalls from engine work and
-investigate short-clock resilience. Any reserve/allocation experiment needs a
-new bounded hypothesis and relevant evidence; fresh strength confirmation is
-still deferred. No new match or schedule is active. Raw diagnosis, controls,
+Any reserve/allocation experiment needs a new bounded hypothesis and relevant
+evidence; fresh strength confirmation is still deferred. Raw diagnosis, controls,
 native/scalar/sanitizer logs, probes, and final integrity are retained under
 `results/phase3h-20261018/`; the report documents exact scope and hashes.
+
+**Phase 3I is complete.** Read the [plan](PHASE_3I.md) and
+[receipt report](reports/2026-10-18-phase3i-receipt.md). `RecordingProtocol`
+timestamps each input callback once, lets the pinned parser collect complete
+lines, records the entire batch, then dispatches in original order. This removes
+reproduced same-batch logging bias without backward timestamps on reentrant
+`readyok` commands. A split line uses its terminating-newline callback; equal
+timestamps remain audit-valid. Receipt is not kernel arrival, and earlier
+event-loop stalls are still charged. Do not rewrite old logs or outcomes.
+
+All 212 match/qualification/audit/diagnostic checks passed. The new POSIX
+`tools/probe_receipt.py` completed its fixed 12-search control matrix: ordinary
+replies were on time, a sleeping consumer was late despite on-time reader
+receipt, and intentionally paused engines were late internally and externally.
+All moves/PVs were independently legal. It uses a same-process reader thread,
+not an independent observer; see its limitations before interpreting residuals.
+Raw evidence and the frozen pre-probe plan are in `results/phase3i-20261018/`.
+Engine sources and the final Phase 3H binary are unchanged; no rebuild or new
+full engine/oracle suite is claimed. README introduction and GUI bundles remain.
+
+**Phase 3J is next:** move synchronous match persistence outside active clocks,
+using bounded buffering or a bounded writer queue with explicit overflow/disk
+failure handling. Test slow writes across separate callbacks and evidence
+ordering, then a small declared operational check can gate fresh strength work.
+Do not add timing knobs or demand immunity to arbitrary host suspension. No new
+match or schedule is active; LMR, timing policy, ordering, and overhead defaults
+are unchanged. The owner can push the local tested commit; no GUI retest is needed.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner

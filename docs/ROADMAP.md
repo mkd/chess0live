@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3H accounting repair validated; latency diagnosis remains
+## Current checkpoint: Phase 3I receipt fix validated; match I/O isolation next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -29,7 +29,8 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3F | Profile the updated engine and implement one justified NNUE improvement | Complete and retained: all 576 searches exact/legal; all three game-phase performance gates passed |
 | 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Complete and audited: 225W/155D/132L (59.08%); six candidate clock forfeits trigger the operational-regression gate, so LMR stays off |
 | 3H | Diagnose clock overruns, reproduce a defect, and validate a bounded repair | Complete bounded checkpoint: command-time accounting fixed; native/scalar/sanitizer and 52 clock probes passed; most historical flagfalls remain unexplained |
-| 3I | Investigate short-clock resilience under scheduling and transport delays | Next: separate host/receiver stalls from engine work before declaring clock reliability or preparing fresh LMR confirmation |
+| 3I | Investigate short-clock resilience under scheduling and transport delays | Complete: same-batch match logging bias reproduced and fixed; 212 checks and 12 diagnostic controls passed; engine and historical results unchanged |
+| 3J | Isolate match persistence from active protocol clocks | Next: bounded buffering, slow-writer/failure tests, then a small predeclared operational check before fresh strength qualification |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -167,12 +168,20 @@ One historical case is consistent with the repaired gap; the other 12 remain
 unexplained by available timestamps. An artificial process pause demonstrated
 that command accounting cannot prevent a loss when the host suspends the engine.
 
-**Phase 3I is next:** investigate scheduling/receiver stalls and short-clock
-resilience under controlled conditions before another strength campaign.
-Reserve/allocation changes need their own evidence, not tuning until these 13
-cases pass. These openings are exposed diagnostics, not fresh confirmation.
-No new match or schedule is active; no additional GUI tournament is required.
-Both stable GUI bundles remain preserved, and Phase 3G's decision is unchanged.
+**Phase 3I is complete.** The [report](reports/2026-10-18-phase3i-receipt.md)
+records a deterministic match-runner defect: slow logging inflated time charged
+to a bestmove already received in the same input batch. Callback-entry timing
+fixes it while preserving parser and audit behavior. All 212 workflow checks
+passed. Twelve live controls distinguished consumer-only sleep from engine
+suspension; no historical clock loss is reclassified. Engine code is unchanged.
+
+**Phase 3J is next:** remove synchronous persistence from active protocol clocks
+with bounded buffering and explicit error handling. Test slow writes across
+separate callbacks, then use a small declared operational check before fresh
+strength qualification. This is not a requirement to eliminate arbitrary OS
+suspension. Reserve/allocation changes still need their own evidence. No new
+match or schedule is active, and no additional GUI tournament is required.
+Both stable GUI bundles remain preserved; Phase 3G's decision and defaults stand.
 
 LMR confirmation and forecast/SEE qualification remain deferred, not passed.
 Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel

@@ -73,6 +73,140 @@ for line in sys.stdin:
 '''
 
 
+class ProtocolClockTests(unittest.IsolatedAsyncioTestCase):
+    """Exercise real byte parsing with virtual time, without a child process."""
+
+    def protocol(self, *, delayed_line=None):
+        self.now = 1_000_000_000
+
+        class DelayedLog(io.StringIO):
+            def write(log, text):
+                result = super().write(text)
+                if delayed_line is not None and delayed_line in text:
+                    self.now += 200_000_000
+                return result
+
+        self.log = DelayedLog()
+        self.engine = match.RecordingProtocol("candidate", self.log)
+        self.parsed = []
+        self.engine.line_received = self.parsed.append
+        return self.engine
+
+    def records(self):
+        return [json.loads(line) for line in self.log.getvalue().splitlines()]
+
+    async def test_slow_info_logging_does_not_flag_bestmove_in_same_batch(self):
+        engine = self.protocol(delayed_line="info depth 1")
+        engine.go_ns = 950_000_000
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(1, b"info depth 1 time 50 nodes 1 pv e2e4\nbestmove e2e4\n")
+        self.assertEqual(self.now, 1_200_000_000)
+        self.assertEqual(engine.bestmove_ns - engine.go_ns, 50_000_000)
+        self.assertLess(engine.bestmove_ns - engine.go_ns, 100_000_000)
+        self.assertEqual([event["monotonic_ns"] for event in self.records()],
+                         [1_000_000_000, 1_000_000_000])
+        self.assertEqual(self.parsed, ["info depth 1 time 50 nodes 1 pv e2e4", "bestmove e2e4"])
+
+    async def test_partial_line_uses_callback_completing_newline(self):
+        engine = self.protocol()
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(1, b"bestmove e2")
+            self.assertIsNone(engine.bestmove_ns)
+            self.assertEqual(self.records(), [])
+            self.now = 1_020_000_000
+            engine.pipe_data_received(1, b"e4")
+            self.assertIsNone(engine.bestmove_ns)
+            self.now = 1_030_000_000
+            engine.pipe_data_received(1, b"\r\n")
+        self.assertEqual(engine.bestmove_ns, 1_030_000_000)
+        self.assertEqual(self.parsed, ["bestmove e2e4"])
+
+    async def test_reentrant_readyok_commands_follow_already_received_batch(self):
+        engine = self.protocol(delayed_line="readyok")
+        writes = []
+
+        class Transport:
+            def get_pipe_transport(self, fd):
+                self.fd = fd
+                return self
+
+            def write(self, data):
+                writes.append(data)
+
+        engine.transport = Transport()
+
+        def receive(line):
+            self.parsed.append(line)
+            if line == "readyok":
+                engine.send_line("position startpos")
+                engine.send_line("go wtime 100 btime 100")
+
+        engine.line_received = receive
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(1, b"readyok\ninfo string ready\n")
+        events = self.records()
+        self.assertEqual([event["line"] for event in events],
+                         ["readyok", "info string ready", "position startpos", "go wtime 100 btime 100"])
+        stamps = [event["monotonic_ns"] for event in events]
+        self.assertEqual(stamps, sorted(stamps))
+        self.assertEqual(stamps[:2], [1_000_000_000, 1_000_000_000])
+        self.assertEqual(engine.go_ns, 1_200_000_000)
+        self.assertEqual(writes, [b"position startpos\n", b"go wtime 100 btime 100\n"])
+        self.assertEqual(self.parsed, ["readyok", "info string ready"])
+
+    async def test_stderr_batch_is_separate_and_preserves_error_detection(self):
+        engine = self.protocol(delayed_line="warning one")
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(2, b"warning one\r\nwarning two\n")
+            engine.pipe_data_received(1, b"info string error: invalid input\n")
+        events = self.records()
+        self.assertTrue(engine.stderr_seen)
+        self.assertEqual([event["direction"] for event in events], ["stderr", "stderr", "from_engine"])
+        self.assertEqual([event["monotonic_ns"] for event in events],
+                         [1_000_000_000, 1_000_000_000, 1_200_000_000])
+        self.assertEqual(engine.errors, ["info string error: invalid input"])
+        self.assertEqual(self.parsed, ["info string error: invalid input"])
+
+    async def test_utf8_and_crlf_still_use_upstream_buffering(self):
+        engine = self.protocol()
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(1, b"info string caf\xc3")
+            self.now += 10_000_000
+            engine.pipe_data_received(1, b"\xa9\r\nbestmove e2e4\r\n")
+        self.assertEqual(self.parsed, ["info string caf\u00e9", "bestmove e2e4"])
+        self.assertEqual([event["monotonic_ns"] for event in self.records()],
+                         [1_010_000_000, 1_010_000_000])
+
+    async def test_parser_exception_clears_capture_state(self):
+        engine = self.protocol()
+        with patch.object(chess.engine.UciProtocol, "pipe_data_received", side_effect=ValueError("parser failure")):
+            with self.assertRaisesRegex(ValueError, "parser failure"):
+                engine.pipe_data_received(1, b"info string failed\n")
+        self.assertIsNone(engine._received_lines)
+        with patch.object(match.time, "monotonic_ns", return_value=2_000_000_000):
+            engine._line_received("bestmove e2e4")
+        self.assertEqual(engine.bestmove_ns, 2_000_000_000)
+        self.assertEqual(self.parsed, ["bestmove e2e4"])
+
+    async def test_invalid_utf8_does_not_poison_following_complete_line(self):
+        engine = self.protocol()
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            with self.assertLogs("chess.engine", level="WARNING"):
+                engine.pipe_data_received(1, b"\xff\nbestmove e2e4\n")
+        self.assertIsNone(engine._received_lines)
+        self.assertEqual(engine.bestmove_ns, 1_000_000_000)
+        self.assertEqual(self.parsed, ["bestmove e2e4"])
+        self.assertEqual([event["line"] for event in self.records()], ["bestmove e2e4"])
+
+    async def test_actual_late_callback_still_expires_clock(self):
+        engine = self.protocol()
+        engine.go_ns = 800_000_000
+        with patch.object(match.time, "monotonic_ns", side_effect=lambda: self.now):
+            engine.pipe_data_received(1, b"bestmove e2e4\n")
+        self.assertEqual(engine.bestmove_ns - engine.go_ns, 200_000_000)
+        self.assertGreater(engine.bestmove_ns - engine.go_ns, 100_000_000)
+
+
 class MatchTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="chess0live-match-test-")

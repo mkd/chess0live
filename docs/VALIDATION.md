@@ -634,6 +634,32 @@ were preserved. See [the result report](reports/2026-10-18-phase3h-clocks.md) fo
 source provenance, limited causal findings, artificial suspension control,
 commands, and evidence hashes. Phase 3G's operational decision remains unchanged.
 
+## Phase 3I callback receipt — October 18, 2026
+
+The match runner previously timestamped each line after logging earlier lines
+in the same callback. The deterministic pre-fix reproduction charged 250 ms to
+a reply already received at 50 ms, falsely exceeding a 100 ms clock. The retained
+fix timestamps complete batches before logging/dispatch, preserves the pinned
+parser, and avoids reentrant-command timestamp inversion. Eight focused tests
+cover slow logging, split/UTF-8/CRLF input, errors, cleanup, and genuinely late
+callbacks. `make test-match test-qualification test-phase3g test-clock-probes`
+passed all 212 checks, including eight tests for the new receipt-control tool.
+
+All 12 prescribed live controls completed on the unchanged Phase 3H executable.
+Four normal requests were on time; four consumer-sleep requests reached the
+reader on time but were consumed late; four deliberate engine pauses produced
+late internal and external observations. Independent replay validated 12 bestmoves,
+12 ponders, and 76 PV lines / 320 plies; input hashes and resource policy matched.
+These are controlled mechanisms, not a clean operational match or proof of
+historical causation. The reader is a thread in the same process, and timestamps
+do not identify kernel arrival. The [report](reports/2026-10-18-phase3i-receipt.md)
+records exact timings, source pins, limitations, and preserved raw evidence.
+
+No engine source/default changed or engine rebuild occurred, so no new full
+native/scalar/sanitizer or NNUE oracle run is claimed. Both stable GUI bundles,
+the normal release binary, and the README introduction are unchanged. Phase 3G
+retains every original flagfall and its operational-regression decision.
+
 ## Owner-run GUI feedback — October 18, 2026
 
 The owner reports two draws against Gargantua 2.1 with no engine errors or

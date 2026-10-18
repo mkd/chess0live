@@ -170,6 +170,7 @@ test-profile:
 # Optional saved-position clock diagnostics; requires requirements-match.txt.
 test-clock-probes:
 	$(PYTHON) tests/probe_clocks_test.py
+	$(PYTHON) tests/probe_receipt_test.py
 
 test-profile-lmr:
 	$(PYTHON) tests/profile_lmr_test.py
