@@ -58,7 +58,8 @@ and includes only completed root subtrees. Move counting needs no network.
 Legacy synchronous `perft N` and `divide N` remain available. Diagnostic depths
 are 0–16; high depths can take a very long time. New console output uses UCI
 `info string` lines. Enter `quit` to exit. These commands do not add variants or
-an interactive SAN mode.
+an interactive SAN mode. Board, evaluation, and help commands stop any active
+search before printing.
 
 For manual puzzle testing, paste a FEN with an optional `bm` answer annotation:
 

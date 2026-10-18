@@ -138,9 +138,9 @@ Elo gain. See the [Phase 3F report](reports/2026-10-17-phase3f-dense.md).
 For any further optional Phase 3F check, play two **3+2** games against Gargantua,
 reversing colors. Give both engines Threads 1, Hash 64 MB, and Ponder false.
 Save the PGNs and label feedback **`0.1-dev-phase3f-20261017`**. This is an
-integration check, not a strength estimate. Phase 3G preparation is complete;
-its controlled overnight match must wait until GUI games and other heavy work
-have stopped. The GUI copy keeps LMR off. The October 18 feedback is sufficient
+integration check, not a strength estimate. The recorded Phase 3G comparison is
+complete; future campaigns follow the current [roadmap](ROADMAP.md) and must wait
+until GUI games and other heavy work have stopped. The GUI copy keeps LMR off. The October 18 feedback is sufficient
 for this initial integration check; no additional manual tournament is required.
 
 The original `0.1-dev-4b8b35d` bundle passed a UCI handshake, evaluation, and legal

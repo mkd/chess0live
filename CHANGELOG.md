@@ -44,6 +44,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Validated console diagnostics against an independent chess referee and passed
+  a fresh four-game match-runner completion check with no clock, protocol, or
+  storage failures. This is operational evidence, not a strength result.
 - Moved match logging and result-file writes outside active protocol handling.
   Bounded buffers and explicit storage-failure handling prevent slow writes from
   blocking other games' response callbacks or silently discarding evidence.

@@ -797,5 +797,18 @@ and raw evaluation across the frozen previous binary, new binary, and new binary
 after display/perft commands, with LMR off and on. No speed or strength claim
 follows. Native executable SHA-256:
 `5063b483406d5b8061db330b070962e1665c196870c9a7968a18752432f3894f`.
-Raw checks and suite logs are in `results/phase3k-20261018/`. The separately
-predeclared operational screen in [Phase 3K](PHASE_3K.md) is still pending.
+Raw checks and suite logs are in `results/phase3k-20261018/`. A separate startpos
+`go perft 5` example returned 4,865,609 nodes with all 20 root rows.
+
+The predeclared [Phase 3K](PHASE_3K.md) operational screen passed its first
+independent audit: four complete games in 17.135 seconds, three repetition draws
+and one insufficient-material draw; no clock/protocol/storage/stderr/truncation
+failures. Verified 386 on-time replies, 418 legal game plies including openings,
+1,517 PV lines / 4,723 PV plies, 385 legal suggested ponders, and minimum clock
+slack 19.225 ms. Four ordinary resource admissions covered two active workers /
+four resident engines; all eight engine PIDs across the games were closed.
+Source/assets, clocks, PGNs, options, and summaries matched. The independent
+checker accepted a synthetic fixture and rejected six deliberate corruptions.
+See the [report](reports/2026-10-18-phase3k-console-operations.md) for pins and
+scope. This is a bounded operational pass, not a strength or general reliability
+claim. Historical results/defaults are unchanged; Phase 3L preparation remains next.
