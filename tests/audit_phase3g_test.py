@@ -10,7 +10,7 @@ hashes, and complete schedules/resource admissions. Separate raw-child tests
 exercise the actual inherited PGN/UCI verifier. No engine process is started.
 """
 import copy
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 import hashlib
 import importlib.util
 import json
@@ -20,6 +20,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"tools"))
 import audit_phase3g as auditor
@@ -115,6 +116,7 @@ class AggregateTests(unittest.TestCase):
                        "finished_utc": self.end.isoformat(), "cutoff_utc": cutoff.isoformat(),
                        "launch_policy": {"timezone": "Europe/Helsinki", "local_time": self.start.isoformat(),
                                          "nighttime": True, "allow_daytime": False, "cutoff_utc": cutoff.isoformat(),
+                                         "daytime_authorization": None,
                                          "cutoff_local": cutoff.isoformat(), "remaining_seconds": 28800.,
                                          "launch_window": "23:00–23:15 Europe/Helsinki"},
                        "configuration": self.cfg, "configuration_sha256": auditor.child_auditor.canonical_digest(self.cfg),
@@ -137,7 +139,8 @@ class AggregateTests(unittest.TestCase):
                          "engines": self.cfg["engines"], "ponder": False, "diagnostics": False}
             launch = {"assets": {"engine": assets["engine"], "network": assets["network"], "openings": assets[f"openings_{index}"]},
                       "sources": sources, "configuration": child_cfg, "status": "finished", "started_utc": begin.isoformat(),
-                      "finished_utc": finish.isoformat(), "launch_policy": {"cutoff_utc": cutoff.isoformat(), "allow_daytime": False},
+                      "finished_utc": finish.isoformat(), "launch_policy": {"cutoff_utc": cutoff.isoformat(), "allow_daytime": False,
+                                                                           "daytime_authorization": None},
                       "preflight": {"engines": copy.deepcopy(ready_engines)}}
             defs, _ = auditor.definitions({"openings": self.entries[(index-1)*64:index*64]}, full_history=True)
             rng = random.Random(auditor.SEEDS[index-1]); rng.shuffle(defs)
@@ -181,6 +184,53 @@ class AggregateTests(unittest.TestCase):
         p = patch.object(auditor.child_auditor, "audit", side_effect=raw_audit); p.start(); self.addCleanup(p.stop)
         self.save()
 
+    def move_campaign(self, start, *, allow_daytime=False):
+        """Place the complete synthetic campaign in another civil-time window.
+
+        Shift every recorded event, retaining elapsed durations and the sample.
+        Derive the next morning from Helsinki civil time, including DST changes,
+        and observe the ordinary resource budget at each admission/sample.
+        """
+        delta = start-self.start
+        timestamp_fields = {"started_utc", "checked_utc", "finished_utc", "observed_utc", "local_time"}
+        def shift(value):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key in timestamp_fields:
+                        value[key] = (datetime.fromisoformat(item)+delta).isoformat()
+                    else:
+                        shift(item)
+            elif isinstance(value, list):
+                for item in value:
+                    shift(item)
+        for document in (self.master, self.children, self.history):
+            shift(document)
+        self.start, self.end = start, self.end+delta
+        helsinki = ZoneInfo("Europe/Helsinki")
+        local = start.astimezone(helsinki)
+        cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=helsinki).astimezone(timezone.utc)
+        marker = "owner-20261018-phase3g" if allow_daytime else None
+        self.master["cutoff_utc"] = cutoff.isoformat()
+        self.master["launch_policy"].update(
+            local_time=local.isoformat(), nighttime=local.hour >= 23 or local.hour < 7,
+            allow_daytime=allow_daytime, daytime_authorization=marker,
+            cutoff_utc=cutoff.isoformat(), cutoff_local=cutoff.astimezone(helsinki).isoformat(),
+            remaining_seconds=(cutoff-start).total_seconds())
+        def budget(policy, observed):
+            civil = observed.astimezone(helsinki)
+            night = civil.hour >= 23 or civil.hour < 7
+            percent = 80 if night else 50
+            policy.update(local_time=civil.isoformat(), source="nighttime" if night else "daytime",
+                          percent=percent, max_cpu_workers=18*percent//100, memory_fraction=percent/100)
+        budget(self.master["preflight"]["resource_policy"], datetime.fromisoformat(self.master["checked_utc"]))
+        for event in self.history:
+            budget(event["policy"], datetime.fromisoformat(event["observed_utc"]))
+        for child in self.children:
+            child["launch"]["launch_policy"].update(
+                cutoff_utc=cutoff.isoformat(), allow_daytime=allow_daytime, daytime_authorization=marker)
+            for game in child["records"]:
+                budget(game["resource_policy"], datetime.fromisoformat(game["started_utc"]))
+
     def save(self):
         for child in self.children:
             write_json(child["directory"]/"launch.json", child["launch"])
@@ -215,6 +265,96 @@ class AggregateTests(unittest.TestCase):
         self.assertEqual(result["statistics"]["recorded_games"], 512)
         self.assertAlmostEqual(result["statistics"]["radius"], .08488134473378872)
         self.assertEqual(len({p["pair_id"] for p in result["statistics"]["included_pair_scores"]}), 256)
+
+    def test_complete_authorized_daytime_campaign_keeps_ordinary_budget(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        result = self.check("inconclusive")
+        self.assertEqual(result["statistics"]["recorded_games"], 512)
+        self.assertEqual(result["statistics"]["included_pairs"], 256)
+        self.assertEqual(self.master["preflight"]["resource_policy"]["percent"], 50)
+        self.assertEqual(self.master["cutoff_utc"], "2026-10-19T04:00:00+00:00")
+
+    def test_daytime_window_includes_seven_but_excludes_twenty_three(self):
+        for hour, minute, second, valid in ((4, 0, 0, True), (19, 59, 59, True),
+                                           (3, 59, 59, False), (20, 0, 0, False)):
+            with self.subTest(utc=(hour, minute, second)):
+                self.move_campaign(datetime(2026, 10, 18, hour, minute, second, tzinfo=timezone.utc), allow_daytime=True)
+                self.check("inconclusive" if valid else "invalid_or_incomplete")
+
+    def test_daytime_authorization_does_not_allow_other_dates(self):
+        for day in (17, 19):
+            with self.subTest(day=day):
+                self.move_campaign(datetime(2026, 10, day, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+                result = self.check()
+                self.assertTrue(any("authorized Helsinki date/window" in error for error in result["errors"]))
+
+    def test_daytime_requires_exact_recorded_owner_authorization(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        for marker in (None, "owner-other-campaign", "missing"):
+            with self.subTest(marker=marker):
+                if marker == "missing":
+                    self.master["launch_policy"].pop("daytime_authorization")
+                else:
+                    self.master["launch_policy"]["daytime_authorization"] = marker
+                self.check()
+
+    def test_daytime_requires_explicit_boolean_permission(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        for flag in (False, 1, "true"):
+            with self.subTest(flag=flag):
+                self.master["launch_policy"]["allow_daytime"] = flag
+                self.check()
+
+    def test_recorded_nighttime_must_match_launch_window(self):
+        self.master["launch_policy"]["nighttime"] = False
+        self.check()
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.master["launch_policy"]["nighttime"] = True
+        self.check()
+
+    def test_ordinary_night_cannot_carry_daytime_authorization(self):
+        self.master["launch_policy"]["daytime_authorization"] = "owner-20261018-phase3g"
+        self.check()
+
+    def test_ordinary_night_child_cannot_add_daytime_permission(self):
+        self.children[0]["launch"]["launch_policy"].update(
+            allow_daytime=True, daytime_authorization="owner-20261018-phase3g")
+        self.check()
+
+    def test_child_daytime_flag_must_match_master(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        for flag in (False, 1):
+            with self.subTest(flag=flag):
+                self.children[0]["launch"]["launch_policy"]["allow_daytime"] = flag
+                result = self.check()
+                self.assertTrue(any("authorization differs from master" in error for error in result["errors"]))
+
+    def test_child_daytime_marker_must_match_master(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        policy = self.children[0]["launch"]["launch_policy"]
+        for marker in (None, "owner-other-campaign", "missing"):
+            with self.subTest(marker=marker):
+                if marker == "missing":
+                    policy.pop("daytime_authorization")
+                else:
+                    policy["daytime_authorization"] = marker
+                self.check()
+
+    def test_daytime_launch_permission_does_not_raise_resource_budget(self):
+        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.history[1]["policy"].update(percent=80, max_cpu_workers=14, memory_fraction=.8)
+        result = self.check()
+        self.assertTrue(any("civil-time policy" in error for error in result["errors"]))
+
+    def test_ordinary_night_cutoff_tracks_both_dst_transitions(self):
+        for start, hours, expected in (
+                (datetime(2026, 3, 28, 21, 0, tzinfo=timezone.utc), 7, "2026-03-29T04:00:00+00:00"),
+                (datetime(2026, 10, 24, 20, 0, tzinfo=timezone.utc), 9, "2026-10-25T05:00:00+00:00")):
+            with self.subTest(start=start):
+                self.move_campaign(start)
+                self.assertEqual(self.master["cutoff_utc"], expected)
+                self.assertEqual(self.master["launch_policy"]["remaining_seconds"], hours*3600)
+                self.check("inconclusive")
 
     def test_positive_and_negative_half_point_boundaries(self):
         for points, decision in ((299, "inconclusive"), (299.5, "eligible_for_confirmation_review"),

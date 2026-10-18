@@ -540,6 +540,38 @@ synthetic lifecycle tests and readiness do not establish its completion,
 playing strength, or foreign-platform execution. LMR remains off, and no
 automatic schedule or new release exists.
 
+## Phase 3G daytime amendment — October 18, 2026
+
+Before the first game, the owner explicitly authorized a daytime exception and
+requested that its protocol change be prepared and validated before launch.
+Protocol `phase3g-lmr-512-v2` adds `--allow-daytime`, limited to October 18
+07:00–23:00 Helsinki and recorded as `owner-20261018-phase3g`. The normal
+50% daytime / 80% nighttime resource limits and original next-07:00 cutoff
+remain; the daytime launch has a longer possible wall-time allowance. The
+256 pairs, 512 games, four active workers, engine/network, settings, openings,
+and decision rules are unchanged. No engine code or README text changed.
+
+`make PYTHON=python3 test-match test-qualification` passed **189 tests**:
+34 match/statistics, 15 opening-generation, 29 coordinated-launcher, 45 aggregate
+and raw-auditor, and 66 historical qualification checks. New cases cover exact
+date/time boundaries, missing or forged authorization, strict permission flags,
+master/child agreement, the unchanged daytime allowance, readiness crossing
+23:00, cutoff expiry before startup, and ordinary DST transitions. Full fake
+process cancellation and existing raw-evidence corruption checks still pass.
+Expected command-line rejection messages are negative test cases, not failed
+suites. A separate read-only review found no blocking issue and independently
+checked ten window cases plus naive-clock rejection.
+
+Fresh real two-role readiness passed with zero position/search commands and
+independent transcript audit. Evidence is
+`results/phase3g-preparation-20261018/daytime-v2-preflight.json`; original v1
+readiness files are preserved. The v2 record matches all current frozen sources
+and assets; its fixed configuration and engine/network/opening artifacts are
+identical to v1. Its authorization preview is not a game-start record. The
+amendment is committed locally before the one authorized campaign starts in
+`results/phase3g-lmr-20261018-daytime/`. Actual outcome and strength qualification
+remain pending; no restart, schedule, or default promotion is implied.
+
 ## Owner-run GUI feedback — October 18, 2026
 
 The owner reports two draws against Gargantua 2.1 with no engine errors or

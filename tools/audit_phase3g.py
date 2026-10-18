@@ -25,7 +25,8 @@ import chess
 import audit_time_policy as child_auditor
 
 ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL_ID = "phase3g-lmr-512-v1"
+PROTOCOL_ID = "phase3g-lmr-512-v2"
+DAYTIME_AUTHORIZATION = "owner-20261018-phase3g"
 PROTOCOL_DOCUMENT = "docs/PHASE_3G.md"
 ENGINE_SHA256 = "edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b"
 NETWORK_SHA256 = "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2"
@@ -229,12 +230,24 @@ class AggregateAudit:
                 "Master protocol snapshot changed")
         started, finished, cutoff = (instant(m[key]) for key in ("started_utc", "finished_utc", "cutoff_utc"))
         local = started.astimezone(ZoneInfo("Europe/Helsinki"))
-        require(local.hour == 23 and local.minute < 15, "Master launch is outside 23:00–23:15 Helsinki")
+        policy = m["launch_policy"]
+        require(policy["timezone"] == "Europe/Helsinki" and type(policy["allow_daytime"]) is bool,
+                "Master launch timezone or permission type changed")
+        if policy["allow_daytime"]:
+            # The owner's one-run exception changes launch permission only. It
+            # cannot authorize another date, a nighttime override, or a larger
+            # resource budget; the latter remains independently checked below.
+            require(local.date().isoformat() == "2026-10-18" and 7 <= local.hour < 23,
+                    "Master daytime launch is outside the authorized Helsinki date/window")
+            require(policy["nighttime"] is False and policy["daytime_authorization"] == DAYTIME_AUTHORIZATION,
+                    "Master daytime launch lacks the recorded owner authorization")
+        else:
+            require(local.hour == 23 and local.minute < 15,
+                    "Master launch is outside 23:00–23:15 Helsinki")
+            require(policy["nighttime"] is True and policy["daytime_authorization"] is None,
+                    "Master ordinary-night launch carries a daytime exception")
         expected_cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
         require(cutoff == expected_cutoff and started <= finished, "Master cutoff/timestamp ordering changed")
-        policy = m["launch_policy"]
-        require(policy["timezone"] == "Europe/Helsinki" and policy["allow_daytime"] is False
-                and policy["nighttime"] is True, "Master window permits daytime")
         require(instant(policy["cutoff_utc"]) == cutoff == instant(policy["cutoff_local"]), "Master cutoff drift")
         require(instant(policy["local_time"]) == started and policy["remaining_seconds"] > 0, "Master launch policy timestamp changed")
         if m["status"] == "finished":
@@ -375,8 +388,11 @@ class AggregateAudit:
                         "ponder": False, "diagnostics": False}, "Child configuration differs from master")
         start, end = instant(launch["started_utc"]), instant(launch["finished_utc"])
         require(self.started <= start <= end <= self.finished, "Child window escapes master")
-        require(instant(launch["launch_policy"]["cutoff_utc"]) == self.cutoff
-                and launch["launch_policy"]["allow_daytime"] is False, "Child cutoff/daytime permission changed")
+        child_policy, master_policy = launch["launch_policy"], m["launch_policy"]
+        require(instant(child_policy["cutoff_utc"]) == self.cutoff
+                and child_policy["allow_daytime"] is master_policy["allow_daytime"]
+                and child_policy["daytime_authorization"] == master_policy["daytime_authorization"],
+                "Child cutoff/daytime authorization differs from master")
         if launch["status"] == "finished":
             require(end <= self.cutoff, "Completed child exceeded common cutoff")
         self.child_windows[index] = (start, end)

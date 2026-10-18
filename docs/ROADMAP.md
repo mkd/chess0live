@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3F retained; Phase 3G prepared and tested
+## Current checkpoint: Phase 3F retained; Phase 3G ready for authorized daytime launch
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -27,7 +27,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
 | 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
 | 3F | Profile the updated engine and implement one justified NNUE improvement | Complete and retained: all 576 searches exact/legal; all three game-phase performance gates passed |
-| 3G | Prepare fresh blitz strength qualification for the existing LMR experiment on the updated engine | Preparation complete: original 256-pair suite, four-worker launcher, and independent aggregate audit tested; real campaign not started |
+| 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Preparation complete; October 18 daytime amendment validated with 189 checks and fresh readiness; first campaign not yet started |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -150,8 +150,11 @@ match workers share aggregate resource checks and one 07:00 Helsinki cutoff.
 The original suite, launcher, and independent auditor have passed their checks.
 The next checkpoint is one controlled overnight run followed by a full audit,
 only when no GUI games or other heavy work are running. The initial owner check
-has been reported; no additional manual tournament is required. Manual launch
-is 23:00–23:15 Helsinki.
+has been reported; no additional manual tournament is required. Normal manual
+launch is 23:00–23:15 Helsinki. The owner has explicitly authorized one October 18
+daytime start: protocol v2 records the dated exception without changing the
+50% daytime resource budget, sample, settings, decision, or next-07:00 cutoff.
+The amendment is tested and committed before any game starts.
 No real Phase 3G game has run. A positive result would warrant separate fresh
 confirmation, not automatic LMR promotion. Prior Phase 2D samples are exposed
 and must not be extended or pooled into the new decision.

@@ -44,6 +44,8 @@ release numbers; detailed measurements live in the linked experiment records.
 - Added coordinated overnight match testing with a shared resource budget,
   cutoff, and independent whole-campaign audit. Fixed cancellation during engine
   shutdown so a stopped test cannot silently begin another game.
+  Added a dated, explicit owner-authorized daytime exception with matching audit
+  checks; normal resource limits, fixed samples, and cancellation rules remain.
 - Added GPL-3.0-or-later licensing, architecture and handover documentation,
   a development roadmap, and local resource controls with manual overrides.
 

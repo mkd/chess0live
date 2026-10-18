@@ -284,8 +284,17 @@ integrity record to distinguish promotion from unexplained artifact drift.
 **Phase 3G preparation is complete and tested.** The [fixed plan](PHASE_3G.md) compares
 LMR on/off using the same qualified Phase 3F executable on 256 fresh opening
 pairs / 512 games at 60+0.6. Four concurrent match workers require aggregate
-accounting for four active searches and eight resident engines. Launch manually
+accounting for four active searches and eight resident engines. Normal launch is
 23:00–23:15 Helsinki; one common 07:00 cutoff survives preflight and worker starts.
+Before any games, the owner authorized a one-time October 18 daytime start.
+Protocol v2 and `--allow-daytime` encode that date-limited exception, preserving
+the 50% daytime budget and next-morning cutoff. Freeze/test/commit the amendment
+before starting `results/phase3g-lmr-20261018-daytime`; no sample or decision
+rule changed, no previous attempt ran, and no automatic restart is permitted.
+All 189 match/qualification checks pass, including 29 launcher and 45 auditor
+cases. Real v2 readiness plus independent transcript audit passed without a
+search; retain `results/phase3g-preparation-20261018/daytime-v2-preflight.json`
+alongside historical v1 records. See the validation amendment for exact scope.
 Invalid games, insufficient resources, interruption, and artifact drift cancel
 all workers and await cleanup. Clock forfeits remain scored outcomes.
 

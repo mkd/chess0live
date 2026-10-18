@@ -202,6 +202,95 @@ class Phase3gTests(unittest.TestCase):
                 asyncio.run(campaign.run(self.root / "day"))
             check.assert_not_called()
 
+    def test_dated_daytime_exception_boundaries_and_naive_clock(self):
+        # October 18 Helsinki is UTC+3. Only this date's daytime is authorized.
+        for day, hour, minute, permitted in ((17, 5, 0, False), (18, 3, 59, False),
+                (18, 4, 0, True), (18, 19, 59, True), (18, 20, 0, False), (19, 5, 0, False)):
+            instant = self.now.replace(day=day, hour=hour, minute=minute)
+            with self.subTest(instant=instant):
+                policy = campaign.launch_policy(instant, allow_daytime=True)
+                self.assertIs(policy["launch_permitted"], permitted)
+                self.assertIs(policy["allow_daytime"], True)
+                self.assertEqual(policy["daytime_authorization"], "owner-20261018-phase3g")
+                if permitted:
+                    self.assertIs(policy["nighttime"], False)
+                    self.assertEqual(datetime.fromisoformat(policy["cutoff_utc"]),
+                                     datetime(2026, 10, 19, 4, tzinfo=timezone.utc))
+                    self.assertFalse(campaign.launch_policy(instant)["launch_permitted"])
+                else:
+                    with self.assertRaises(ValueError):
+                        campaign.launch_policy(instant, allow_daytime=True, require_window=True)
+        with self.assertRaisesRegex(ValueError, "timezone-aware"):
+            campaign.launch_policy(datetime(2026, 10, 18, 10), allow_daytime=True)
+        self.assertIsNone(campaign.launch_policy(self.now)["daytime_authorization"])
+
+    def test_daytime_wrong_date_rejects_before_output_or_preflight(self):
+        self.clock.return_value = self.now.replace(day=19, hour=6)
+        output = self.root / "wrong-date"
+        with patch.object(campaign, "check", new_callable=AsyncMock) as check:
+            with self.assertRaisesRegex(ValueError, "2026-10-18"):
+                asyncio.run(campaign.run(output, allow_daytime=True))
+            check.assert_not_called()
+        self.assertFalse(output.exists())
+
+    def test_daytime_run_inherits_authorization_without_increasing_budget(self):
+        self.now = self.now.replace(hour=6)
+        self.clock.return_value = self.now
+        self.budget.update(source="daytime", percent=50, max_cpu_workers=9, memory_fraction=.5)
+        async def runner(*_, **hooks):
+            await hooks["before_game"]("p000001-1")
+            return {"experiment_complete": True}
+        output = self.root / "authorized-day"
+        with patch.object(campaign, "check", return_value=self.checked()), \
+             patch.object(match, "run_match", side_effect=runner):
+            record = asyncio.run(campaign.run(output, allow_daytime=True))
+        self.assertEqual(record["status"], "finished")
+        self.assertIs(record["launch_policy"]["allow_daytime"], True)
+        self.assertEqual(record["launch_policy"]["daytime_authorization"], "owner-20261018-phase3g")
+        for index in range(1, 5):
+            child = json.loads((output / f"shard-{index}/launch.json").read_text())
+            for key in ("allow_daytime", "daytime_authorization", "cutoff_utc", "cutoff_local"):
+                self.assertEqual(child["launch_policy"][key], record["launch_policy"][key])
+        self.assertEqual({e["policy"]["percent"] for e in self.events(output)}, {50})
+        self.assertEqual({e["policy"]["active_search_workers"] for e in self.events(output)}, {4})
+
+    def test_daytime_preflight_does_not_requalify_children_or_move_cutoff(self):
+        self.now = self.now.replace(hour=19, minute=59)  # Authorized 22:59 Helsinki.
+        self.clock.return_value = self.now
+        checked = self.checked()
+        async def delayed():
+            self.clock.return_value = self.now + timedelta(minutes=31)
+            return checked
+        async def runner(*_, **__):
+            return {"experiment_complete": True}
+        with patch.object(campaign, "check", side_effect=delayed), \
+             patch.object(match, "run_match", side_effect=runner):
+            record = asyncio.run(campaign.run(self.root / "late-day", allow_daytime=True))
+        self.assertEqual(record["cutoff_utc"], campaign.launch_policy(self.now)["cutoff_utc"])
+        for index in range(1, 5):
+            policy = json.loads((self.root / f"late-day/shard-{index}/launch.json").read_text())["launch_policy"]
+            self.assertIs(policy["allow_daytime"], True)
+            self.assertIs(policy["nighttime"], True)
+            self.assertEqual(policy["cutoff_utc"], record["cutoff_utc"])
+
+    def test_daytime_preflight_expiry_keeps_original_next_morning_cutoff(self):
+        self.now = self.now.replace(hour=6)  # 09:02 Helsinki on the authorized date.
+        self.clock.return_value = self.now
+        checked = self.checked()
+        cutoff = datetime.fromisoformat(campaign.launch_policy(self.now)["cutoff_utc"])
+        async def delayed():
+            self.clock.return_value = cutoff
+            return checked
+        output = self.root / "day-expired"
+        with patch.object(campaign, "check", side_effect=delayed), \
+             patch.object(match, "run_match", new_callable=AsyncMock) as runner:
+            with self.assertRaises(shared.WindowExpired):
+                asyncio.run(campaign.run(output, allow_daytime=True))
+            runner.assert_not_called()
+        record = json.loads((output / "campaign.json").read_text())
+        self.assertEqual(datetime.fromisoformat(record["cutoff_utc"]), cutoff)
+        self.assertEqual(record["status"], "interrupted")
+
     def test_four_coroutines_exact_settings_frozen_before_games(self):
         running, seen = set(), []
         async def runner(specs, settings, suite, output, pairs, seed, **hooks):
@@ -350,11 +439,18 @@ class Phase3gTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "observation gap"):
                 asyncio.run(campaign.run(self.root / "gap"))
 
-    def test_cli_has_no_daytime_resume_or_parameter_overrides(self):
+    def test_cli_explicit_daytime_flag_but_no_resume_or_parameter_overrides(self):
         with patch.object(campaign, "check", return_value={"status": "checked"}) as checked, patch("sys.stdout", new_callable=io.StringIO):
             self.assertEqual(campaign.main([]), 0)
             checked.assert_awaited_once()
-        for argument in ("--allow-daytime", "--resume", "--pairs", "--seed", "--threads"):
+        with patch.object(campaign, "run", return_value={"status": "finished"}) as run, \
+             patch("sys.stdout", new_callable=io.StringIO):
+            output = self.root / "out"
+            self.assertEqual(campaign.main(["run", "--output", str(output), "--allow-daytime"]), 0)
+            run.assert_awaited_once_with(output, True)
+        with patch("sys.stderr", new_callable=io.StringIO), self.assertRaises(SystemExit):
+            campaign.main(["check", "--allow-daytime"])
+        for argument in ("--resume", "--pairs", "--seed", "--threads"):
             with patch("sys.stderr", new_callable=io.StringIO), self.assertRaises(SystemExit):
                 campaign.main(["run", "--output", str(self.root / "out"), argument])
 

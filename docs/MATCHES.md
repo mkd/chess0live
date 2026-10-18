@@ -142,7 +142,11 @@ Both Phase 2D campaigns are completed, exposed evidence. The new
 using the retained Phase 3F executable in both roles, changing only LMR.
 `tools/qualify_phase3g.py check` validates inputs and UCI readiness without
 searching an opening. `run --output NEW_DIRECTORY` starts four coordinated
-match workers only during 23:00–23:15 Helsinki, retaining one 07:00 cutoff.
+match workers normally during 23:00–23:15 Helsinki, retaining one 07:00 cutoff.
+Protocol v2 records the owner's one-time October 18 daytime exception:
+`run --allow-daytime --output NEW_DIRECTORY` is valid only on that date between
+07:00 and 23:00 Helsinki. It preserves normal resource limits and the next-07:00
+cutoff. This flag is not permission for another attempt or a future daytime run.
 Do not run it alongside the owner's Cute Chess games or other heavy work.
 
 Aggregate resource checks count four active searches and eight resident engines.

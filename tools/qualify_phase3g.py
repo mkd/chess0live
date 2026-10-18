@@ -5,7 +5,8 @@ Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
 SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 
 One foreground invocation, one fresh directory, one fixed Helsinki cutoff.
-There is no schedule, resumption, daytime exception, or parameter tuning.
+The owner-authorized October 18 daytime exception requires an explicit flag;
+there is no schedule, resumption, resource-budget increase, or parameter tuning.
 Checks use only referee replay and two serial UCI handshakes, without searches.
 """
 from __future__ import annotations
@@ -26,7 +27,9 @@ import match
 import qualification as shared
 
 ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL_ID = "phase3g-lmr-512-v1"
+PROTOCOL_ID = "phase3g-lmr-512-v2"
+DAYTIME_DATE = "2026-10-18"
+DAYTIME_AUTHORIZATION = "owner-20261018-phase3g"
 PROTOCOL_DOCUMENT = "docs/PHASE_3G.md"
 CHESS_VERSION = "1.11.2"
 SHARDS, SHARD_PAIRS, PAIRS = 4, 64, 256
@@ -96,14 +99,26 @@ def fingerprints():
             for path in paths for stat in (path.stat(),)}
 
 
-def launch_policy(now=None, *, require_window=False):
+def launch_policy(now=None, *, require_window=False, allow_daytime=False):
+    """Apply the single dated owner exception without widening resource limits.
+
+    Normal launches retain the original fifteen-minute night window. The
+    exception is opt-in and valid only during the authorized date's daytime;
+    the same next-07:00 cutoff is captured before any readiness work.
+    """
     now = now or utc_now()
-    policy = shared.launch_policy(now)
+    policy = shared.launch_policy(now, allow_daytime=allow_daytime)
     local = datetime.fromisoformat(policy["local_time"])
-    permitted = local.hour == 23 and local.minute < 15
+    if allow_daytime:
+        permitted = local.date().isoformat() == DAYTIME_DATE and 7 <= local.hour < 23
+        window = "2026-10-18 07:00–23:00 Europe/Helsinki (owner exception)"
+    else:
+        permitted = local.hour == 23 and local.minute < 15
+        window = "23:00–23:15 Europe/Helsinki"
     if require_window and not permitted:
-        raise ValueError("Phase 3G may launch only 23:00–23:15 Europe/Helsinki (end exclusive)")
-    policy.update(launch_window="23:00–23:15 Europe/Helsinki", launch_permitted=permitted)
+        raise ValueError(f"Phase 3G may launch only {window} (end exclusive)")
+    policy.update(launch_window=window, launch_permitted=permitted,
+                  daytime_authorization=DAYTIME_AUTHORIZATION if allow_daytime else None)
     return policy
 
 
@@ -214,12 +229,12 @@ async def cancel_and_wait(tasks):
     await asyncio.gather(*tasks, return_exceptions=True)
 
 
-async def run(output):
+async def run(output, allow_daytime=False):
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
         raise ValueError("Campaign output must be a new directory; overwrite/resume is disabled")
     started = utc_now()
-    policy = launch_policy(started, require_window=True)
+    policy = launch_policy(started, require_window=True, allow_daytime=allow_daytime)
     cutoff = datetime.fromisoformat(policy["cutoff_utc"])
     initial = snapshot()
     metadata = fingerprints()
@@ -274,9 +289,10 @@ async def run(output):
             raise shared.WindowExpired("Helsinki 07:00 cutoff; fixed sample incomplete")
 
         def child_window(**_):
-            current = shared.launch_policy(utc_now())
+            current = shared.launch_policy(utc_now(), allow_daytime=allow_daytime)
             current.update(cutoff_utc=policy["cutoff_utc"], cutoff_local=policy["cutoff_local"],
-                           remaining_seconds=(cutoff - utc_now()).total_seconds())
+                           remaining_seconds=(cutoff - utc_now()).total_seconds(),
+                           daytime_authorization=policy["daytime_authorization"])
             return current
 
         async def worker(index):
@@ -284,7 +300,7 @@ async def run(output):
                 return child_report(record, index)
             async def before_game(game_id):
                 await guard(game_id, index)
-            return await shared.run(profile(index), output / f"shard-{index}",
+            return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=allow_daytime,
                 preflight=cached_preflight, request=fixed_request, clock=utc_now, window=child_window,
                 run_guard=before_game, fail_fast=True, manage_deadline=False)
 
@@ -389,16 +405,18 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "run"), nargs="?", default="check")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--allow-daytime", action="store_true",
+                        help="Owner-authorized October 18 daytime launch only; retains resource policy and next-07:00 cutoff")
     args = parser.parse_args(argv)
-    if args.action == "check" and args.output is not None:
-        parser.error("check does not accept --output")
+    if args.action == "check" and (args.output is not None or args.allow_daytime):
+        parser.error("check does not accept --output or --allow-daytime")
     if args.action == "run" and args.output is None:
         parser.error("run requires --output NEW_DIRECTORY")
     async def execute():
         # All coordinated hashing uses one background worker, not four more
         # unbounded CPU jobs alongside the four active engine search workers.
         asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=1))
-        return await cooperative_signals(check() if args.action == "check" else run(args.output))
+        return await cooperative_signals(check() if args.action == "check" else run(args.output, args.allow_daytime))
     try:
         print(json.dumps(asyncio.run(execute()), indent=2, allow_nan=False))
         return 0

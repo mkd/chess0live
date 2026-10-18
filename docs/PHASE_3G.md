@@ -1,11 +1,20 @@
-# Phase 3G: fresh LMR blitz screen preparation
+# Phase 3G: fresh LMR blitz screen
 
-Status: preparation complete on October 18, 2026. No campaign has started.
-The protocol and original suites were recorded in `c177804` before any games;
-this status update changes no sample, setting, or decision rule.
-Protocol identifier: `phase3g-lmr-512-v1`. Preparation is this roadmap checkpoint;
-running and auditing the fixed sample is the next checkpoint. No automatic
-schedule, search-policy change, release, or strength improvement is implied.
+Status at the v2 freeze: preparation complete on October 18, 2026; no campaign
+has started. The original v1 protocol and suites were recorded in `c177804`.
+Protocol identifier: **`phase3g-lmr-512-v2`**. The owner explicitly authorized:
+"I authorize a daytime exception; prepare and validate the necessary protocol
+change, then run now." This amendment is frozen before the first game.
+
+The only operating change is permission for this one attempt to start during
+**October 18, 2026, 07:00–23:00 Europe/Helsinki**, with `--allow-daytime` and the
+recorded authorization `owner-20261018-phase3g`. The usual 50% daytime / 80%
+nighttime resource policy and original next-07:00 cutoff remain in force.
+A daytime launch therefore has more possible wall time than the original night
+window; this is an explicit pre-run difference. No opening, sample size, engine,
+option, chess clock, statistical rule, or default changes. Historical v1 readiness
+evidence is preserved; v2 gets a separate readiness record. No schedule or
+automatic retry is authorized. Running and auditing the sample is the next step.
 
 ## Hypothesis and prior evidence
 
@@ -134,10 +143,18 @@ does not establish likely success. A 5-point Hoeffding half-width would require
 
 ## Runtime, cancellation, and resources
 
-Launch manually between **23:00 and 23:15 Europe/Helsinki**, after the owner's
-Cute Chess games and other heavy work have stopped. Checking is allowed at any
-time and never sends a position or search to the engines. No scheduler,
-daytime override, unattended wait, or automatic restart is installed here.
+Normal launch remains **23:00–23:15 Europe/Helsinki**. For the owner's single
+October 18 exception, the explicit `--allow-daytime` flag permits launch only
+on that Helsinki date between 07:00 inclusive and 23:00 exclusive. It does not
+enable daytime runs on other dates. The master records `allow_daytime=true` and
+`daytime_authorization=owner-20261018-phase3g`; ordinary night launches record
+false and null. Child workers inherit this permission and the master cutoff
+without requalifying the start window after readiness. The independent auditor
+checks the date/window and authorization, including agreement across all shards.
+
+Start after the owner's Cute Chess games and other heavy work have stopped.
+Checking is allowed at any time and never sends a position or search to the
+engines. No scheduler, unattended wait, or automatic restart is installed here.
 
 Four games run concurrently, each with one active search and two resident
 engines: **four active workers and eight resident engines in total**. The
@@ -179,14 +196,14 @@ python3 tools/generate_phase3g_openings.py --check
 # Readiness and frozen-input checks only; may run during preparation.
 python3 tools/qualify_phase3g.py check
 
-# Later, manually between 23:00 and 23:15, after all GUI games have ended.
-/usr/bin/caffeinate -i python3 tools/qualify_phase3g.py run \
-  --output results/phase3g-lmr-20261018
+# Owner-authorized first attempt, October 18 daytime only, after GUI games end.
+/usr/bin/caffeinate -i python3 tools/qualify_phase3g.py run --allow-daytime \
+  --output results/phase3g-lmr-20261018-daytime
 
 # After that one attempt, audit all raw evidence without an engine.
 python3 tools/audit_phase3g.py \
-  --campaign results/phase3g-lmr-20261018 \
-  --output results/phase3g-lmr-20261018/audit.json
+  --campaign results/phase3g-lmr-20261018-daytime \
+  --output results/phase3g-lmr-20261018-daytime/audit.json
 ```
 
 `caffeinate` is optional and macOS-specific; it does not prevent lid closure,
@@ -205,5 +222,6 @@ local pair IDs before independently recomputing the pooled statistics.
 Existing Phase 2D commands and archived decisions remain unchanged.
 
 After a real attempt, publish every result and operational limitation, update
-the roadmap/README/changelog/handover, and make tested local commits on main.
+the roadmap/changelog/handover, and make tested local commits on main.
+Only update practical README instructions if their usage changes; preserve its intro.
 The owner handles GitHub publishing. Until then, report preparation only.
