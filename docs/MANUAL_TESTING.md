@@ -210,6 +210,36 @@ Neither represents a release or a competitive-strength milestone.
 
 ## Optional parallel-search test bundle
 
+Configure Threads, Hash and SyzygyPath in Cute Chess's **engine options**.
+Do not give them conflicting values in startup commands: Cute Chess sends
+initialization strings before applying its saved options, so a saved Threads=1
+can override `setoption name Threads value 4`. The same applies to Hash and an
+empty SyzygyPath. See the upstream
+[configuration order](https://github.com/cutechess/cutechess/blob/master/projects/lib/src/chessengine.cpp#L89-L103).
+The owner's October 18 configuration had exactly this conflict (startup 4/128/
+table directory versus saved 1/64/empty). The configured executable was the
+current `build/macos-arm64-generic-release/chess0live`, SHA-256
+`bda061408f4ff8339e2fc8f7d3536525373e8a790f7209a35418162928168f7f`;
+the preserved GUI snapshots below were not involved. The completed GUI game's
+actual UCI transcript was not available, so its runtime worker count is not
+independently confirmed. No GUI settings were changed during this investigation.
+
+For a direct console check on the current build, set the intended options, then:
+
+```text
+setoption name Search Diagnostics value true
+isready
+```
+
+After `readyok`, send `position startpos` and `go movetime 1000`. On completion,
+look for `info string smp v1 threads 4 ... worker_nodes ...`: four counters give
+the leader's and three helpers' completed work; their sum equals final nodes.
+Restore `Search Diagnostics=false` for ordinary games. Extra OS/input threads
+are separate from the four search workers. Completed depth/PV belongs to the
+leader, while nodes/NPS include all workers; four workers do not mean four
+times the reported depth. Coordinate additional searches with controlled matches
+already running on the same computer.
+
 Phase 4B has a separate `0.1-dev-phase4b-20261018` bundle at
 `build/test-baselines/0.1-dev-phase4b-20261018/chess0live`, with its pinned network
 beside the executable and a manifest. Existing `0.1-dev-4b8b35d` and
