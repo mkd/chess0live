@@ -372,7 +372,17 @@ Raw evidence and the frozen pre-probe plan are in `results/phase3i-20261018/`.
 Engine sources and the final Phase 3H binary are unchanged; no rebuild or new
 full engine/oracle suite is claimed. README introduction and GUI bundles remain.
 
-**Phase 3J is next:** move synchronous match persistence outside active clocks,
+**Phase 3J is in progress.** Its [plan](PHASE_3J.md) also includes the owner's
+explicitly requested annotated puzzle input. The normal release accepts a
+nonempty `bm` suffix after six FEN fields, or four fields with counters defaulted
+to `0 1`. It discards metadata before search and rejects mixed `moves` histories.
+Native/scalar/sanitizer suites passed; all 39 supplied workbook inputs matched
+independent depth-2 legal divides and old/plain/annotated search signatures.
+The exact 60-second example returned Qxf6+ at completed depth 8, without proving
+mate in seven. The workbook remains unchanged and is not a held-out strength
+suite. See [manual puzzle testing](MANUAL_TESTING.md#manual-puzzle-positions).
+
+The remaining Phase 3J step is to move synchronous match persistence outside active clocks,
 using bounded buffering or a bounded writer queue with explicit overflow/disk
 failure handling. Test slow writes across separate callbacks and evidence
 ordering, then a small declared operational check can gate fresh strength work.

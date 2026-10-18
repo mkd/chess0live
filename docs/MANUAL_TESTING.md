@@ -5,6 +5,50 @@ helps find integration problems; automated correctness and controlled match
 tests assess code changes and playing strength. Testing is not an approval gate
 for continuing development.
 
+## Manual puzzle positions
+
+Rebuild with `make`, then launch `build/macos-arm64-generic-release/chess0live`
+from the project directory. The old stable GUI bundles below are preserved and
+do not gain new input features from a rebuild. Use the current release build for
+annotated puzzles and record its Git revision/hash when reporting results.
+
+```text
+uci
+setoption name Threads value 1
+setoption name Hash value 64
+setoption name EvalFile value nn-1a298aa575a0.nnue
+setoption name Move Overhead value 20
+isready
+```
+
+Wait for `readyok`, then for each independent puzzle:
+
+```text
+setoption name Clear Hash
+position fen q3rk2/4r3/1p1p1n1b/5Q2/3P3p/P3R2P/1B3P1N/1K2R3 w - - 2 36 bm Qxf6+ M7
+go movetime 60000
+```
+
+Wait for `bestmove` before entering another position. Keep classic time policy,
+LMR off, MVV-LVA capture ordering, and pondering off for default comparisons.
+`movetime` requests a 60-second budget; the configured overhead is reserved.
+Send `stop` to end a search early. `d` displays the loaded, normalized FEN.
+
+`bm` begins ignored metadata through the end of the line. The supplied SAN
+answer and `M7` do not influence search, validate the answer, set `go mate`, or
+restrict legal moves. This extension also accepts four FEN fields immediately
+followed by `bm`, using counters `0 1`; it cannot recover the original rule-50
+counter. Ordinary six-field FEN and coordinate `moves` histories still work.
+Do not combine a `bm` annotation with `moves`; remove the annotation first.
+This is not a full EPD parser and malformed boards remain errors.
+
+UCI returns coordinate moves: `f5f6` means Qxf6+ in this example. A matching
+`bestmove` and a proved `info ... score mate 7` are different observations; log
+both if benchmarking mate problems. A centipawn score or a different mate
+distance does not prove the spreadsheet's mate claim. Keep full analysis output,
+time limit, options, machine, and binary identity with results. Clear Hash avoids
+giving later repetitions a warmed table; repeated timings can still vary.
+
 ## Stable local test copy
 
 The October 13, 2026 baseline is `0.1-dev-4b8b35d`, at:

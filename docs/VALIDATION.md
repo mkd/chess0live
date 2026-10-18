@@ -706,6 +706,25 @@ qualification; Phase 3G had not started at the time of that feedback review.
 7. **Performance and strength:** report repeatable benchmarks and local matches.
    A functional 0.1 need not beat Stockfish; no Elo claim without match evidence.
 
+## Annotated puzzle input — October 18, 2026
+
+The exact owner example rejected by `65a5313` with `expected moves` now loads.
+Native, scalar, and ASan/UBSan `make -j2 test` passed, including strict board and
+counter validation, transactional rejection, ordinary UCI histories, and exact
+search signatures with correct, wrong, or absent answer metadata. All 39 supplied
+workbook positions (four with omitted counters) matched independent
+`chess==1.11.2` legal depth-2 divides and three-way depth-2 search signatures:
+frozen Phase 3H plain FEN, new plain FEN, and new annotated FEN.
+
+One requested-style `go movetime 60000` example completed in 59.983 seconds,
+returning `f5f6` (Qxf6+) at completed depth 8 / centipawn score 1206. It did not
+report mate in seven. Raw source digest, per-position checks, before/after
+transcripts, and suite logs are under `results/phase3j-20261018/`.
+New native executable SHA-256:
+`fa329663e4c9f8e07ecb495f1d7f069ffb4d6fdd4f320365eaf7fd25d5ca9637`.
+This checks compatibility and finite search parity, not puzzle answer accuracy,
+an engine strength gain, or cross-platform execution.
+
 ## Strength measurement
 
 Freeze the two binary hashes, code commits, network digests, clock settings,

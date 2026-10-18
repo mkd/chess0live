@@ -47,6 +47,20 @@ quit
 move's count. `eval` reports raw NNUE components and calibrated internal score;
 `d` prints FEN. These diagnostics do not add variants or an interactive SAN mode.
 
+For manual puzzle testing, paste a FEN with an optional `bm` answer annotation:
+
+```text
+position fen q3rk2/4r3/1p1p1n1b/5Q2/3P3p/P3R2P/1B3P1N/1K2R3 w - - 2 36 bm Qxf6+ M7
+go movetime 60000
+```
+
+The engine ignores the annotation and searches independently for up to 60 seconds
+(less the configured move overhead). Four-field puzzle records immediately
+followed by `bm` are also accepted, with missing move counters set to `0 1`.
+The board must still be valid. Remove the annotation when using a UCI `moves`
+history. See [manual puzzle testing](docs/MANUAL_TESTING.md#manual-puzzle-positions)
+for repeatable settings and how to read the result.
+
 ## Evaluation and search
 
 - Versioned SF19/SFNNv16 file reader and independently implemented feature math.

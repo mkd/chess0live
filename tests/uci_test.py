@@ -77,6 +77,38 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
     engine.until("info string error:")
     engine.send("d")
     assert engine.until("info string fen ")[-1] == before
+    # Owner-supplied puzzle regression. Answers are metadata; board validation
+    # and transactional rejection must remain independent of the annotation.
+    puzzle = "q3rk2/4r3/1p1p1n1b/5Q2/3P3p/P3R2P/1B3P1N/1K2R3 w - - 2 36"
+    for suffix in ("", " bm Qxf6+ M7", " bm Qxf6+; M7", " bm deliberately-wrong-answer"):
+        engine.send("position fen " + puzzle + suffix)
+        engine.send("d")
+        reply = engine.until("info string fen ")
+        assert reply == ["info string fen " + puzzle], reply
+    four_fields = " ".join(puzzle.split()[:4])
+    engine.send("position fen " + four_fields + " bm Qxf6+ M7")
+    engine.send("d")
+    before = "info string fen " + four_fields + " 0 1"
+    assert engine.until("info string fen ") == [before]
+    for bad in (puzzle + " bm", puzzle + " bm Qxf6+ moves f5f6",
+                puzzle + " typo Qxf6+ M7", four_fields,
+                four_fields + " 2 bm Qxf6+ M7",
+                four_fields + " x 36 bm Qxf6+ M7",
+                "8/8/8/8/8/8/8/8 w - - bm Qxf6+ M7"):
+        engine.send("position fen " + bad)
+        engine.until("info string error:")
+        engine.send("d")
+        assert engine.until("info string fen ") == [before]
+    engine.send("position startpos bm e4")
+    engine.until("info string error:")
+    engine.send("d")
+    assert engine.until("info string fen ") == [before]
+    # Ordinary six-field FEN followed by a legal UCI history still works.
+    engine.send("position fen " + puzzle + " moves f5f6")
+    engine.send("d")
+    reply = engine.until("info string fen ")
+    assert not any("error:" in line for line in reply)
+    before = reply[-1]
     engine.send("position fen garbage")
     engine.until("info string error:")
     engine.send("d")
@@ -96,6 +128,19 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert not any(line.startswith("info string search-") for line in default_output)
         assert not any(line.startswith("info string lmr ") for line in default_output)
         assert not any(line.startswith("info string ordering ") for line in default_output)
+
+        # Correct, wrong, and impossible answer notes produce the exact same
+        # completed search tree as the unannotated FEN after a fresh hash table.
+        signatures = []
+        for suffix in ("", " bm Qxf6+ M7", " bm a1a8 M99"):
+            engine.send("setoption name Clear Hash")
+            engine.send("position fen " + puzzle + suffix)
+            engine.send("go depth 2")
+            lines = engine.until("bestmove ")
+            assert not any("error:" in line for line in lines), lines
+            signatures.append(completed_signature(lines))
+        assert signatures[0] == signatures[1] == signatures[2], signatures
+        engine.send("position startpos")
 
         engine.send("setoption name Time Policy value forecast")
         engine.send("setoption name Search Diagnostics value true")

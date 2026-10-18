@@ -261,19 +261,41 @@ private:
         else output("info string error: unsupported option or value");
     }
 
-    /** Parse transactionally: an invalid FEN or move never replaces the game. */
+    /** Parse transactionally: an invalid FEN or move never replaces the game.
+     *
+     * Manual puzzle extension: a trailing `bm` starts opaque metadata, never
+     * search hints. Four-field puzzle records may omit both counters before
+     * `bm`; synthesize 0/1 only in that unambiguous case. The position parser
+     * still validates every board field. Ordinary UCI FEN/moves stay strict.
+     */
     void position(const std::vector<std::string>& tokens) {
         stop();
         if (tokens.size() < 2) { output("info string error: missing position"); return; }
         auto next = Position::start();
         std::size_t index = 2;
         if (tokens[1] == "fen") {
-            if (tokens.size() < 8) { output("info string error: FEN needs six fields"); return; }
+            const bool puzzle_counters_omitted = tokens.size() > 6 && tokens[6] == "bm";
+            if (!puzzle_counters_omitted && tokens.size() < 8) {
+                output("info string error: FEN needs six fields (or four before bm)"); return;
+            }
+            index = puzzle_counters_omitted ? 6 : 8;
+            auto fen = join(tokens, 2, index);
+            if (puzzle_counters_omitted) fen += " 0 1";
             std::string error;
-            auto parsed = Position::from_fen(join(tokens, 2, 8), error);
+            auto parsed = Position::from_fen(fen, error);
             if (!parsed) { output("info string error: " + error); return; }
             next = *parsed;
-            index = 8;
+            if (index < tokens.size() && tokens[index] == "bm") {
+                if (index + 1 == tokens.size()) {
+                    output("info string error: bm annotation is empty"); return;
+                }
+                // Do not silently swallow an intended UCI move history. To
+                // replay moves, remove the annotation and use ordinary UCI.
+                if (std::find(tokens.begin() + index + 1, tokens.end(), "moves") != tokens.end()) {
+                    output("info string error: bm annotation cannot be combined with moves"); return;
+                }
+                index = tokens.size();
+            }
         } else if (tokens[1] != "startpos") {
             output("info string error: expected startpos or fen"); return;
         }

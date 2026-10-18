@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added manual puzzle input with trailing `bm` answer notes, including four-field
+  records with omitted move counters. Notes are ignored by search; invalid boards
+  still produce errors. All 39 owner-supplied puzzle inputs passed compatibility
+  and independent legal-move checks.
 - Fixed clock accounting so preparation and worker startup after receiving `go`
   consume the existing time budget. Expired requests return a legal fallback;
   pondering still starts charging at `ponderhit`. This does not eliminate
