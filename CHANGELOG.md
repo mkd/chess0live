@@ -40,6 +40,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Moved match logging and result-file writes outside active protocol handling.
+  Bounded buffers and explicit storage-failure handling prevent slow writes from
+  blocking other games' response callbacks or silently discarding evidence.
 - Added a simple Make interface, documented cross-compilation prerequisites,
   configuration-aware rebuilds, and reliable default-network discovery.
   Native macOS ARM64 execution and foreign cross-build evidence are documented

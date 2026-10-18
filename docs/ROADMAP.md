@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3I receipt fix validated; match I/O isolation next
+## Current checkpoint: Phase 3J implemented; puzzle input ready; completion gate open
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -30,7 +30,8 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Complete and audited: 225W/155D/132L (59.08%); six candidate clock forfeits trigger the operational-regression gate, so LMR stays off |
 | 3H | Diagnose clock overruns, reproduce a defect, and validate a bounded repair | Complete bounded checkpoint: command-time accounting fixed; native/scalar/sanitizer and 52 clock probes passed; most historical flagfalls remain unexplained |
 | 3I | Investigate short-clock resilience under scheduling and transport delays | Complete: same-batch match logging bias reproduced and fixed; 212 checks and 12 diagnostic controls passed; engine and historical results unchanged |
-| 3J | Isolate match persistence from active protocol clocks | Next: bounded buffering, slow-writer/failure tests, then a small predeclared operational check before fresh strength qualification |
+| 3J | Isolate match persistence from active protocol clocks; accept annotated manual puzzles | Implemented and checked: 230 workflow checks, native/scalar/sanitizer suites, all 39 puzzle inputs; four-game canary has one capped game, so full operational acceptance remains open |
+| 3K | Complete operational validation before fresh LMR strength qualification | Next: predeclare a completion-capable check; do not replace or pool the Phase 3J attempt; then prepare fresh held-out blitz qualification |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -175,13 +176,22 @@ fixes it while preserving parser and audit behavior. All 212 workflow checks
 passed. Twelve live controls distinguished consumer-only sleep from engine
 suspension; no historical clock loss is reclassified. Engine code is unchanged.
 
-**Phase 3J is next:** remove synchronous persistence from active protocol clocks
-with bounded buffering and explicit error handling. Test slow writes across
-separate callbacks, then use a small declared operational check before fresh
-strength qualification. This is not a requirement to eliminate arbitrary OS
-suspension. Reserve/allocation changes still need their own evidence. No new
-match or schedule is active, and no additional GUI tournament is required.
-Both stable GUI bundles remain preserved; Phase 3G's decision and defaults stand.
+**Phase 3J's implementation checkpoint is complete.** The
+[report](reports/2026-10-18-phase3j-persistence-puzzles.md) records bounded FIFO
+protocol writers and off-loop game/campaign persistence, with failure and
+cancellation tests. All 230 workflow checks passed. The owner's annotated puzzle
+input is supported, including four-field records; all 39 supplied positions
+passed independent legal-move and exact-search comparisons. A 60-second example
+found Qxf6+ without proving mate in seven. Native/scalar/sanitizer suites passed.
+
+The declared four-game slow-writer canary finished with two checkmates, one
+threefold draw, and one 128-ply truncation. The cap prevents full operational
+acceptance; it is not a draw or a replacement sample. No clock, protocol, or
+storage failures were recorded. See the report for independent audit coverage.
+**Phase 3K is next:** use a fresh, predeclared completion-capable operational
+check, then prepare fresh held-out LMR blitz qualification. No further match or
+schedule is active; manual puzzle tests can proceed independently. Both GUI
+bundles remain preserved; Phase 3G's decision and all search defaults stand.
 
 LMR confirmation and forecast/SEE qualification remain deferred, not passed.
 Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel

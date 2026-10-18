@@ -83,14 +83,31 @@ time runs from outgoing UCI `go` to the callback receiving the bytes that comple
 `bestmove`, including communication and scheduling overhead. All complete lines
 in a delivered batch share its timestamp, before logging or dispatch; a partial
 line takes the timestamp of the callback supplying its newline. This is a Python
-callback observation, not kernel arrival. Logging or scheduling delays before a
-later callback still count. Readiness and new-game preparation occur before the
+callback observation, not kernel arrival. Scheduling delays before a later
+callback still count. Readiness and new-game preparation occur before the
 clock starts. Increment is credited after a move that completes within its clock.
 
 `run.json` freezes the configuration; `games.jsonl` records finished or interrupted
 games; `summary.json` describes complete pairs and exclusions. Each game also
 has its own PGN and raw protocol log. Copy the entire output directory when
 archiving evidence. The runner never overwrites an existing experiment.
+
+Protocol callbacks enqueue ordered records into a per-game writer thread;
+disk writes, PGN formatting, journals, summaries, and campaign observations run
+outside the shared protocol event loop. Each game allows at most 8 MiB of pending
+serialized protocol payload and 4,096 records, including in-flight writes. This
+is not a total process-memory cap. The runner waits for a flush before that
+game's next search while other games can continue receiving replies.
+
+Queue overflow, write/flush errors, and the 30-second protocol-writer deadline
+invalidate evidence and abort the run; they are not engine defeats. Finalization
+attempts to save an incomplete record, but unavailable storage may prevent even
+that. Always inspect the runner exit status and complete manifest/summary, not
+just a last PGN or an older partial summary. Flush does not mean `fsync`. A stuck
+OS write cannot be forcibly interrupted safely; a timed-out daemon may return
+later. Never resume or reuse a failed output directory. Ordinary offloaded
+finalization retains ownership until completion, so storage stalls may delay
+cleanup. These safeguards do not eliminate OS suspension or CPU/GIL contention.
 
 The referee automatically claims an available threefold/rule-50 draw for either
 side. It uses no evaluation-based adjudication. On a clock loss, its material

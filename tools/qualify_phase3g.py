@@ -229,6 +229,12 @@ async def cancel_and_wait(tasks):
     await asyncio.gather(*tasks, return_exceptions=True)
 
 
+def append_resource_event(journal, event):
+    """Persist one immutable resource observation in its serialized worker."""
+    journal.write(json.dumps(event, allow_nan=False) + "\n")
+    journal.flush()
+
+
 async def run(output, allow_daytime=False):
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -256,22 +262,28 @@ async def run(output, allow_daytime=False):
     tasks, workers = [], []
     journal_path = output / "resource-history.jsonl"
     with journal_path.open("x", encoding="utf-8") as journal:
-        def observe(trigger, **identity):
-            budget, allowed = resource_policy()
-            event = {"observed_utc": utc_now().isoformat(), "trigger": trigger,
-                     "policy": budget, "within_limits": allowed, **identity}
-            journal.write(json.dumps(event, allow_nan=False) + "\n")
-            journal.flush()
-            record["resource_history"]["observations"] += 1
-            return allowed
+        observations = asyncio.Lock()
+        async def observe(trigger, **identity):
+            # One bounded in-flight observation, with no accumulating write
+            # queue. Another shard may search while this one waits for storage.
+            # The lock covers both commit and count, including cancellation.
+            async with observations:
+                budget, allowed = await shared.disk_io(resource_policy)
+                event = {"observed_utc": utc_now().isoformat(), "trigger": trigger,
+                         "policy": budget, "within_limits": allowed, **identity}
+                async def commit():
+                    await asyncio.to_thread(append_resource_event, journal, event)
+                    record["resource_history"]["observations"] += 1
+                await match.finish_cleanup(commit())
+                return allowed
 
         async def guard(game_id=None, index=None, trigger="before_game"):
             if utc_now() >= cutoff:
                 raise shared.WindowExpired("Helsinki 07:00 cutoff; fixed sample incomplete")
-            if fingerprints() != metadata:
+            if await shared.disk_io(fingerprints) != metadata:
                 raise ValueError("Frozen artifact or source metadata changed during campaign")
             identity = {} if index is None else {"shard_index": index, "game_id": game_id}
-            if not observe(trigger, **identity):
+            if not await observe(trigger, **identity):
                 raise ValueError("Aggregate four-worker/eight-engine resource budget became insufficient")
 
         async def monitor():
@@ -297,7 +309,7 @@ async def run(output, allow_daytime=False):
 
         async def worker(index):
             async def cached_preflight():
-                return child_report(record, index)
+                return await shared.disk_io(child_report, record, index)
             async def before_game(game_id):
                 await guard(game_id, index)
             return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=allow_daytime,
@@ -306,7 +318,7 @@ async def run(output, allow_daytime=False):
 
         match.atomic_json(output / "campaign.json", record)
         try:
-            if not observe("initial"):
+            if not await observe("initial"):
                 raise ValueError("Aggregate four-worker/eight-engine resource budget is insufficient")
             checked = await check()
             if checked["artifacts_before"] != initial or fingerprints() != metadata:
@@ -345,7 +357,7 @@ async def run(output, allow_daytime=False):
                     record["shard_statuses"].append({"index": index, **{key: child[key]
                         for key in ("status", "finished_utc", "error") if key in child}})
                 try:
-                    if not observe("final") and record["status"] == "finished":
+                    if not await observe("final") and record["status"] == "finished":
                         raise ValueError("Aggregate resource policy invalid at shutdown")
                     after = await asyncio.to_thread(snapshot)
                     digest = shared.configuration_hash(configuration())

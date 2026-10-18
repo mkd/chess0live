@@ -17,7 +17,11 @@ Move PGN, journal, manifest, and campaign resource observations off the event
 loop too. Serialize dependent writes and wait for their completion during
 cancellation; do not leave a background mutation racing finalization. A blocked
 storage device may delay cleanup, but must not block another shard's protocol
-callback. This is not a guarantee against arbitrary process or OS suspension.
+callback. Protocol-writer barriers have a 30-second deadline: a timed-out daemon
+may return later, so the attempt is invalid and its directory must never be
+resumed or reused. Ordinary offloaded finalization waits for ownership to return.
+Flush is not an `fsync` durability guarantee, and disk failure can prevent even
+failure-marker writes. This is not a guarantee against arbitrary OS suspension.
 
 ## Puzzle-input boundary
 

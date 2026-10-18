@@ -22,9 +22,11 @@ import os
 from pathlib import Path
 import platform
 import random
+import queue
 import subprocess
 import sys
 import time
+import threading
 
 try:
     import chess
@@ -253,6 +255,193 @@ def resource_check(settings, specs):
     return policy
 
 
+
+class PersistenceError(OSError):
+    """Evidence cannot be completed; never score this as an engine loss."""
+
+
+class BufferedLog:
+    """Bounded FIFO protocol persistence, with no disk work in UCI callbacks.
+
+    A single daemon thread owns the file and every write/flush/close. Queue
+    capacity includes the in-flight write, and the accounting lock is never held
+    during I/O. Callback admission cannot wait for storage: overflow latches a
+    permanent failure. The runner observes that failure while engines are active.
+    Flush barriers provide backpressure between searches, never during a clock.
+
+    A stuck OS write cannot safely be interrupted by Python. Barriers/close have
+    a deadline and fail the run; a blocked daemon may finish later, so its output
+    must remain incomplete and must never be resumed or reused.
+    """
+    MAX_BYTES = 8 * 1024 * 1024
+    MAX_RECORDS = 4096
+    TIMEOUT = 30.0
+
+    def __init__(self, path, *, max_bytes=None, max_records=None, timeout=None, opener=None):
+        self.path = Path(path)
+        self.max_bytes = self.MAX_BYTES if max_bytes is None else max_bytes
+        self.max_records = self.MAX_RECORDS if max_records is None else max_records
+        self.timeout = self.TIMEOUT if timeout is None else timeout
+        if (not isinstance(self.max_bytes, int) or self.max_bytes <= 0
+                or not isinstance(self.max_records, int) or self.max_records <= 0
+                or not math.isfinite(self.timeout) or self.timeout <= 0):
+            raise ValueError("Invalid protocol persistence bounds")
+        self.loop = asyncio.get_running_loop()
+        self.failure = self.loop.create_future()
+        self._ready = self.loop.create_future()
+        self._done = self.loop.create_future()
+        self._queue = queue.SimpleQueue()
+        self._lock = threading.Lock()
+        self._error = None
+        self._closing = False
+        self._draining = False
+        self._pending_bytes = 0
+        self._pending_records = 0
+        self._opener = opener or (lambda path: path.open("x", encoding="utf-8"))
+        self._thread = threading.Thread(target=self._worker, name="chess0live-evidence", daemon=True)
+        self._thread.start()
+
+    @property
+    def error(self):
+        with self._lock:
+            return self._error
+
+    def _post(self, future, value=None):
+        def resolve():
+            if not future.done():
+                future.set_result(value)
+        try:
+            self.loop.call_soon_threadsafe(resolve)
+        except RuntimeError:
+            # A timed-out daemon can return after the failed run's loop closes.
+            pass
+
+    def fail(self, error):
+        if not isinstance(error, PersistenceError):
+            error = PersistenceError(f"Protocol log {self.path.name}: {type(error).__name__}: {error}")
+        with self._lock:
+            if self._error is None:
+                self._error = error
+            error = self._error
+        self._post(self.failure, error)
+        return error
+
+    def write(self, text):
+        """Admit one immutable serialized record, or fail without blocking."""
+        size = len(text.encode("utf-8"))
+        with self._lock:
+            error = self._error
+            if error is None and self._closing:
+                error = PersistenceError("Protocol log is already closing")
+            if error is None and (self._pending_bytes + size > self.max_bytes
+                                  or self._pending_records + 1 > self.max_records):
+                error = PersistenceError("Protocol log queue capacity exceeded; evidence is incomplete")
+            if error is None:
+                self._pending_bytes += size
+                self._pending_records += 1
+                self._queue.put(("write", text, size))
+        if error is not None:
+            raise self.fail(error)
+        return len(text)
+
+    async def _wait(self, future):
+        try:
+            result = await asyncio.wait_for(asyncio.shield(future), self.timeout)
+        except asyncio.TimeoutError as error:
+            raise self.fail(PersistenceError("Protocol persistence deadline exceeded; evidence is incomplete")) from error
+        if isinstance(result, BaseException):
+            raise result
+        if self.error is not None:
+            raise self.error
+
+    async def ready(self):
+        await self._wait(self._ready)
+
+    async def drain(self):
+        """Flush everything admitted so far before admitting the next search."""
+        if self.error is not None:
+            raise self.error
+        barrier = self.loop.create_future()
+        with self._lock:
+            if self._draining or self._closing:
+                invalid = True
+            else:
+                invalid = False
+                self._draining = True
+                self._queue.put(("flush", barrier, 0))
+        if invalid:
+            raise self.fail(PersistenceError("Overlapping or post-close protocol drain"))
+        await self._wait(barrier)
+
+    async def close(self):
+        with self._lock:
+            if not self._closing:
+                self._closing = True
+                self._queue.put(("close", None, 0))
+        await self._wait(self._done)
+
+    def _worker(self):
+        stream = None
+        try:
+            stream = self._opener(self.path)
+            self._post(self._ready)
+            while True:
+                kind, value, size = self._queue.get()
+                if kind == "close":
+                    break
+                if kind == "write":
+                    try:
+                        if self.error is None:
+                            stream.write(value)
+                    except Exception as error:
+                        self.fail(error)
+                    finally:
+                        with self._lock:
+                            self._pending_bytes -= size
+                            self._pending_records -= 1
+                else:
+                    try:
+                        if self.error is None:
+                            stream.flush()
+                    except Exception as error:
+                        self.fail(error)
+                    with self._lock:
+                        self._draining = False
+                    self._post(value, self.error)
+        except Exception as error:
+            self.fail(error)
+        finally:
+            if stream is not None:
+                try:
+                    if self.error is None:
+                        stream.flush()
+                except Exception as error:
+                    self.fail(error)
+                try:
+                    stream.close()
+                except Exception as error:
+                    self.fail(error)
+            self._post(self._ready, self.error)
+            self._post(self._done, self.error)
+
+
+async def persistence_guard(awaitable, log):
+    """Abort setup/search promptly if its asynchronous evidence writer fails."""
+    failure = getattr(log, "failure", None)
+    if failure is None:
+        return await awaitable
+    task = asyncio.ensure_future(awaitable)
+    try:
+        done, _ = await asyncio.wait((task, failure), return_when=asyncio.FIRST_COMPLETED)
+        if failure in done or log.error is not None:
+            raise log.error or failure.result()
+        return await task
+    finally:
+        if not task.done():
+            task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
 class RecordingProtocol(chess.engine.UciProtocol):
     """Timestamp protocol callback boundaries and preserve every raw line.
 
@@ -272,10 +461,19 @@ class RecordingProtocol(chess.engine.UciProtocol):
         self._received_lines = None
 
     def record(self, direction, line, stamp):
-        self.log.write(json.dumps({"monotonic_ns": stamp, "engine": self.role,
-                                   "direction": direction, "line": line}) + "\n")
+        try:
+            self.log.write(json.dumps({"monotonic_ns": stamp, "engine": self.role,
+                                       "direction": direction, "line": line}) + "\n")
+        except PersistenceError:
+            # BufferedLog has latched the failure. Do not throw from an asyncio
+            # pipe callback: the active setup/play guard owns orderly abortion.
+            pass
 
     def send_line(self, line):
+        if getattr(self.log, "error", None) is not None and line not in ("stop", "quit"):
+            # The async guard will abort the command. Do not launch a new search
+            # after an already-known persistence failure; retain cleanup commands.
+            return
         stamp = time.monotonic_ns()
         if line == "go" or line.startswith("go "):
             self.go_ns, self.bestmove_ns = stamp, None
@@ -342,7 +540,7 @@ async def start_engine(spec, settings, log):
     transport, protocol = await asyncio.get_running_loop().subprocess_exec(
         lambda: RecordingProtocol(spec.role, log), str(spec.executable), *spec.arguments, **kwargs)
     try:
-        await asyncio.wait_for(protocol.initialize(), settings.startup_timeout)
+        await persistence_guard(asyncio.wait_for(protocol.initialize(), settings.startup_timeout), log)
         configured = {"Hash": settings.hash_mb, "Threads": settings.threads,
                       spec.network_option: str(spec.network)}
         for name in configured:
@@ -358,8 +556,8 @@ async def start_engine(spec, settings, log):
         if "Skill Level" in protocol.options and protocol.options["Skill Level"].max is not None:
             configured["Skill Level"] = protocol.options["Skill Level"].max
         configured.update(experiment_options(spec, protocol, configured))
-        await asyncio.wait_for(protocol.configure(configured), settings.startup_timeout)
-        await asyncio.wait_for(protocol.ping(), settings.startup_timeout)
+        await persistence_guard(asyncio.wait_for(protocol.configure(configured), settings.startup_timeout), log)
+        await persistence_guard(asyncio.wait_for(protocol.ping(), settings.startup_timeout), log)
         if protocol.errors:
             raise ValueError("; ".join(protocol.errors))
         return transport, protocol, configured
@@ -408,7 +606,7 @@ async def close_engine(transport, protocol):
     await finish_cleanup(close())
 
 
-async def timed_play(protocol, board, limit, game_id, remaining, settings):
+async def _timed_play(protocol, board, limit, game_id, remaining, settings):
     """Separate protocol readiness from the watchdog on the actual chess clock.
 
     python-chess sends newgame/isready on each process's first play. Readiness
@@ -439,6 +637,20 @@ async def timed_play(protocol, board, limit, game_id, remaining, settings):
         await asyncio.gather(playing, ready, return_exceptions=True)
 
 
+async def timed_play(protocol, board, limit, game_id, remaining, settings):
+    return await persistence_guard(
+        _timed_play(protocol, board, limit, game_id, remaining, settings), protocol.log)
+
+
+async def disk_io(function, *args, **kwargs):
+    """Keep persistence off the shared loop, finishing issued work on cancel.
+
+    Call only outside this shard's active search. Other shards may be searching,
+    so even opening/closing files and PGN formatting run in the worker thread.
+    """
+    return await finish_cleanup(asyncio.to_thread(function, *args, **kwargs))
+
+
 def clock_outcome(board, loser):
     """Referee approximation for flag falls: python-chess's side-specific
     insufficient-material test is conservative, not a general helpmate solver.
@@ -455,6 +667,13 @@ def candidate_score(result, color):
     if result == "*":
         return None
     return float((result == "1-0") == (color == "white"))
+
+
+def persistence_failure(record, error):
+    """Invalidate only this new incomplete record; historical games never change."""
+    record.setdefault("persistence_error", str(error))
+    record.update(status="persistence_failure", termination="evidence_write_failure",
+                  result="*", candidate_score=None)
 
 
 async def play_game(specs, settings, opening, pair_id, game_id, candidate_color, policy, output, append_record):
@@ -478,98 +697,144 @@ async def play_game(specs, settings, opening, pair_id, game_id, candidate_color,
     clocks = {chess.WHITE: settings.initial, chess.BLACK: settings.initial}
     running = {}
     stage = "setup"
-    with (output / record["protocol_log"]).open("w", encoding="utf-8") as log:
-        try:
-            for spec in specs:
-                transport, engine, configured = await start_engine(spec, settings, log)
-                running[spec.role] = (transport, engine)
-                record["engines"][spec.role] = {"id": dict(engine.id), "options": configured,
-                                                "ponder": False, "pid": transport.get_pid()}
-            stage = "play"
-            while True:
-                outcome = board.outcome(claim_draw=True)
-                if outcome is not None:
-                    record.update(status="complete", result=outcome.result(), termination=outcome.termination.name.lower())
-                    break
-                if record["played_plies"] >= settings.max_plies:
-                    record.update(status="truncated", termination="max_plies")
-                    break
-                side = board.turn
-                role = colors[side]
-                protocol = running[role][1]
-                event = {"ply": board.ply() + 1, "engine": role,
-                         "color": "white" if side else "black", "clock_before": clocks[side]}
-                limit = chess.engine.Limit(white_clock=clocks[chess.WHITE], black_clock=clocks[chess.BLACK],
-                                           white_inc=settings.increment, black_inc=settings.increment)
-                try:
-                    played = await timed_play(protocol, board, limit, game_id, clocks[side], settings)
-                except asyncio.TimeoutError:
-                    record.update(status="protocol_timeout", termination="no_bestmove" if protocol.go_ns is not None else "not_ready_for_go",
-                                  failed_engine=role)
-                    if protocol.go_ns is not None:
-                        event["elapsed_seconds"] = (time.monotonic_ns() - protocol.go_ns) / 1e9
-                    record["moves"].append(event)
-                    break
-                except chess.engine.EngineError as error:
-                    record.update(status="protocol_failure", termination="invalid_engine_response",
-                                  failed_engine=role, error=str(error))
-                    record["moves"].append(event)
-                    break
-                if protocol.go_ns is None or protocol.bestmove_ns is None:
-                    raise RuntimeError("Missing clock boundary in UCI transcript")
-                elapsed = (protocol.bestmove_ns - protocol.go_ns) / 1e9
-                event.update(elapsed_seconds=elapsed, move=played.move.uci() if played.move else None)
-                if protocol.errors or played.move is None or not board.is_legal(played.move):
-                    record.update(status="protocol_failure", termination="illegal_or_failed_move",
-                                  failed_engine=role, error="; ".join(protocol.errors) or "Missing/illegal bestmove")
-                    record["moves"].append(event)
-                    break
-                # Increment is earned only by an on-time legal move. An over-clock
-                # reply is evidence, not a move pushed onto the game board or PGN.
-                if elapsed > clocks[side]:
-                    clocks[side] -= elapsed
-                    event.update(clock_after=clocks[side], played=False)
-                    record["moves"].append(event)
-                    record.update(status="complete", termination="time_forfeit",
-                                  result=clock_outcome(board, side), clock_loser=role)
-                    break
-                clocks[side] = clocks[side] - elapsed + settings.increment
-                event.update(clock_after=clocks[side], played=True,
-                             search={key: played.info[key] for key in ("depth", "seldepth", "nodes") if key in played.info})
-                record["moves"].append(event)
-                board.push(played.move)
-                node = node.add_variation(played.move)
-                node.set_clock(clocks[side])
-                record["played_plies"] += 1
-                log.flush()
-        except asyncio.CancelledError:
-            record.update(status="interrupted", termination="runner_interrupted")
-            raise
-        except Exception as error:
-            record.update(status="setup_failure" if stage == "setup" else "protocol_failure",
-                          termination="engine_setup" if stage == "setup" else "runner_error", error=str(error))
-        finally:
-            async def close_all():
-                for transport, protocol in running.values():
-                    await close_engine(transport, protocol)
-            cleanup_cancelled = False
+    log = BufferedLog(output / record["protocol_log"])
+    persistence_error = None
+    try:
+        await log.ready()
+        for spec in specs:
+            transport, engine, configured = await start_engine(spec, settings, log)
+            running[spec.role] = (transport, engine)
+            record["engines"][spec.role] = {"id": dict(engine.id), "options": configured,
+                                            "ponder": False, "pid": transport.get_pid()}
+        stage = "play"
+        while True:
+            outcome = board.outcome(claim_draw=True)
+            if outcome is not None:
+                record.update(status="complete", result=outcome.result(), termination=outcome.termination.name.lower())
+                break
+            if record["played_plies"] >= settings.max_plies:
+                record.update(status="truncated", termination="max_plies")
+                break
+            side = board.turn
+            role = colors[side]
+            protocol = running[role][1]
+            event = {"ply": board.ply() + 1, "engine": role,
+                     "color": "white" if side else "black", "clock_before": clocks[side]}
+            limit = chess.engine.Limit(white_clock=clocks[chess.WHITE], black_clock=clocks[chess.BLACK],
+                                       white_inc=settings.increment, black_inc=settings.increment)
+            # This shard has no running chess clock here. Await durable log
+            # progress before go, while other shards retain the event loop.
+            await log.drain()
             try:
-                await finish_cleanup(close_all())
-            except asyncio.CancelledError:
-                cleanup_cancelled = True
-            record.update(finished_utc=utc_now(), final_fen=board.fen(),
-                          candidate_score=candidate_score(record["result"], candidate_color),
-                          clocks={"white": clocks[chess.WHITE], "black": clocks[chess.BLACK]})
-            if any(getattr(protocol, "stderr_seen", False) for _, protocol in running.values()):
-                record["unexpected_stderr"] = True
+                played = await timed_play(protocol, board, limit, game_id, clocks[side], settings)
+            except asyncio.TimeoutError:
+                record.update(status="protocol_timeout", termination="no_bestmove" if protocol.go_ns is not None else "not_ready_for_go",
+                              failed_engine=role)
+                if protocol.go_ns is not None:
+                    event["elapsed_seconds"] = (time.monotonic_ns() - protocol.go_ns) / 1e9
+                record["moves"].append(event)
+                break
+            except chess.engine.EngineError as error:
+                record.update(status="protocol_failure", termination="invalid_engine_response",
+                              failed_engine=role, error=str(error))
+                record["moves"].append(event)
+                break
+            if protocol.go_ns is None or protocol.bestmove_ns is None:
+                raise RuntimeError("Missing clock boundary in UCI transcript")
+            elapsed = (protocol.bestmove_ns - protocol.go_ns) / 1e9
+            event.update(elapsed_seconds=elapsed, move=played.move.uci() if played.move else None)
+            if protocol.errors or played.move is None or not board.is_legal(played.move):
+                record.update(status="protocol_failure", termination="illegal_or_failed_move",
+                              failed_engine=role, error="; ".join(protocol.errors) or "Missing/illegal bestmove")
+                record["moves"].append(event)
+                break
+            # Increment is earned only by an on-time legal move. An over-clock
+            # reply is evidence, not a move pushed onto the game board or PGN.
+            if elapsed > clocks[side]:
+                clocks[side] -= elapsed
+                event.update(clock_after=clocks[side], played=False)
+                record["moves"].append(event)
+                record.update(status="complete", termination="time_forfeit",
+                              result=clock_outcome(board, side), clock_loser=role)
+                break
+            clocks[side] = clocks[side] - elapsed + settings.increment
+            event.update(clock_after=clocks[side], played=True,
+                         search={key: played.info[key] for key in ("depth", "seldepth", "nodes") if key in played.info})
+            record["moves"].append(event)
+            board.push(played.move)
+            node = node.add_variation(played.move)
+            node.set_clock(clocks[side])
+            record["played_plies"] += 1
+    except asyncio.CancelledError:
+        record.update(status="interrupted", termination="runner_interrupted")
+        raise
+    except PersistenceError as error:
+        persistence_error = error
+        persistence_failure(record, error)
+    except Exception as error:
+        record.update(status="setup_failure" if stage == "setup" else "protocol_failure",
+                      termination="engine_setup" if stage == "setup" else "runner_error", error=str(error))
+    finally:
+        async def close_all():
+            for transport, protocol in running.values():
+                await close_engine(transport, protocol)
+        cleanup_cancelled = False
+        try:
+            await finish_cleanup(close_all())
+        except asyncio.CancelledError:
+            cleanup_cancelled = True
+        # Drain/close before publishing a game outcome. Missing protocol bytes
+        # invalidate the game even if a legal bestmove was already received.
+        try:
+            await finish_cleanup(log.close())
+        except asyncio.CancelledError:
+            cleanup_cancelled = True
+        except PersistenceError as error:
+            persistence_error = error
+            persistence_failure(record, error)
+        if log.error is not None:
+            persistence_error = log.error
+            persistence_failure(record, log.error)
+        record.update(finished_utc=utc_now(), final_fen=board.fen(),
+                      candidate_score=candidate_score(record["result"], candidate_color),
+                      clocks={"white": clocks[chess.WHITE], "black": clocks[chess.BLACK]})
+        if any(getattr(protocol, "stderr_seen", False) for _, protocol in running.values()):
+            record["unexpected_stderr"] = True
+
+        def persist_game():
+            # The game tree and record no longer mutate on the event loop. PGN
+            # formatting, file writes, the journal and summary all stay off it.
             game.headers["Result"] = record["result"]
             game.headers["Termination"] = record["termination"]
             node.comment = (node.comment + " " + record["status"] + ": " + record["termination"]).strip()
-            (output / record["pgn"]).write_text(str(game) + "\n\n", encoding="utf-8")
-            log.flush()
-            append_record(record)
-            if cleanup_cancelled:
-                raise asyncio.CancelledError
+            failure = None
+            try:
+                (output / record["pgn"]).write_text(str(game) + "\n\n", encoding="utf-8")
+            except Exception as error:
+                failure = PersistenceError(f"PGN persistence failed: {error}")
+                persistence_failure(record, failure)
+            # Attempt the failure record once even if the separate PGN failed;
+            # a full/unavailable disk may also prevent this best-effort record.
+            try:
+                append_record(record)
+            except Exception as error:
+                failure = PersistenceError(f"Game journal/summary persistence failed: {error}")
+                persistence_failure(record, failure)
+            if failure is not None:
+                raise failure
+
+        try:
+            await disk_io(persist_game)
+        except asyncio.CancelledError:
+            cleanup_cancelled = True
+        except PersistenceError as error:
+            persistence_error = error
+        if record["status"] == "persistence_failure" and persistence_error is None:
+            persistence_error = PersistenceError(record["persistence_error"])
+        if persistence_error is not None:
+            raise persistence_error
+        if cleanup_cancelled:
+            raise asyncio.CancelledError
     return record
 
 
@@ -601,26 +866,31 @@ async def run_match(specs, settings, suite_path, output, pairs, seed, *, before_
     settings.validate()
     if chess.__version__ != SUPPORTED_CHESS_VERSION:
         raise ValueError(f"This runner is verified with chess=={SUPPORTED_CHESS_VERSION}; installed {chess.__version__}")
-    suite_contents = suite_path.read_bytes()
+    suite_contents = await asyncio.to_thread(suite_path.read_bytes)
     document, openings = read_openings(suite_path, suite_contents)
     plan = plan_pairs(openings, pairs, seed)
-    if output.exists() and any(output.iterdir()):
+    if await asyncio.to_thread(lambda: output.exists() and any(output.iterdir())):
         raise ValueError("Output directory must be new or empty; existing results are never overwritten")
     def artifact_snapshot():
         return {spec.role: spec.artifacts() for spec in specs}
 
-    # Coordinated matches share an event loop with other live chess clocks.
-    # Stream large network hashes in a worker thread so their UCI pipes remain
-    # responsive. Standalone historical runs keep the same execution path.
+    # Any shard may share its loop with another live chess clock. All storage
+    # and environment observations stay off that loop, even before this shard's
+    # own first engine starts. Calls are awaited, so there is no I/O task backlog.
     async def artifacts():
-        return await asyncio.to_thread(artifact_snapshot) if before_game is not None else artifact_snapshot()
+        return await asyncio.to_thread(artifact_snapshot)
 
     frozen = await artifacts()
-    resource_check(settings, specs)
-    output.mkdir(parents=True, exist_ok=True)
-    (output / "openings.json").write_bytes(suite_contents)
+    await asyncio.to_thread(resource_check, settings, specs)
+    await disk_io(output.mkdir, parents=True, exist_ok=True)
+    await disk_io((output / "openings.json").write_bytes, suite_contents)
+    source_paths = tuple(ROOT / "tools" / name for name in
+                         ("match.py", "match_statistics.py", "resources.py"))
+    sources = await asyncio.to_thread(lambda: [
+        {"path": str(path.relative_to(ROOT)), "sha256": sha256(path)} for path in source_paths])
+    environment = await asyncio.to_thread(lambda: (platform.platform(), platform.machine()))
     manifest = {"schema_version": 1, "started_utc": utc_now(), "status": "running",
-                "platform": platform.platform(), "machine": platform.machine(),
+                "platform": environment[0], "machine": environment[1],
                 "python": sys.version, "chess_version": chess.__version__,
                 "seed": seed, "planned_pairs": pairs, "settings": vars(settings),
                 "engines": {spec.role: {"executable": str(spec.executable), "arguments": list(spec.arguments),
@@ -628,9 +898,15 @@ async def run_match(specs, settings, suite_path, output, pairs, seed, *, before_
                                         "experiment_options": dict(spec.extra_options),
                                         "source_revision": {"label": spec.source_revision, "verified_against_binary": False},
                                         "artifacts": frozen[spec.role]} for spec in specs},
-                "runner_sources": [{"path": str(path.relative_to(ROOT)), "sha256": sha256(path)}
-                                   for path in (ROOT / "tools" / name for name in
-                                                ("match.py", "match_statistics.py", "resources.py"))],
+                "runner_sources": sources,
+                "persistence": {"protocol_writer": "bounded single-thread FIFO per game",
+                                "max_pending_bytes": BufferedLog.MAX_BYTES,
+                                "max_pending_records": BufferedLog.MAX_RECORDS,
+                                "deadline_seconds": BufferedLog.TIMEOUT,
+                                "bounds_include_in_flight": True,
+                                "overflow_or_write_error": "abort run; evidence incomplete",
+                                "drain_boundary": "before next search and game publication",
+                                "flush_is_fsync": False},
                 "opening_suite": {"path": str(suite_path), "sha256": hashlib.sha256(suite_contents).hexdigest(),
                                   "frozen_copy": "openings.json",
                                   "description": document.get("description", "")},
@@ -652,44 +928,81 @@ async def run_match(specs, settings, suite_path, output, pairs, seed, *, before_
             git = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, check=False)
             result[key] = git.stdout.strip() if git.returncode == 0 else None
         return result
-    manifest.update(await asyncio.to_thread(checkout_metadata) if before_game is not None else checkout_metadata())
-    atomic_json(output / "run.json", manifest)
+    manifest.update(await asyncio.to_thread(checkout_metadata))
+    await disk_io(atomic_json, output / "run.json", manifest)
     records = []
-    with (output / "games.jsonl").open("w", encoding="utf-8") as journal:
-        def append_record(record):
-            records.append(record)
-            journal.write(json.dumps(record, allow_nan=False) + "\n")
-            journal.flush()
-            atomic_json(output / "summary.json", summary(plan, records, False, settings.smoke))
+    journal = None
+    def open_journal():
+        # Store ownership before a cancelled async caller can lose the result.
+        nonlocal journal
+        journal = (output / "games.jsonl").open("w", encoding="utf-8")
 
+    def append_record(record):
+        records.append(record)
+        journal.write(json.dumps(record, allow_nan=False) + "\n")
+        journal.flush()
+        atomic_json(output / "summary.json", summary(plan, records, False, settings.smoke))
+
+    try:
+        await disk_io(open_journal)
+        for pair in plan:
+            first = pair["first_candidate_color"]
+            for leg, color in enumerate((first, "black" if first == "white" else "white"), start=1):
+                game_id = f"{pair['pair_id']}-{leg}"
+                if before_game is not None:
+                    await before_game(game_id)
+                policy = await asyncio.to_thread(resource_check, settings, specs)
+                if await artifacts() != frozen:
+                    raise ValueError("Frozen executable/network/script changed during the experiment")
+                record = await play_game(specs, settings, pair["opening"], pair["pair_id"], game_id,
+                                         color, policy, output, append_record)
+                if fail_fast and (record["status"] != "complete" or record.get("unexpected_stderr")):
+                    reason = "unexpected engine stderr" if record.get("unexpected_stderr") else record["termination"]
+                    raise ValueError(f"Invalid game {game_id}: {record['status']}: {reason}")
+        # A modification during the last game must not escape the next-game
+        # checks merely because the predeclared schedule has just ended.
+        if await artifacts() != frozen:
+            raise ValueError("Frozen executable/network/script changed during the experiment")
+        manifest["status"] = "finished"
+    except BaseException as error:
+        manifest.update(status="interrupted", error=f"{type(error).__name__}: {error}")
+        raise
+    finally:
+        complete = manifest["status"] == "finished"
+        manifest["finished_utc"] = utc_now()
+        def publish_final():
+            if journal is not None:
+                journal.close()
+            # Publish completion last. If a summary write fails, run.json still
+            # says running/interrupted rather than claiming durable completion.
+            atomic_json(output / "summary.json", summary(plan, records, complete, settings.smoke))
+            atomic_json(output / "run.json", manifest)
         try:
-            for pair in plan:
-                first = pair["first_candidate_color"]
-                for leg, color in enumerate((first, "black" if first == "white" else "white"), start=1):
-                    game_id = f"{pair['pair_id']}-{leg}"
-                    if before_game is not None:
-                        await before_game(game_id)
-                    policy = resource_check(settings, specs)
-                    if await artifacts() != frozen:
-                        raise ValueError("Frozen executable/network/script changed during the experiment")
-                    record = await play_game(specs, settings, pair["opening"], pair["pair_id"], game_id,
-                                             color, policy, output, append_record)
-                    if fail_fast and (record["status"] != "complete" or record.get("unexpected_stderr")):
-                        reason = "unexpected engine stderr" if record.get("unexpected_stderr") else record["termination"]
-                        raise ValueError(f"Invalid game {game_id}: {record['status']}: {reason}")
-            # A modification during the last game must not escape the next-game
-            # checks merely because the predeclared schedule has just ended.
-            if await artifacts() != frozen:
-                raise ValueError("Frozen executable/network/script changed during the experiment")
-            manifest["status"] = "finished"
+            await disk_io(publish_final)
         except BaseException as error:
             manifest.update(status="interrupted", error=f"{type(error).__name__}: {error}")
+            # This is one best-effort failure marker, never a retry of a game.
+            # A completely unavailable disk can prevent even this marker; the
+            # exception still propagates and no subsequent game is admitted.
+            def publish_failure():
+                failure = None
+                try:
+                    if journal is not None:
+                        journal.close()
+                except Exception as closing_error:
+                    failure = closing_error
+                # Try both independently: a damaged run.json must not prevent
+                # replacing an otherwise writable completed summary as invalid.
+                for path, value in ((output / "run.json", manifest),
+                                    (output / "summary.json", summary(plan, records, False, settings.smoke))):
+                    try:
+                        atomic_json(path, value)
+                    except Exception as write_error:
+                        failure = write_error
+                if failure is not None:
+                    raise failure
+            await disk_io(publish_failure)
             raise
-        finally:
-            complete = manifest["status"] == "finished"
-            manifest["finished_utc"] = utc_now()
-            atomic_json(output / "run.json", manifest)
-            atomic_json(output / "summary.json", summary(plan, records, complete, settings.smoke))
     return summary(plan, records, True, settings.smoke)
 
 

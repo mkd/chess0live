@@ -660,6 +660,30 @@ native/scalar/sanitizer or NNUE oracle run is claimed. Both stable GUI bundles,
 the normal release binary, and the README introduction are unchanged. Phase 3G
 retains every original flagfall and its operational-regression decision.
 
+## Phase 3J persistence isolation — October 18, 2026
+
+All 230 match/qualification/audit/clock-probe checks passed in 11 invocations,
+including 15 new bounded-writer tests and three resource-supervisor tests.
+Coverage includes slow writes across separate callbacks, ordering, byte/record
+overflow including in-flight writes, open/write/flush failures, bounded writer
+timeout, cancellation, journal ownership, and incomplete evidence publication.
+
+The predeclared four-game, two-shard canary injected 100 ms into every protocol
+write and finished in 220.986 seconds. Its independent evidence audit passed:
+398 on-time search replies, 430 legal plies including openings, 2,516 legal PV
+lines / 7,174 PV plies, 396 legal ponders, consistent PGN/journal clocks, and
+unchanged source/asset pins. There were 3,878 measured delayed writes; 396
+bestmoves arrived during the other shard's write delay. No protocol, storage,
+queue, or clock failure was recorded.
+
+Full operational acceptance **did not pass** because one game hit the declared
+128-ply limit. The other games ended in two checkmates and one repetition draw.
+The capped game is retained as `*`, without extension or replacement. This
+finite mechanism check establishes no strength or general reliability claim.
+See the [report](reports/2026-10-18-phase3j-persistence-puzzles.md), frozen plan,
+and raw `results/phase3j-20261018/canary/` plus independent audit. The next
+operational screen must be separately declared; old campaigns remain unchanged.
+
 ## Owner-run GUI feedback — October 18, 2026
 
 The owner reports two draws against Gargantua 2.1 with no engine errors or

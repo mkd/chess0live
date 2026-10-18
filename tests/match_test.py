@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 import sys
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -207,6 +208,264 @@ class ProtocolClockTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(engine.bestmove_ns - engine.go_ns, 100_000_000)
 
 
+
+class BufferedLogTests(unittest.IsolatedAsyncioTestCase):
+    """Deterministic slow/failing storage with no chess engine or disk sleep."""
+
+    async def wait_event(self, event):
+        self.assertTrue(await asyncio.to_thread(event.wait, 2.0), "writer did not reach test gate")
+
+    async def test_blocked_writer_does_not_delay_a_later_protocol_callback(self):
+        entered, release = threading.Event(), threading.Event()
+        events = []
+        owner = threading.get_ident()
+
+        class Stream:
+            def write(stream, text):
+                self.assertNotEqual(threading.get_ident(), owner)
+                if not events:
+                    entered.set()
+                    if not release.wait(2.0):
+                        raise RuntimeError("test release missing")
+                events.append(text)
+            def flush(stream):
+                self.assertNotEqual(threading.get_ident(), owner)
+            def close(stream):
+                self.assertNotEqual(threading.get_ident(), owner)
+
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        engine = match.RecordingProtocol("candidate", log)
+        engine.line_received = lambda _: None
+        engine.go_ns = 950_000_000
+        try:
+            with patch.object(match.time, "monotonic_ns", return_value=1_000_000_000):
+                engine.pipe_data_received(1, b"info depth 1 nodes 1 pv e2e4\n")
+            await self.wait_event(entered)
+            # A separate later callback runs while persistence is still blocked.
+            with patch.object(match.time, "monotonic_ns", return_value=1_010_000_000):
+                engine.pipe_data_received(1, b"bestmove e2e4\n")
+            self.assertEqual(engine.bestmove_ns - engine.go_ns, 60_000_000)
+            self.assertEqual(events, [])
+            draining = asyncio.create_task(log.drain())
+            await asyncio.sleep(0)
+            self.assertFalse(draining.done())
+        finally:
+            release.set()
+        await draining
+        await log.close()
+        self.assertEqual([json.loads(text)["line"] for text in events],
+                         ["info depth 1 nodes 1 pv e2e4", "bestmove e2e4"])
+
+    async def test_byte_capacity_includes_in_flight_utf8_record(self):
+        entered, release = threading.Event(), threading.Event()
+        class Stream:
+            def write(stream, text):
+                entered.set()
+                release.wait(2.0)
+            def flush(stream): pass
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), max_bytes=4, opener=lambda _: Stream())
+        await log.ready()
+        log.write("éé")
+        await self.wait_event(entered)
+        try:
+            with self.assertRaisesRegex(match.PersistenceError, "capacity"):
+                log.write("x")
+            self.assertIsNotNone(log.error)
+        finally:
+            release.set()
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_record_capacity_latches_without_escaping_pipe_callback(self):
+        entered, release = threading.Event(), threading.Event()
+        class Stream:
+            def write(stream, text):
+                entered.set()
+                release.wait(2.0)
+            def flush(stream): pass
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), max_records=1, opener=lambda _: Stream())
+        await log.ready()
+        engine = match.RecordingProtocol("candidate", log)
+        engine.line_received = lambda _: None
+        engine.pipe_data_received(1, b"info depth 1\n")
+        await self.wait_event(entered)
+        try:
+            engine.pipe_data_received(1, b"bestmove e2e4\n")
+            self.assertIsNotNone(engine.bestmove_ns)
+            self.assertIn("capacity", str(log.error))
+            self.assertIs(await log.failure, log.error)
+        finally:
+            release.set()
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_failure_suppresses_new_search_but_keeps_cleanup_commands(self):
+        class Stream:
+            def write(stream, text): pass
+            def flush(stream): pass
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        writes = []
+        class Transport:
+            def get_pipe_transport(transport, fd): return transport
+            def write(transport, data): writes.append(data)
+        engine = match.RecordingProtocol("candidate", log)
+        engine.transport = Transport()
+        log.fail(match.PersistenceError("injected failure"))
+        engine.send_line("go wtime 100 btime 100")
+        engine.send_line("stop")
+        engine.send_line("quit")
+        self.assertIsNone(engine.go_ns)
+        self.assertEqual(writes, [b"stop\n", b"quit\n"])
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_overlapping_drain_does_not_build_unbounded_barriers(self):
+        entered, release = threading.Event(), threading.Event()
+        class Stream:
+            def write(stream, text):
+                entered.set()
+                release.wait(2.0)
+            def flush(stream): pass
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        log.write("one\n")
+        await self.wait_event(entered)
+        first = asyncio.create_task(log.drain())
+        await asyncio.sleep(0)
+        try:
+            with self.assertRaisesRegex(match.PersistenceError, "Overlapping"):
+                await log.drain()
+        finally:
+            release.set()
+        with self.assertRaises(match.PersistenceError):
+            await first
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_write_failure_aborts_active_operation_and_closes_stream(self):
+        closed, cancelled = threading.Event(), asyncio.Event()
+        class Stream:
+            def write(stream, text): raise OSError("injected full disk")
+            def flush(stream): pass
+            def close(stream): closed.set()
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        async def operation():
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+        guarded = asyncio.create_task(match.persistence_guard(operation(), log))
+        await asyncio.sleep(0)
+        log.write("one\n")
+        with self.assertRaisesRegex(match.PersistenceError, "full disk"):
+            await guarded
+        self.assertTrue(cancelled.is_set())
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+        self.assertTrue(closed.is_set())
+
+    async def test_open_and_flush_failures_are_observed(self):
+        def broken_open(_): raise OSError("injected open failure")
+        log = match.BufferedLog(Path("unused"), opener=broken_open)
+        with self.assertRaisesRegex(match.PersistenceError, "open failure"):
+            await log.ready()
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+        class Stream:
+            def write(stream, text): pass
+            def flush(stream): raise OSError("injected flush failure")
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        log.write("one\n")
+        with self.assertRaisesRegex(match.PersistenceError, "flush failure"):
+            await log.drain()
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_final_flush_failure_still_attempts_close(self):
+        closed = threading.Event()
+        class Stream:
+            def write(stream, text): pass
+            def flush(stream): raise OSError("injected final flush failure")
+            def close(stream): closed.set()
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        log.write("one\n")
+        with self.assertRaisesRegex(match.PersistenceError, "final flush failure"):
+            await log.close()
+        self.assertTrue(closed.is_set())
+
+    async def test_cancelled_close_still_drains_and_closes_before_propagating(self):
+        entered, release, closed = threading.Event(), threading.Event(), threading.Event()
+        events = []
+        class Stream:
+            def write(stream, text):
+                entered.set()
+                release.wait(2.0)
+                events.append(text)
+            def flush(stream): pass
+            def close(stream): closed.set()
+        log = match.BufferedLog(Path("unused"), opener=lambda _: Stream())
+        await log.ready()
+        log.write("one\n")
+        await self.wait_event(entered)
+        closing = asyncio.create_task(match.finish_cleanup(log.close()))
+        await asyncio.sleep(0)
+        closing.cancel()
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await closing
+        self.assertEqual(events, ["one\n"])
+        self.assertTrue(closed.is_set())
+
+    async def test_blocked_writer_deadline_fails_closed(self):
+        entered, release = threading.Event(), threading.Event()
+        class Stream:
+            def write(stream, text):
+                entered.set()
+                release.wait(2.0)
+            def flush(stream): pass
+            def close(stream): pass
+        log = match.BufferedLog(Path("unused"), timeout=0.02, opener=lambda _: Stream())
+        await log.ready()
+        log.write("one\n")
+        await self.wait_event(entered)
+        try:
+            with self.assertRaisesRegex(match.PersistenceError, "deadline"):
+                await log.drain()
+            self.assertIsNotNone(log.error)
+        finally:
+            release.set()
+        with self.assertRaises(match.PersistenceError):
+            await log.close()
+
+    async def test_disk_checkpoint_finishes_before_cancellation_propagates(self):
+        entered, release, done = threading.Event(), threading.Event(), threading.Event()
+        owner = threading.get_ident()
+        def work():
+            self.assertNotEqual(threading.get_ident(), owner)
+            entered.set()
+            release.wait(2.0)
+            done.set()
+        task = asyncio.create_task(match.disk_io(work))
+        await self.wait_event(entered)
+        task.cancel()
+        await asyncio.sleep(0)
+        self.assertFalse(task.done())
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertTrue(done.is_set())
+
+
 class MatchTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="chess0live-match-test-")
@@ -372,6 +631,87 @@ class MatchTests(unittest.TestCase):
             self.assertTrue(all(len(item["sha256"]) == 64 for item in engine["artifacts"]))
         with self.assertRaises(ValueError):
             asyncio.run(match.run_match(self.specs(), self.settings, self.suite, output, 1, 7))
+
+    def test_protocol_writer_failure_stops_run_and_records_no_chess_result(self):
+        output = self.root / "writer-failure"
+        class BrokenStream:
+            def write(stream, text): raise OSError("injected write failure")
+            def flush(stream): pass
+            def close(stream): pass
+        original = match.BufferedLog
+        with patch.object(match, "BufferedLog", side_effect=lambda path: original(
+                path, opener=lambda _: BrokenStream())) as factory:
+            # Keep the production manifest bounds while injecting only I/O.
+            factory.MAX_BYTES, factory.MAX_RECORDS, factory.TIMEOUT = (
+                original.MAX_BYTES, original.MAX_RECORDS, original.TIMEOUT)
+            with self.assertRaisesRegex(match.PersistenceError, "write failure"):
+                asyncio.run(match.run_match(self.specs(), self.settings, self.suite, output, 1, 0))
+        records = [json.loads(line) for line in (output / "games.jsonl").read_text().splitlines()]
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["status"], "persistence_failure")
+        self.assertEqual(records[0]["result"], "*")
+        self.assertIsNone(records[0]["candidate_score"])
+        self.assertEqual(json.loads((output / "run.json").read_text())["status"], "interrupted")
+        self.assertFalse(json.loads((output / "summary.json").read_text())["experiment_complete"])
+
+    def test_final_summary_failure_never_publishes_finished_run(self):
+        output = self.root / "final-summary-failure"
+        original = match.atomic_json
+        failed = []
+        def write(path, value):
+            if path.name == "summary.json" and value["experiment_complete"]:
+                failed.append(path)
+                raise OSError("injected final summary failure")
+            return original(path, value)
+        with patch.object(match, "atomic_json", side_effect=write):
+            with self.assertRaisesRegex(OSError, "final summary failure"):
+                asyncio.run(match.run_match(self.specs(), self.settings, self.suite, output, 1, 0))
+        self.assertEqual(len(failed), 1)
+        self.assertEqual(json.loads((output / "run.json").read_text())["status"], "interrupted")
+        self.assertFalse(json.loads((output / "summary.json").read_text())["experiment_complete"])
+
+    def test_cancelled_journal_open_is_closed_and_recorded_interrupted(self):
+        output = self.root / "cancel-journal-open"
+        entered, release = threading.Event(), threading.Event()
+        handles = []
+        original = Path.open
+        def open_path(path, *args, **kwargs):
+            stream = original(path, *args, **kwargs)
+            if path == output / "games.jsonl":
+                handles.append(stream)
+                entered.set()
+                if not release.wait(2.0):
+                    raise RuntimeError("test release missing")
+            return stream
+        async def scenario():
+            task = asyncio.create_task(match.run_match(self.specs(), self.settings, self.suite, output, 1, 0))
+            self.assertTrue(await asyncio.to_thread(entered.wait, 2.0))
+            task.cancel()
+            release.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        with patch.object(Path, "open", new=open_path):
+            asyncio.run(scenario())
+        self.assertEqual(len(handles), 1)
+        self.assertTrue(handles[0].closed)
+        self.assertEqual(json.loads((output / "run.json").read_text())["status"], "interrupted")
+        self.assertFalse(json.loads((output / "summary.json").read_text())["experiment_complete"])
+        self.assertEqual(list(output.glob("*.protocol.jsonl")), [])
+
+    def test_failed_run_marker_still_attempts_incomplete_summary(self):
+        output = self.root / "failed-run-marker"
+        original = match.atomic_json
+        def write(path, value):
+            if path.name == "run.json" and value["status"] != "running":
+                raise OSError("injected final run marker failure")
+            return original(path, value)
+        with patch.object(match, "atomic_json", side_effect=write):
+            with self.assertRaisesRegex(OSError, "run marker failure"):
+                asyncio.run(match.run_match(self.specs(), self.settings, self.suite, output, 1, 0))
+        # The old running marker cannot claim completion, and its separate
+        # summary was explicitly invalidated even though run.json still failed.
+        self.assertEqual(json.loads((output / "run.json").read_text())["status"], "running")
+        self.assertFalse(json.loads((output / "summary.json").read_text())["experiment_complete"])
 
     def test_budget_is_reread_between_games(self):
         output = self.root / "budget-change"

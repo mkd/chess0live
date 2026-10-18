@@ -14,6 +14,7 @@ from pathlib import Path
 import signal
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -474,6 +475,111 @@ class Phase3gTests(unittest.TestCase):
             await heartbeat
         with patch.object(match.subprocess, "run", side_effect=slow_git), patch.object(match.platform, "platform", return_value="synthetic"):
             asyncio.run(exercise())
+
+    def test_child_manifests_and_resource_journal_run_outside_protocol_loop(self):
+        main_thread = threading.get_ident()
+        observed = []
+        original_atomic = match.atomic_json
+        original_append = campaign.append_resource_event
+        def slow_atomic(path, value):
+            if path.name == "launch.json":
+                observed.append(("manifest", threading.get_ident()))
+                time.sleep(.01)
+            return original_atomic(path, value)
+        def slow_resource(journal, event):
+            observed.append(("resource", threading.get_ident()))
+            time.sleep(.01)
+            return original_append(journal, event)
+        async def runner(*_, **hooks):
+            await hooks["before_game"]("p000001-1")
+            return {"experiment_complete": True}
+        output = self.root / "offloop-persistence"
+        with patch.object(campaign, "check", return_value=self.checked()), \
+             patch.object(match, "run_match", side_effect=runner), \
+             patch.object(match, "atomic_json", side_effect=slow_atomic), \
+             patch.object(campaign, "append_resource_event", side_effect=slow_resource):
+            record = asyncio.run(campaign.run(output))
+        self.assertEqual(record["status"], "finished")
+        self.assertEqual({kind for kind, _ in observed}, {"manifest", "resource"})
+        self.assertTrue(all(identity != main_thread for _, identity in observed))
+        self.assertEqual(record["resource_history"]["observations"], len(self.events(output)))
+
+    def test_cancelled_resource_write_finishes_before_journal_close_and_count(self):
+        entered, release = threading.Event(), threading.Event()
+        original_append = campaign.append_resource_event
+        cleaned = []
+        def blocked_append(journal, event):
+            if event["trigger"] == "before_game":
+                entered.set()
+                if not release.wait(2):
+                    raise RuntimeError("test did not release resource writer")
+            return original_append(journal, event)
+        async def runner(*args, **hooks):
+            try:
+                if args[5] == campaign.SEEDS[0]:
+                    await hooks["before_game"]("p000001-1")
+                await asyncio.Future()
+            finally:
+                cleaned.append(args[5])
+        output = self.root / "cancelled-resource-write"
+        async def exercise():
+            task = asyncio.create_task(campaign.run(output))
+            try:
+                async def until_entered():
+                    while not entered.is_set():
+                        if task.done():
+                            await task
+                        await asyncio.sleep(.001)
+                await asyncio.wait_for(until_entered(), 2)
+                task.cancel()
+                await asyncio.sleep(.01)
+                self.assertFalse(task.done())
+            finally:
+                release.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+        with patch.object(campaign, "check", return_value=self.checked()), \
+             patch.object(match, "run_match", side_effect=runner), \
+             patch.object(campaign, "append_resource_event", side_effect=blocked_append):
+            asyncio.run(exercise())
+        record = json.loads((output / "campaign.json").read_text())
+        events = self.events(output)
+        self.assertEqual(record["status"], "interrupted")
+        self.assertEqual(record["resource_history"]["observations"], len(events))
+        self.assertEqual(record["resource_history"]["sha256"], match.sha256(output / "resource-history.jsonl"))
+        self.assertEqual(sum(event["trigger"] == "before_game" for event in events), 1)
+        self.assertEqual(events[-1]["trigger"], "final")
+        self.assertIn(campaign.SEEDS[0], cleaned)
+
+    def test_resource_journal_failure_cancels_shards_and_never_marks_complete(self):
+        original_append = campaign.append_resource_event
+        started, cleaned = set(), []
+        def fail_append(journal, event):
+            if event["trigger"] == "before_game":
+                raise OSError("synthetic resource journal disk failure")
+            return original_append(journal, event)
+        async def runner(*args, **hooks):
+            seed = args[5]
+            started.add(seed)
+            try:
+                while len(started) < 4:
+                    await asyncio.sleep(.001)
+                if seed == campaign.SEEDS[0]:
+                    await hooks["before_game"]("p000001-1")
+                await asyncio.Future()
+            finally:
+                cleaned.append(seed)
+        output = self.root / "resource-disk-failure"
+        with patch.object(campaign, "check", return_value=self.checked()), \
+             patch.object(match, "run_match", side_effect=runner), \
+             patch.object(campaign, "append_resource_event", side_effect=fail_append):
+            with self.assertRaisesRegex(OSError, "synthetic resource journal"):
+                asyncio.run(campaign.run(output))
+        record = json.loads((output / "campaign.json").read_text())
+        self.assertEqual(record["status"], "failed")
+        self.assertEqual(sorted(cleaned), list(campaign.SEEDS))
+        self.assertEqual(record["resource_history"]["observations"], len(self.events(output)))
+        self.assertEqual(record["resource_history"]["sha256"], match.sha256(output / "resource-history.jsonl"))
 
     def test_close_engine_preserves_cancellation_during_quit_and_returncode(self):
         async def exercise(stage):

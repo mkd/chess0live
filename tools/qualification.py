@@ -200,11 +200,22 @@ def verify_unchanged(profile, report, specs, settings):
     return current
 
 
+async def disk_io(function, *args, **kwargs):
+    """Finish an issued filesystem operation before propagating cancellation.
+
+    Coordinated shards share the protocol event loop. Even a small manifest
+    write or metadata read can stall on local/cloud-backed storage. Offload it
+    and retain ownership until it completes so cancellation cannot race a later
+    manifest replacement or close a file still used by its worker thread.
+    """
+    return await match.disk_io(function, *args, **kwargs)
+
+
 async def run(profile, output, allow_daytime=False, *, preflight, request, clock, window,
               run_guard=None, fail_fast=False, manage_deadline=True):
     """Run once with deadline cancellation; match.py owns process cleanup/PGNs."""
     output = Path(output).absolute()
-    if output.exists() or output.is_symlink():
+    if await disk_io(lambda: output.exists() or output.is_symlink()):
         raise ValueError("Campaign output must be a new directory; overwrite/resume is disabled")
     initial_policy = window(allow_daytime=allow_daytime, require_window=True)
     report = await preflight()
@@ -216,24 +227,24 @@ async def run(profile, output, allow_daytime=False, *, preflight, request, clock
         raise ValueError("The initial Helsinki 07:00 cutoff elapsed during preflight")
     policy.update(cutoff_local=initial_policy["cutoff_local"], cutoff_utc=initial_policy["cutoff_utc"],
                   remaining_seconds=remaining)
-    specs, settings = request()
-    if run_guard is None:
-        verify_unchanged(profile, report, specs, settings)
-    else:
-        await asyncio.to_thread(verify_unchanged, profile, report, specs, settings)
-    match.resource_check(settings, specs)
-    output.mkdir(parents=True, exist_ok=False)
-    protocol_source = profile.root / profile.protocol_document
-    (output / "protocol.md").write_bytes(protocol_source.read_bytes())
-    protocol_sha = match.sha256(output / "protocol.md")
-    if protocol_sha != report["sources"][profile.protocol_document]["sha256"]:
-        raise ValueError("Predeclared protocol changed before it could be frozen")
+    specs, settings = await disk_io(request)
+    await disk_io(verify_unchanged, profile, report, specs, settings)
+    await disk_io(match.resource_check, settings, specs)
+    def prepare_output():
+        output.mkdir(parents=True, exist_ok=False)
+        protocol_source = profile.root / profile.protocol_document
+        (output / "protocol.md").write_bytes(protocol_source.read_bytes())
+        digest = match.sha256(output / "protocol.md")
+        if digest != report["sources"][profile.protocol_document]["sha256"]:
+            raise ValueError("Predeclared protocol changed before it could be frozen")
+        return digest
+    protocol_sha = await disk_io(prepare_output)
     report.update(status="running", started_utc=clock().isoformat(),
                   launch_policy=policy, match_directory="match",
                   protocol_document={"source": profile.protocol_document, "frozen_copy": "protocol.md",
                                      "sha256": protocol_sha})
-    match.atomic_json(output / "launch.json", report)
     try:
+        await disk_io(match.atomic_json, output / "launch.json", report)
         # wait_for cancels the runner and awaits its finally blocks: the current
         # game, journal and incomplete summary are saved before processes close.
         # Cleanup may finish just after the cutoff; no new game is then started.
@@ -264,15 +275,13 @@ async def run(profile, output, allow_daytime=False, *, preflight, request, clock
         raise
     finally:
         try:
-            report["integrity_after"] = (verify_unchanged(profile, report, specs, settings)
-                                         if run_guard is None else await asyncio.to_thread(
-                                             verify_unchanged, profile, report, specs, settings))
+            report["integrity_after"] = await disk_io(verify_unchanged, profile, report, specs, settings)
         except (ValueError, OSError) as error:
             report.update(status="invalidated", integrity_after={"unchanged": False, "error": str(error)})
             raise
         finally:
             report["finished_utc"] = clock().isoformat()
-            match.atomic_json(output / "launch.json", report)
+            await disk_io(match.atomic_json, output / "launch.json", report)
     return report
 
 

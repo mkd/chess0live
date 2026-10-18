@@ -285,11 +285,12 @@ class LauncherTests(unittest.TestCase):
     def test_cancellation_preserves_real_fake_game_and_reaps_children(self):
         request = self.specs("hang")
         # Keep all real match settings; cancel after the fake process receives go.
-        transports = []
+        transports, protocols = [], []
         original_start = match.start_engine
         async def start(*args):
             result = await original_start(*args)
             transports.append(result[0])
+            protocols.append(result[1])
             return result
         async def exercise():
             with patch.object(qualification, "fixed_request", return_value=request):
@@ -297,12 +298,12 @@ class LauncherTests(unittest.TestCase):
                 with patch.object(qualification, "check", return_value=report), patch.object(match, "start_engine", side_effect=start):
                     output = self.root / "cancelled"
                     task = asyncio.create_task(qualification.run(output))
-                    # The protocol log is flushed when commands are written by
-                    # the recording wrapper below, making cancellation causal.
+                    # Observe command admission directly. Protocol persistence
+                    # is asynchronous and must never be forced to flush inside
+                    # the callback merely to trigger test cancellation.
                     async def find_go():
                         while True:
-                            logs = list((output / "match").glob("*.protocol.jsonl"))
-                            if any('"line": "go ' in path.read_text() for path in logs):
+                            if any(protocol.go_started.is_set() for protocol in protocols):
                                 return
                             await asyncio.sleep(0.01)
                     try:
@@ -312,12 +313,7 @@ class LauncherTests(unittest.TestCase):
                         with self.assertRaises(asyncio.CancelledError):
                             await task
                     return output
-        original_record = match.RecordingProtocol.record
-        def flushed(protocol, *args):
-            original_record(protocol, *args)
-            protocol.log.flush()
-        with patch.object(match.RecordingProtocol, "record", new=flushed):
-            output = asyncio.run(exercise())
+        output = asyncio.run(exercise())
         launch = json.loads((output / "launch.json").read_text())
         self.assertEqual(launch["status"], "interrupted")
         self.assertTrue(launch["integrity_after"]["unchanged"])

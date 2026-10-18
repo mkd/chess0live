@@ -372,7 +372,7 @@ Raw evidence and the frozen pre-probe plan are in `results/phase3i-20261018/`.
 Engine sources and the final Phase 3H binary are unchanged; no rebuild or new
 full engine/oracle suite is claimed. README introduction and GUI bundles remain.
 
-**Phase 3J is in progress.** Its [plan](PHASE_3J.md) also includes the owner's
+**Phase 3J's implementation checkpoint is complete.** Its [plan](PHASE_3J.md) also includes the owner's
 explicitly requested annotated puzzle input. The normal release accepts a
 nonempty `bm` suffix after six FEN fields, or four fields with counters defaulted
 to `0 1`. It discards metadata before search and rejects mixed `moves` histories.
@@ -382,13 +382,26 @@ The exact 60-second example returned Qxf6+ at completed depth 8, without proving
 mate in seven. The workbook remains unchanged and is not a held-out strength
 suite. See [manual puzzle testing](MANUAL_TESTING.md#manual-puzzle-positions).
 
-The remaining Phase 3J step is to move synchronous match persistence outside active clocks,
-using bounded buffering or a bounded writer queue with explicit overflow/disk
-failure handling. Test slow writes across separate callbacks and evidence
-ordering, then a small declared operational check can gate fresh strength work.
-Do not add timing knobs or demand immunity to arbitrary host suspension. No new
-match or schedule is active; LMR, timing policy, ordering, and overhead defaults
-are unchanged. The owner can push the local tested commit; no GUI retest is needed.
+Match protocol persistence now uses bounded per-game writer threads; all
+game/campaign filesystem work leaves the shared loop. Queue/timeout/disk failures
+invalidate evidence and abort, with cancellation-safe cleanup. The 8 MiB / 4,096
+record cap covers serialized pending/in-flight log payload, not total RSS. A
+30-second writer timeout can leave a daemon that returns later; never reuse a
+failed directory. Ordinary offloaded finalization retains ownership until done.
+Read [match persistence limits](MATCHES.md#interpret-the-result).
+
+All 230 workflow checks passed. The four-game, two-worker canary injected 100 ms
+per log write and finished in 220.986 seconds: two checkmates, one threefold draw,
+one 128-ply cap. No clock/protocol/storage failure was recorded, but the capped
+game prevents the declared full operational acceptance. Preserve the attempt;
+do not extend, replace, or score the capped game as drawn. Read the
+[Phase 3J report](reports/2026-10-18-phase3j-persistence-puzzles.md).
+
+**Phase 3K is next:** declare a completion-capable operational check, then prepare
+fresh held-out LMR qualification. Do not add timing knobs or demand immunity to
+arbitrary host suspension. No further match or schedule is active; all search
+defaults remain unchanged. The owner handles pushes; manual puzzle testing is
+ready and no additional GUI tournament is required to finish this implementation.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner
