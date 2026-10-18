@@ -356,6 +356,7 @@ private:
         }
         line << " nodes " << info.nodes << " time " << info.time_ms
              << " nps " << (info.nodes * 1000 / static_cast<std::uint64_t>(std::max<std::int64_t>(1, info.time_ms)))
+             << " hashfull " << info.hashfull
              << " pv";
         for (const auto move : info.pv) line << ' ' << move.uci();
         output(line.str());
@@ -368,6 +369,17 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        {
+            const auto& cache = diagnostics.cache;
+            std::ostringstream line;
+            line << "info string cache v1 entry_bytes " << cache.entry_bytes
+                 << " bucket_bytes " << cache.bucket_bytes << " buckets " << cache.buckets
+                 << " capacity " << cache.capacity << " allocated_bytes " << cache.allocated_bytes
+                 << " probes " << cache.probes << " hits " << cache.hits
+                 << " cutoffs " << cache.cutoffs << " stores " << cache.stores
+                 << " replacements " << cache.replacements;
+            output(line.str());
+        }
         for (const auto& iteration : diagnostics.iterations) {
             std::ostringstream line;
             line << std::fixed << std::setprecision(3) << std::boolalpha

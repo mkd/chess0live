@@ -64,6 +64,11 @@ struct SearchInfo {
     std::int64_t time_ms = 0;
     int score = 0;
     std::vector<Move> pv;
+    /** Occupied entries from this search generation per thousand sampled
+     * entries, using at most the first 1,000 table entries. This is a bounded
+     * activity estimate, not the percentage of requested Hash bytes allocated.
+     */
+    int hashfull = 0;
 };
 
 enum class StopReason {
@@ -84,6 +89,28 @@ struct IterationDiagnostics {
     double elapsed_ms = 0;
 };
 
+/** Optional transposition-table measurements, reset for each search. Geometry
+ * describes actual allocated entry storage (excluding the vector object).
+ * A probe counts one bucket lookup; a hit requires a full-key match. A cutoff
+ * counts only a bound that actually ends a non-PV node. Stores count save
+ * attempts, including attempts retaining a deeper exact entry. Replacements
+ * count occupied different-key evictions, never empty fills or same-key writes.
+ * Interrupted work remains included. Event counters are updated only when
+ * SearchLimits::diagnostics is enabled; no node event stream is retained.
+ */
+struct CacheStatistics {
+    std::size_t entry_bytes = 0;
+    std::size_t bucket_bytes = 0;
+    std::size_t buckets = 0;
+    std::size_t capacity = 0;
+    std::size_t allocated_bytes = 0;
+    std::uint64_t probes = 0;
+    std::uint64_t hits = 0;
+    std::uint64_t cutoffs = 0;
+    std::uint64_t stores = 0;
+    std::uint64_t replacements = 0;
+};
+
 struct SearchDiagnostics {
     TimePolicy policy = TimePolicy::classic;
     bool forecast_active = false;
@@ -94,6 +121,7 @@ struct SearchDiagnostics {
     double target_ms = 0;
     double predicted_next_ms = 0;
     std::vector<IterationDiagnostics> iterations;
+    CacheStatistics cache;
 };
 
 /** Counts for the optional selective-search hypothesis. Reductions and

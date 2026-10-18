@@ -6,6 +6,7 @@
  * This program is free software: you may redistribute and/or modify it under
  * GNU GPL version 3 or later. It comes WITHOUT ANY WARRANTY. See LICENSE.
  */
+#include "chess0live/detail/transposition_entry.hpp"
 #include "chess0live/nnue.hpp"
 #include "chess0live/position.hpp"
 #include "chess0live/search.hpp"
@@ -16,6 +17,7 @@
 #include <filesystem>
 #include <future>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -54,6 +56,69 @@ SearchLimits depth_limit(int depth = 2) {
     SearchLimits limits;
     limits.depth = depth;
     return limits;
+}
+
+/** Test value round trips independently of search, including each generated
+ * special-move flag combination. A lost flag can silently break TT move
+ * ordering because Move equality compares all fields, not just its squares.
+ */
+void transposition_entry_round_trips() {
+    using namespace detail::transposition;
+    constexpr Entry empty;
+    static_assert(empty.bound() == Bound::empty && empty.move() == Move{});
+    static_assert(sizeof(Entry) == 16 && sizeof(Bucket) == 64 && alignof(Bucket) == 64);
+    static_assert(Search::max_ply - 2 <= std::numeric_limits<std::uint8_t>::max());
+    constexpr std::uint64_t key = 0xfedcba9876543210ULL;
+    for (unsigned from = 0; from <= 64; ++from) {
+        for (unsigned to = 0; to <= 64; ++to) {
+            for (unsigned promotion = 0; promotion <= static_cast<unsigned>(PieceType::king); ++promotion) {
+                for (unsigned flags = 0; flags < 16; ++flags) {
+                    const Move original{static_cast<std::uint8_t>(from), static_cast<std::uint8_t>(to),
+                                        static_cast<PieceType>(promotion), static_cast<std::uint8_t>(flags)};
+                    for (const auto bound : {Bound::empty, Bound::exact, Bound::lower, Bound::upper}) {
+                        const Entry entry{key, original, -31000, Search::max_ply - 2, bound, 255};
+                        require(entry.key == key && entry.move() == original && entry.score == -31000
+                                && entry.depth == Search::max_ply - 2 && entry.bound() == bound
+                                && entry.generation == 255,
+                                "Packed entries must preserve every legal move field and bound independently");
+                    }
+                }
+            }
+        }
+    }
+
+    // The packed square/promotion fields retain the complete original bytes,
+    // not just their ordinary chess-domain values or the invalid64 sentinel.
+    const Move bytes{255, 254, static_cast<PieceType>(253), 15};
+    require(Entry{key, bytes, -1, 0, Bound::upper, 0}.move() == bytes,
+            "Packing must not truncate full square and promotion bytes");
+    for (const auto full_key : {std::uint64_t{0}, std::uint64_t{1}, std::uint64_t{1} << 63,
+                               std::numeric_limits<std::uint64_t>::max()}) {
+        for (const auto score : {std::numeric_limits<std::int16_t>::min(), std::int16_t{-31000},
+                                std::int16_t{-1}, std::int16_t{0}, std::int16_t{1},
+                                std::int16_t{31000}, std::numeric_limits<std::int16_t>::max()}) {
+            for (unsigned value = 0; value < 256; ++value) {
+                const auto byte = static_cast<std::uint8_t>(value);
+                Entry entry{full_key, Move{}, score, byte, Bound::exact, byte};
+                require(entry.key == full_key && entry.move() == Move{} && entry.score == score
+                        && entry.depth == byte && entry.bound() == Bound::exact && entry.generation == byte,
+                        "Keys, signed scores, and complete depth/generation bytes must round-trip");
+                ++entry.generation;
+                require(entry.generation == static_cast<std::uint8_t>(value + 1)
+                        && entry.key == full_key && entry.move() == Move{} && entry.score == score
+                        && entry.depth == byte && entry.bound() == Bound::exact,
+                        "Generation refresh and 255-to-zero wrap cannot corrupt other fields");
+            }
+        }
+    }
+    const std::vector<Bucket> buckets(3);
+    for (const auto& bucket : buckets) {
+        require(reinterpret_cast<std::uintptr_t>(&bucket) % 64 == 0,
+                "Dynamically allocated buckets must retain their requested 64-byte alignment");
+        for (const auto& entry : bucket.entries)
+            require(entry.bound() == Bound::empty && !entry.move().valid() && entry.key == 0,
+                    "Default table allocation must contain empty entries with invalid moves");
+    }
 }
 
 /** The real, pinned network is the only evaluation path in these tests.
@@ -436,6 +501,132 @@ void root_diagnostics(Fixture& fixture) {
             "A drawn root must report its reason without invented search work");
 }
 
+/** Exercise public search behavior with exact one-node/table expectations.
+ * These checks distinguish a full-key hit, a usable bound, and an attempted
+ * store, rather than treating all table traffic as an unspecified hit rate.
+ */
+void cache_accounting_and_lifecycle(Fixture& fixture) {
+    const auto position = Position::start();
+    auto limits = depth_limit(1);
+    limits.diagnostics = true;
+    fixture.search.set_hash(1);
+    fixture.search.clear();
+    const auto cold = fixture.run(position, limits);
+    const auto geometry = cold.diagnostics->cache;
+    require(geometry.probes == 1 && geometry.hits == 0 && geometry.cutoffs == 0
+            && geometry.stores == 1 && geometry.replacements == 0,
+            "A fresh depth-one search probes and fills only the root entry");
+    require(geometry.entry_bytes == 16 && geometry.bucket_bytes == 64
+            && geometry.buckets == 8192 && geometry.capacity == 32768
+            && geometry.allocated_bytes >= geometry.buckets * geometry.bucket_bytes
+            && geometry.allocated_bytes <= 1024 * 1024,
+            "Cache geometry must describe the actual bounded allocation");
+
+    const auto warm = fixture.run(position, limits);
+    const auto& reused = warm.diagnostics->cache;
+    require(reused.probes == 1 && reused.hits == 1 && reused.cutoffs == 0
+            && reused.stores == 1 && reused.replacements == 0,
+            "A warm root hits the full key but cannot cut off a PV node");
+
+    fixture.search.clear();
+    const auto cleared = fixture.run(position, limits);
+    require(cleared.diagnostics->cache.hits == 0
+            && cleared.diagnostics->cache.stores == 1
+            && cleared.diagnostics->cache.replacements == 0,
+            "Clearing must remove cached bounds and reset per-search events");
+    fixture.search.set_hash(2);
+    const auto resized = fixture.run(position, limits);
+    const auto& larger = resized.diagnostics->cache;
+    require(larger.hits == 0 && larger.capacity == 2 * geometry.capacity
+            && larger.buckets == 2 * geometry.buckets
+            && larger.allocated_bytes == 2 * geometry.allocated_bytes,
+            "Resizing must discard old entries and report the replacement allocation");
+    fixture.search.set_hash(1);
+    fixture.search.clear();
+    limits.searchmoves = {move(position, "a2a3")};
+    const auto restricted = fixture.run(position, limits);
+    require(restricted.diagnostics->cache.probes == 1
+            && restricted.diagnostics->cache.stores == 0,
+            "Restricted-root bounds must not be counted as stored");
+
+    limits.searchmoves.clear();
+    limits.nodes = 1;
+    const auto interrupted = fixture.run(position, limits);
+    require(interrupted.nodes == 1 && interrupted.diagnostics->cache.probes == 1
+            && interrupted.diagnostics->cache.stores == 0,
+            "An interrupted root probe counts, but its incomplete bound is never stored");
+
+    fixture.search.reset_stop();
+    fixture.search.stop();
+    const auto stopped = fixture.search.search(position, {}, limits);
+    const auto& idle = stopped.diagnostics->cache;
+    require(stopped.nodes == 0 && idle.probes == 0 && idle.hits == 0
+            && idle.cutoffs == 0 && idle.stores == 0 && idle.replacements == 0
+            && idle.capacity == geometry.capacity,
+            "An immediate stop reports geometry without inventing cache activity");
+}
+
+void hashfull_and_cache_diagnostic_parity(Fixture& fixture) {
+    const auto position = Position::start();
+    auto limits = depth_limit(4);
+    fixture.search.clear();
+    std::vector<SearchInfo> plain_reports;
+    const auto plain = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+        plain_reports.push_back(info);
+    });
+    require(!plain.diagnostics && plain_reports.size() == 4,
+            "Default searches report occupancy without allocating diagnostic traces");
+    int previous_hashfull = 0;
+    for (const auto& info : plain_reports) {
+        require(info.hashfull >= previous_hashfull && info.hashfull <= 1000,
+                "Current-generation occupancy must be bounded and cannot fall within one search");
+        previous_hashfull = info.hashfull;
+    }
+    require(previous_hashfull > 0, "A populated small table must report nonzero sampled occupancy");
+
+    fixture.search.clear();
+    limits.diagnostics = true;
+    std::vector<SearchInfo> traced_reports;
+    const auto traced = fixture.run(position, limits, {}, [&](const SearchInfo& info) {
+        traced_reports.push_back(info);
+    });
+    require(traced.best == plain.best && traced.ponder == plain.ponder && traced.score == plain.score
+            && traced.depth == plain.depth && traced.nodes == plain.nodes
+            && traced_reports.size() == plain_reports.size(),
+            "Cache instrumentation cannot alter deterministic search results");
+    for (std::size_t index = 0; index < plain_reports.size(); ++index) {
+        const auto& expected = plain_reports[index];
+        const auto& observed = traced_reports[index];
+        require(observed.depth == expected.depth && observed.seldepth == expected.seldepth
+                && observed.nodes == expected.nodes && observed.score == expected.score
+                && observed.pv == expected.pv && observed.hashfull == expected.hashfull,
+                "Every completed iteration and its occupancy must match with diagnostics on or off");
+    }
+    const auto& activity = traced.diagnostics->cache;
+    require(activity.probes > 0 && activity.hits > 0 && activity.cutoffs > 0
+            && activity.cutoffs <= activity.hits && activity.hits <= activity.probes
+            && activity.stores > 0 && activity.stores + activity.cutoffs == activity.probes
+            && activity.replacements <= activity.stores,
+            "Completed unrestricted searches reconcile probes with stores and bound cutoffs");
+
+    // The table remains physically populated, but these new generations do no
+    // tree work. Reporting old entries would falsely imply current activity.
+    for (const auto text : {"7k/6Q1/6K1/8/8/8/8/8 b - - 100 51",
+                            "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+                            "7k/8/5K2/8/8/8/8/8 w - - 0 1"}) {
+        std::vector<SearchInfo> reports;
+        const auto terminal = fixture.run(fen(text), limits, {}, [&](const SearchInfo& info) {
+            reports.push_back(info);
+        });
+        const auto& idle = terminal.diagnostics->cache;
+        require(terminal.nodes == 0 && reports.size() == 1 && reports.front().hashfull == 0
+                && idle.probes == 0 && idle.hits == 0 && idle.cutoffs == 0
+                && idle.stores == 0 && idle.replacements == 0,
+                "Terminal and drawn roots report empty current-generation activity");
+    }
+    fixture.search.clear();
+}
+
 void forecast_scope_and_clock_budgets(Fixture& fixture) {
     const auto position = Position::start();
     SearchLimits base;
@@ -689,6 +880,7 @@ int main(int argc, char** argv) {
         return 2;
     }
     try {
+        transposition_entry_round_trips();
         missing_network();
         Fixture fixture{std::filesystem::path(argv[1])};
         terminal_positions(fixture);
@@ -701,6 +893,8 @@ int main(int argc, char** argv) {
         clock_limit(fixture);
         command_time_accounting(fixture);
         root_diagnostics(fixture);
+        cache_accounting_and_lifecycle(fixture);
+        hashfull_and_cache_diagnostic_parity(fixture);
         forecast_scope_and_clock_budgets(fixture);
         selective_search_verification_and_policy_switches(fixture);
         selective_special_positions(fixture);

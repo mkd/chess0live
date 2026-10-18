@@ -8,6 +8,7 @@
  */
 #include "chess0live/search.hpp"
 
+#include "chess0live/detail/transposition_entry.hpp"
 #include "chess0live/exchange.hpp"
 #include "chess0live/nnue.hpp"
 #include "chess0live/position.hpp"
@@ -17,6 +18,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -76,21 +78,17 @@ bool dead_material(const Position& position) {
     return !(bishops & dark_squares) || !(bishops & ~dark_squares);
 }
 
-enum class Bound : std::uint8_t { empty, exact, lower, upper };
-
 /** A table is owned by exactly one searching thread. There are no concurrent
  * non-atomic reads/writes, torn entries, or locks on the node-search hot path.
  * Public resizing and clearing require the controller to join the worker first.
  */
-struct Entry {
-    std::uint64_t key = 0;
-    Move move;
-    std::int16_t score = 0;
-    std::int16_t depth = 0;
-    Bound bound = Bound::empty;
-    std::uint8_t generation = 0;
-};
-struct Bucket { std::array<Entry, 4> entries; };
+using detail::transposition::Bound;
+using detail::transposition::Entry;
+using detail::transposition::Bucket;
+// A child decrements depth before its at-most-one check extension, so no stored
+// interior depth can exceed the capped root depth. Keep this proof explicit if
+// the search's maximum or extension policy changes in the future.
+static_assert(Search::max_ply - 2 <= std::numeric_limits<std::uint8_t>::max());
 
 /** Mate values in a table describe distance from its position, not from the
  * previous search's root. Convert at the table boundary in both directions.
@@ -162,6 +160,7 @@ struct Search::Impl {
     StopReason stop_reason = StopReason::depth_limit;
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
+    CacheStatistics cache;
     bool cache_policy_valid = false;
 
     explicit Impl(const nnue::Network& weights) : network(weights), evaluator(weights) {}
@@ -169,7 +168,8 @@ struct Search::Impl {
     void resize(std::size_t megabytes) {
         if (megabytes == 0 || megabytes > std::numeric_limits<std::size_t>::max() / (1024 * 1024))
             throw std::invalid_argument("Hash must be a positive, representable number of megabytes");
-        const auto count = std::bit_floor(megabytes * 1024 * 1024 / sizeof(Bucket));
+        const auto count = std::bit_floor(megabytes * 1024 * 1024
+                                         / detail::transposition::bucket_budget_bytes);
         std::vector<Bucket> replacement(count);
         table.swap(replacement);
     }
@@ -242,19 +242,40 @@ struct Search::Impl {
                    ^ mix(std::uint64_t(position.halfmove_clock()) + 1));
     }
 
-    const Entry* probe(std::uint64_t key) const {
+    /** UCI hashfull is a cheap generation-local occupancy sample. Sampling is
+     * done only when reporting a completed iteration or terminal root; no
+     * counters or table scan are added to the ordinary node-search path.
+     */
+    int hashfull() const {
+        const auto sample = std::min(std::size_t{1000}, table.size() * std::size_t{4});
+        std::size_t occupied = 0;
+        for (std::size_t index = 0; index < sample; ++index) {
+            const auto& entry = table[index / 4].entries[index % 4];
+            occupied += entry.bound() != Bound::empty && entry.generation == generation;
+        }
+        return sample == 0 ? 0 : static_cast<int>(1000 * occupied / sample);
+    }
+
+    const Entry* probe(std::uint64_t key) {
+        if (limits.diagnostics) ++cache.probes;
         const auto& bucket = table[static_cast<std::size_t>(key) & (table.size() - 1)];
-        for (const auto& entry : bucket.entries)
-            if (entry.bound != Bound::empty && entry.key == key) return &entry;
+        for (const auto& entry : bucket.entries) {
+            if (entry.bound() != Bound::empty && entry.key == key) {
+                if (limits.diagnostics) ++cache.hits;
+                return &entry;
+            }
+        }
         return nullptr;
     }
 
     void save(std::uint64_t key, Move move, int score, int depth, int ply, Bound bound) {
+        assert(depth > 0 && depth <= max_ply - 2);
+        if (limits.diagnostics) ++cache.stores;
         auto& entries = table[static_cast<std::size_t>(key) & (table.size() - 1)].entries;
         Entry* victim = &entries.front();
         int lowest_quality = std::numeric_limits<int>::max();
         for (auto& entry : entries) {
-            if (entry.bound == Bound::empty || entry.key == key) {
+            if (entry.bound() == Bound::empty || entry.key == key) {
                 victim = &entry;
                 break;
             }
@@ -265,14 +286,16 @@ struct Search::Impl {
                 victim = &entry;
             }
         }
-        // Keep a deeper exact result while still refreshing its useful move.
-        if (victim->bound == Bound::exact && victim->key == key
+        // Keep a deeper exact result while refreshing only its generation.
+        if (victim->bound() == Bound::exact && victim->key == key
             && victim->depth > depth && bound != Bound::exact) {
             victim->generation = generation;
             return;
         }
+        if (limits.diagnostics && victim->bound() != Bound::empty && victim->key != key)
+            ++cache.replacements;
         *victim = {key, move, static_cast<std::int16_t>(score_to_table(score, ply)),
-                   static_cast<std::int16_t>(depth), bound, generation};
+                   static_cast<std::uint8_t>(depth), bound, generation};
     }
 
     int ordering_score(const Position& position, Move move, Move tt_move, int ply) const {
@@ -425,12 +448,15 @@ struct Search::Impl {
         const auto key = table_key(position, digest);
         Move tt_move;
         if (const auto* entry = probe(key)) {
-            tt_move = entry->move;
+            tt_move = entry->move();
             const int score = score_from_table(entry->score, ply);
             if (!pv_node && entry->depth >= depth) {
-                if (entry->bound == Bound::exact
-                    || (entry->bound == Bound::lower && score >= beta)
-                    || (entry->bound == Bound::upper && score <= alpha)) return score;
+                if (entry->bound() == Bound::exact
+                    || (entry->bound() == Bound::lower && score >= beta)
+                    || (entry->bound() == Bound::upper && score <= alpha)) {
+                    if (limits.diagnostics) ++cache.cutoffs;
+                    return score;
+                }
             }
         }
         order(position, moves, tt_move, ply);
@@ -543,6 +569,14 @@ struct Search::Impl {
         lmr.enabled = limits.late_move_reductions;
         ordering = {};
         ordering.policy = limits.capture_ordering;
+        cache = {};
+        if (limits.diagnostics) {
+            cache.entry_bytes = sizeof(Entry);
+            cache.bucket_bytes = sizeof(Bucket);
+            cache.buckets = table.size();
+            cache.capacity = table.size() * std::size_t{4};
+            cache.allocated_bytes = table.capacity() * sizeof(Bucket);
+        }
         evaluator.reset();
         ++generation;
         for (auto& side : history_score)
@@ -584,6 +618,7 @@ struct Search::Impl {
                 diagnostics.hard_ms = time.hard_ms;
                 diagnostics.target_ms = target_ms;
                 diagnostics.predicted_next_ms = forecast.predicted_next_ms();
+                diagnostics.cache = cache;
             }
             return std::move(result);
         };
@@ -591,7 +626,7 @@ struct Search::Impl {
         if (root_moves.empty()) {
             stop_reason = StopReason::terminal;
             result.score = position.in_check(position.turn()) ? -mate_score : 0;
-            if (report) report({0, 0, 0, elapsed_ms(), result.score, {}});
+            if (report) report({0, 0, 0, elapsed_ms(), result.score, {}, hashfull()});
             return finish();
         }
         if (!limits.searchmoves.empty()) {
@@ -604,7 +639,7 @@ struct Search::Impl {
         result.best = root_moves.front(); // Always retain a legal move under immediate stop.
         if (draw(position)) {
             stop_reason = StopReason::draw;
-            if (report) report({0, 0, 0, elapsed_ms(), 0, {result.best}});
+            if (report) report({0, 0, 0, elapsed_ms(), 0, {result.best}, hashfull()});
             return finish();
         }
 
@@ -653,7 +688,7 @@ struct Search::Impl {
             result.score = score;
             result.depth = depth;
             result.nodes = nodes;
-            if (report) report({depth, seldepth, nodes, elapsed_ms(), score, line});
+            if (report) report({depth, seldepth, nodes, elapsed_ms(), score, line, hashfull()});
 
             if (limits.mate > 0 && score >= mate_threshold
                 && mate_score - score <= 2LL * limits.mate) {

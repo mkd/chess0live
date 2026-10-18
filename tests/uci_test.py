@@ -36,6 +36,14 @@ def search_diagnostics(lines):
     assert sum(int(item["nodes"]) for item in iterations) == int(summary["nodes"])
     assert lines[-2] == summaries[0] and lines[-1].startswith("bestmove ")
     assert float(summary["predicted_next_ms"]) >= 0
+    cache_lines = [line for line in lines if line.startswith("info string cache v1 ")]
+    assert len(cache_lines) == 1
+    fields = cache_lines[0].split()[4:]
+    cache = {key: int(value) for key, value in zip(fields[::2], fields[1::2])}
+    assert 0 <= cache["cutoffs"] <= cache["hits"] <= cache["probes"]
+    assert 0 <= cache["replacements"] <= cache["stores"]
+    assert cache["allocated_bytes"] == cache["buckets"] * cache["bucket_bytes"]
+    assert cache["capacity"] == 4 * cache["buckets"]
     lmr_lines = [line for line in lines if line.startswith("info string lmr v1 ")]
     assert len(lmr_lines) == 1
     fields = lmr_lines[0].split()[4:]
@@ -60,6 +68,20 @@ def completed_signature(lines):
     score_index = fields.index("score")
     return (bestmove(lines), fields[fields.index("nodes") + 1],
             fields[score_index + 1:score_index + 3], fields[fields.index("pv") + 1:])
+
+
+def hashfull_values(lines):
+    """UCI hashfull is integer permille, independent of optional diagnostics."""
+    values = []
+    for line in lines:
+        if line.startswith("info depth "):
+            fields = line.split()
+            assert fields.count("hashfull") == 1, line
+            value = fields[fields.index("hashfull") + 1]
+            assert value.isdecimal() and 0 <= int(value) <= 1000, line
+            values.append(int(value))
+    assert values, lines
+    return values
 
 
 def board_state(lines):
@@ -241,6 +263,24 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert not any(line.startswith("info string search-") for line in default_output)
         assert not any(line.startswith("info string lmr ") for line in default_output)
         assert not any(line.startswith("info string ordering ") for line in default_output)
+        assert not any(line.startswith("info string cache ") for line in default_output)
+        hashfull_values(default_output)
+
+        # A small table fills sufficiently for visible permille reporting in a
+        # bounded search. Clearing, resizing, and a new game must discard entries;
+        # a terminal root reports without adding any new table contents.
+        engine.send("setoption name Hash value 1")
+        engine.send("ucinewgame")
+        engine.send("position startpos")
+        engine.send("go depth 4")
+        occupancy = engine.until("bestmove ")
+        assert hashfull_values(occupancy)[-1] > 0
+        for reset in ("setoption name Clear Hash", "setoption name Hash value 2", "ucinewgame"):
+            engine.send(reset)
+            engine.send("position fen 7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")
+            engine.send("go depth 1")
+            assert hashfull_values(engine.until("bestmove ")) == [0]
+        engine.send("setoption name Hash value 64")
 
         # Console diagnostics are plain text, but search scores retain their
         # standard UCI type. These composed KQK positions have a unique mate in
@@ -256,6 +296,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
             engine.send("position fen " + fen)
             engine.send("go depth 3")
             mating_output = engine.until("bestmove ")
+            hashfull_values(mating_output)
             assert all(line.startswith(("info depth ", "bestmove ")) for line in mating_output)
             final_info = [line.split() for line in mating_output if line.startswith("info depth ")][-1]
             score_at = final_info.index("score")
