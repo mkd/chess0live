@@ -148,6 +148,8 @@ private:
     bool diagnostics_ = false;
     bool late_move_reductions_ = false;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
+    int syzygy_probe_limit_ = 7;
+    int syzygy_probe_depth_ = 1;
     std::thread worker_;
     std::mutex output_mutex_;
     std::mutex result_mutex_;
@@ -170,6 +172,9 @@ private:
         output("option name Clear Hash type button");
         output("option name Threads type spin default 1 min 1 max " + std::to_string(Search::max_threads));
         output(std::string("option name EvalFile type string default ") + default_network);
+        output("option name SyzygyPath type string default <empty>");
+        output("option name SyzygyProbeLimit type spin default 7 min 0 max 7");
+        output("option name SyzygyProbeDepth type spin default 1 min 1 max 128");
         output("option name Move Overhead type spin default 20 min 0 max 5000");
         output("option name Ponder type check default false");
         output("option name Time Policy type combo default classic var classic var forecast");
@@ -239,6 +244,14 @@ private:
             return;
         }
         if (name == "Clear Hash") { search_.clear(); return; }
+        if (name == "SyzygyPath") {
+            std::string error;
+            if (!search_.set_syzygy_path(value == "<empty>" ? "" : value, error))
+                output("info string error: SyzygyPath: " + error);
+            else output("info string Syzygy largest " + std::to_string(search_.syzygy_largest())
+                        + " pieces; table files are external");
+            return;
+        }
         if (name == "Ponder") {
             if (value != "true" && value != "false") output("info string error: Ponder expects true or false");
             return; // go ponder, not this option, controls the current search.
@@ -275,6 +288,9 @@ private:
         else if (name == "Move Overhead" && numeric >= 0 && numeric <= 5000) overhead_ms_ = numeric;
         else if (name == "Threads" && numeric >= 1 && numeric <= Search::max_threads)
             search_.set_threads(numeric);
+        else if (name == "SyzygyProbeLimit" && numeric >= 0 && numeric <= 7) syzygy_probe_limit_ = numeric;
+        else if (name == "SyzygyProbeDepth" && numeric >= 1 && numeric <= Search::max_ply)
+            syzygy_probe_depth_ = numeric;
         else output("info string error: unsupported option or value");
     }
 
@@ -358,6 +374,7 @@ private:
         line << " nodes " << info.nodes << " time " << info.time_ms
              << " nps " << (info.nodes * 1000 / static_cast<std::uint64_t>(std::max<std::int64_t>(1, info.time_ms)))
              << " hashfull " << info.hashfull
+             << " tbhits " << info.tbhits
              << " pv";
         for (const auto move : info.pv) line << ' ' << move.uci();
         output(line.str());
@@ -456,6 +473,8 @@ private:
         limits.diagnostics = diagnostics_;
         limits.late_move_reductions = late_move_reductions_;
         limits.capture_ordering = capture_ordering_;
+        limits.syzygy_probe_limit = syzygy_probe_limit_;
+        limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};
         for (std::size_t i = 1; i < tokens.size(); ++i) {
             const auto& key = tokens[i];
@@ -518,7 +537,8 @@ private:
                    + " time " + std::to_string(result.time_ms)
                    + " nps " + std::to_string(result.nodes * 1000
                        / static_cast<std::uint64_t>(std::max<std::int64_t>(1, result.time_ms)))
-                   + " hashfull " + std::to_string(result.hashfull));
+                   + " hashfull " + std::to_string(result.hashfull)
+                   + " tbhits " + std::to_string(result.tbhits));
             report_diagnostics(result);
             std::string line = "bestmove " + result.best.uci();
             if (result.ponder.valid()) line += " ponder " + result.ponder.uci();

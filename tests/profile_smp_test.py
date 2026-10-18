@@ -36,6 +36,14 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(result["iterations"][-1]["nodes"], 800)
         self.assertEqual(result["completed_depth"], 2)
 
+    def test_optional_syzygy_counter_is_validated(self):
+        lines = reply()
+        lines[-2] += " tbhits 3"
+        self.assertEqual(self.check(lines)["final_aggregate"]["tbhits"], 3)
+        for bad in ("-1", "nan", "3 tbhits 4"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                self.check([line.replace("tbhits 3", "tbhits " + bad) for line in lines])
+
     def test_missing_duplicate_and_out_of_order_totals_fail(self):
         lines = reply()
         for case in (lines[:-2] + lines[-1:], lines[:-1] + lines[-2:],

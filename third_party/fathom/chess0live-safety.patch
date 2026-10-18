@@ -1,0 +1,39 @@
+--- a/src/tbprobe.c
++++ b/src/tbprobe.c
+@@ -362,7 +362,6 @@
+   struct stat statbuf;
+   if (fstat(fd, &statbuf)) {
+     perror("fstat");
+-    close_tb(fd);
+     return NULL;
+   }
+   *mapping = statbuf.st_size;
+@@ -391,6 +390,8 @@
+   void *data = (void *)MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
+   if (data == NULL) {
+     fprintf(stderr,"MapViewOfFile() failed, error = %lu.\n", GetLastError());
++    // chess0live: release the mapping handle on failed view creation.
++    CloseHandle(map);
+   }
+ #endif
+   return data;
+@@ -707,7 +708,7 @@
+     close_tb(fd);
+     if ((size & 63) != 16) {
+       fprintf(stderr, "Incomplete tablebase file %s.%s\n", str, suffix);
+-      printf("info string Incomplete tablebase file %s.%s\n", str, suffix);
++      // chess0live: the embedding controller owns stdout protocol output.
+       fd = FD_ERR;
+     }
+   }
+@@ -723,7 +724,9 @@
+   void *data = map_file(fd, mapping);
+   if (data == NULL) {
+     fprintf(stderr, "Could not map %s%s into memory.\n", name, suffix);
+-    exit(EXIT_FAILURE);
++    // chess0live: unavailable files must permit ordinary-search fallback.
++    close_tb(fd);
++    return NULL;
+   }
+ 
+   close_tb(fd);

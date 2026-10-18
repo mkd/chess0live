@@ -114,8 +114,11 @@ def validate_result(lines, board, mode, depth):
                 raise ValueError("Search exceeded the requested completed depth")
             iterations.append(fields)
         elif tokens[:2] == ["info", "nodes"]:
-            names = ("nodes", "time", "nps", "hashfull")
-            if totals is not None or len(tokens) != 9 or set(tokens[1::2]) != set(names):
+            names = {"nodes", "time", "nps", "hashfull"}
+            # Accept both the frozen pre-Syzygy transcript and current UCI totals.
+            if "tbhits" in tokens[1::2]:
+                names.add("tbhits")
+            if totals is not None or len(tokens) != 1 + 2 * len(names) or set(tokens[1::2]) != names:
                 raise ValueError("Missing, duplicate or malformed final aggregate counters")
             totals = {name: unsigned(value, name, 1000 if name == "hashfull" else 2**64 - 1)
                       for name, value in zip(tokens[1::2], tokens[2::2])}

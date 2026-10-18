@@ -112,7 +112,7 @@ Wait for `readyok` before sending the position and search commands. All workers
 share one hash table and network; `Hash` is not multiplied by `Threads`. Each
 worker has its own board, search history, and NNUE accumulators. Search depth,
 score, and PV come from the leading worker; nodes/NPS include all workers and
-can include repeated work. A final `info nodes ... time ... nps ... hashfull ...`
+can include repeated work. A final `info nodes ... time ... nps ... hashfull ... tbhits ...`
 line includes unfinished iterations. Additional threads do not guarantee a
 particular depth or playing-strength gain. Keep the total active workers within
 your local resource allowance, including other engines running concurrently.
@@ -130,6 +130,21 @@ the value may drop at the next search. It is neither a cache hit rate nor a RAM
 usage percentage. `Hash` sets a memory ceiling; bucket sizing can allocate less.
 The compact table preserves its established entry capacity: `Hash=64` currently
 uses 32 MiB of entry storage. Network/evaluator and other engine memory are extra.
+
+Optional Syzygy tables can be downloaded separately and configured with:
+
+```text
+setoption name SyzygyPath value /absolute/path/to/syzygy
+isready
+```
+
+Wait for `readyok`. Supply both `.rtbw` and `.rtbz` files for root endgame ranking;
+incomplete coverage falls back to search. `SyzygyProbeLimit` (0–7, default 7)
+caps piece count; 0 disables probing. `SyzygyProbeDepth` (1–128, default 1)
+controls interior probes. `SyzygyPath=<empty>` disables the reader. Table files
+are excluded from Git and are never downloaded by a normal build. UCI `tbhits`
+reports successful probes. DTZ is not mate distance; `score mate` still requires
+an actual mating line. See [tablebase setup and testing](docs/SYZYGY.md).
 
 For repeatable parallel measurements, install `requirements-match.txt`, then run
 `make test-smp test-profile-smp`. The bounded profiler accepts `--threads 1,2,4`,

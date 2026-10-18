@@ -6,7 +6,10 @@ Read [requirements](docs/REQUIREMENTS.md), [handover](docs/HANDOVER.md), and
 - Independent implementation: no reuse of the owner's previous engines or
   their testing assets. Do not embed or link Stockfish engine code as a shortcut.
   External Stockfish builds are evaluation oracles or match opponents only;
-  cite format sources and pin reference builds.
+  cite format sources and pin reference builds. The owner specifically approved
+  the standalone upstream Fathom Syzygy reader on October 18; this exception
+  covers tablebase probing only. Preserve its provenance/MIT notices, author
+  the adapter independently, and keep all table data outside Git.
 - Strength is the main goal; never claim a strength gain from NPS alone.
 - Keep protocol output valid, legal moves correct, and all incremental state
   reversible. Prefer a reproducible failing case before changing chess logic.

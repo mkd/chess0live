@@ -5,11 +5,14 @@
 The engine implements chess and search itself. NNUE mathematical/file-format
 interoperability is specified from pinned upstream sources; the Stockfish
 executable is a separate test oracle. Training tools are separate from inference
-and are not required to run the engine.
+and are not required to run the engine. The owner-approved standalone Fathom
+reader is isolated behind `tablebase::Syzygy`; its vendor code and MIT notices
+are explicit. No search or evaluation code is imported through this dependency.
+See [Syzygy semantics and provenance](SYZYGY.md).
 
 The initial dependency direction is:
 
-`types → position → NNUE → search → UCI`
+`types → position → NNUE / tablebase adapter → search → UCI`
 
 Position does not know how a neural network stores features. Search owns its
 worker evaluation state and transposition table. UCI owns process interaction
@@ -135,3 +138,25 @@ comparator remains selectable. Search cache isolation covers both policy axes.
 The initial core has no variant framework, opening book, or puzzle service.
 Modularity means clear data and responsibility boundaries, not runtime machinery
 for extensions that do not yet exist.
+
+## Optional tablebase boundary
+
+`Search` owns a configured Syzygy adapter. Path changes happen only while idle
+and clear cached search state. Root DTZ ranks are obtained before helpers start,
+reconciled against the complete independent legal move list, intersected with
+UCI restrictions, and passed to every worker as the same restricted root list.
+Repeated reversible histories bypass root ranking. Normal root search owns the
+PV and score; no external PV, evaluation, or mate-distance value is imported.
+
+Interior WDL probing is initially limited to non-PV, positive-depth nodes with
+zero halfmove clock and no castling. Wins/losses provide only lower/upper bounds;
+draws are exact under the fifty-move rule. The ±29000 internal tablebase band
+lies below actual mate proofs and above the enabled heuristic evaluation cap.
+Missing probes leave ordinary search running. `tbhits` is a shared atomic count
+reset per request; final totals are read after all helpers join.
+
+Fathom mappings are process-global. A serialized, generation-bound adapter
+prevents stale instances from using or destroying a replacement configuration.
+This deliberately conservative implementation has no parallel probe claim.
+File integrity remains the user's responsibility; basic setup checks do not
+turn the upstream compressed parser into a hardened hostile-input decoder.

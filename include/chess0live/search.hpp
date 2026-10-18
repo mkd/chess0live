@@ -17,6 +17,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace chess0live {
@@ -53,6 +54,10 @@ struct SearchLimits {
     bool diagnostics = false;
     bool late_move_reductions = false;
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
+    /** Zero disables probing. Interior probes require at least this depth;
+     * root DTZ ranking is independent of the interior depth threshold. */
+    int syzygy_probe_limit = 7;
+    int syzygy_probe_depth = 1;
     /** Empty means all legal moves; entries must be generated for the root. */
     std::vector<Move> searchmoves;
 };
@@ -69,6 +74,7 @@ struct SearchInfo {
      * activity estimate, not the percentage of requested Hash bytes allocated.
      */
     int hashfull = 0;
+    std::uint64_t tbhits = 0;
 };
 
 enum class StopReason {
@@ -172,6 +178,8 @@ struct SearchResult {
     std::int64_t time_ms = 0;
     int hashfull = 0;
     SmpStatistics smp;
+    /** Successful root/interior tablebase probes across all workers, not files read. */
+    std::uint64_t tbhits = 0;
     std::optional<SearchDiagnostics> diagnostics;
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
@@ -218,6 +226,10 @@ public:
      * allocation fails. A successful change clears learned search/cache state.
      */
     void set_threads(int threads);
+    /** Configure only while idle. Empty path disables probing; all configuration
+     * attempts invalidate cached search bounds. No table files are downloaded. */
+    bool set_syzygy_path(const std::string& path, std::string& error);
+    unsigned syzygy_largest() const;
 
 private:
     struct Impl;

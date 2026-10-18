@@ -4,6 +4,11 @@
 /networks/.nnue-*
 /.local/
 /results/
+/tablebases/
+/syzygy/
+*.rtbw
+*.rtbz
+*.rtbm
 __pycache__/
 *.pyc
 .DS_Store

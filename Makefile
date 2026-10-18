@@ -49,7 +49,7 @@ endif
 BUILD := build/$(TARGET)-$(CPU)-$(MODE)$(if $(filter scalar,$(SIMD)),-scalar,)
 EXE := $(if $(filter windows-%,$(TARGET)),.exe,)
 ENGINE := $(BUILD)/chess0live$(EXE)
-CPPFLAGS += -Iinclude
+CPPFLAGS += -Iinclude -Ithird_party/fathom/src
 ifeq ($(SIMD),scalar)
   CPPFLAGS += -DCHESS0LIVE_FORCE_SCALAR
 endif
@@ -79,8 +79,10 @@ ifneq ($(SYSROOT),)
   LDFLAGS += --sysroot="$(SYSROOT)"
 endif
 
-SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/main.cpp
+SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/tablebase.cpp src/search.cpp src/main.cpp
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
+TB_OBJECTS := $(BUILD)/tablebase.o $(BUILD)/fathom.o
+OBJECTS += $(BUILD)/fathom.o
 NET := networks/nn-1a298aa575a0.nnue
 
 .PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-clock-probes test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-profile-cache test-qualification test-phase3g test-phase3l verify-moves bench resources clean FORCE
@@ -98,6 +100,10 @@ $(BUILD)/toolchain.ok: FORCE tools/check_toolchain.py Makefile | $(BUILD)
 
 $(BUILD)/%.o: src/%.cpp $(BUILD)/toolchain.ok
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c "$<" -o "$@"
+
+# The external reader is isolated from engine code and compiled in C++26 mode.
+$(BUILD)/fathom.o: third_party/fathom/src/tbprobe.c $(BUILD)/toolchain.ok
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wno-deprecated-declarations -Wno-sign-compare -x c++ -MMD -MP -c "$<" -o "$@"
 
 $(ENGINE): $(OBJECTS)
 	$(CXX) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
@@ -122,8 +128,8 @@ $(BUILD)/nnue-updates-test$(EXE): tests/nnue_updates_test.cpp src/nnue.cpp $(BUI
 $(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
 
-$(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(LDFLAGS) -o "$@"
+$(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
 
 $(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
 	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) -o "$@"
@@ -157,6 +163,33 @@ test-exchange: $(BUILD)/exchange-test$(EXE)
 	"$(BUILD)/exchange-test$(EXE)"
 
 test: test-core test-nnue test-exchange test-search test-search-policy test-time
+
+# Explicit fixture download is separate from ordinary builds/tests. Data is ignored
+# by Git; only the small checksum/provenance manifest is versioned.
+SYZYGY_TEST_DIR ?= tablebases/test
+.PHONY: fetch-syzygy-test test-fetch-syzygy test-syzygy
+fetch-syzygy-test:
+	$(PYTHON) tools/fetch_syzygy_test_tables.py --directory "$(SYZYGY_TEST_DIR)"
+
+test-fetch-syzygy:
+	$(PYTHON) tests/fetch_syzygy_test_tables_test.py
+
+$(BUILD)/tablebase-test$(EXE): tests/tablebase_test.cpp tests/data/syzygy_cases.hpp $(BUILD)/position.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+$(BUILD)/syzygy-search-test$(EXE): tests/syzygy_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-syzygy-search
+test-syzygy-search: $(BUILD)/syzygy-search-test$(EXE)
+	$(PYTHON) tools/fetch_syzygy_test_tables.py --directory "$(SYZYGY_TEST_DIR)" --verify-only
+	"$(BUILD)/syzygy-search-test$(EXE)" "$(NET)" "$(SYZYGY_TEST_DIR)"
+
+test-syzygy: $(ENGINE) $(BUILD)/tablebase-test$(EXE) $(BUILD)/syzygy-search-test$(EXE)
+	$(PYTHON) tools/fetch_syzygy_test_tables.py --directory "$(SYZYGY_TEST_DIR)" --verify-only
+	"$(BUILD)/tablebase-test$(EXE)" "$(SYZYGY_TEST_DIR)"
+	"$(BUILD)/syzygy-search-test$(EXE)" "$(NET)" "$(SYZYGY_TEST_DIR)"
+	$(PYTHON) tests/syzygy_uci_test.py "$(ENGINE)" --network "$(NET)" --tables "$(SYZYGY_TEST_DIR)"
 
 # Optional independent referee checks: install requirements-match.txt first.
 # Keep the engine's ordinary correctness suite free of third-party Python deps.
@@ -227,6 +260,8 @@ help:
 	@echo 'make test             Run correctness checks; make net first'
 	@echo 'make MODE=sanitize test   Address/undefined-behavior checks'
 	@echo 'make MODE=thread-sanitize test-search test-smp   Shared-state race checks'
+	@echo 'make fetch-syzygy-test Download the pinned small tablebase test corpus'
+	@echo 'make test-syzygy       Test local Syzygy data, probing and UCI lifecycle'
 	@echo 'make test-smp          Parallel UCI/PV checks (requirements-match.txt)'
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'

@@ -47,6 +47,10 @@ public:
         return pieces_[static_cast<unsigned>(side)][static_cast<unsigned>(type)];
     }
     Bitboard occupied() const { return occupied_; }
+    /** Standard castling bits WK/WQ/BK/BQ; zero is required for tablebases. */
+    std::uint8_t castling_rights() const { return castling_; }
+    /** FEN target square, or -1 when absent. Legal EP is checked by move generation. */
+    int en_passant_square() const { return ep_square_; }
     int king_square(Color side) const;
     bool in_check(Color side) const;
     bool attacked(int square, Color by) const;

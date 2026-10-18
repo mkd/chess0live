@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added optional Syzygy endgame probing through a pinned Fathom reader, with
+  UCI path/piece/depth settings and `tbhits` reporting. Table files are downloaded
+  separately and excluded from Git. Root move ranking respects the fifty-move
+  clock; missing coverage falls back to search. DTZ is never reported as mate.
+
 - Added configurable Lazy SMP parallel search with shared hash/network memory,
   private worker state, and coordinated stopping, clocks, and total node limits.
   `Threads` accepts 1–64 and still defaults to 1. Final UCI node/NPS reports

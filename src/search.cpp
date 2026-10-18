@@ -13,6 +13,7 @@
 #include "chess0live/nnue.hpp"
 #include "chess0live/position.hpp"
 #include "chess0live/search_policy.hpp"
+#include "chess0live/tablebase.hpp"
 
 #include <algorithm>
 #include <array>
@@ -34,6 +35,9 @@ namespace {
 using Clock = std::chrono::steady_clock;
 constexpr int infinity = 32000;
 constexpr int history_limit = 16384;
+// WDL is not distance-to-mate. Reserve a band below actual mate proofs and
+// above heuristic evaluation; never encode DTZ as a mate score.
+constexpr int tablebase_score = 29000;
 constexpr std::array<int, 7> piece_order_value{0, 100, 320, 330, 500, 900, 20000};
 
 /** Stable-clock ticks, used only for elapsed durations, never wall-clock time. */
@@ -154,6 +158,9 @@ struct SharedSearch {
     std::atomic<bool> leader_finished{false};
     std::atomic<std::int64_t> ponder_hit_ns{-1};
     std::atomic<std::uint64_t> node_tickets{0};
+    std::atomic<std::uint64_t> tbhits{0};
+    tablebase::Syzygy tablebases;
+    int tablebase_limit = 0; // Immutable during worker execution.
     int threads = 1;
     std::uint8_t generation = 0;
 
@@ -445,8 +452,10 @@ struct SearchWorker {
     }
 
     int evaluate(const Position& position) {
-        // Evaluation values can never collide with the mate-distance score band.
-        return std::clamp(evaluator.evaluate(position), -mate_threshold + 1, mate_threshold - 1);
+        // An enabled tablebase result outranks any heuristic neural evaluation.
+        // With no configured tables this is exactly the original score range.
+        const int ceiling = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+        return std::clamp(evaluator.evaluate(position), -ceiling + 1, ceiling - 1);
     }
 
     /** Captures and promotions stabilize a leaf. In check, every legal evasion
@@ -516,6 +525,24 @@ struct SearchWorker {
         alpha = std::max(alpha, -mate_score + ply);
         beta = std::min(beta, mate_score - ply - 1);
         if (alpha >= beta) return alpha;
+        // Five-valued WDL is safe here only immediately after a zeroing move:
+        // otherwise its theoretical win may cross the remaining rule-50 budget.
+        // Terminal/mate and game-history draws were handled above. A WDL win
+        // proves a lower bound, not a precise score or mating distance; a loss
+        // proves an upper bound. Keep PV nodes on ordinary search and do not
+        // store these direct probe bounds in the TT.
+        if (shared.tablebase_limit > 0 && ply > 0 && !pv_node
+            && depth >= limits.syzygy_probe_depth && position.halfmove_clock() == 0
+            && position.castling_rights() == 0
+            && std::popcount(position.occupied()) <= shared.tablebase_limit) {
+            if (const auto wdl = shared.tablebases.probe_wdl(position)) {
+                shared.tbhits.fetch_add(1, std::memory_order_relaxed);
+                const int outcome = static_cast<int>(*wdl);
+                if (outcome > -2 && outcome < 2) return 0;
+                if (outcome == 2 && tablebase_score >= beta) return tablebase_score;
+                if (outcome == -2 && -tablebase_score <= alpha) return -tablebase_score;
+            }
+        }
         const int original_alpha = alpha;
         // Extending only interior check nodes preserves the meaning of root depth.
         if (checked && ply > 0) ++depth;
@@ -557,7 +584,8 @@ struct SearchWorker {
                 if (limits.late_move_reductions) {
                     const search_policy::LateMoveContext context{
                         depth, ply, move_number, pv_node, checked, false,
-                        std::abs(alpha) >= mate_threshold || std::abs(beta) >= mate_threshold,
+                        std::abs(alpha) >= (shared.tablebase_limit > 0 ? tablebase_score : mate_threshold)
+                            || std::abs(beta) >= (shared.tablebase_limit > 0 ? tablebase_score : mate_threshold),
                         move, undo.moved, tt_move,
                         killers[static_cast<std::size_t>(ply)][0],
                         killers[static_cast<std::size_t>(ply)][1]};
@@ -698,7 +726,7 @@ struct SearchWorker {
         if (root_moves.empty()) {
             stop_reason = StopReason::terminal;
             result.score = position.in_check(position.turn()) ? -mate_score : 0;
-            if (report) report({0, 0, 0, elapsed_ms(), result.score, {}, hashfull()});
+            if (report) report({0, 0, 0, elapsed_ms(), result.score, {}, hashfull(), shared.tbhits.load()});
             return finish();
         }
         if (!limits.searchmoves.empty()) {
@@ -711,7 +739,7 @@ struct SearchWorker {
         result.best = root_moves.front(); // Always retain a legal move under immediate stop.
         if (draw(position)) {
             stop_reason = StopReason::draw;
-            if (report) report({0, 0, 0, elapsed_ms(), 0, {result.best}, hashfull()});
+            if (report) report({0, 0, 0, elapsed_ms(), 0, {result.best}, hashfull(), shared.tbhits.load()});
             return finish();
         }
 
@@ -762,7 +790,8 @@ struct SearchWorker {
             completed_depth = depth;
             result.nodes = nodes;
             publish_nodes();
-            if (report) report({depth, seldepth, total_nodes(), elapsed_ms(), score, line, hashfull()});
+            if (report) report({depth, seldepth, total_nodes(), elapsed_ms(), score, line,
+                                hashfull(), shared.tbhits.load(std::memory_order_relaxed)});
 
             if (limits.mate > 0 && score >= mate_threshold
                 && mate_score - score <= 2LL * limits.mate) {
@@ -800,6 +829,8 @@ struct Search::Impl {
     bool cache_policy_valid = false;
     bool previous_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
+    int previous_tb_limit = 0;
+    int previous_tb_depth = 1;
 
     explicit Impl(const nnue::Network& weights) : network(weights) {}
 
@@ -829,15 +860,66 @@ struct Search::Impl {
         auto request = limits;
         const auto entered_at = Clock::now();
         request.received_at = std::min(request.received_at.value_or(entered_at), entered_at);
+        request.syzygy_probe_limit = std::clamp(request.syzygy_probe_limit, 0, 7);
+        request.syzygy_probe_depth = std::clamp(request.syzygy_probe_depth, 1, Search::max_ply);
+        shared.tablebase_limit = std::min(request.syzygy_probe_limit,
+                                         int(shared.tablebases.largest()));
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
-            || request.capture_ordering != previous_ordering)) clear();
+            || request.capture_ordering != previous_ordering
+            || shared.tablebase_limit != previous_tb_limit
+            || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
         previous_ordering = request.capture_ordering;
+        previous_tb_limit = shared.tablebase_limit;
+        previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
         ++shared.generation;
         shared.leader_finished.store(false, std::memory_order_relaxed);
         shared.node_tickets.store(0, std::memory_order_relaxed);
+        shared.tbhits.store(0, std::memory_order_relaxed);
         for (auto& counter : shared.published) counter.value.store(0, std::memory_order_relaxed);
+
+        // Rank the complete legal root once, before dispatching SMP helpers.
+        // The user's restriction is applied BEFORE choosing the best rank, so
+        // even a restricted losing move remains a valid searchmoves request.
+        // A repeated reversible history is conservatively left to ordinary
+        // search: table files alone do not encode the game's repetition rights.
+        const auto budget = allocate_time(position, request);
+        const auto hit = shared.ponder_hit_ns.load(std::memory_order_relaxed);
+        const auto origin = request.ponder && hit >= 0 ? hit
+            : std::chrono::duration_cast<std::chrono::nanoseconds>(
+                request.received_at->time_since_epoch()).count();
+        const bool probe_time_available = (request.ponder && hit < 0) || !budget.active
+            || double(elapsed_ns(now_ns(), origin)) / 1000000.0 < budget.hard_ms;
+        if (shared.tablebase_limit > 0 && !shared.stopped.load(std::memory_order_relaxed)
+            && probe_time_available && position.halfmove_clock() < 100
+            && position.castling_rights() == 0 && !dead_material(position)
+            && std::popcount(position.occupied()) <= shared.tablebase_limit) {
+            if (history.empty() || history.back() != position.key()) history.push_back(position.key());
+            const auto count = std::min(history.size(), std::size_t(position.halfmove_clock()) + 1);
+            const auto first = history.end() - static_cast<std::ptrdiff_t>(count);
+            bool repeated = false;
+            for (auto it = first; it != history.end() && !repeated; ++it)
+                repeated = std::find(first, it, *it) != it;
+            auto legal = position.legal_moves();
+            if (!repeated && !legal.empty()) {
+                if (const auto ranked = shared.tablebases.probe_root(position, legal)) {
+                    int best_rank = std::numeric_limits<int>::min();
+                    std::vector<Move> allowed;
+                    for (const auto& entry : *ranked) {
+                        if (!request.searchmoves.empty()
+                            && std::find(request.searchmoves.begin(), request.searchmoves.end(), entry.move)
+                                == request.searchmoves.end()) continue;
+                        if (entry.rank > best_rank) { best_rank = entry.rank; allowed.clear(); }
+                        if (entry.rank == best_rank) allowed.push_back(entry.move);
+                    }
+                    if (!allowed.empty()) {
+                        request.searchmoves = std::move(allowed);
+                        shared.tbhits.fetch_add(1, std::memory_order_relaxed);
+                    }
+                }
+            }
+        }
 
         std::vector<std::thread> helpers;
         helpers.reserve(workers.size() - 1);
@@ -896,6 +978,7 @@ struct Search::Impl {
             request.received_at->time_since_epoch()).count();
         result.time_ms = elapsed_ns(now_ns(), started) / 1000000;
         result.hashfull = workers.front()->hashfull();
+        result.tbhits = shared.tbhits.load(std::memory_order_relaxed);
         if (result.diagnostics)
             result.diagnostics->elapsed_ms = double(elapsed_ns(now_ns(), started)) / 1000000.0;
         return result;
@@ -925,5 +1008,10 @@ void Search::ponderhit() noexcept {
 void Search::clear() { impl_->clear(); }
 void Search::set_hash(std::size_t megabytes) { impl_->shared.resize(megabytes); }
 void Search::set_threads(int threads) { impl_->set_threads(threads); }
+bool Search::set_syzygy_path(const std::string& path, std::string& error) {
+    impl_->clear();
+    return impl_->shared.tablebases.set_path(path, error);
+}
+unsigned Search::syzygy_largest() const { return impl_->shared.tablebases.largest(); }
 
 } // namespace chess0live

@@ -16,6 +16,11 @@ Use published techniques and independently authored implementations. Do not
 reuse code, runners, tests, comparisons, or other assets from chess0, chess0x,
 Gargantua, Sic, or QWChess. Public upstream format specifications, networks, and
 separately built test references are permitted, with provenance and notices.
+On October 18 the owner authorized using the same tablebase dependency as Sic:
+the standalone upstream Fathom reader, limited to Syzygy probing. Retain its MIT
+notices and explicit Cfish ancestry; the adapter/search/evaluation remain
+independent. Production table data is user-downloaded, UCI-configured, and
+excluded from Git. See [Syzygy](SYZYGY.md).
 
 ## Product
 
