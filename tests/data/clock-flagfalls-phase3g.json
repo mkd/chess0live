@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "purpose": "exposed-clock-diagnostics",
+  "description": "All 13 clock-forfeit positions from the completed Phase3G screen. Full histories are preserved. Exposed post-hoc diagnostics, never held-out strength evidence.",
+  "provenance": {
+    "campaign": "phase3g-lmr-20261018-daytime",
+    "audit_sha256": "2d410a131a6eb176518cadfd7031546be9594cfa28207a5ae9078967b38266b4",
+    "extraction_sha256": "ed00bbea90b56f08904449978d2b6a56b93b7ed71d091d3f2ca162f2efaa6b62",
+    "engine_sha256": "edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b",
+    "license": "GPL-3.0-or-later",
+    "author": "Claudio M. Camacho <claudiomkd@gmail.com>"
+  },
+  "cases": [
+    {
+      "id": "shard-1/p000002-1",
+      "position_command": "position startpos moves e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 f1e2 e7e5 d4b3 f8e7 e1g1 e8g8 g2g4 c8g4 d1d2 g4h3 f1d1 b8d7 d2d3 h3e6 c3d5 e6d5 e4d5 f6e8 g1h1 e7g5 b3d2 f7f5 d3h3 g5f4 d2f3 f4c1 d1c1 f8f6 c1g1 d7f8 b2b3 d8b6 g1g2 b6b4 f3g5 h7h6 g5e6 b4d2 f2f4 f8e6 d5e6 d2c2 e2h5 c2e4 f4e5 f6e6 a1f1 e6e5 h5g6 e8f6 g6f5 e4c6 h3g3 g7g5 h2h4 a8f8 h1h2 f6e4 g3h3 g8g7 h4g5 h6h5 h3h5 f8f5 h5h6 g7f7 h6h7 f7e6 h7g6 e4f6 f1f5 e5f5 g2e2 f5e5 g6f6 e6d7 f6f7 d7d8 e2e5 d6e5 g5g6 c6e8 f7f6 d8c7 g6g7 e5e4 f6g5 e8g8 h2g3 c7d7 g3f4 d7e6 f4e4 e6f7 e4d4 g8g7 g5g7 f7g7 d4c5",
+      "go_command": "go wtime 821 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.6712510000032,
+      "final_fen": "8/1p4k1/p7/2K5/8/1P6/P7/8 b - - 1 55",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "64c9d14ed98951700f6bde90218a21c49a71dfa506073b03cbf1fb3f8d7a89cd"
+    },
+    {
+      "id": "shard-3/p000002-2",
+      "position_command": "position startpos moves d2d4 d7d5 c2c4 c7c6 g1f3 g8f6 b1c3 e7e6 e2e3 b8d7 f1d3 d5c4 d3c4 b7b5 c4d3 c8b7 d1c2 f6h5 c2e2 b5b4 c3a4 f8e7 e3e4 e8g8 e1g1 c6c5 e4e5 c5d4 d3e4 b7e4 e2e4 d8a5 b2b3 g7g6 c1h6 h5g7 a1c1 f8d8 g2g4 a5d5 e4d5 e6d5 h6g7 g8g7 c1c7 d4d3 f1d1 d7e5 f3e5 e7d6 c7f7 g7g8 f7f3 d6e5 f3d3 d5d4 a4b2 a7a5 g1g2 e5g7 d3d2 a8c8 b2c4 c8c5 h2h4 a5a4 d1e1 d4d3 e1e3 a4b3 a2b3 c5d5 d2d1 d3d2 g2f3 g7c3 e3e4 d5d3 f3e2 d3d5 c4e3 d5d7 e3c2 d8b8 c2e3 b8f8 g4g5 g8g7 f2f3 d7f7 d1f1 g7g8 e3c4 f8d8 f1d1 f7d7 e2f2 g8h8 c4e5 d7b7 f2e2 h8g7 e5d3 b7b5 d3f2 b5a5 e4e3 g7f8 f2e4 d8d4 e4c3 b4c3 e3c3 d4h4 d1d2 h4h2 e2e3 h2d2 c3c8 f8f7 c8c7 f7e6 e3d2 a5d5 d2e2 d5g5 c7h7 g5b5 e2f2 b5b3 h7a7 e6f6 a7a6 f6f5 f2g3 b3b5 a6c6 b5a5 c6c7 f5f6 c7c3 f6g7 f3f4",
+      "go_command": "go wtime 620 btime 672 winc 600 binc 600",
+      "input_clock_ms": 672,
+      "clock_before_ms": 672.2365370000343,
+      "final_fen": "8/6k1/6p1/r7/5P2/2R3K1/8/8 b - - 0 72",
+      "hard_limit_ms": 652,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "0610cc3fe175cbc8ce5ae6a50dc089de6e9acd1d74f434017e5e9b266d8ac8bd"
+    },
+    {
+      "id": "shard-4/p000003-1",
+      "position_command": "position startpos moves e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 g7g6 c1e3 f8g7 f2f3 e8g8 d1d2 b8c6 e3f2 c8e6 e4e5 c6e5 d4e6 f7e6 e1c1 a8c8 c1b1 a7a6 d2e1 d8d7 h2h4 b7b5 f2d4 e5c4 g2g3 e6e5 f1c4 b5c4 d4e5 d7b7 e5f6 f8f6 e1e4 b7e4 f3e4 c8b8 c3d5 f6f3 b2b3 b8b7 h4h5 g6h5 h1h5 h7h6 d5f4 f3g3 f4e6 c4b3 c2b3 b7b5 h5h2 b5e5 e6g7 g8g7 d1h1 g3g6 h2h4 g6e6 h4f4 g7h7 f4f7 h7g6 f7f8 e5e4 h1g1 g6h5 a2a4 e4g4 g1h1 h5g5 b1b2 h6h5 f8a8 d6d5 a8d8 e6e2 b2a3 d5d4 a3b4 e7e5 b4a5 h5h4 a5a6 e2b2 h1f1 g4f4 f1e1 g5f5 a4a5 b2b3 d8f8 f5g4 f8g8 g4f5 g8f8 f5g4 f8g8 g4f3 e1e5 f4f6 a6a7 d4d3 g8d8 b3a3 a7b7 a3b3 b7a7 b3a3 a7b7 f3f2 e5h5 a3b3 b7a7 f6f7 a7a6 f7f4 h5b5 b3a3 d8d6 h4h3 b5b2 f2f3 d6h6 f3g3",
+      "go_command": "go wtime 697 btime 620 winc 600 binc 600",
+      "input_clock_ms": 697,
+      "clock_before_ms": 696.6250880000246,
+      "final_fen": "8/8/K6R/P7/5r2/r2p2kp/1R6/8 w - - 4 67",
+      "hard_limit_ms": 677,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "397218c4bf64324cd5b09f490eee0c8b11d957f566e821f3c6482f1e0bb49f47"
+    },
+    {
+      "id": "shard-4/p000010-2",
+      "position_command": "position startpos moves d2d4 f7f5 c2c4 g8f6 g2g3 g7g6 f1g2 f8g7 g1f3 e8g8 e1g1 d7d6 b1c3 d8e8 d4d5 b8a6 g2h1 f6d7 b2b4 d7c5 b4c5 g7c3 a1b1 a6c5 c1e3 c3f6 f3d4 b7b6 d4b5 e8d8 d1d2 c8d7 h1g2 a7a6 b5d4 d8e8 e3h6 f8f7 d2e3 f6g7 h6g7 f7g7 d4b3 c5a4 e3d2 e8f7 e2e4 f7f6 b1e1 f5f4 e4e5 d6e5 g3f4 e5f4 d5d6 a8f8 d6c7 d7c8 d2d5 e7e6 d5d6 f6g5 b3d4 g5c5 d6e5 c5e5 e1e5 g7c7 d4e6 c8e6 e5e6 f4f3 g2h3 g8g7 f1c1 f8f4 h3f1 c7d7 h2h3 d7d2 c4c5 a4c5 e6b6 c5e4 b6b4 d2f2 b4e4 f2f1 c1f1 f4e4 f1f3 e4a4 a2a3 a6a5 g1g2 h7h5 g2g3 h5h4 g3g2 a4c4 f3d3 c4a4 d3f3 g6g5 g2h2 g7g6 f3c3 g6f5 h2g1 f5f4 g1h2 a4d4 c3c2 d4a4 c2a2 f4f5 a2f2 f5g6 f2f3 a4c4 f3d3 a5a4 d3d6 g6f5 d6d5 f5f4 d5d2 f4f5 d2d5 f5f4 d5d2 f4f3 d2g2 c4c3 g2g5 c3a3 g5f5 f3e3 f5e5 e3f3 e5f5 f3e3 f5e5 e3d3 e5a5 d3c3 a5a7 c3b2 a7a8 a3a1 a8b8 b2a3 h2g2 a1c1 b8h8 c1c4 g2f3 a3b3 h8b8 c4b4 b8e8 a4a3 e8e3 b3a4 e3e2 b4b3 f3g4 b3b2 e2e8 b2b4 g4h5 a3a2",
+      "go_command": "go wtime 620 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 620.0754540000133,
+      "final_fen": "4R3/8/8/7K/kr5p/7P/p7/8 w - - 0 87",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "e7ea88f9704d15719b5c6d6acb2e5a02789fc39999f08fa64c4a2493a78b317d"
+    },
+    {
+      "id": "shard-2/p000014-1",
+      "position_command": "position startpos moves e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6 e1g1 f8e7 f1e1 b7b5 a4b3 d7d6 c2c3 e8g8 b1a3 c6d4 b3f7 g8h8 c3d4 f8f7 d4e5 f6g4 d2d4 d6e5 f3e5 g4e5 d4e5 d8f8 c1e3 c8b7 f2f3 a8e8 e1f1 e7c5 a3c2 h7h6 d1d2 e8e5 e3c5 f8c5 c2e3 c5b6 a1d1 e5e8 d2d4 c7c5 d4d6 b6a7 h2h3 b7c8 g1h1 c5c4 e3d5 c8e6 d5b4 a6a5 b4c6 a7e3 c6e5 f7b7 d6c6 b7b8 d1d6 e8c8 c6a6 c4c3 b2c3 e6a2 d6g6 c8c7 f3f4 a5a4 h1h2 e3e4 f1f3 e4f5 f3g3 h8h7 a6d6 b8b7 d6d4 a2b1 g6a6 b1c2 a6a8 c7c8 a8a6 b7e7 a6d6 a4a3 d6a6 c2e4 a6a3 f5f4 e5g6 f4g3 h2g3 e4g6 g3h2 e7c7 d4d6 c7c3 a3a6 g6b1 a6a7 c3c5 h3h4 c5c4 d6e5 c4g4 h2h3 g4g6 g2g4 c8c1 g4g5 h6g5 h4h5 c1h1 h3g3 h1h5 e5b5 b1e4 b5e5 e4c6 a7e7 h5h6 g3g4 h6h1 e5c5 g6f6 e7c7 c6d5 g4g3 d5e6",
+      "go_command": "go wtime 620 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.6847070000154,
+      "final_fen": "8/2R3pk/4br2/2Q3p1/8/6K1/8/7r w - - 13 69",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "7fab9d810bef3b87f78bf79bad94c515aba3237a9e1aa1b6f46acd0ed27cc0ab"
+    },
+    {
+      "id": "shard-4/p000019-2",
+      "position_command": "position startpos moves e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 c8f5 e4g3 f5g6 h2h4 h7h6 g1f3 b8d7 h4h5 g6h7 f3e5 f7f6 f1e2 h7g6 e5g6 e7e6 e2d3 f8b4 c2c3 d7e5 d4e5 d8d7 c3b4 e8c8 e5f6 g8f6 e1g1 d7d3 g6e7 c8b8 d1d3 d8d3 c1f4 b8a8 e7g6 h8e8 b4b5 c6b5 f1e1 e6e5 e1e5 e8e5 g6e5 d3d4 e5g6 a7a6 b2b3 b5b4 a1c1 f6g4 c1c8 a8a7 f4b8 a7b6 c8c1 a6a5 b8c7 b6a7 f2f3 g4e3 g3f1 e3f1 g1f1 b7b6 c7g3 a7b7 g3f2 d4d3 f2g3 d3e3 c1e1 e3c3 e1e7 b7a6 e7e2 a5a4 b3a4 c3a3 g3e5 a3d3 f1f2 d3d5 g6h8 d5d7 h8g6 d7f7 e5d6 f7f6 d6b4 f6c6 g6e7",
+      "go_command": "go wtime 619 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 620.1039170000124,
+      "final_fen": "8/4N1p1/kpr4p/7P/PB6/5P2/P3RKP1/8 b - - 2 49",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "e1c9f6a0a5d4bef964896ecd9e84d257180cb007c9f1493a7c9038f62bdb690a"
+    },
+    {
+      "id": "shard-3/p000031-1",
+      "position_command": "position startpos moves c2c4 g8f6 b1c3 e7e6 g1f3 b7b6 e2e4 c8b7 e4e5 f6e4 c3e4 b7e4 d2d4 f8b4 c1d2 b4d2 f3d2 d8g5 b2b3 g5f5 d1e2 e4c2 e2e3 b8c6 e3c3 f5f4 c3c2 c6d4 c2c3 d4c2 e1e2 c2a1 g2g3 f4g4 f2f3 g4g6 c3a1 a8d8 a1c3 d7d6 e5d6 d8d6 h2h4 d6d7 h4h5 g6f6 d2e4 f6c3 e4c3 e8e7 e2e3 h8d8 g3g4 f7f5 f1e2 c7c6 f3f4 e7f8 h5h6 g7g6 c4c5 f8e7 c5b6 a7b6 h1c1 d7d2 g4g5 e6e5 f4e5 e7e6 c3a4 f5f4 e3f3 e6f5 a4b6 d2a2 e5e6",
+      "go_command": "go wtime 3240 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.7895830000228,
+      "final_fen": "3r4/7p/1Np1P1pP/5kP1/5p2/1P3K2/r3B3/2R5 b - - 0 39",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "7706ffe35844fd0dbf857e6f9c30f32e656b3e904d51e7c57cf7f8faf37e29ca"
+    },
+    {
+      "id": "shard-2/p000032-1",
+      "position_command": "position startpos moves e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 b1c3 f8b4 d4c6 b7c6 f1d3 d7d5 e4d5 c6d5 e1f1 g7g5 h2h4 f6g4 d1e2 e8f8 f2f3 d5d4 c3e4 f7f5 a2a3 f5e4 e2e4 b4d6 h4g5 a8b8 f3g4 d8e7 g5g6 e7e4 d3e4 c8g4 c1h6 f8e7 g6h7 e7f6 h1h4 g4f5 e4f5 f6f5 h6g7 h8h7 h4h7 f5g6 h7h8 b8b2 g7d4 b2b5 f1e2 b5e5 d4e5 d6e5 a1h1 e5h8 h1h8 g6f6 h8h4 f6e7 h4e4 e7d6 e4d4 d6c6 d4g4 c6d5 g4g5 d5c4 g5a5 c7c5 e2d2 c4d4 a5a7 d4d5 a7a6 d5d4 a6a7 d4d5 c2c3 d5c4 a7d7 c4b5 d7g7 b5c6 g7g5 c5c4 d2e2 c6d6 g5h5 d6d7 h5c5 d7d6 c5c4 d6e5 c4c6 e5d5 c6g6 d5c4 e2d2 c4c5 g6f6 c5c4 f6d6 c4c5 d6f6 c5d5 f6a6 d5e5 d2e2 e5d5 g2g3 d5c4 e2d2 c4c5 a6h6 c5d5 h6f6 d5e5 f6h6 e5d5 h6a6 d5c5 a6f6 c5d5 f6g6 d5e5 g3g4 e5d5 g6b6 d5c5 g4g5 c5b6 g5g6 b6c6 g6g7 c6d5 g7g8q d5e4 g8a8 e4f5 a8f3 f5e6 f3e4 e6f6 e4f4 f6g6 d2c1 g6h5 f4f5",
+      "go_command": "go wtime 619 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.9914530000082,
+      "final_fen": "8/8/8/5Q1k/8/P1P5/8/2K5 b - - 12 77",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "e7b821145414db16d0de05f56badd6d546a6dc069c4b46c8d610b414c14fd60f"
+    },
+    {
+      "id": "shard-4/p000049-2",
+      "position_command": "position startpos moves d2d4 d7d5 c2c4 e7e6 b1c3 c7c5 c4d5 e6d5 g1f3 b8c6 g2g3 g8f6 f1g2 f8e7 e1g1 e8g8 f3h4 c6a5 c3b5 g7g5 c1g5 a7a6 b5c3 c5d4 d1d4 a5c6 d4a4 d5d4 a1d1 d8c7 g5f6 e7f6 c3d5 c7d6 d5f6 d6f6 g2c6 f6c6 a4c6 b7c6 d1d4 c8e6 b2b3 c6c5 d4a4 f8e8 e2e3 c5c4 b3c4 e8b8 h4g2 e6d7 a4a3 b8b4 a3c3 b4b2 a2a3 a8b8 g2f4 g8f8 f1c1 a6a5 c4c5 d7c6 f4d3 b2d2 d3e5 b8b2 e5c4 d2f2 c4b2 f2g2 g1f1 g2b2 c3c2 b2b3 c2a2 b3e3 f1f2 e3f3 f2g1 h7h5 a2b2 f3a3 b2b6 c6f3 c5c6 a3a2 c6c7 f3g4 c7c8q g4c8 c1c8 f8g7 b6b8 h5h4 c8g8 g7f6 b8b1 h4g3 h2h3 a2h2 b1f1 f6e5 g8g3 h2d2 g3f3 a5a4 f3a3 d2d4 a3e3 e5d6 f1f7 d4d1 g1g2 a4a3 e3a3 d1d5 f7f2 d5h5 a3a6 d6d7 f2f3 d7c8 f3f7 h5g5 g2f2 c8b8 h3h4 g5c5 a6a4 c5c1 a4b4 b8a8 b4e4",
+      "go_command": "go wtime 619 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.9294940000195,
+      "final_fen": "k7/5R2/8/8/4R2P/8/5K2/2r5 b - - 6 68",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "cafc1ae4303da304e13e7a1ce9b1b2ef5d6e58d39bf11ed04f6815bde062b431"
+    },
+    {
+      "id": "shard-4/p000053-1",
+      "position_command": "position startpos moves e2e4 e7e5 g1f3 d7d6 d2d4 g8f6 b1c3 b8d7 f1c4 f8e7 e1g1 e8g8 f1e1 c7c6 a2a4 d8c7 d1e2 d7c5 c4b5 e5d4 f3d4 c6b5 d4b5 c7d8 e1d1 a7a6 b5d6 e7d6 e4e5 f8e8 c1f4 c8f5 e2f3 f5g4 f3g3 g4d1 a1d1 f6h5 g3e3 h5f4 e3f4 d6e5 d1d8 e5f4 d8a8 e8a8 c3d5 a8d8 g2g3 d8d5 g3f4 d5d8 a4a5 c5a4 c2c3 a4b2 f4f5 b2d1 c3c4 g8h8 g1g2 d8c8 h2h4 f7f6 h4h5 c8c4",
+      "go_command": "go wtime 620 btime 6642 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.8018350000204,
+      "final_fen": "7k/1p4pp/p4p2/P4P1P/2r5/8/5PK1/3n4 w - - 0 34",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "5bf6a799492fc9f81540950d015df2110e7f8d4e0502a4dbe493f0ab6c3e7373"
+    },
+    {
+      "id": "shard-1/p000058-1",
+      "position_command": "position startpos moves c2c4 e7e6 b1c3 d7d5 d2d4 g8f6 c4d5 e6d5 c1g5 f8e7 e2e3 e8g8 f1d3 b8d7 g1e2 c7c6 d1c2 g8h8 g5h4 f6h5 h4e7 d8e7 g2g4 h5f6 g4g5 f6h5 h2h4 d7b6 e1c1 c8d7 c1b1 a8e8 b1a1 g7g6 d1e1 b6c8 e3e4 d5e4 c3e4 c8d6 f2f3 d7f5 e2c3 f5e6 c2h2 d6f5 d3b1 e7d8 e1d1 e6d5 h1g1 b7b5 h2f2 b5b4 c3d5 c6d5 e4c5 f5d6 c5d3 d8b6 g1e1 d6c4 f3f4 e8e1 d1e1 b4b3 d3e5 b6b4 e1c1 b4d2 f2d2 c4d2 f4f5 d2b1 f5g6 f7g6 a1b1 b3a2 b1a2 f8f4 c1c8 h8g7 c8c7 g7g8 c7c8 g8g7 e5c6 h5g3 c8a8 f4h4 b2b4 g7f7 a8a7 f7e6 c6d8 e6d6 b4b5 h4d4 a7h7 d4b4 h7g7 d6c5 a2a3 b4b5 g7g6 d5d4 d8e6 c5c4 e6d4 c4d4 g6d6 d4e3 g5g6 b5g5 d6e6 e3f2 e6c6 f2g2 a3b2 g2h3 g6g7 g5g7 b2b3 h3g2 c6c2 g2h3 c2c8 g7e7 b3c2",
+      "go_command": "go wtime 619 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.6147890000126,
+      "final_fen": "2R5/4r3/8/8/8/6nk/2K5/8 b - - 7 65",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "candidate",
+      "protocol_sha256": "4acfdaa5e034d31c7f6f8fecfbe431c0c46ef3f74a0a8cb8e9ea1e5bfdc4ad01"
+    },
+    {
+      "id": "shard-1/p000064-1",
+      "position_command": "position startpos moves d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 d7d6 e2e4 g7g6 g1f3 f8g7 f1e2 e8g8 h1f1 c8f5 h2h4 f6e4 c3e4 f5e4 f3g5 f8e8 f2f3 e4f5 g2g4 f5d7 c1f4 g7b2 a1b1 d8f6 b1b2 f6b2 g5e4 b8c6 d1d2 b2d2 e1d2 c6b4 e4f6 g8g7 f6e8 a8e8 f1e1 d7a4 e2f1 e8d8 e1e4 b7b5 f4g5 f7f6 g5f4 b4d5 f4h2 c5c4 e4d4 c4c3 d2c1 d8e8 h2g3 d5e3 f1d3 d6d5 g4g5 a7a5 g5f6 g7f6 h4h5 f6e6 g3c7 e3c4 h5g6 h7g6 d3c4 b5c4 c7a5 c3c2 d4g4 e8h8 g4g6 e6f5 g6f6 f5e5 f3f4 e5e4 f6e6 e4d3 a5b4 d5d4 e6e1 a4d7 e1g1 h8h3 b4e1 d3e2 e1b4 d7f5 b4c5 f5e4 c5b4 c4c3 f4f5 h3d3 c1c2 d3g3 c2b3 g3g1 b4c3 d4c3 b3c3 g1c1 c3d4 e4f5 d4e5 f5d3 e5f6 e2d2 a2a4 d2c3 a4a5 d3a6 f6g5 c3b4 g5g6 c1c8 g6f7 c8c6 f7e7 c6c2 e7f6 a6b5 a5a6 c2c6 f6e7 c6c7 e7d6 c7a7 d6e6 b5e2 e6f6 b4b3 f6e6 b3c4 e6f5 e2f3 f5f4 a7f7 f4g5 f3e4 a6a7 e4a8 g5g6 f7f2 g6h7 c4b3 h7g7 f2g2 g7f7 g2e2 f7f8 e2f2 f8e7 b3c4 e7e8 f2e2 e8f7 e2f2 f7g7 f2g2 g7h7 c4b3 h7h6 b3a3 h6h5 g2g7 h5h6",
+      "go_command": "go wtime 679 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.6772510000088,
+      "final_fen": "b7/P5r1/7K/8/8/k7/8/8 b - - 26 89",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "a087abb749de116e8002e02d09999802a106db2d2cf1c40cb615d015ee7189c5"
+    },
+    {
+      "id": "shard-3/p000062-2",
+      "position_command": "position startpos moves e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e5 d4b5 d7d6 c1g5 a7a6 b5a3 b7b5 c3e2 c6b4 d1c1 d8a5 e2c3 f6e4 f1e2 b4c6 e2f3 d6d5 g5d2 e4d2 c1d2 c8e6 f3d5 e8c8 d5e6 f7e6 d2e3 c6d4 e1g1 f8a3 b2a3 a5a3 a1d1 h8f8 h2h3 d8d7 e3e4 a3c5 d1d3 c8b8 e4h7 b5b4 f1b1 b8c7 c3e4 c5c2 b1d1 d4e2 g1f1 d7d3 h7g7 c7b6 d1e1 f8d8 g7e7 c2c4 a2a3 c4e4 e7e6 d3d6 e6b3 d6d5 h3h4 e4h4 b3b4 h4b4 a3b4 e2c3 f2f4 e5f4 g2g3 f4f3 e1e3 d5d1 f1f2 d1d2 f2f3 c3d1 e3e6 b6b5 f3f4 d8d5 e6e5 d2f2 f4e4 d1c3 e4e3 f2e2 e3f3 d5e5 f3g4 e5e4 g4g5 c3a2 g3g4 e4c4 g5h5 c4c3",
+      "go_command": "go wtime 620 btime 620 winc 600 binc 600",
+      "input_clock_ms": 620,
+      "clock_before_ms": 619.9360860000247,
+      "final_fen": "8/8/p7/1k5K/1P4P1/2r5/n3r3/8 w - - 3 54",
+      "hard_limit_ms": 600,
+      "historical_losing_role": "opponent",
+      "protocol_sha256": "fab31987e1e18c06a4b77b1fd1b38128e8b9890c26d523a9229b99c8e6637d11"
+    }
+  ]
+}

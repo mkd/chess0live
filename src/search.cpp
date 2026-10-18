@@ -37,6 +37,16 @@ std::int64_t now_ns() {
         Clock::now().time_since_epoch()).count();
 }
 
+/** Saturate pathological direct-API origins without signed subtraction overflow.
+ * Normal monotonic durations take the same path; future origins charge zero.
+ */
+std::int64_t elapsed_ns(std::int64_t end, std::int64_t begin) {
+    if (end <= begin) return 0;
+    const auto difference = std::uint64_t(end) - std::uint64_t(begin);
+    return static_cast<std::int64_t>(std::min(difference,
+        std::uint64_t(std::numeric_limits<std::int64_t>::max())));
+}
+
 /** Avalanche a position key before adding it to a reversible-history digest. */
 std::uint64_t mix(std::uint64_t value) {
     value ^= value >> 30;
@@ -176,7 +186,7 @@ struct Search::Impl {
         cache_policy_valid = false;
     }
 
-    std::int64_t elapsed_ms() const { return (now_ns() - started_ns) / 1000000; }
+    std::int64_t elapsed_ms() const { return elapsed_ns(now_ns(), started_ns) / 1000000; }
 
     /** No timing budget is consumed while awaiting the opponent's ponder move.
      * Atomic timestamp publication also handles ponderhit before worker startup.
@@ -187,7 +197,7 @@ struct Search::Impl {
             from = ponder_hit_ns.load(std::memory_order_relaxed);
             if (from < 0) return -1.0;
         }
-        return double(now_ns() - from) / 1000000.0;
+        return double(elapsed_ns(now_ns(), from)) / 1000000.0;
     }
 
     bool must_stop() {
@@ -510,11 +520,14 @@ struct Search::Impl {
     SearchResult run(Position position, std::vector<std::uint64_t> history,
                      const SearchLimits& request, const Reporter& report) {
         if (!network.loaded()) throw std::runtime_error("A compatible NNUE network must be loaded before search");
-        // A mode change through the Search API may invalidate a large dirty
-        // table. The GUI already charges this preparation to the move, so the
-        // hard deadline must age from before that work. An explicit clear/new
-        // game invalidates cache_policy_valid and avoids this work inside go.
-        const auto search_started_ns = now_ns();
+        // Charge the accepted command's preparation and worker-dispatch delay,
+        // as well as any policy-dependent table clearing below. Without a
+        // caller timestamp, direct API use starts here as before. Clamping a
+        // future origin prevents accidental extra budget or negative UCI time.
+        const auto entered_at = Clock::now();
+        const auto received_at = std::min(request.received_at.value_or(entered_at), entered_at);
+        const auto search_started_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            received_at.time_since_epoch()).count();
         if (cache_policy_valid
             && (request.late_move_reductions != limits.late_move_reductions
                 || request.capture_ordering != limits.capture_ordering)) clear();
@@ -566,7 +579,7 @@ struct Search::Impl {
                 diagnostics.policy = limits.time_policy;
                 diagnostics.forecast_active = forecast_active;
                 diagnostics.stop_reason = stop_reason;
-                diagnostics.elapsed_ms = double(now_ns() - started_ns) / 1000000.0;
+                diagnostics.elapsed_ms = double(elapsed_ns(now_ns(), started_ns)) / 1000000.0;
                 diagnostics.soft_ms = time.soft_ms;
                 diagnostics.hard_ms = time.hard_ms;
                 diagnostics.target_ms = target_ms;
@@ -626,7 +639,7 @@ struct Search::Impl {
                 if (result.diagnostics)
                     result.diagnostics->iterations.push_back({
                         depth, !aborted, nodes - iteration_start_nodes, duration_ms,
-                        double(iteration_end_ns - started_ns) / 1000000.0});
+                        double(elapsed_ns(iteration_end_ns, started_ns)) / 1000000.0});
             }
             if (aborted) break;
             std::vector<Move> line;

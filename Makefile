@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/mai
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification test-phase3g verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-clock-probes test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification test-phase3g verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -167,6 +167,10 @@ test-bench:
 test-profile:
 	$(PYTHON) tests/profile_search_test.py
 
+# Optional saved-position clock diagnostics; requires requirements-match.txt.
+test-clock-probes:
+	$(PYTHON) tests/probe_clocks_test.py
+
 test-profile-lmr:
 	$(PYTHON) tests/profile_lmr_test.py
 
@@ -208,6 +212,7 @@ help:
 	@echo 'make test-phase3g      Test fresh openings, coordinated launcher, and aggregate audit'
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
+	@echo 'make test-clock-probes Test saved-position clock diagnostic validation'
 	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
 	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'
 	@echo 'make test-profile-cpu  Test bounded CPU-profile recording and cleanup'

@@ -38,6 +38,15 @@ evaluation. The detailed pin and evidence belong in [NNUE](NNUE.md).
 
 ## Search evolution
 
+The UCI controller timestamps each complete command before parsing. A `go`
+request carries that monotonic timestamp in `SearchLimits::received_at`, so
+preparation and worker dispatch consume the existing clock or movetime budget.
+Direct API callers may supply the same-clock receipt time; omission starts at
+search entry. Future origins are clamped and extreme past elapsed durations
+saturate safely. Pondering charges only from `ponderhit`; infinite mode ignores
+clocks. This accounting does not guarantee scheduling or pipe-delivery latency.
+Expired requests still return a legal root fallback without entering the tree.
+
 Start with a correctness baseline: iterative deepening, alpha-beta/PVS,
 quiescence with check evasions, transposition storage, draw recognition,
 move ordering, cancellation, and clock budgeting. Establish deterministic

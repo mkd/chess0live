@@ -88,6 +88,9 @@ public:
 
     void run() {
         for (std::string line; std::getline(std::cin, line);) {
+            // Capture before parsing or joining/preparing a worker. Time spent
+            // after accepting go belongs to that request's existing budget.
+            const auto received_at = std::chrono::steady_clock::now();
             if (line.size() > 65536) { output("info string error: command too long"); continue; }
             const auto tokens = words(line);
             if (tokens.empty()) continue;
@@ -107,7 +110,7 @@ public:
                 else if (command == "ucinewgame") { stop(); search_.clear(); }
                 else if (command == "setoption") option(tokens);
                 else if (command == "position") position(tokens);
-                else if (command == "go") go(tokens);
+                else if (command == "go") go(tokens, received_at);
                 else if (command == "perft" || command == "divide") count(tokens);
                 else if (command == "eval") evaluate();
                 else if (command == "d") { stop(); output("info string fen " + position_.fen()); }
@@ -370,9 +373,11 @@ private:
         output(line.str());
     }
 
-    void go(const std::vector<std::string>& tokens) {
+    void go(const std::vector<std::string>& tokens,
+            std::chrono::steady_clock::time_point received_at) {
         stop();
         SearchLimits limits;
+        limits.received_at = received_at;
         limits.move_overhead_ms = overhead_ms_;
         limits.time_policy = time_policy_;
         limits.diagnostics = diagnostics_;

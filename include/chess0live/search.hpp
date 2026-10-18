@@ -12,6 +12,7 @@
 #include "chess0live/time_management.hpp"
 
 #include <cstddef>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -30,6 +31,12 @@ enum class CaptureOrdering { mvv_lva, see };
  * clock allocation. Pondering defers time consumption until ponderhit().
  */
 struct SearchLimits {
+    /** Monotonic receipt of this request, before controller preparation and
+     * worker dispatch. Omission starts timing at search entry. Ponder still
+     * charges only from ponderhit; infinite/no-clock requests ignore the budget.
+     * A future timestamp is clamped to entry time, never granting extra time.
+     */
+    std::optional<std::chrono::steady_clock::time_point> received_at;
     int depth = 0;
     std::uint64_t nodes = 0;
     std::int64_t movetime_ms = -1;

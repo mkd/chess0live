@@ -606,6 +606,34 @@ this data-only audit and documentation checkpoint. Phase 3H will investigate
 clock reliability before any fresh confirmation. Both GUI snapshots and the
 README remain unchanged.
 
+## Phase 3H command-time accounting — October 18, 2026
+
+A cold-network `go movetime 1` reproduced uncharged preparation in both LMR
+modes: 68.6–73.5 ms externally, about 1 ms internally, and 217/219 searched nodes.
+The repaired UCI path carries receipt time into search; the expired request now
+performs zero tree work while reporting the preparation time. The API also has
+deterministic already-expired positive-clock tests for both colors/modes, explicit
+limits, pondering, infinite/no-clock search, future origins, and extreme-past
+arithmetic. A review-found extreme-past overflow risk was fixed before final
+validation; final native, scalar, and Address/UndefinedBehaviorSanitizer suites
+passed. No NNUE math changed or new full SF19 oracle run is claimed.
+
+The diagnostic tool's seven focused tests pass. It independently checks legal
+PV/bestmove, diagnostic accounting, clock bounds, restricted commands, no
+overwrite/resume, and failure records. All **52** prescribed probes completed:
+13 full histories × both LMR modes × frozen/repaired binaries, fresh tables and
+readiness each time. Every move was legal and received before its original
+remaining clock. Both executables had at most 0.003 ms reported hard-deadline
+overshoot in this sample. This fails to reproduce the original losses and is
+not a match, strength result, or proof that the repair solves scheduler stalls.
+
+The final fixed-depth comparison matched all 48 search signatures (12 development
+roots, one warmup and one measured search per executable at depth 4). Timing is
+not used as a performance claim. All historical artifacts and both GUI bundles
+were preserved. See [the result report](reports/2026-10-18-phase3h-clocks.md) for
+source provenance, limited causal findings, artificial suspension control,
+commands, and evidence hashes. Phase 3G's operational decision remains unchanged.
+
 ## Owner-run GUI feedback — October 18, 2026
 
 The owner reports two draws against Gargantua 2.1 with no engine errors or

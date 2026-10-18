@@ -181,6 +181,22 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         started = time.monotonic()
         assert bestmove(engine.until("bestmove ", timeout=3)) != "0000"
         assert time.monotonic() - started < 2
+        # Loading a dirty network during go is charged preparation. It cannot
+        # give a short request a new budget when its worker finally starts.
+        # The API suite models dispatch delay deterministically with old receipt
+        # timestamps; this integration case verifies the UCI propagation path.
+        for lmr in ("false", "true"):
+            engine.send("setoption name Search Diagnostics value true")
+            engine.send("setoption name Move Overhead value 0")
+            engine.send("setoption name Late Move Reductions value " + lmr)
+            engine.send("setoption name EvalFile value " + str(network))
+            engine.send("go movetime 1")
+            cold = engine.until("bestmove ")
+            summary, iterations = search_diagnostics(cold)
+            assert float(summary["elapsed_ms"]) >= 1
+            assert summary["nodes"] == "0" and not iterations
+            assert summary["stop_reason"] == "hard_time"
+            assert bestmove(cold) != "0000"
         # Black is checkmated. No search can return a legal coordinate move.
         engine.send("position fen 7k/6Q1/6K1/8/8/8/8/8 b - - 100 1")
         engine.send("go depth 2")

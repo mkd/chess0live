@@ -308,6 +308,76 @@ void clock_limit(Fixture& fixture) {
             "A zero remaining clock must stop immediately with a legal fallback");
 }
 
+/** An old receipt deterministically models delayed dispatch without sleeping
+ * or relying on the host scheduler to pause a particular worker. */
+void command_time_accounting(Fixture& fixture) {
+    const auto position = Position::start();
+    SearchLimits limits;
+    limits.received_at = std::chrono::steady_clock::now() - 2s;
+    limits.movetime_ms = 620;
+    limits.diagnostics = true;
+    auto result = fixture.run(position, limits);
+    require(result.nodes == 0 && result.depth == 0 && legal(position, result.best)
+            && result.diagnostics->stop_reason == StopReason::hard_time
+            && result.diagnostics->elapsed_ms >= 2000
+            && result.diagnostics->hard_ms == 600,
+            "Worker dispatch must not restart an expired positive movetime budget");
+    limits.received_at = std::chrono::steady_clock::time_point::min();
+    result = fixture.run(position, limits);
+    require(result.nodes == 0 && result.diagnostics->elapsed_ms >= 2000,
+            "Extreme past API origins must expire safely without signed overflow");
+    limits.received_at = std::chrono::steady_clock::now() - 2s;
+
+    limits.movetime_ms = -1;
+    limits.wtime_ms = limits.btime_ms = 620;
+    limits.winc_ms = limits.binc_ms = 600;
+    auto black = position;
+    black.make_move(move(black, "e2e4"));
+    for (const auto& root : {position, black}) {
+        result = fixture.run(root, limits);
+        require(result.nodes == 0 && legal(root, result.best)
+                && result.diagnostics->stop_reason == StopReason::hard_time,
+                "Both sides' chess clocks must include command preparation");
+    }
+
+    // Explicit finite depth/nodes intersect with a supplied clock; they cannot
+    // authorize tree work after that clock's deadline has already passed.
+    limits.depth = 1;
+    limits.nodes = 10;
+    result = fixture.run(position, limits);
+    require(result.nodes == 0, "Explicit search bounds do not erase an expired clock");
+
+    limits.nodes = 0;
+    limits.infinite = true;
+    result = fixture.run(position, limits);
+    require(result.depth == 1, "Infinite search ignores an old command timestamp's clock budget");
+    limits.infinite = false;
+    limits.ponder = true;
+    result = fixture.run(position, limits);
+    require(result.depth == 1, "Pondering cannot charge time before ponderhit");
+    // A fresh hit, even after an old receipt, starts a fresh charged interval.
+    fixture.search.reset_stop();
+    fixture.search.ponderhit();
+    limits.late_move_reductions = fixture.enable_lmr;
+    result = fixture.search.search(position, {}, limits);
+    require(result.depth == 1, "Ponderhit uses its own origin rather than command receipt");
+
+    limits = depth_limit(2);
+    fixture.search.clear();
+    const auto normal = fixture.run(position, limits);
+    fixture.search.clear();
+    limits.received_at = std::chrono::steady_clock::now() - 2s;
+    const auto old = fixture.run(position, limits);
+    require(normal.best == old.best && normal.score == old.score && normal.nodes == old.nodes,
+            "Without a clock, command age cannot change fixed-depth search work");
+
+    limits.diagnostics = true;
+    limits.received_at = std::chrono::steady_clock::now() + 2s;
+    result = fixture.run(position, limits);
+    require(result.diagnostics->elapsed_ms >= 0,
+            "A future API timestamp must not produce negative elapsed time");
+}
+
 void root_diagnostics(Fixture& fixture) {
     const auto position = Position::start();
     auto limits = depth_limit(2);
@@ -629,6 +699,7 @@ int main(int argc, char** argv) {
         limits_and_principal_variations(fixture);
         cancellation_and_pondering(fixture);
         clock_limit(fixture);
+        command_time_accounting(fixture);
         root_diagnostics(fixture);
         forecast_scope_and_clock_budgets(fixture);
         selective_search_verification_and_policy_switches(fixture);
@@ -646,6 +717,7 @@ int main(int argc, char** argv) {
         limits_and_principal_variations(fixture);
         cancellation_and_pondering(fixture);
         clock_limit(fixture);
+        command_time_accounting(fixture);
         // Isolate the ordering experiment from LMR while repeating mandatory
         // chess-rule, cancellation, pondering, and elapsed-clock behavior.
         fixture.search.clear();

@@ -67,6 +67,11 @@ an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
 set `EvalFile` to its absolute path.
 
+Timed requests include preparation after the engine receives `go`, including
+worker startup. Send `isready` and wait for `readyok` before starting a timed
+search so network loading is complete. `Move Overhead` reserves milliseconds
+for response delivery; pondering starts consuming its clock at `ponderhit`.
+
 The development executable also offers `Time Policy` (`classic`, the default,
 or experimental `forecast`) and optional `Search Diagnostics` (default off).
 Forecast estimates whether another search iteration will fit the hard deadline;

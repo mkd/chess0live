@@ -317,12 +317,8 @@ Candidate clock forfeits take precedence. Do not resume, replace, or selectively
 extend a sample, and do not pool the exposed Phase 2D result. Initial owner
 feedback on the intended Phase 3F GUI
 bundle is recorded; no more manual games are required. Do not start controlled
-matches while any GUI games are running. LMR remains off. **Phase 3H is next:**
-diagnose all 13 clock forfeits and reproduce the failure before changing clock
-allocation or deadline handling. Both roles were affected at less than one second
-remaining. Distinguish engine response, protocol transport, and host scheduling;
-then validate a bounded repair before designing fresh strength qualification.
-No new engine change, match, or schedule is part of this result checkpoint.
+matches while any GUI games are running. LMR remains off. Phase 3H's subsequent
+accounting repair is recorded below; it does not revise Phase 3G's result.
 `tools/qualify_phase3g.py` supervises the run; `tools/audit_phase3g.py` checks all
 four raw campaigns and one pooled decision. `make test-phase3g` checks the new
 tools, while `make test-qualification test-match` includes historical regressions.
@@ -331,6 +327,33 @@ are committed as `ff478a7`. See [validation](VALIDATION.md)
 for the distinction between synthetic lifecycle evidence and actual readiness.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
+
+**Phase 3H's bounded diagnosis/repair is complete.** Read the
+[plan](PHASE_3H.md) and [result](reports/2026-10-18-phase3h-clocks.md).
+`SearchLimits::received_at` carries the monotonic UCI receipt before parsing,
+preparation, and dispatch. Ordinary clocks/movetime now include that delay;
+ponderhit remains its own charge origin. Future origins clamp to entry and
+extreme past elapsed values saturate safely. No allocation formula, overhead
+default, LMR rule, or move-ordering policy changed. Native/scalar/sanitizer
+suites pass, including deterministic expired-receipt and cold-network UCI tests.
+
+All 13 Phase 3G flagfall histories are preserved as exposed diagnostics in
+`tests/data/clock-flagfalls-phase3g.json`. `tools/probe_clocks.py` ran all 26
+history/mode combinations once on each executable, with fresh tables and
+readiness. All 52 returned legal, on-time moves; because the baseline also
+passed, the historical failure is not reproduced by this isolated workload.
+Only one historical case is consistent with uncharged startup; the other 12
+cannot be attributed without final internal timestamps or scheduler evidence.
+Do not claim all clock losses fixed or reinterpret Phase 3G as qualifying LMR.
+Both original GUI bundles remain unchanged. The normal build contains the repair;
+a frozen copy is at `build/experiments/phase3h-20261018/chess0live`.
+
+**Phase 3I is next:** separate scheduling/receiver stalls from engine work and
+investigate short-clock resilience. Any reserve/allocation experiment needs a
+new bounded hypothesis and relevant evidence; fresh strength confirmation is
+still deferred. No new match or schedule is active. Raw diagnosis, controls,
+native/scalar/sanitizer logs, probes, and final integrity are retained under
+`results/phase3h-20261018/`; the report documents exact scope and hashes.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner

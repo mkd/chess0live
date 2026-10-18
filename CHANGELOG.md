@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Fixed clock accounting so preparation and worker startup after receiving `go`
+  consume the existing time budget. Expired requests return a legal fallback;
+  pondering still starts charging at `ponderhit`. This does not eliminate
+  operating-system or transport delays.
 - Added a playable, independently written UCI engine with legal bitboard moves,
   draw detection, time management, pondering, and responsive search cancellation.
   Search currently uses one worker.
@@ -46,6 +50,8 @@ release numbers; detailed measurements live in the linked experiment records.
   shutdown so a stopped test cannot silently begin another game.
   Added a dated, explicit owner-authorized daytime exception with matching audit
   checks; normal resource limits, fixed samples, and cancellation rules remain.
+- Added saved-position clock diagnostics with both LMR modes, legal-PV checks,
+  and preserved command/response timestamps for investigating late moves.
 - Added GPL-3.0-or-later licensing, architecture and handover documentation,
   a development roadmap, and local resource controls with manual overrides.
 
