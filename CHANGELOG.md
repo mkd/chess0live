@@ -72,6 +72,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Added a separate 1,024-game current-engine LMR comparison with fresh paired
+  openings, eight-worker resource controls, a fixed overnight cutoff, and an
+  independent raw-game audit. This adds validation tooling; LMR remains disabled
+  by default pending the result.
 - Added optional cache hit/cutoff/replacement diagnostics and a bounded profiler
   that checks legal search output, occupancy, memory accounting, and cold/warm
   behavior on development positions.

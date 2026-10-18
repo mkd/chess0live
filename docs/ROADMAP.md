@@ -256,10 +256,19 @@ depth rules but produced no convincing broad efficiency gain: cold total nodes
 -0.19%, warm +3.78%, with higher aggregate depth-6 elapsed time. All fixed-depth
 final scores/moves agreed; intermediate warm differences remain recorded.
 It stays opt-in and further tuning/strength qualification is parked. No default
-or Elo improvement is claimed. **Next: 4D.2**, isolate current-engine LMR
+or Elo improvement is claimed. **Active: 4D.2**, isolate current-engine LMR
 qualification; **4D.3** then implements verified null-move pruning. Internal
 iterative deepening, distinct futility variants, and ProbCut are recorded in
 the search plan following the owner's additional feedback.
+
+**Phase 4D.2 preparation:** the [fixed protocol](PHASE_4D2.md) compares the same
+current executable with LMR on/off over 1,024 games (512 reversed-color pairs),
+using eight workers, fresh opening histories and the ordinary overnight limit.
+Fresh openings, an eight-worker clock/cancellation check and independent serial
+readiness have passed. LMR remains off by default. The
+[checkpoint record](reports/2026-10-18-phase4d2-preparation.md) records validation
+and launch status. One complete audited result is required before a default
+decision; incomplete or inconclusive evidence does not block 4D.3 indefinitely.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override

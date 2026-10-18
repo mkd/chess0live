@@ -237,7 +237,7 @@ test-profile-smp:
 	$(PYTHON) tests/profile_smp_test.py
 
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
-test-qualification: test-phase3g test-phase3l
+test-qualification: test-phase3g test-phase3l test-phase4d2
 	$(PYTHON) tests/qualify_time_policy_test.py
 	$(PYTHON) tests/audit_time_policy_test.py
 	$(PYTHON) tests/qualify_lmr_test.py
@@ -252,6 +252,13 @@ test-phase3l:
 	$(PYTHON) tests/phase3l_openings_test.py
 	$(PYTHON) tests/qualify_phase3l_test.py
 	$(PYTHON) tests/audit_phase3l_test.py
+
+.PHONY: test-phase4d2
+test-phase4d2:
+	$(PYTHON) tests/phase4d2_openings_test.py
+	$(PYTHON) tests/phase4d2_load_test.py
+	$(PYTHON) tests/qualify_phase4d2_test.py
+	$(PYTHON) tests/audit_phase4d2_test.py
 
 verify-moves: $(ENGINE)
 	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
@@ -278,6 +285,7 @@ help:
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'
 	@echo 'make test-phase3g      Test fresh openings, coordinated launcher, and aggregate audit'
 	@echo 'make test-phase3l      Test fresh qualification inputs, readiness, supervision, and audit'
+	@echo 'make test-phase4d2     Test current-engine LMR campaign tools without launching games'
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
 	@echo 'make test-profile-cache Test cache profiling, counter validation, and failure evidence'

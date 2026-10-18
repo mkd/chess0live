@@ -527,6 +527,17 @@ Raw evidence and frozen executables are in `results/phase4d-20261018/` and
 `build/experiments/phase4d-20261018/` respectively. **Next: 4D.2 current-engine
 LMR qualification**, then the separate 4D.3 verified null-move implementation.
 
+**Phase 4D.2 is active:** see the [protocol](PHASE_4D2.md) and
+[preparation/launch record](reports/2026-10-18-phase4d2-preparation.md). It freezes
+the existing `74a908b` executable separately, changing only LMR on/off across
+1,024 paired games. Eight-worker exposed clock/cancellation checks and independent
+serial readiness passed. Results live in `results/phase4d2-20261018/`. Preserve
+all pinned sources until the one fixed campaign has ended and been audited;
+never resume or replace games. The hard cutoff is the launch's next 07:00 Helsinki.
+LMR remains off pending the complete result. Do not pool historical attempts or
+retarget the untouched Phase 3L sample. Next implementation is 4D.3 verified
+null-move pruning, with independent strength gates.
+
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning
 hypotheses must be isolated and strength-qualified; do not enable existing LMR

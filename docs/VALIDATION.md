@@ -1,5 +1,18 @@
 # Validation and experiment protocol
 
+## Phase 4D.2 current-engine LMR qualification — October 18, 2026
+
+The [protocol](PHASE_4D2.md) fixes 1,024 games and 512 reversed-color pairs,
+eight workers, fresh unsearched inputs, explicit unrelated options off, and a
+fixed next-07:00 cutoff. Independent raw-game and aggregate auditing is mandatory.
+Preparation and launch evidence are in the
+[checkpoint record](reports/2026-10-18-phase4d2-preparation.md). The eight-worker
+load check passed all 24 clock-controlled replies, eight stops and reuse checks;
+readiness passed without a held-out search. None of these operational checks
+establishes strength. Existing LMR remains disabled until a complete qualifying
+result and explicit default review. The pair-level interval is conditional on
+independence; related stems and shared host load are documented limitations.
+
 ## Baseline verification — October 13, 2026
 
 Native host: macOS 26.7.1 ARM64, Apple Clang 21.0.0, C++26 mode. The full
