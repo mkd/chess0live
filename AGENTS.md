@@ -23,6 +23,10 @@ Read [requirements](docs/REQUIREMENTS.md), [handover](docs/HANDOVER.md), and
   commit tested changes locally on main. The owner handles GitHub pushes manually;
   do not attempt authentication or publishing. Do not create PRs by default or
   rewrite history.
+- Preserve the owner's README introduction before `## Build and run` exactly.
+  Limit README updates to practical building, running, testing, configuration,
+  extension, and contribution instructions. Keep development phases, match
+  reports, and competitive ambitions in the roadmap and other project docs.
 - Record failed and inconclusive experiments honestly. Do not release v0.1 or
   advertise a rating before its acceptance gates pass.
 - Keep docs/ROADMAP.md current. Progress updates should identify the active

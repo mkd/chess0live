@@ -31,17 +31,22 @@ The final saved position is:
 
 It has five legal moves and is not checkmate, stalemate, insufficient material,
 or a claimable repetition/fifty-move draw. The last capture is 60.Kxd2; there
-are no promotions in the saved portion. This does not contradict a later draw,
-but the final result cannot be verified from this incomplete file. Game 2 has
-no PGN and cannot be replayed to its ending.
+are no promotions in the saved portion. The owner subsequently clarified that
+they **manually adjudicated game 1 as a draw**, judging it would finish drawn
+and wanting to save the PGN before Cute Chess advanced to game 2. This explains
+the early conclusion: record game 1 as an owner-adjudicated draw, not a
+replay-verified played-out ending or an independently proven forced draw.
+The original unfinished PGN is retained unchanged. Game 2 has no PGN and
+cannot be replayed to its ending.
 
 The tournament screenshot records **0 wins, 0 losses, 2 draws**. Its two reason
 categories are **"Draw by adjudication: user decision"** and **"Draw by
-insufficient mating material"**, one of each. They are not assigned to individual
-games in that summary. The owner's description of a fifty-move ending in game 2
-remains unverified; it differs from the recorded categories. Do not silently
-relabel either game. The displayed `0.0 +/- 0.0` Elo and `nan` LOS are not useful
-uncertainty estimates for this two-game, all-draw sample.
+insufficient mating material"**, one of each. The summary alone does not assign
+them to individual games; the owner's clarification identifies game 1 as the
+user-adjudicated draw. The remaining category is insufficient mating material;
+the earlier description of a fifty-move ending in game 2 cannot be independently
+checked without its missing history. The displayed `0.0 +/- 0.0` Elo and `nan`
+LOS are not useful uncertainty estimates for this two-game, all-draw sample.
 
 ## Clock allocation
 

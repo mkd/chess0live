@@ -8,6 +8,11 @@ no own initial network training, desktop/laptop focus, M5 Pro primary, local-onl
 compute, and tested commits directly to main. The owner now handles GitHub pushes
 manually; do not retry authentication or publishing from an agent session.
 
+Preserve the owner's README introduction before `## Build and run` exactly.
+Limit future README edits to practical build, run, test, configuration, extension,
+and contribution instructions. Keep phase progress, match reports, and competitive
+ambitions in the roadmap and other project docs.
+
 No unresolved product decision blocks the baseline. Nighttime is 23:00–07:00
 Europe/Helsinki at 80%; daytime 50%; the owner can override the budget. Blitz is
 the first match-testing focus. Do not reuse any of the owner's earlier engines.
@@ -262,13 +267,15 @@ The qualified candidate, normal native executable, and optional
 `0.1-dev-phase3f-20261017` GUI bundle share SHA-256
 `edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b`.
 The original `0.1-dev-4b8b35d` remains intact. The new bundle passed CLI startup,
-adjacent-network discovery and legal depth-5 search from an unrelated directory;
+adjacent-network discovery and legal depth-5 search from an unrelated directory.
 The owner subsequently reported two draws against Gargantua with no GUI errors
 on October 18. This was the intended snapshot; runtime options and executable
 identity were not captured. The [review](reports/2026-10-18-cutechess.md)
 preserves the partial PGN: 121 legal plies, matching depth-2 divides at 122
-positions, and early clock depletion. The file ends unfinished at 61.Nc3; the
-two final draw reasons cannot be assigned from the supplied evidence. Treat
+positions, and early clock depletion. The file ends unfinished at 61.Nc3. The
+owner clarified that they adjudicated game 1 as drawn, judging it would finish
+drawn and wanting to save the PGN before the GUI advanced. This is an owner
+adjudication, not a replay-verified played-out ending. Game 2 has no PGN. Treat
 these as exposed diagnostic games, not strength qualification or Phase 3G inputs.
 The normal executable was intentionally promoted **after** the passing audit; the frozen manifest records
 its old hash. Those old bytes remain at the retained Phase 3B path. Use the final

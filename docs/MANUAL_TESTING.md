@@ -121,9 +121,11 @@ disconnections, shallow nominal depth and early clock depletion. The intended
 snapshot is `0.1-dev-phase3f-20261017`; actual options and binary identity are not
 captured. The [review](reports/2026-10-18-cutechess.md) verifies all 121 saved
 plies and the snapshot's depth-2 divide at all 122 positions. The PGN stops at
-61.Nc3 with an unfinished result; neither final draw can be independently replayed.
-The summary lists user adjudication and insufficient material, so the reported
-fifty-move ending remains unverified. No strength or default change follows.
+61.Nc3 with an unfinished result. The owner clarified that they manually
+adjudicated game 1 drawn, expecting a draw and wanting to save the PGN before
+the GUI advanced. The original file is unchanged; no played-out ending is claimed.
+Game 2's missing PGN prevents an independent ending check. No strength or default
+change follows.
 
 ## Useful feedback
 

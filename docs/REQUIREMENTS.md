@@ -73,13 +73,19 @@ authentication or pushes. Use small tested commits directly on `main`.
 Branches/PRs are unnecessary unless an exceptional practical reason arises.
 Test first, commit locally second. Update README, concise
 version-oriented changelog, implementation decisions, and handover instructions.
+Preserve the owner's README introduction before `## Build and run` exactly;
+it is a short description of the engine and its author. Future README edits
+are limited to practical build, run, test, configuration, extension, and
+contribution instructions. Development phases, match reports, and competitive
+ambitions belong in the roadmap and other project documentation, not the README.
 Use semantic version milestones for tested, user-visible deliverables: patch
 releases for compatible fixes and minor releases for new capabilities, with
 compatibility breaks explicitly documented. Research phases are planning labels,
 not release numbers. Keep pending work under `Unreleased`; when a genuine
 release is accepted, record its version, actual release date, and concise
-user-facing improvements in README and CHANGELOG instead of retaining the same
-version indefinitely. Do not declare version 0.1 before its documented
+user-facing improvements in CHANGELOG, updating practical README instructions
+only where affected. Do not retain the same version indefinitely or declare
+version 0.1 before its documented
 [acceptance gates](VALIDATION.md#release-gates) pass.
 Every release must distinguish measured strength from aspiration, and tested
 platforms from merely intended targets. Source files have consistent copyright,
