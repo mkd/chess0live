@@ -537,6 +537,11 @@ never resume or replace games. The hard cutoff is the launch's next 07:00 Helsin
 LMR remains off pending the complete result. Do not pool historical attempts or
 retarget the untouched Phase 3L sample. Next implementation is 4D.3 verified
 null-move pruning, with independent strength gates.
+The campaign launched October 18 at **23:13:40 Helsinki**, all eight shards
+running, with a fixed October 19 **07:00** cutoff. Preparation commit: `d376524`.
+Check the campaign manifest and raw records for current status; this timestamp
+is launch evidence only. No recurring task was scheduled. Run the independent
+auditor after completion before stating any strength/default decision.
 
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning

@@ -72,10 +72,24 @@ These large local artifacts are ignored by Git. Readiness currently reports
 
 ## Next checkpoint
 
-After all workflow tests and the local commit, launch once in the declared
-23:00–23:30 window, with a fixed next-07:00 cutoff. Do not extend or resume an
-unfinished sample. Historical throughput suggests roughly 6–7 hours, but eight
-concurrent workers and long games can exceed that estimate.
+Preparation was committed as `d376524` before any held-out search. The campaign
+started **October 18 at 23:13:40 Helsinki** under the ordinary nighttime policy,
+with an immutable cutoff **October 19 at 07:00 Helsinki**. All eight shards were
+running at 23:14:03; all 28 resource observations to that point were within the
+declared limit. No game had yet completed. This is a launch record, not a result.
+
+The foreground process uses a command-scoped `caffeinate -i` assertion. No
+schedule or system sleep setting was created or changed. Raw evidence is in
+`results/phase4d2-20261018/campaign/` and console output in
+`results/phase4d2-20261018/campaign-console.log`. Do not modify pinned inputs or
+sources while it runs. Do not extend or resume an unfinished sample. Historical
+throughput suggests roughly 6–7 hours, but eight concurrent workers and long
+games can exceed that estimate.
+
+The independent final preparation review replayed the load check from its raw
+16 protocol files and confirmed every legality/clock/overlap assertion. All 16
+canary processes were absent from the OS process list, and final campaign pins,
+protected artifacts and README introduction were independently verified.
 
 One complete audited result decides whether this single-thread blitz evidence
 qualifies LMR for a separate default review. Otherwise keep it off and continue

@@ -269,6 +269,9 @@ readiness have passed. LMR remains off by default. The
 [checkpoint record](reports/2026-10-18-phase4d2-preparation.md) records validation
 and launch status. One complete audited result is required before a default
 decision; incomplete or inconclusive evidence does not block 4D.3 indefinitely.
+The campaign launched October 18 at **23:13:40 Helsinki**, after 90 passing
+workflow checks and local commit `d376524`; cutoff is October 19 **07:00**.
+Results remain pending until all raw evidence is audited.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
