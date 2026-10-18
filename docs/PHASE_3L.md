@@ -2,10 +2,11 @@
 
 Prepared October 18, 2026 after the independently audited
 [Phase 3K operational pass](reports/2026-10-18-phase3k-console-operations.md).
-**Status: preparation in progress.** The owner authorized this phase and asked
-for plain-text console diagnostics on October 18. No match or schedule is active.
-This is a bounded preparation checkpoint; final pins/readiness will be recorded
-only after all relevant checks pass.
+**Status: implementation prepared; this document is the fixed protocol.** The
+owner authorized this phase and plain-text console diagnostics on October 18.
+Current validation/readiness status is recorded in the
+[Phase 3L report](reports/2026-10-18-phase3l-preparation.md), outside this protocol.
+Preparation does not launch a match or create a schedule.
 
 ## Scope and exit
 
@@ -50,7 +51,8 @@ frozen confirmation review; it never changes defaults automatically.
 2. Independently compose 32 legal stems with the existing family allocation:
    12 e4, 12 d4, four c4, four Nf3. Generate eight continuations each, preserving
    complete legal histories, the 19/20-ply balance, and 128 roots per side to move.
-   Use a new deterministic domain and fixed seeds recorded before generation.
+   Use domain `chess0live.phase3l.openings.v1` and generation seed `2026101818`,
+   recorded before generating continuations.
 3. Deduplicate and exclude canonical root collisions, retaining all rejection
    reasons/counts. Do not evaluate/search positions or select by score, material,
    engine preference, tactical outcome, or match result. Reproduce opening bytes
@@ -78,7 +80,39 @@ related stems or common thermal/scheduling effects. Apply these rules in order:
 
 Do not infer an Elo gain, absolute rating, or release acceptance from the screen.
 
-## Implementation and readiness work still required
+## Prepared inputs and implementation
+
+- Engine: `build/experiments/phase3l-20261018/chess0live`, from tested source
+  revision `56ddbde35104a4d295b871cc570a6a268adb2b62`; SHA-256
+  `e7c9222c37bacecc3fa0571dd4b19c0e4fc1215dc37fadd42030f610b59b5c31`.
+- Build manifest: adjacent `manifest.json`; SHA-256
+  `bf7360cfd3306dd701eba742fc2a1495416a28920554a60afb784734755a097e`.
+  It records compiler, flags, platform, engine source hashes, and native tests.
+- Network: `nn-1a298aa575a0.nnue`; SHA-256
+  `1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2`.
+- Generator: `tools/generate_phase3l_openings.py`; SHA-256
+  `82b91b7af9e54ae114900c05aab535352bcc4713657afe63c95aa212eacf7c04`.
+- Exclusions: `tests/data/phase3l-exclusions.json`; 851 canonical roots from 39
+  sources, SHA-256 `f645aafc49d6dee36c8b1b492a0b3fa67665713281a68453f48be4b354ddd9d9`.
+- Generation metadata: `tests/data/phase3l-generation.json`; SHA-256
+  `a5d6adaeb805635b9f836e0dfd5228effedfef14fe9ffcc28c285804bc7bbde4`.
+- Four suites: `tests/data/phase3l-lmr-01.json` through `-04.json`. Exact digests
+  are in generation metadata and independently pinned in launcher and auditor.
+  All 256 roots are distinct, 128 per side to move, with zero terminal,
+  duplicate, prior-overlap, or SHA-word rejection in this generation.
+- Shuffle seeds, shards 1–4: `2026101831`, `2026101832`, `2026101833`, `2026101834`.
+- Dedicated tools: `tools/qualify_phase3l.py`, `tools/audit_phase3l.py`;
+  `make test-phase3l` checks generator, lifecycle, and independent audit behavior.
+  `make test-qualification` includes this target alongside historical profiles.
+
+Generation/reproduction uses the pinned canonical exclusion manifest, so future
+fixture edits cannot change this suite. `--verify-sources` additionally verifies
+and replays original catalog artifacts when available; that explicit provenance
+check passed at preparation. Missing local ignored sources do not prevent public
+reproduction. The missing second October 18 manual PGN and unsaved/dynamic test
+states cannot be exhaustively cataloged; see the manifest's limitations.
+
+## Readiness requirements
 
 - Freeze the actual tested engine commit/build manifest/compiler/flags and full
   executable/network hashes, Python dependency pin, opening/exclusion/generator
@@ -103,6 +137,32 @@ active game invalidates the campaign and stops it. Recompute memory reservation;
 do not compete with GUI matches or compilation. Preserve cancellation ownership
 until processes and outstanding I/O finish, including cleanup after cutoff.
 
-The consumed Phase 3G daytime exception does not transfer. Do not create a
-schedule or start the long campaign as part of Phase 3K. A later launch must fit
-the normal overnight policy or a new explicit owner exception.
+The consumed Phase 3G daytime exception does not transfer. The current launcher
+has no daytime switch. Do not create a schedule or start the long campaign as
+part of this preparation checkpoint. A later launch must fit the normal overnight
+policy; a new owner exception would require an explicit protocol/tool update
+before any game, not reuse of historical permission.
+
+## Reproduction and execution interface
+
+```sh
+make test-phase3l
+python3 tools/generate_phase3l_openings.py --check
+# Optional audit of original catalog artifacts, when still available unchanged:
+python3 tools/generate_phase3l_openings.py --check --verify-sources
+
+# Any-time readiness: choose a new preflight filename, then audit it.
+python3 tools/qualify_phase3l.py check > results/phase3l-preflight-new.json
+python3 tools/audit_phase3l.py --preflight results/phase3l-preflight-new.json --output results/phase3l-readiness-audit-new.json
+
+# Later foreground run, only in its launch window and a fresh directory:
+python3 tools/qualify_phase3l.py run --output results/phase3l-campaign-new
+python3 tools/audit_phase3l.py --campaign results/phase3l-campaign-new --output results/phase3l-campaign-audit-new.json
+```
+
+Do not overwrite existing preflight files with shell redirection. Run and audit
+commands refuse existing output destinations. Readiness loads/configures the two
+roles serially and sends no `position` or `go`; it is not a played match. Run
+captures a fresh source snapshot before any game, monitors drift, and rechecks
+readiness under the already fixed cutoff. Keep the frozen executable/manifest
+and all evidence; a normal rebuild uses a different directory.

@@ -170,7 +170,9 @@ checks the runner; `make verify-moves` independently compares legal moves and
 perft against the same optional referee library. These tools do not add a
 Python dependency to the engine itself.
 The qualification workflows add pinned preflight, a wall-clock cutoff, and an
-independent evidence audit; `make test-qualification test-phase3g` checks them.
+independent evidence audit; `make test-qualification` checks them. Use
+`make test-phase3l` for the newest opening-generation, readiness, supervision,
+and audit checks. These checks use synthetic games; they do not launch a match.
 Recorded campaigns are completed evidence: do not resume or rerun their exposed
 openings as fresh validation. Prepare a new protocol before another campaign;
 the [match guide](docs/MATCHES.md) explains resource and evidence requirements.

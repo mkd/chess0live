@@ -1,0 +1,3296 @@
+{
+  "schema_version": 1,
+  "license": "GPL-3.0-or-later",
+  "copyright": "Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>",
+  "generator": "tools/generate_phase3l_openings.py",
+  "seed": 2026101818,
+  "chess_version": "1.11.2",
+  "provenance": "Original 16-ply stems authored directly for chess0live from ordinary chess patterns before generating tails; no external game database, prior owner engine assets, engine search, evaluation, or outcome selection. Earlier chess0live suites are read only to exclude already exposed final roots.",
+  "limitations": "Stems and their eight continuations are related. SHA-256 selection is deterministic pseudorandom selection, not proof of independent samples. Moves are sampled uniformly from sorted legal moves before the documented terminal/duplicate/overlap rejection. No material or evaluation filter is applied; balance, representativeness, and independent pair outcomes are unproven assumptions. Full histories retain all earlier repetition state.",
+  "policy": {
+    "domain": "chess0live.phase3l.openings.v1",
+    "stem_plies": 16,
+    "stems": 32,
+    "variants_per_stem": 8,
+    "families": {
+      "e4": 12,
+      "d4": 12,
+      "c4": 4,
+      "Nf3": 4
+    },
+    "root_plies": {
+      "variants_0_to_3": 19,
+      "variants_4_to_7": 20
+    },
+    "sharding": "variant % 4 + 1; stem order, then ascending variants within each stem",
+    "selection": "Sorted legal UCI moves; SHA256 ASCII domain|seed|stem|variant|attempt|tail_ply|draw_counter; big-endian 256-bit word; reject >= floor(2**256/count)*count, then word % count",
+    "counters": "variant, attempt, tail_ply, draw_counter are zero-based",
+    "rejections": [
+      "terminal anywhere in tail (outcome with claim_draw=True)",
+      "duplicate accepted canonical four-field root",
+      "prior excluded canonical four-field root"
+    ],
+    "canonical_root": "board.fen(en_passant='legal') first four fields",
+    "maximum_attempts_per_slot": 10000,
+    "no_evaluation_material_or_balance_filter": true
+  },
+  "exclusion_manifest": {
+    "path": "tests/data/phase3l-exclusions.json",
+    "sha256": "f645aafc49d6dee36c8b1b492a0b3fa67665713281a68453f48be4b354ddd9d9"
+  },
+  "excluded_suites": [
+    {
+      "id": 0,
+      "path": "tests/data/openings-development.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "5cedc1469a43cb7e36dac9ab50379dd42626f9251409f5ad14f4b59919b5ea47",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 1,
+      "path": "tests/data/openings-validation.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "47b2f96c4de46c73e81c3c9561ea32c138648e0512f95d5c85f53f3403002e6c",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 2,
+      "path": "tests/data/openings-time-validation.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "163bf4c34547a838c35e03103401c40d448a2f78c535254bf3727913b007b95b",
+      "entries": 32,
+      "unique_roots": 32
+    },
+    {
+      "id": 3,
+      "path": "tests/data/openings-lmr-validation.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "1627ddfaf83191db1e74274c2de5a43d84a0c41658804314acbe2274eb07c2b7",
+      "entries": 64,
+      "unique_roots": 64
+    },
+    {
+      "id": 4,
+      "path": "tests/data/performance-gamephases.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "38e1eb26401232b0129191c18f0a0c63f2caae3dc110eddee1a76ef0d1a3133c",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 5,
+      "path": "tests/data/openings-phase3g-1.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "e40da564ea899dacdbfce4ab2fc92fb0caf42c14d630de1a065d7cf75f822b97",
+      "entries": 64,
+      "unique_roots": 64
+    },
+    {
+      "id": 6,
+      "path": "tests/data/openings-phase3g-2.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "6ea77165730e2aa5d5d9243649af6297fe3683877ca2736c5c119e6deed6c7d2",
+      "entries": 64,
+      "unique_roots": 64
+    },
+    {
+      "id": 7,
+      "path": "tests/data/openings-phase3g-3.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "3de297a67e0423299b715e7ce7c71102317277fc627ce52d0fef13ed6f7ae2c9",
+      "entries": 64,
+      "unique_roots": 64
+    },
+    {
+      "id": 8,
+      "path": "tests/data/openings-phase3g-4.json",
+      "kind": "opening-suite",
+      "availability": "tracked",
+      "sha256": "7a2670d433329dc46e6536202c2a87e964d00dcb5683123a3ca563979da2efe1",
+      "entries": 64,
+      "unique_roots": 64
+    },
+    {
+      "id": 9,
+      "path": "tests/data/clock-flagfalls-phase3g.json",
+      "kind": "clock-cases",
+      "availability": "tracked",
+      "sha256": "378122019661c4d4b8113483a67429ba455280d6aa58a633c2d3c75c1a8428cb",
+      "entries": 13,
+      "unique_roots": 13
+    },
+    {
+      "id": 10,
+      "path": "tools/bench.py",
+      "kind": "benchmark-constant",
+      "availability": "tracked",
+      "sha256": "910b92db76f16aa7e6513707afaa185d6508d9ecfe74720626a037d8de967489",
+      "entries": 3,
+      "unique_roots": 3
+    },
+    {
+      "id": 11,
+      "path": "tests/position_test.cpp",
+      "kind": "valid-fen-literals",
+      "availability": "tracked",
+      "sha256": "48a618c7226b8b47f431fd7f7e9e5fa2cee7716ce321614e4d3dc2129b630d58",
+      "entries": 29,
+      "unique_roots": 25
+    },
+    {
+      "id": 12,
+      "path": "tests/search_test.cpp",
+      "kind": "valid-fen-literals",
+      "availability": "tracked",
+      "sha256": "88cad6fcbc4b9b6a8470f395c96150f4281435063d509e21b293f1cfd2c417c4",
+      "entries": 15,
+      "unique_roots": 11
+    },
+    {
+      "id": 13,
+      "path": "tests/exchange_test.cpp",
+      "kind": "valid-fen-literals",
+      "availability": "tracked",
+      "sha256": "bf6fce893f820d1d1849baf85275a2f97c7b41dcce93b63c0066b4d86efc2340",
+      "entries": 14,
+      "unique_roots": 12
+    },
+    {
+      "id": 14,
+      "path": "tests/nnue_test.cpp",
+      "kind": "valid-fen-literals",
+      "availability": "tracked",
+      "sha256": "e228945b83cee700d08288cd2c7c73ce18b32d7a75929bfc2a509f8d1e59aace",
+      "entries": 11,
+      "unique_roots": 11
+    },
+    {
+      "id": 15,
+      "path": "tests/uci_test.py",
+      "kind": "valid-fen-literals",
+      "availability": "tracked",
+      "sha256": "e236f1404f5bb434468c724895616346280e442aa8171972be6da057ab4edc97",
+      "entries": 10,
+      "unique_roots": 9
+    },
+    {
+      "id": 16,
+      "path": "results/phase3a-20261016/positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2aa2a2bc6ae88e60a92c52b5b04c37d49385b543641e3951737d80bf7cb64320",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 17,
+      "path": "results/phase3b-20261016/positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2aa2a2bc6ae88e60a92c52b5b04c37d49385b543641e3951737d80bf7cb64320",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 18,
+      "path": "results/phase3c-20261016/endgame-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "840eab3b2eaf602a29d996a9b80fd8ca928696c9e44c284e5f66671e684df9c6",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 19,
+      "path": "results/phase3c-20261016/middlegame-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "4d61da03ddd4a2f5e8d5907f1632027c78130b2e70d958d00a24d2bae5506baf",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 20,
+      "path": "results/phase3d-20261017/pawn-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2c65c9e6a4dc83bce0afc6a8a676e3c745736b3b8690b9093c442d59cc8fcea1",
+      "entries": 1,
+      "unique_roots": 1
+    },
+    {
+      "id": 21,
+      "path": "results/phase3e-20261017/main-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2392c1fad02c9e86c0aa685d6aec3fa929823e2a4cc9b6af026e38978abdc358",
+      "entries": 5,
+      "unique_roots": 5
+    },
+    {
+      "id": 22,
+      "path": "results/phase3e-20261017/pawn-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2c65c9e6a4dc83bce0afc6a8a676e3c745736b3b8690b9093c442d59cc8fcea1",
+      "entries": 1,
+      "unique_roots": 1
+    },
+    {
+      "id": 23,
+      "path": "results/phase3f-20261017/endgame-main-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2392c1fad02c9e86c0aa685d6aec3fa929823e2a4cc9b6af026e38978abdc358",
+      "entries": 5,
+      "unique_roots": 5
+    },
+    {
+      "id": 24,
+      "path": "results/phase3f-20261017/endgame-pawn-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2c65c9e6a4dc83bce0afc6a8a676e3c745736b3b8690b9093c442d59cc8fcea1",
+      "entries": 1,
+      "unique_roots": 1
+    },
+    {
+      "id": 25,
+      "path": "results/phase3f-20261017/middlegame-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "4d61da03ddd4a2f5e8d5907f1632027c78130b2e70d958d00a24d2bae5506baf",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 26,
+      "path": "results/phase3f-20261017/opening-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2aa2a2bc6ae88e60a92c52b5b04c37d49385b543641e3951737d80bf7cb64320",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 27,
+      "path": "results/phase3h-20261018/development-positions.txt",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "2aa2a2bc6ae88e60a92c52b5b04c37d49385b543641e3951737d80bf7cb64320",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 28,
+      "path": "results/manual-cutechess-20261014/positions.fen",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "b27d200fa2c658964f2ee7231210e521fd075bf1d5d506575501afbe29769405",
+      "entries": 171,
+      "unique_roots": 165,
+      "audit": {
+        "path": "results/manual-cutechess-20261014/verification.json",
+        "sha256": "c69e23c72d9db6a3cee7ad064c2f318b48193f5147ca8b65f08d548dd7207e40"
+      },
+      "pgn_sha256": {
+        "game1.pgn": "5892cfe828516da9a1c9ce08ff44ac8b671ea63c5c11eeea23f7dbf913397869",
+        "game2.pgn": "d1c91f8fbdba556db8449d1a92a68c085e34861613d4a5dfa7ea15854ceb4400"
+      }
+    },
+    {
+      "id": 29,
+      "path": "results/manual-cutechess-20261018/positions.fen",
+      "kind": "position-lines",
+      "availability": "local",
+      "sha256": "f1447376a9d40ed67c49f1facb989f059f1006087889f4a2f25d3112ad347534",
+      "entries": 122,
+      "unique_roots": 122,
+      "audit": {
+        "path": "results/manual-cutechess-20261018/verification.json",
+        "sha256": "862a09336555ec67b80523c31b3efcfe0d7694e8516055ca2441fa7044c92d16"
+      },
+      "pgn_sha256": "66c816ec7647e0ecf47def4d785237927791d474c6f324041a51dde2c314246c"
+    },
+    {
+      "id": 30,
+      "path": "results/time-policy-20261014/development-profile.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "8a7ecc1dc820a85078872b5d66540d5ac1b3f7ad1f1230d4ddee5690824a4fae",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 31,
+      "path": "results/time-policy-20261014/manual-root-profile.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "0f8fc6928e31be9ca2f40fdca73337cc07f6a180cb4a3baac8047e8124b874a8",
+      "entries": 1,
+      "unique_roots": 1
+    },
+    {
+      "id": 32,
+      "path": "results/time-policy-hard-20261014/development-profile.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "7d7b9bd9d2aa13ebc73a0cb3f34d16a5d02f49b4fa48c40fcbe3c8be6e12ddf9",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 33,
+      "path": "results/time-policy-hard-20261014/manual-root-profile.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "1f0e94c0f2598d939073b3fd36f035f839fc8f3717a0fa33c9acab0d069c5532",
+      "entries": 1,
+      "unique_roots": 1
+    },
+    {
+      "id": 34,
+      "path": "results/phase3f-20261017/profile-opening/report.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "c5b5578f6c249f2f103571d10ae92a21bdb0c60f7e4fdbe3eb007364aec20dd9",
+      "entries": 12,
+      "unique_roots": 12
+    },
+    {
+      "id": 35,
+      "path": "results/phase3f-20261017/profile-middlegame/report.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "354fa7845f38d3df297dde8aabf4ac5896b2003f41be171cda48170af9efe36e",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 36,
+      "path": "results/phase3f-20261017/profile-endgame/report.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "5cb347f8a079b8212a217bcaeb1273d05e61aa205187f51162f1db87621b2f0e",
+      "entries": 6,
+      "unique_roots": 6
+    },
+    {
+      "id": 37,
+      "path": "results/phase3j-20261018/workbook-inputs.json",
+      "kind": "json-positions",
+      "availability": "local",
+      "sha256": "08f84c20a94d4fa836b02360ba8dc32d5eb05de3b2efdf365e49af66d5a674b3",
+      "entries": 39,
+      "unique_roots": 39,
+      "upstream": {
+        "description": "owner-supplied puzzle workbook; not redistributed",
+        "sha256": "25c60235cdcb53570f24fb486fed0a7362a1ec636bdf8358897852700d8727f1",
+        "positions": 39
+      }
+    },
+    {
+      "id": 38,
+      "path": "results/phase3k-20261018/console-verification.json",
+      "kind": "console-verification",
+      "availability": "local",
+      "sha256": "f3f65f6b305b605ccebaebff3c3f0ebd6799283161c9060f247bbaef56ae2077",
+      "entries": 105,
+      "unique_roots": 97
+    }
+  ],
+  "excluded_unique_roots": 851,
+  "stems": [
+    {
+      "id": "e4-01",
+      "label": "Vienna fianchetto",
+      "san": [
+        "e4",
+        "e5",
+        "Nc3",
+        "Nc6",
+        "g3",
+        "g6",
+        "Bg2",
+        "Bg7",
+        "d3",
+        "d6",
+        "Nge2",
+        "Nge7",
+        "O-O",
+        "O-O",
+        "Be3",
+        "Be6"
+      ],
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "b1c3",
+        "b8c6",
+        "g2g3",
+        "g7g6",
+        "f1g2",
+        "f8g7",
+        "d2d3",
+        "d7d6",
+        "g1e2",
+        "g8e7",
+        "e1g1",
+        "e8g8",
+        "c1e3",
+        "c8e6"
+      ],
+      "root_fen": "r2q1rk1/ppp1npbp/2npb1p1/4p3/4P3/2NPB1P1/PPP1NPBP/R2Q1RK1 w - - 6 9"
+    },
+    {
+      "id": "e4-02",
+      "label": "Bishop opening development",
+      "san": [
+        "e4",
+        "e5",
+        "Bc4",
+        "Nf6",
+        "d3",
+        "Nc6",
+        "Nf3",
+        "Bc5",
+        "O-O",
+        "d6",
+        "c3",
+        "O-O",
+        "Re1",
+        "Bb6",
+        "Nbd2",
+        "a6"
+      ],
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "f1c4",
+        "g8f6",
+        "d2d3",
+        "b8c6",
+        "g1f3",
+        "f8c5",
+        "e1g1",
+        "d7d6",
+        "c2c3",
+        "e8g8",
+        "f1e1",
+        "c5b6",
+        "b1d2",
+        "a7a6"
+      ],
+      "root_fen": "r1bq1rk1/1pp2ppp/pbnp1n2/4p3/2B1P3/2PP1N2/PP1N1PPP/R1BQR1K1 w - - 0 9"
+    },
+    {
+      "id": "e4-03",
+      "label": "King's gambit exchange",
+      "san": [
+        "e4",
+        "e5",
+        "f4",
+        "exf4",
+        "Nf3",
+        "d6",
+        "d4",
+        "g5",
+        "h4",
+        "g4",
+        "Ng5",
+        "h6",
+        "Nxf7",
+        "Kxf7",
+        "Bxf4",
+        "Nf6"
+      ],
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "f2f4",
+        "e5f4",
+        "g1f3",
+        "d7d6",
+        "d2d4",
+        "g7g5",
+        "h2h4",
+        "g5g4",
+        "f3g5",
+        "h7h6",
+        "g5f7",
+        "e8f7",
+        "c1f4",
+        "g8f6"
+      ],
+      "root_fen": "rnbq1b1r/ppp2k2/3p1n1p/8/3PPBpP/8/PPP3P1/RN1QKB1R w KQ - 1 9"
+    },
+    {
+      "id": "e4-04",
+      "label": "Scotch gambit development",
+      "san": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6",
+        "d4",
+        "exd4",
+        "Bc4",
+        "Bc5",
+        "c3",
+        "d6",
+        "cxd4",
+        "Bb4+",
+        "Nc3",
+        "Nf6",
+        "O-O",
+        "O-O"
+      ],
+      "moves": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "d2d4",
+        "e5d4",
+        "f1c4",
+        "f8c5",
+        "c2c3",
+        "d7d6",
+        "c3d4",
+        "c5b4",
+        "b1c3",
+        "g8f6",
+        "e1g1",
+        "e8g8"
+      ],
+      "root_fen": "r1bq1rk1/ppp2ppp/2np1n2/8/1bBPP3/2N2N2/PP3PPP/R1BQ1RK1 w - - 5 9"
+    },
+    {
+      "id": "e4-05",
+      "label": "Closed Sicilian fianchetto",
+      "san": [
+        "e4",
+        "c5",
+        "Nc3",
+        "Nc6",
+        "g3",
+        "g6",
+        "Bg2",
+        "Bg7",
+        "d3",
+        "d6",
+        "Be3",
+        "e6",
+        "Qd2",
+        "Nge7",
+        "Nge2",
+        "O-O"
+      ],
+      "moves": [
+        "e2e4",
+        "c7c5",
+        "b1c3",
+        "b8c6",
+        "g2g3",
+        "g7g6",
+        "f1g2",
+        "f8g7",
+        "d2d3",
+        "d7d6",
+        "c1e3",
+        "e7e6",
+        "d1d2",
+        "g8e7",
+        "g1e2",
+        "e8g8"
+      ],
+      "root_fen": "r1bq1rk1/pp2npbp/2npp1p1/2p5/4P3/2NPB1P1/PPPQNPBP/R3K2R w KQ - 4 9"
+    },
+    {
+      "id": "e4-06",
+      "label": "Sicilian e6 development",
+      "san": [
+        "e4",
+        "c5",
+        "Nf3",
+        "e6",
+        "d4",
+        "cxd4",
+        "Nxd4",
+        "a6",
+        "Nc3",
+        "Qc7",
+        "Bd3",
+        "Nc6",
+        "Be3",
+        "Nf6",
+        "O-O",
+        "Be7"
+      ],
+      "moves": [
+        "e2e4",
+        "c7c5",
+        "g1f3",
+        "e7e6",
+        "d2d4",
+        "c5d4",
+        "f3d4",
+        "a7a6",
+        "b1c3",
+        "d8c7",
+        "f1d3",
+        "b8c6",
+        "c1e3",
+        "g8f6",
+        "e1g1",
+        "f8e7"
+      ],
+      "root_fen": "r1b1k2r/1pqpbppp/p1n1pn2/8/3NP3/2NBB3/PPP2PPP/R2Q1RK1 w kq - 8 9"
+    },
+    {
+      "id": "e4-07",
+      "label": "Sicilian c3 center",
+      "san": [
+        "e4",
+        "c5",
+        "c3",
+        "d5",
+        "exd5",
+        "Qxd5",
+        "d4",
+        "Nf6",
+        "Nf3",
+        "e6",
+        "Be2",
+        "Be7",
+        "O-O",
+        "O-O",
+        "Be3",
+        "Nc6"
+      ],
+      "moves": [
+        "e2e4",
+        "c7c5",
+        "c2c3",
+        "d7d5",
+        "e4d5",
+        "d8d5",
+        "d2d4",
+        "g8f6",
+        "g1f3",
+        "e7e6",
+        "f1e2",
+        "f8e7",
+        "e1g1",
+        "e8g8",
+        "c1e3",
+        "b8c6"
+      ],
+      "root_fen": "r1b2rk1/pp2bppp/2n1pn2/2pq4/3P4/2P1BN2/PP2BPPP/RN1Q1RK1 w - - 6 9"
+    },
+    {
+      "id": "e4-08",
+      "label": "French open center",
+      "san": [
+        "e4",
+        "e6",
+        "d4",
+        "d5",
+        "Nd2",
+        "c5",
+        "Ngf3",
+        "Nc6",
+        "exd5",
+        "exd5",
+        "Bb5",
+        "Bd6",
+        "O-O",
+        "Nge7",
+        "dxc5",
+        "Bxc5"
+      ],
+      "moves": [
+        "e2e4",
+        "e7e6",
+        "d2d4",
+        "d7d5",
+        "b1d2",
+        "c7c5",
+        "g1f3",
+        "b8c6",
+        "e4d5",
+        "e6d5",
+        "f1b5",
+        "f8d6",
+        "e1g1",
+        "g8e7",
+        "d4c5",
+        "d6c5"
+      ],
+      "root_fen": "r1bqk2r/pp2nppp/2n5/1Bbp4/8/5N2/PPPN1PPP/R1BQ1RK1 w kq - 0 9"
+    },
+    {
+      "id": "e4-09",
+      "label": "Caro-Kann advance",
+      "san": [
+        "e4",
+        "c6",
+        "d4",
+        "d5",
+        "e5",
+        "Bf5",
+        "Nf3",
+        "e6",
+        "Be2",
+        "Nd7",
+        "O-O",
+        "Ne7",
+        "Nbd2",
+        "h6",
+        "Nb3",
+        "Bh7"
+      ],
+      "moves": [
+        "e2e4",
+        "c7c6",
+        "d2d4",
+        "d7d5",
+        "e4e5",
+        "c8f5",
+        "g1f3",
+        "e7e6",
+        "f1e2",
+        "b8d7",
+        "e1g1",
+        "g8e7",
+        "b1d2",
+        "h7h6",
+        "d2b3",
+        "f5h7"
+      ],
+      "root_fen": "r2qkb1r/pp1nnppb/2p1p2p/3pP3/3P4/1N3N2/PPP1BPPP/R1BQ1RK1 w kq - 2 9"
+    },
+    {
+      "id": "e4-10",
+      "label": "Pirc f4 center",
+      "san": [
+        "e4",
+        "d6",
+        "d4",
+        "g6",
+        "Nc3",
+        "Bg7",
+        "f4",
+        "Nf6",
+        "Nf3",
+        "O-O",
+        "Bd3",
+        "Na6",
+        "O-O",
+        "c5",
+        "d5",
+        "Nc7"
+      ],
+      "moves": [
+        "e2e4",
+        "d7d6",
+        "d2d4",
+        "g7g6",
+        "b1c3",
+        "f8g7",
+        "f2f4",
+        "g8f6",
+        "g1f3",
+        "e8g8",
+        "f1d3",
+        "b8a6",
+        "e1g1",
+        "c7c5",
+        "d4d5",
+        "a6c7"
+      ],
+      "root_fen": "r1bq1rk1/ppn1ppbp/3p1np1/2pP4/4PP2/2NB1N2/PPP3PP/R1BQ1RK1 w - - 1 9"
+    },
+    {
+      "id": "e4-11",
+      "label": "Alekhine development",
+      "san": [
+        "e4",
+        "Nf6",
+        "e5",
+        "Nd5",
+        "d4",
+        "d6",
+        "Nf3",
+        "Bg4",
+        "Be2",
+        "e6",
+        "O-O",
+        "Be7",
+        "c4",
+        "Nb6",
+        "Nc3",
+        "O-O"
+      ],
+      "moves": [
+        "e2e4",
+        "g8f6",
+        "e4e5",
+        "f6d5",
+        "d2d4",
+        "d7d6",
+        "g1f3",
+        "c8g4",
+        "f1e2",
+        "e7e6",
+        "e1g1",
+        "f8e7",
+        "c2c4",
+        "d5b6",
+        "b1c3",
+        "e8g8"
+      ],
+      "root_fen": "rn1q1rk1/ppp1bppp/1n1pp3/4P3/2PP2b1/2N2N2/PP2BPPP/R1BQ1RK1 w - - 3 9"
+    },
+    {
+      "id": "e4-12",
+      "label": "Scandinavian fianchetto",
+      "san": [
+        "e4",
+        "d5",
+        "exd5",
+        "Nf6",
+        "d4",
+        "Nxd5",
+        "Nf3",
+        "g6",
+        "Be2",
+        "Bg7",
+        "O-O",
+        "O-O",
+        "c4",
+        "Nb6",
+        "Nc3",
+        "Nc6"
+      ],
+      "moves": [
+        "e2e4",
+        "d7d5",
+        "e4d5",
+        "g8f6",
+        "d2d4",
+        "f6d5",
+        "g1f3",
+        "g7g6",
+        "f1e2",
+        "f8g7",
+        "e1g1",
+        "e8g8",
+        "c2c4",
+        "d5b6",
+        "b1c3",
+        "b8c6"
+      ],
+      "root_fen": "r1bq1rk1/ppp1ppbp/1nn3p1/8/2PP4/2N2N2/PP2BPPP/R1BQ1RK1 w - - 3 9"
+    },
+    {
+      "id": "d4-01",
+      "label": "Queen-pawn bishop development",
+      "san": [
+        "d4",
+        "d5",
+        "Nf3",
+        "Nf6",
+        "Bf4",
+        "e6",
+        "e3",
+        "Bd6",
+        "Bxd6",
+        "Qxd6",
+        "c3",
+        "O-O",
+        "Bd3",
+        "c5",
+        "O-O",
+        "Nc6"
+      ],
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "g1f3",
+        "g8f6",
+        "c1f4",
+        "e7e6",
+        "e2e3",
+        "f8d6",
+        "f4d6",
+        "d8d6",
+        "c2c3",
+        "e8g8",
+        "f1d3",
+        "c7c5",
+        "e1g1",
+        "b8c6"
+      ],
+      "root_fen": "r1b2rk1/pp3ppp/2nqpn2/2pp4/3P4/2PBPN2/PP3PPP/RN1Q1RK1 w - - 2 9"
+    },
+    {
+      "id": "d4-02",
+      "label": "Queen-pawn c3 center",
+      "san": [
+        "d4",
+        "d5",
+        "Nf3",
+        "Nf6",
+        "e3",
+        "e6",
+        "Bd3",
+        "c5",
+        "c3",
+        "Nc6",
+        "O-O",
+        "Bd6",
+        "Nbd2",
+        "O-O",
+        "Re1",
+        "b6"
+      ],
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "g1f3",
+        "g8f6",
+        "e2e3",
+        "e7e6",
+        "f1d3",
+        "c7c5",
+        "c2c3",
+        "b8c6",
+        "e1g1",
+        "f8d6",
+        "b1d2",
+        "e8g8",
+        "f1e1",
+        "b7b6"
+      ],
+      "root_fen": "r1bq1rk1/p4ppp/1pnbpn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQR1K1 w - - 0 9"
+    },
+    {
+      "id": "d4-03",
+      "label": "Queen's gambit h3 development",
+      "san": [
+        "d4",
+        "d5",
+        "c4",
+        "e6",
+        "Nf3",
+        "Nf6",
+        "Nc3",
+        "Be7",
+        "e3",
+        "O-O",
+        "Bd3",
+        "dxc4",
+        "Bxc4",
+        "c5",
+        "O-O",
+        "Nc6"
+      ],
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "e7e6",
+        "g1f3",
+        "g8f6",
+        "b1c3",
+        "f8e7",
+        "e2e3",
+        "e8g8",
+        "f1d3",
+        "d5c4",
+        "d3c4",
+        "c7c5",
+        "e1g1",
+        "b8c6"
+      ],
+      "root_fen": "r1bq1rk1/pp2bppp/2n1pn2/2p5/2BP4/2N1PN2/PP3PPP/R1BQ1RK1 w - - 2 9"
+    },
+    {
+      "id": "d4-04",
+      "label": "Slav kingside fianchetto",
+      "san": [
+        "d4",
+        "d5",
+        "c4",
+        "c6",
+        "Nf3",
+        "Nf6",
+        "g3",
+        "Bf5",
+        "Bg2",
+        "e6",
+        "O-O",
+        "Be7",
+        "Nc3",
+        "O-O",
+        "Qb3",
+        "Qb6"
+      ],
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "c7c6",
+        "g1f3",
+        "g8f6",
+        "g2g3",
+        "c8f5",
+        "f1g2",
+        "e7e6",
+        "e1g1",
+        "f8e7",
+        "b1c3",
+        "e8g8",
+        "d1b3",
+        "d8b6"
+      ],
+      "root_fen": "rn3rk1/pp2bppp/1qp1pn2/3p1b2/2PP4/1QN2NP1/PP2PPBP/R1B2RK1 w - - 6 9"
+    },
+    {
+      "id": "d4-05",
+      "label": "Nimzo-Indian queen development",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "e6",
+        "Nc3",
+        "Bb4",
+        "Qc2",
+        "O-O",
+        "a3",
+        "Bxc3+",
+        "Qxc3",
+        "b6",
+        "Nf3",
+        "Bb7",
+        "e3",
+        "d6"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "e7e6",
+        "b1c3",
+        "f8b4",
+        "d1c2",
+        "e8g8",
+        "a2a3",
+        "b4c3",
+        "c2c3",
+        "b7b6",
+        "g1f3",
+        "c8b7",
+        "e2e3",
+        "d7d6"
+      ],
+      "root_fen": "rn1q1rk1/pbp2ppp/1p1ppn2/8/2PP4/P1Q1PN2/1P3PPP/R1B1KB1R w KQ - 0 9"
+    },
+    {
+      "id": "d4-06",
+      "label": "Queen's Indian e3 center",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "e6",
+        "Nf3",
+        "b6",
+        "e3",
+        "Bb7",
+        "Bd3",
+        "d5",
+        "O-O",
+        "Bd6",
+        "Nc3",
+        "O-O",
+        "Qe2",
+        "Nbd7"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "e7e6",
+        "g1f3",
+        "b7b6",
+        "e2e3",
+        "c8b7",
+        "f1d3",
+        "d7d5",
+        "e1g1",
+        "f8d6",
+        "b1c3",
+        "e8g8",
+        "d1e2",
+        "b8d7"
+      ],
+      "root_fen": "r2q1rk1/pbpn1ppp/1p1bpn2/3p4/2PP4/2NBPN2/PP2QPPP/R1B2RK1 w - - 6 9"
+    },
+    {
+      "id": "d4-07",
+      "label": "King's Indian fianchetto",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "g6",
+        "Nf3",
+        "Bg7",
+        "g3",
+        "O-O",
+        "Bg2",
+        "d6",
+        "O-O",
+        "Nbd7",
+        "Nc3",
+        "e5",
+        "e4",
+        "c6"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "g7g6",
+        "g1f3",
+        "f8g7",
+        "g2g3",
+        "e8g8",
+        "f1g2",
+        "d7d6",
+        "e1g1",
+        "b8d7",
+        "b1c3",
+        "e7e5",
+        "e2e4",
+        "c7c6"
+      ],
+      "root_fen": "r1bq1rk1/pp1n1pbp/2pp1np1/4p3/2PPP3/2N2NP1/PP3PBP/R1BQ1RK1 w - - 0 9"
+    },
+    {
+      "id": "d4-08",
+      "label": "Grunfeld fianchetto",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "g6",
+        "g3",
+        "d5",
+        "Bg2",
+        "Bg7",
+        "Nf3",
+        "O-O",
+        "O-O",
+        "c6",
+        "Qb3",
+        "Qb6",
+        "Nc3",
+        "dxc4"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "g7g6",
+        "g2g3",
+        "d7d5",
+        "f1g2",
+        "f8g7",
+        "g1f3",
+        "e8g8",
+        "e1g1",
+        "c7c6",
+        "d1b3",
+        "d8b6",
+        "b1c3",
+        "d5c4"
+      ],
+      "root_fen": "rnb2rk1/pp2ppbp/1qp2np1/8/2pP4/1QN2NP1/PP2PPBP/R1B2RK1 w - - 0 9"
+    },
+    {
+      "id": "d4-09",
+      "label": "Benko pawn advance",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "c5",
+        "d5",
+        "b5",
+        "cxb5",
+        "a6",
+        "bxa6",
+        "Bxa6",
+        "Nc3",
+        "d6",
+        "Nf3",
+        "g6",
+        "e4",
+        "Bxf1"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "c7c5",
+        "d4d5",
+        "b7b5",
+        "c4b5",
+        "a7a6",
+        "b5a6",
+        "c8a6",
+        "b1c3",
+        "d7d6",
+        "g1f3",
+        "g7g6",
+        "e2e4",
+        "a6f1"
+      ],
+      "root_fen": "rn1qkb1r/4pp1p/3p1np1/2pP4/4P3/2N2N2/PP3PPP/R1BQKb1R w KQkq - 0 9"
+    },
+    {
+      "id": "d4-10",
+      "label": "Dutch stonewall",
+      "san": [
+        "d4",
+        "f5",
+        "g3",
+        "Nf6",
+        "Bg2",
+        "e6",
+        "Nf3",
+        "d5",
+        "O-O",
+        "Bd6",
+        "c4",
+        "c6",
+        "Nc3",
+        "O-O",
+        "Qc2",
+        "Qe8"
+      ],
+      "moves": [
+        "d2d4",
+        "f7f5",
+        "g2g3",
+        "g8f6",
+        "f1g2",
+        "e7e6",
+        "g1f3",
+        "d7d5",
+        "e1g1",
+        "f8d6",
+        "c2c4",
+        "c7c6",
+        "b1c3",
+        "e8g8",
+        "d1c2",
+        "d8e8"
+      ],
+      "root_fen": "rnb1qrk1/pp4pp/2pbpn2/3p1p2/2PP4/2N2NP1/PPQ1PPBP/R1B2RK1 w - - 4 9"
+    },
+    {
+      "id": "d4-11",
+      "label": "Chigorin central pressure",
+      "san": [
+        "d4",
+        "d5",
+        "c4",
+        "Nc6",
+        "Nf3",
+        "Bg4",
+        "Nc3",
+        "e6",
+        "e3",
+        "Nf6",
+        "Be2",
+        "Be7",
+        "O-O",
+        "O-O",
+        "h3",
+        "Bh5"
+      ],
+      "moves": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "b8c6",
+        "g1f3",
+        "c8g4",
+        "b1c3",
+        "e7e6",
+        "e2e3",
+        "g8f6",
+        "f1e2",
+        "f8e7",
+        "e1g1",
+        "e8g8",
+        "h2h3",
+        "g4h5"
+      ],
+      "root_fen": "r2q1rk1/ppp1bppp/2n1pn2/3p3b/2PP4/2N1PN1P/PP2BPP1/R1BQ1RK1 w - - 1 9"
+    },
+    {
+      "id": "d4-12",
+      "label": "Old Indian development",
+      "san": [
+        "d4",
+        "Nf6",
+        "c4",
+        "d6",
+        "Nc3",
+        "e5",
+        "Nf3",
+        "Nbd7",
+        "e4",
+        "Be7",
+        "Be2",
+        "O-O",
+        "O-O",
+        "c6",
+        "Be3",
+        "Qc7"
+      ],
+      "moves": [
+        "d2d4",
+        "g8f6",
+        "c2c4",
+        "d7d6",
+        "b1c3",
+        "e7e5",
+        "g1f3",
+        "b8d7",
+        "e2e4",
+        "f8e7",
+        "f1e2",
+        "e8g8",
+        "e1g1",
+        "c7c6",
+        "c1e3",
+        "d8c7"
+      ],
+      "root_fen": "r1b2rk1/ppqnbppp/2pp1n2/4p3/2PPP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 2 9"
+    },
+    {
+      "id": "c4-01",
+      "label": "English kingside structure",
+      "san": [
+        "c4",
+        "e5",
+        "g3",
+        "Nf6",
+        "Bg2",
+        "Bc5",
+        "Nc3",
+        "O-O",
+        "Nf3",
+        "d6",
+        "O-O",
+        "Nc6",
+        "d3",
+        "a6",
+        "Rb1",
+        "Ba7"
+      ],
+      "moves": [
+        "c2c4",
+        "e7e5",
+        "g2g3",
+        "g8f6",
+        "f1g2",
+        "f8c5",
+        "b1c3",
+        "e8g8",
+        "g1f3",
+        "d7d6",
+        "e1g1",
+        "b8c6",
+        "d2d3",
+        "a7a6",
+        "a1b1",
+        "c5a7"
+      ],
+      "root_fen": "r1bq1rk1/bpp2ppp/p1np1n2/4p3/2P5/2NP1NP1/PP2PPBP/1RBQ1RK1 w - - 2 9"
+    },
+    {
+      "id": "c4-02",
+      "label": "English symmetrical bishops",
+      "san": [
+        "c4",
+        "c5",
+        "Nf3",
+        "Nf6",
+        "Nc3",
+        "Nc6",
+        "e3",
+        "e6",
+        "d4",
+        "d5",
+        "cxd5",
+        "exd5",
+        "Bb5",
+        "Bd6",
+        "O-O",
+        "O-O"
+      ],
+      "moves": [
+        "c2c4",
+        "c7c5",
+        "g1f3",
+        "g8f6",
+        "b1c3",
+        "b8c6",
+        "e2e3",
+        "e7e6",
+        "d2d4",
+        "d7d5",
+        "c4d5",
+        "e6d5",
+        "f1b5",
+        "f8d6",
+        "e1g1",
+        "e8g8"
+      ],
+      "root_fen": "r1bq1rk1/pp3ppp/2nb1n2/1Bpp4/3P4/2N1PN2/PP3PPP/R1BQ1RK1 w - - 4 9"
+    },
+    {
+      "id": "c4-03",
+      "label": "English queenside fianchetto",
+      "san": [
+        "c4",
+        "e6",
+        "g3",
+        "d5",
+        "Bg2",
+        "Nf6",
+        "Nf3",
+        "Be7",
+        "O-O",
+        "O-O",
+        "b3",
+        "b6",
+        "Bb2",
+        "Bb7",
+        "d3",
+        "c5"
+      ],
+      "moves": [
+        "c2c4",
+        "e7e6",
+        "g2g3",
+        "d7d5",
+        "f1g2",
+        "g8f6",
+        "g1f3",
+        "f8e7",
+        "e1g1",
+        "e8g8",
+        "b2b3",
+        "b7b6",
+        "c1b2",
+        "c8b7",
+        "d2d3",
+        "c7c5"
+      ],
+      "root_fen": "rn1q1rk1/pb2bppp/1p2pn2/2pp4/2P5/1P1P1NP1/PB2PPBP/RN1Q1RK1 w - - 0 9"
+    },
+    {
+      "id": "c4-04",
+      "label": "English reversed center",
+      "san": [
+        "c4",
+        "e5",
+        "Nc3",
+        "Bb4",
+        "Nd5",
+        "Bc5",
+        "e3",
+        "Nf6",
+        "d4",
+        "exd4",
+        "exd4",
+        "Nxd5",
+        "dxc5",
+        "Nf6",
+        "Nf3",
+        "O-O"
+      ],
+      "moves": [
+        "c2c4",
+        "e7e5",
+        "b1c3",
+        "f8b4",
+        "c3d5",
+        "b4c5",
+        "e2e3",
+        "g8f6",
+        "d2d4",
+        "e5d4",
+        "e3d4",
+        "f6d5",
+        "d4c5",
+        "d5f6",
+        "g1f3",
+        "e8g8"
+      ],
+      "root_fen": "rnbq1rk1/pppp1ppp/5n2/2P5/2P5/5N2/PP3PPP/R1BQKB1R w KQ - 3 9"
+    },
+    {
+      "id": "nf3-01",
+      "label": "Reti early queenside fianchetto",
+      "san": [
+        "Nf3",
+        "d5",
+        "b3",
+        "Nf6",
+        "Bb2",
+        "e6",
+        "e3",
+        "Be7",
+        "c4",
+        "O-O",
+        "Nc3",
+        "c5",
+        "cxd5",
+        "exd5",
+        "d4",
+        "Nc6"
+      ],
+      "moves": [
+        "g1f3",
+        "d7d5",
+        "b2b3",
+        "g8f6",
+        "c1b2",
+        "e7e6",
+        "e2e3",
+        "f8e7",
+        "c2c4",
+        "e8g8",
+        "b1c3",
+        "c7c5",
+        "c4d5",
+        "e6d5",
+        "d2d4",
+        "b8c6"
+      ],
+      "root_fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/1PN1PN2/PB3PPP/R2QKB1R w KQ - 1 9"
+    },
+    {
+      "id": "nf3-02",
+      "label": "Reti d3 development",
+      "san": [
+        "Nf3",
+        "Nf6",
+        "g3",
+        "d5",
+        "Bg2",
+        "c6",
+        "O-O",
+        "Bf5",
+        "d3",
+        "e6",
+        "Nbd2",
+        "Be7",
+        "Qe1",
+        "O-O",
+        "e4",
+        "Bg6"
+      ],
+      "moves": [
+        "g1f3",
+        "g8f6",
+        "g2g3",
+        "d7d5",
+        "f1g2",
+        "c7c6",
+        "e1g1",
+        "c8f5",
+        "d2d3",
+        "e7e6",
+        "b1d2",
+        "f8e7",
+        "d1e1",
+        "e8g8",
+        "e2e4",
+        "f5g6"
+      ],
+      "root_fen": "rn1q1rk1/pp2bppp/2p1pnb1/3p4/4P3/3P1NP1/PPPN1PBP/R1B1QRK1 w - - 1 9"
+    },
+    {
+      "id": "nf3-03",
+      "label": "Reti queen-pawn exchange",
+      "san": [
+        "Nf3",
+        "d5",
+        "c4",
+        "c6",
+        "g3",
+        "Nf6",
+        "Bg2",
+        "Bg4",
+        "O-O",
+        "e6",
+        "d4",
+        "Nbd7",
+        "Nc3",
+        "Be7",
+        "cxd5",
+        "exd5"
+      ],
+      "moves": [
+        "g1f3",
+        "d7d5",
+        "c2c4",
+        "c7c6",
+        "g2g3",
+        "g8f6",
+        "f1g2",
+        "c8g4",
+        "e1g1",
+        "e7e6",
+        "d2d4",
+        "b8d7",
+        "b1c3",
+        "f8e7",
+        "c4d5",
+        "e6d5"
+      ],
+      "root_fen": "r2qk2r/pp1nbppp/2p2n2/3p4/3P2b1/2N2NP1/PP2PPBP/R1BQ1RK1 w kq - 0 9"
+    },
+    {
+      "id": "nf3-04",
+      "label": "Reti symmetrical fianchetto",
+      "san": [
+        "Nf3",
+        "c5",
+        "g3",
+        "Nc6",
+        "Bg2",
+        "g6",
+        "O-O",
+        "Bg7",
+        "c4",
+        "Nf6",
+        "Nc3",
+        "O-O",
+        "d4",
+        "cxd4",
+        "Nxd4",
+        "d6"
+      ],
+      "moves": [
+        "g1f3",
+        "c7c5",
+        "g2g3",
+        "b8c6",
+        "f1g2",
+        "g7g6",
+        "e1g1",
+        "f8g7",
+        "c2c4",
+        "g8f6",
+        "b1c3",
+        "e8g8",
+        "d2d4",
+        "c5d4",
+        "f3d4",
+        "d7d6"
+      ],
+      "root_fen": "r1bq1rk1/pp2ppbp/2np1np1/8/2PN4/2N3P1/PP2PPBP/R1BQ1RK1 w - - 0 9"
+    }
+  ],
+  "root_count": 256,
+  "white_to_move": 128,
+  "black_to_move": 128,
+  "rejection_totals": {
+    "terminal": 0,
+    "duplicate": 0,
+    "prior_overlap": 0,
+    "sha256_words": 0
+  },
+  "slots": [
+    {
+      "id": "phase3l-e4-01-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-01-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-02-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-03-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-04-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-05-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-06-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-07-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-08-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-09-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-10-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-11-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-e4-12-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-01-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-02-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-03-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-04-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-05-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-06-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-07-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-08-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-09-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-10-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-11-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-d4-12-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-01-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-02-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-03-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-c4-04-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-01-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-02-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-03-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v0",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v1",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v2",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v3",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v4",
+      "shard": 1,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v5",
+      "shard": 2,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v6",
+      "shard": 3,
+      "accepted_attempt": 0,
+      "rejections": []
+    },
+    {
+      "id": "phase3l-nf3-04-v7",
+      "shard": 4,
+      "accepted_attempt": 0,
+      "rejections": []
+    }
+  ],
+  "shards": [
+    {
+      "path": "tests/data/phase3l-lmr-01.json",
+      "sha256": "748991c218c69a4276b5d8ee8f723095e23c6d87cef3dc29d65d1633b2b6710f",
+      "roots": 64
+    },
+    {
+      "path": "tests/data/phase3l-lmr-02.json",
+      "sha256": "193abdef0f1396e2137c25805ee0c1747ceca03aaf5db53f12a479e59f023cf5",
+      "roots": 64
+    },
+    {
+      "path": "tests/data/phase3l-lmr-03.json",
+      "sha256": "8f43540e59df910d15db29f577342b6048ae60ece30b7d9ea5ab4916a637a201",
+      "roots": 64
+    },
+    {
+      "path": "tests/data/phase3l-lmr-04.json",
+      "sha256": "867e88a71bcb6744183324334fdf1cdf59598b5ee08e044b0c126f6f56fcdfbb",
+      "roots": 64
+    }
+  ]
+}

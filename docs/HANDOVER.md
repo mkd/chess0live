@@ -414,14 +414,15 @@ was 19.225 ms. Raw evidence remains in `results/phase3k-20261018/`. The previous
 Phase 3J capped game and Phase 3G operational-regression decision are unchanged.
 This finite two-worker result permits preparation, not a reliability/strength claim.
 
-**Phase 3L is in progress:** the [preparation plan](PHASE_3L.md) preserves the fixed
-512-game LMR comparison/thresholds and calls for expanded exposed-root exclusions,
-fresh unsearched openings, current pins, dedicated launcher/auditor identities,
-and serial readiness. Those preparation deliverables are being implemented. Do not reuse
-historical authorization or silently launch a long daytime campaign. No long
-match or schedule is active. No engine search/clock policy changed. Both GUI
-bundles and README introduction remain intact; the owner can test the normal
-build now, and no additional GUI tournament is required. The owner handles pushes.
+**Phase 3L preparation is complete:** the [fixed protocol](PHASE_3L.md) and
+[report](reports/2026-10-18-phase3l-preparation.md) record 256 fresh roots against
+851 cataloged exclusions, current frozen inputs, dedicated launcher/auditor
+identities, 94 passing workflow checks, and independently audited serial readiness.
+The readiness transcripts contain no `position` or `go` commands. The 512-game
+comparison has not started; do not reuse historical daytime authorization or
+create a schedule. No engine search/clock policy changed. Both GUI bundles and
+README introduction remain intact; the owner can test the normal build now,
+and no additional GUI tournament is required. The owner handles pushes.
 
 The owner's Phase 3L feedback changes explicit console diagnostics to plain text,
 including final `fen ...`, `eval psqt ...`, and `perft complete ...` records.
@@ -429,7 +430,7 @@ Standard search/error output retains UCI formatting. Native correctness checks
 and signed mate-reporting cases for both colors pass; search logic is unchanged.
 Do not adapt historical frozen Phase 3K evidence in place. The owner also asked
 for broader progress: finish this bounded preparation, then follow the roadmap's
-cache-efficiency, Lazy SMP, and Syzygy work areas instead of indefinitely adding
+cache-efficiency (Phase 4A), Lazy SMP, and Syzygy work areas instead of indefinitely adding
 qualification subphases. Transposition caching already exists; SMP and Syzygy do not.
 
 Further experimental strength qualification, trainer integration, multi-platform

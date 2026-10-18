@@ -47,6 +47,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Prepared a reproducible 512-game comparison with fresh openings, explicit
+  prior-position exclusions, frozen engine inputs, resource controls, and an
+  independent audit. Readiness passed without searching the test positions;
+  no new match result or search-default change is claimed.
 - Validated console diagnostics against an independent chess referee and passed
   a fresh four-game match-runner completion check with no clock, protocol, or
   storage failures. This is operational evidence, not a strength result.

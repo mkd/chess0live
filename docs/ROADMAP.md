@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3L preparation in progress; console feedback implemented
+## Current checkpoint: Phase 3L preparation complete; Phase 4A is next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -32,7 +32,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3I | Investigate short-clock resilience under scheduling and transport delays | Complete: same-batch match logging bias reproduced and fixed; 212 checks and 12 diagnostic controls passed; engine and historical results unchanged |
 | 3J | Isolate match persistence from active protocol clocks; accept annotated manual puzzles | Implemented and checked: 230 workflow checks, native/scalar/sanitizer suites, all 39 puzzle inputs; four-game canary has one capped game, so full operational acceptance remains open |
 | 3K | Add console diagnostics and complete operational validation before fresh LMR qualification | Complete: console commands validated; all four fresh operational games completed and passed independent audit with no clock/protocol/storage failures |
-| 3L | Prepare a fresh held-out 512-game LMR qualification campaign; simplify console output | In progress: plain-text diagnostics and mate-reporting checks pass; fresh input catalog and dedicated launcher/auditor preparation underway |
+| 3L | Prepare a fresh held-out 512-game LMR qualification campaign; simplify console output | Complete: plain console output, signed mate checks, 256 fresh roots, 94 workflow checks, and independently audited serial readiness; 512-game campaign not started |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -199,12 +199,15 @@ pins, resource admissions, and process closure. No clock, protocol, persistence,
 stderr, or cap failure occurred. This is a bounded operational pass, not strength
 or general reliability qualification; the Phase 3J capped game stays unchanged.
 
-**Phase 3L is next:** [prepare fresh LMR qualification](PHASE_3L.md), retaining the
-fixed 512-game comparison and decision thresholds while freezing genuinely new
-inputs, current pins, updated launcher/auditor identities, and readiness checks.
-This preparation is not yet implemented; no long campaign or schedule is active.
-Manual console tests can proceed independently. Both GUI bundles and all search
-defaults remain unchanged.
+**Phase 3L preparation is complete:** the [report](reports/2026-10-18-phase3l-preparation.md)
+records plain console output and signed mate checks, 256 fresh opening roots
+against 851 excluded roots, frozen inputs, 94 passing workflow checks, and
+independently audited serial readiness. The [fixed protocol](PHASE_3L.md) retains
+512 games and the earlier decision thresholds. Zero held-out searches were sent;
+no long campaign or schedule is active. Both GUI bundles and all search defaults
+remain unchanged. **Next: Phase 4A, search-cache efficiency**, followed by Lazy
+SMP and optional Syzygy support. The frozen match can run separately under its
+overnight policy without blocking those development areas.
 
 LMR confirmation and forecast/SEE qualification remain deferred, not passed.
 Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel

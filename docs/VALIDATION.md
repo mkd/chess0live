@@ -822,4 +822,32 @@ board/state/cancellation behavior, ordinary centipawn search output, mate +1 and
 mate -1 for both colors with exact legal PVs, and mate 0 at a checkmated root.
 No search logic changed; the existing engine already supported mate scores.
 The static `eval` command does not search for mate. Saved Phase 3K evidence and
-its frozen binary remain unchanged. Campaign preparation is still in progress.
+its frozen binary remain unchanged.
+
+Independent bounded checks compared 12 old/new depth-4 searches over three
+already exposed roots with LMR off/on: every completed iteration's depth,
+selective depth, nodes, score, PV, and best move matched. Four signed mate cases
+were independently replayed to checkmate. Plain startpos `go perft 5` returned
+4,865,609 nodes and all 20 root rows. Raw evidence is in
+`results/phase3l-20261018/console-compatibility.json`; the full native test log
+is adjacent. Scalar/sanitizer suites were not repeated for this formatting-only
+change; their latest execution evidence remains in the Phase 3K report.
+
+The fresh qualification preparation passed 23 generator/exclusion tests,
+29 launcher tests, and 42 independent-auditor tests. These 94 checks use
+synthetic evidence and fake engines, not qualification games. Reproduction and
+explicit original-source verification passed for 256 distinct unsearched roots,
+128 per side to move, with zero overlap against 851 cataloged roots from 39
+sources. No generator rejection occurred. The catalog covers saved roots, not
+every internal search node, and retains explicit missing-source limitations.
+
+Serial readiness passed at 21:16 Helsinki, with both exact configurations,
+frozen inputs, and aggregate resource reservation independently audited.
+`readiness-audit.json` reports `checked: true`, no errors, and zero held-out
+searches. The estimated future four-worker/eight-engine reservation is
+4,762,970,592 bytes (about 4.44 GiB); readiness itself loads roles serially.
+The launcher correctly reports that a long campaign cannot start at that hour.
+No 512-game campaign or schedule was launched. See the
+[preparation report](reports/2026-10-18-phase3l-preparation.md) and
+[fixed protocol](PHASE_3L.md). This completes preparation only: strength results,
+default promotion, release acceptance, and broader platform execution remain open.
