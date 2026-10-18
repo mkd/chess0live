@@ -475,15 +475,43 @@ nominal depth-6 completion with four workers; all nine timed four-worker pairs
 completed +1 depth. No Elo gain, new GUI visual pass, or 64-worker/foreign runtime
 qualification is claimed. Do not tune repeatedly against this bounded screen.
 
-Current native/frozen candidate SHA-256:
+Phase 4B native/frozen candidate SHA-256:
 `0abcb60f7271f17c9e8735095fbb48c72e425beef2647ae0ed24af6f7a5471e9`.
 Raw checks/results/audit: `results/phase4b-20261018/`. New optional GUI bundle:
 `build/test-baselines/0.1-dev-phase4b-20261018/`, with copied network and manifest.
 Old GUI bundles, all frozen Phase 3L inputs/tools, and README introduction are
-unchanged. The 512-game LMR campaign remains unstarted. **Next: Phase 4C,
-optional Syzygy**; keep rule-50 semantics, absent-table fallback, provenance,
+unchanged. The 512-game LMR campaign remains unstarted. At that checkpoint,
+Phase 4C was next, with rule-50 semantics, absent-table fallback, provenance,
 and independent reference validation explicit. No further SMP tuning subphase
 is required before moving forward.
+
+**Phase 4C is now complete**, implementation commit `2468d73`. Read [Syzygy](SYZYGY.md), the
+[checkpoint report](reports/2026-10-18-phase4c-syzygy.md), and the vendored Fathom
+provenance before changing tablebase behavior. The owner specifically authorized
+the reader family used by Gargantua/Sic; only upstream Fathom was imported.
+Search/evaluation and the adapter remain independent. Data is user-downloaded,
+configured with `SyzygyPath`, and excluded from Git. Tables default to disabled.
+Root DTZ filtering and zero-clock interior WDL bounds preserve own mate rules;
+root repetition fallback, absent-table fallback, cancellation, and `tbhits`
+have dedicated checks. Serialized process-global backend access uses generation
+bindings. Basic header/length checks do not validate arbitrary compressed data.
+
+Native/scalar/ASan+UBSan full suites and TSan search checks passed. All four
+builds passed 140 exact WDL oracle roots with DTZ outcome/legal-move checks,
+47 Syzygy UCI cases, and 12 direct tablebase/search clock scenarios. The three
+GUI bundles, README introduction, and frozen Phase 3L campaign remain unchanged.
+Default-off comparison: all 24 searches matched the Phase 4B parent exactly;
+small timing variation is not a performance gain. Current normal binary SHA-256:
+`9b5f03e02d9537041025dfd6a815a1ef734fb7a303a14bcaba17f1ea4f57e898`.
+Raw evidence: `results/phase4c-20261018/`. No new GUI snapshot was created; normal
+rebuilds continue to leave the owner's existing snapshots untouched.
+
+**Next: Phase 4D**, beginning with one bounded full-depth move-ordering candidate.
+The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
+over depth/NPS and includes the owner's new depth-10 transcript. Later pruning
+hypotheses must be isolated and strength-qualified; do not enable existing LMR
+without that evidence. Historical Phase 3L remains separate and unstarted.
+Broader platform execution/trainer work is retained as Phase 4E.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner

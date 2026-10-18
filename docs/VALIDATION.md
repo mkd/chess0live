@@ -907,3 +907,21 @@ timing variability, reproduction commands, and scope limits. These checks do
 not establish an Elo gain, every possible thread interleaving, 64-worker scaling,
 foreign-platform execution, or a new GUI visual pass. Threads remains 1 by
 default. Phase 4C Syzygy is next; release acceptance remains open.
+
+
+## Phase 4C — optional Syzygy — October 18, 2026
+
+The [checkpoint report](reports/2026-10-18-phase4c-syzygy.md) records the pinned
+reader, separate external data, reproduced failures, checks, hashes, and limits.
+Native/scalar/ASan+UBSan full suites and TSan search checks passed. In all four
+build modes, the adapter matched 140 exact WDL oracle cases and passed DTZ
+outcome/legal-move checks, 47 UCI cases, and six direct clock/stop/node scenarios
+with both one and four workers. Fetcher tests (13), profiler tests (25), and
+byte-for-byte corpus reproduction passed. The empty-path default preserved all
+24 parent/candidate benchmark search signatures; timing was noisy and neutral.
+
+This is finite three-/four-piece evidence, not exact raw DTZ-distance parity,
+a seven-piece execution claim, foreign-platform validation, a GUI visual pass,
+or an Elo/release acceptance result. Root and interior probes are intentionally
+conservative around repetition, halfmove clocks, and PVs. No strength match was
+started; existing defaults and frozen campaigns remain unchanged.

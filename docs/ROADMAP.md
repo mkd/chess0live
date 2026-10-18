@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4B complete; Phase 4C Syzygy is next
+## Current checkpoint: Phase 4C complete; Phase 4D search efficiency next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -13,7 +13,11 @@ iterations and severe subsequent time pressure. The latest report records two
 draws without reported errors, a partial PGN, and matching legal moves/depth-2
 divides at all 122 saved positions. The intended Phase 3F snapshot's actual GUI
 settings were not captured; the missing final positions limit termination checks.
-Clock allocation remains a separate research priority after the fixed LMR screen.
+Clock allocation remains a separate research priority. The owner's latest
+feedback also prioritizes search efficiency: immediately after Syzygy, Phase 4D
+starts with full-depth move ordering and advances through isolated,
+strength-gated pruning experiments. See the
+[search optimization plan](SEARCH_OPTIMIZATION_PLAN.md).
 
 | Step | Deliverable | Status |
 | --- | --- | --- |
@@ -35,6 +39,9 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3L | Prepare a fresh held-out 512-game LMR qualification campaign; simplify console output | Complete: plain console output, signed mate checks, 256 fresh roots, 94 workflow checks, and independently audited serial readiness; 512-game campaign not started |
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
+| 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | Planned immediately after 4C: one full-depth ordering candidate first; separately qualify LMR and later pruning hypotheses |
+| 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -224,11 +231,22 @@ ThreadSanitizer checks passed. All 24 one-worker parent/candidate searches match
 exactly; a small possible single-worker timing cost remains recorded. The
 independently audited 72-search scaling screen found useful gains with two/four
 workers; four workers completed one additional depth in all nine timed pairs.
-No SMP match strength gain is established. **Next: Phase 4C, optional Syzygy**.
+No SMP match strength gain is established. **Phase 4C is complete**: optional
+Syzygy is implemented and tested; see [the checkpoint report](reports/2026-10-18-phase4c-syzygy.md).
 No further cache/SMP tuning subphase is required for this checkpoint.
 
-LMR confirmation and forecast/SEE qualification remain deferred, not passed.
-Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel
+The owner requested earlier search optimizations on October 18, supplying a
+[depth-10 comparison](reports/2026-10-18-depth-feedback.md) with about 682 times
+more chess0live nodes. This is a work-count observation, not strength evidence. **Phase 4D
+follows 4C directly**, beginning with one full-depth ordering candidate before
+new pruning. The [bounded plan](SEARCH_OPTIMIZATION_PLAN.md) sequences existing
+LMR qualification, verified null-move pruning, reverse futility, and separate
+quiescence/late-quiet hypotheses. Each needs correctness, clock, and equal-time
+strength evidence; neither deeper search nor fewer nodes permits default
+promotion. Existing LMR remains off, and no new match is launched by this plan.
+
+LMR confirmation is planned separately in 4D; forecast/SEE qualification remains
+deferred, not passed. Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel
 strength qualification, broader runtime validation, and release acceptance remain open.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
@@ -251,15 +269,17 @@ it does not indefinitely block unrelated engine development.
 | --- | --- | --- |
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
-| 4C: Syzygy | Legal endgames and rule-50/mate handling; no tablebase probing | Add optional endgame-table configuration and probing with tested draw-rule and mate semantics, including missing-table fallback |
-| 4D: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
+| 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
+| 4D: strength-gated search efficiency | Full-depth PVS, aspiration windows, history/killer ordering, shared TT, and opt-in conservative LMR | Immediately after 4C, test one ordering candidate; then separately qualify LMR and conservative pruning, with fresh paired equal-time matches required for default promotion |
+| 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
 campaign is prepared. Each work area has a documented acceptance decision;
 failed or inconclusive experiments do not become default optimizations.
-Tablebases, broader execution, parallel strength qualification, and release
-acceptance remain unfinished. Parallel search itself is now implemented.
+Strength-gated search optimization, broader execution, parallel strength
+qualification, and release acceptance remain unfinished. Parallel search and
+optional tablebase probing are now implemented.
 
 Every phase preserves the frozen GUI bundle `0.1-dev-4b8b35d`, the NNUE oracle,
 and core rule/UCI checks. Release 0.1 only after its [acceptance gates](VALIDATION.md)
