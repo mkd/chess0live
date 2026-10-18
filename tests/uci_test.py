@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 from pathlib import Path
 import os
 import queue
+import math
+import re
 import sys
 import tempfile
 import time
@@ -60,6 +62,51 @@ def completed_signature(lines):
             fields[score_index + 1:score_index + 3], fields[fields.index("pv") + 1:])
 
 
+def board_state(lines):
+    """Decode displayed coordinates independently of row/column orientation."""
+    assert all(line.startswith("info string ") for line in lines), lines
+    assert lines[-1].startswith("info string fen "), lines[-1]
+    labels = [line.removeprefix("info string ").split() for line in lines
+              if line.removeprefix("info string ").split() in
+              [list("abcdefgh"), list("hgfedcba")]]
+    assert len(labels) == 1
+    squares = {}
+    ranks = []
+    for line in lines:
+        match = re.fullmatch(r"info string ([1-8]) \|(.*)\|", line)
+        if match:
+            rank = match[1]
+            ranks.append(rank)
+            pieces = [value.strip() for value in match[2].split("|")]
+            assert len(pieces) == 8
+            for file, piece in zip(labels[0], pieces):
+                assert piece in ("", *"PNBRQKpnbrqk")
+                squares[file + rank] = piece
+    assert len(squares) == 64 and len(ranks) == 8
+    keys = [line for line in lines if line.startswith("info string key ")]
+    assert len(keys) == 1 and re.fullmatch(r"info string key 0x[0-9A-F]{16}", keys[0])
+    return squares, ranks, labels[0], keys[0], lines[-1]
+
+
+def diagnostic_perft(engine, depth, total, branches):
+    engine.send(f"go perft {depth}")
+    lines = engine.until("info string perft complete ")
+    assert all(line.startswith("info string ") for line in lines), lines
+    fields = lines[-1].split()[4:]
+    stats = dict(zip(fields[::2], fields[1::2]))
+    assert int(stats["depth"]) == depth and int(stats["nodes"]) == total
+    assert all(math.isfinite(float(stats[name])) and float(stats[name]) >= 0
+               for name in ("time_ms", "nps")), stats
+    moves = [line.removeprefix("info string ").split(": ") for line in lines[:-1]]
+    assert len(moves) == branches
+    assert moves == sorted(moves)
+    assert all(re.fullmatch(r"[a-h][1-8][a-h][1-8][nbrq]?", move) and int(count) >= 0
+               for move, count in moves)
+    if depth > 0:
+        assert sum(int(count) for _, count in moves) == total
+    return lines
+
+
 with Engine(Path(sys.argv[1]).resolve()) as engine:
     handshake = engine.handshake()
     assert any(line.startswith("id name chess0live") for line in handshake)
@@ -68,6 +115,70 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
     assert "option name Late Move Reductions type check default false" in handshake
     assert "option name Capture Ordering type combo default mvv-lva var mvv-lva var see" in handshake
     engine.send("position startpos")
+    views = []
+    for alias in ("d", "show", "display"):
+        engine.send(alias)
+        views.append(engine.until("info string fen "))
+    assert views[0] == views[1] == views[2]
+    start_view = board_state(views[0])
+    assert start_view[1] == list("87654321") and start_view[2] == list("abcdefgh")
+    assert [start_view[0][file + "1"] for file in "abcdefgh"] == list("RNBQKBNR")
+    assert [start_view[0][file + "8"] for file in "abcdefgh"] == list("rnbqkbnr")
+    assert all(start_view[0][file + rank] == "" for file in "abcdefgh" for rank in "3456")
+    engine.send("flip")
+    flipped = board_state(engine.until("info string fen "))
+    assert flipped[1] == list("12345678") and flipped[2] == list("hgfedcba")
+    assert flipped[0] == start_view[0] and flipped[3:] == start_view[3:]
+    engine.send("flip")
+    assert engine.until("info string fen ") == views[0]
+    engine.send("help")
+    engine.send("isready")
+    help_lines = engine.until("readyok")[:-1]
+    assert all(line.startswith("info string ") for line in help_lines)
+    for command in ("d | show | display", "flip:", "eval:", "go perft N", "position fen", "quit:"):
+        assert any(command in line for line in help_lines), command
+    for command in ("d extra", "show extra", "display extra", "flip extra", "eval extra", "help extra",
+                    "go perft", "go perft -1", "go perft 17", "go perft x", "go perft 1 extra",
+                    "go perft 1 movetime 1", "go perft 99999999999999999999", "go depth 1 perft 2"):
+        engine.send(command)
+        engine.send("isready")
+        invalid = engine.until("readyok")
+        assert any(line.startswith("info string error:") for line in invalid), command
+        assert not any(line.startswith(("bestmove ", "info depth ", "info string perft complete"))
+                       for line in invalid), (command, invalid)
+    diagnostic_perft(engine, 0, 1, 0)
+    diagnostic_perft(engine, 1, 20, 20)
+    diagnostic_perft(engine, 3, 8902, 20)
+    engine.send("d")
+    assert engine.until("info string fen ") == views[0]
+    # An intentionally impractical depth must remain cancellable. The test
+    # waits on readiness, not on machine-dependent node throughput.
+    engine.send("go perft 16")
+    engine.send("isready")
+    assert engine.until("readyok", timeout=3)[-1] == "readyok"
+    started = time.monotonic()
+    engine.send("stop")
+    stopped = engine.until("info string perft stopped ", timeout=3)
+    assert time.monotonic() - started < 2 and " completed_root_nodes " in stopped[-1]
+    assert not any(line.startswith("bestmove ") for line in stopped)
+    engine.send("d")
+    assert engine.until("info string fen ") == views[0]
+    engine.send("position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
+    diagnostic_perft(engine, 3, 97862, 48)
+    engine.send("position fen 7k/6Q1/6K1/8/8/8/8/8 b - - 100 1")
+    diagnostic_perft(engine, 0, 1, 0)
+    diagnostic_perft(engine, 2, 0, 0)
+    engine.send("position startpos moves e2e4")
+    engine.send("d")
+    black_view = engine.until("info string fen ")
+    assert "info string side Black" in black_view
+    assert "info string en-passant e3" in black_view
+    assert "info string castling KQkq" in black_view
+    assert "info string halfmove 0" in black_view and "info string fullmove 1" in black_view
+    # Replacing a position also joins an active diagnostic worker.
+    engine.send("go perft 16")
+    engine.send("position startpos")
+    engine.until("info string perft stopped ", timeout=3)
     engine.send("perft 4")
     assert engine.until("nodes ")[-1].split()[1] == "197281"
     engine.send("position startpos moves e2e4 e7e5")
@@ -84,12 +195,12 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         engine.send("position fen " + puzzle + suffix)
         engine.send("d")
         reply = engine.until("info string fen ")
-        assert reply == ["info string fen " + puzzle], reply
+        assert reply[-1] == "info string fen " + puzzle, reply
     four_fields = " ".join(puzzle.split()[:4])
     engine.send("position fen " + four_fields + " bm Qxf6+ M7")
     engine.send("d")
     before = "info string fen " + four_fields + " 0 1"
-    assert engine.until("info string fen ") == [before]
+    assert engine.until("info string fen ")[-1] == before
     for bad in (puzzle + " bm", puzzle + " bm Qxf6+ moves f5f6",
                 puzzle + " typo Qxf6+ M7", four_fields,
                 four_fields + " 2 bm Qxf6+ M7",
@@ -98,11 +209,11 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         engine.send("position fen " + bad)
         engine.until("info string error:")
         engine.send("d")
-        assert engine.until("info string fen ") == [before]
+        assert engine.until("info string fen ")[-1] == before
     engine.send("position startpos bm e4")
     engine.until("info string error:")
     engine.send("d")
-    assert engine.until("info string fen ") == [before]
+    assert engine.until("info string fen ")[-1] == before
     # Ordinary six-field FEN followed by a legal UCI history still works.
     engine.send("position fen " + puzzle + " moves f5f6")
     engine.send("d")
@@ -128,6 +239,63 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert not any(line.startswith("info string search-") for line in default_output)
         assert not any(line.startswith("info string lmr ") for line in default_output)
         assert not any(line.startswith("info string ordering ") for line in default_output)
+
+        # Display orientation cannot rotate pieces, change repetition/history,
+        # alter evaluation perspective, or affect a bounded fresh-table search.
+        display_signatures = []
+        for _ in range(2):
+            engine.send("setoption name Clear Hash")
+            engine.send("go depth 2")
+            display_signatures.append(completed_signature(engine.until("bestmove ")))
+            engine.send("flip")
+            view = board_state(engine.until("info string fen "))
+            assert view[0] == start_view[0] and view[3:] == start_view[3:]
+        assert display_signatures[0] == display_signatures[1]
+
+        for position, side in (("startpos", "White"), ("startpos moves e2e4", "Black")):
+            engine.send("position " + position)
+            engine.send("eval")
+            evaluation = engine.until("info string eval psqt ")
+            assert all(line.startswith("info string ") for line in evaluation)
+            assert len([line for line in evaluation if line.startswith("info string fen ")]) == 1
+            human = [line for line in evaluation if line.startswith("info string NNUE evaluation:")]
+            assert len(human) == 1 and f"{side} to move; positive favors {side}" in human[0]
+            assert re.search(r"evaluation: [+-]\d+\.\d{2} pawns", human[0])
+            fields = evaluation[-1].split()[3:]
+            assert fields[::2] == ["psqt", "positional", "score"]
+            assert all(re.fullmatch(r"-?\d+", value) for value in fields[1::2])
+            engine.send("flip")
+            engine.until("info string fen ")
+            engine.send("eval")
+            reversed_eval = engine.until("info string eval psqt ")
+            assert reversed_eval[-2:] == evaluation[-2:]
+            engine.send("flip")
+            engine.until("info string fen ")
+        engine.send("position fen 4k3/8/8/8/8/8/4r3/4K3 w - - 0 1")
+        engine.send("eval")
+        checked_eval = engine.until("info string eval psqt ")
+        assert "info string check yes" in checked_eval
+        assert any("unavailable while in check" in line for line in checked_eval)
+        engine.send("position startpos")
+
+        # A console view during search joins the worker before printing a
+        # coherent board; the subsequent ordinary search is still usable.
+        for command in ("show", "display", "d", "flip", "eval", "help", "go perft 1"):
+            engine.send("go infinite depth 1")
+            engine.send(command)
+            if command == "eval":
+                lines = engine.until("info string eval psqt ")
+            elif command == "help":
+                engine.send("isready")
+                lines = engine.until("readyok")
+            elif command == "go perft 1":
+                lines = engine.until("info string perft complete ")
+            else:
+                lines = engine.until("info string fen ")
+            best_lines = [line for line in lines if line.startswith("bestmove ")]
+            assert len(best_lines) == 1 and best_lines[0].split()[1] != "0000", (command, lines)
+        engine.send("flip")
+        assert engine.until("info string fen ") == views[0]
 
         # Correct, wrong, and impossible answer notes produce the exact same
         # completed search tree as the unannotated FEN after a fresh hash table.
@@ -248,12 +416,28 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert bestmove(engine.until("bestmove ")) == "0000"
         engine.send("position startpos")
         engine.send("setoption name EvalFile value /definitely/missing/network.nnue")
+        engine.send("eval")
+        unavailable = engine.until("info string error:")
+        assert any(line.startswith("info string fen ") for line in unavailable)
+        assert not any(line.startswith(("info string eval psqt ", "info string NNUE evaluation:"))
+                       for line in unavailable)
+        # Move counting is network-independent even with an invalid EvalFile.
+        diagnostic_perft(engine, 1, 20, 20)
         engine.send("go depth 1")
         failed = engine.until("bestmove ")
         assert any("network not found" in line for line in failed)
         assert bestmove(failed) == "0000"
     else:
         print("NNUE-dependent UCI cases not run: network missing (make net; make test).")
+
+# Quit must join a diagnostic worker even without a network/readiness handshake.
+with Engine(Path(sys.argv[1]).resolve()) as engine:
+    engine.send("position startpos")
+    engine.send("go perft 16")
+    started = time.monotonic()
+    engine.send("quit")
+    engine.process.wait(timeout=3)
+    assert time.monotonic() - started < 2 and engine.process.returncode == 0
 
 if network.exists():
     executable = Path(sys.argv[1]).resolve()

@@ -397,11 +397,18 @@ game prevents the declared full operational acceptance. Preserve the attempt;
 do not extend, replace, or score the capped game as drawn. Read the
 [Phase 3J report](reports/2026-10-18-phase3j-persistence-puzzles.md).
 
-**Phase 3K is next:** declare a completion-capable operational check, then prepare
-fresh held-out LMR qualification. Do not add timing knobs or demand immunity to
-arbitrary host suspension. No further match or schedule is active; all search
-defaults remain unchanged. The owner handles pushes; manual puzzle testing is
-ready and no additional GUI tournament is required to finish this implementation.
+**Phase 3K is in progress:** [the fixed plan](PHASE_3K.md) adds independently
+implemented console tools and declares a fresh four-game LMR-on/off completion
+screen at 1+0.05, two active workers, a 1,024-ply cap, and a 180-second deadline.
+The screen is pending. Console `d`/`show`/`display`, view-only `flip`, `help`,
+board-plus-static `eval`, and cancellable `go perft N` are implemented and checked.
+New output uses `info string`; board output retains the FEN sentinel last, and
+evaluation retains the raw record last. Legacy perft/divide contracts remain.
+Native/scalar/sanitizer suites, independent board/perft checks on 93 positions,
+and 36 exact old/new/diagnostic search comparisons passed. No engine search or
+clock policy changed. Both GUI bundles and the README introduction remain intact.
+The owner can test the normal build now; no additional GUI tournament is required.
+No long campaign or schedule is active; the owner handles pushes.
 
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner

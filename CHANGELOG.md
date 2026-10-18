@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added ASCII board/state display with `d`, `show`, or `display`, a view-only
+  `flip`, and built-in `help`. `eval` now includes the board and a clearly labeled
+  static NNUE score. `go perft N` adds root counts, timing/speed statistics, and
+  responsive cancellation while preserving the older diagnostics.
 - Added manual puzzle input with trailing `bm` answer notes, including four-field
   records with omitted move counters. Notes are ignored by search; invalid boards
   still produce errors. All 39 owner-supplied puzzle inputs passed compatibility

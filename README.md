@@ -36,16 +36,29 @@ Wait for `bestmove` before sending `quit`. For diagnostics:
 
 ```text
 position startpos
-perft 5
-divide 2
-eval
+help
 d
-quit
+flip
+eval
+go perft 5
 ```
 
-`perft 5` from the initial position is 4,865,609 nodes. `divide` lists each root
-move's count. `eval` reports raw NNUE components and calibrated internal score;
-`d` prints FEN. These diagnostics do not add variants or an interactive SAN mode.
+`d`, `show`, and `display` print an ASCII board, FEN, position key, side to move,
+castling rights, en-passant square, move counters, and check status. `flip` rotates
+the view and displays it; the position and search stay unchanged. `eval` displays
+the board and static NNUE score in pawns, positive for the side to move, followed
+by the raw component/internal-score record. It labels in-check static values as
+diagnostic only; static evaluation is not a searched score or a mate proof.
+
+`go perft 5` lists each legal root move's count and reports depth, total nodes,
+elapsed milliseconds, and nodes per second. The initial position totals
+4,865,609 nodes. Wait for `info string perft complete ...` before the next command,
+or send `stop` to cancel; an interrupted count is explicitly marked `stopped`
+and includes only completed root subtrees. Move counting needs no network.
+Legacy synchronous `perft N` and `divide N` remain available. Diagnostic depths
+are 0–16; high depths can take a very long time. New console output uses UCI
+`info string` lines. Enter `quit` to exit. These commands do not add variants or
+an interactive SAN mode.
 
 For manual puzzle testing, paste a FEN with an optional `bm` answer annotation:
 

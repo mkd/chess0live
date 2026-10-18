@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3J implemented; puzzle input ready; completion gate open
+## Current checkpoint: Phase 3K console tools validated; operational screen pending
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -31,7 +31,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3H | Diagnose clock overruns, reproduce a defect, and validate a bounded repair | Complete bounded checkpoint: command-time accounting fixed; native/scalar/sanitizer and 52 clock probes passed; most historical flagfalls remain unexplained |
 | 3I | Investigate short-clock resilience under scheduling and transport delays | Complete: same-batch match logging bias reproduced and fixed; 212 checks and 12 diagnostic controls passed; engine and historical results unchanged |
 | 3J | Isolate match persistence from active protocol clocks; accept annotated manual puzzles | Implemented and checked: 230 workflow checks, native/scalar/sanitizer suites, all 39 puzzle inputs; four-game canary has one capped game, so full operational acceptance remains open |
-| 3K | Complete operational validation before fresh LMR strength qualification | Next: predeclare a completion-capable check; do not replace or pool the Phase 3J attempt; then prepare fresh held-out blitz qualification |
+| 3K | Add console diagnostics and complete operational validation before fresh LMR qualification | In progress: console commands passed native/scalar/sanitizer and independent checks; fresh four-game completion screen declared, not yet run |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -188,10 +188,14 @@ The declared four-game slow-writer canary finished with two checkmates, one
 threefold draw, and one 128-ply truncation. The cap prevents full operational
 acceptance; it is not a draw or a replacement sample. No clock, protocol, or
 storage failures were recorded. See the report for independent audit coverage.
-**Phase 3K is next:** use a fresh, predeclared completion-capable operational
-check, then prepare fresh held-out LMR blitz qualification. No further match or
-schedule is active; manual puzzle tests can proceed independently. Both GUI
-bundles remain preserved; Phase 3G's decision and all search defaults stand.
+**Phase 3K is in progress:** the [plan](PHASE_3K.md) declares a fresh four-game
+LMR-on/off operational screen, with a larger 1,024-ply cap and a three-minute
+wall deadline. Console board aliases, view flipping, help, cancellable perft
+statistics, and board-plus-static evaluation passed native/scalar/sanitizer
+checks. Independent checks cover 93 display/perft positions and 36 exact-search
+comparisons. The operational screen is pending; no schedule is active. Manual
+console tests can proceed independently; both GUI bundles and search defaults
+remain unchanged.
 
 LMR confirmation and forecast/SEE qualification remain deferred, not passed.
 Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel

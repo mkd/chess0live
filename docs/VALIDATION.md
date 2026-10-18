@@ -779,3 +779,23 @@ Keep large generated results, networks, and external reference builds outside
 the source tree or ignored. Retain concise result summaries with reproducible
 commands when publishing a claim. Test-only Stockfish code must never become an
 undeclared dependency of the shipped engine.
+
+## Phase 3K console diagnostics — October 18, 2026
+
+Native macOS ARM64 `make -j2 test`, `make SIMD=scalar -j2 test`, and
+`make MODE=sanitize -j2 test` passed. Expanded UCI coverage exercises board aliases,
+view-only rotation, FEN/key/evaluation/search preservation, missing networks,
+in-check labels, input rejection, start/Kiwipete/terminal perft counts, readiness,
+stop, position replacement, and quit during deep diagnostic counting. Legacy
+perft/divide and raw evaluation records remain compatible.
+
+An independent `chess==1.11.2` replay checked 93 positions (29 special/start
+fixtures and 64 reachable positions, seed 2026101813), all 1,945 legal roots and
+51,736 depth-2 nodes, with both display orientations and complete position state.
+Thirty-six bounded searches matched every completed depth/node/score/PV, bestmove,
+and raw evaluation across the frozen previous binary, new binary, and new binary
+after display/perft commands, with LMR off and on. No speed or strength claim
+follows. Native executable SHA-256:
+`5063b483406d5b8061db330b070962e1665c196870c9a7968a18752432f3894f`.
+Raw checks and suite logs are in `results/phase3k-20261018/`. The separately
+predeclared operational screen in [Phase 3K](PHASE_3K.md) is still pending.

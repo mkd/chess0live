@@ -32,7 +32,19 @@ go movetime 60000
 Wait for `bestmove` before entering another position. Keep classic time policy,
 LMR off, MVV-LVA capture ordering, and pondering off for default comparisons.
 `movetime` requests a 60-second budget; the configured overhead is reserved.
-Send `stop` to end a search early. `d` displays the loaded, normalized FEN.
+Send `stop` to end a search early. `d`, `show`, or `display` displays the loaded
+ASCII board and normalized FEN, plus hash, side, castling, en passant, counters,
+and check state. `flip` rotates the view only; it does not change the position.
+`eval` shows that board and a static NNUE score positive for the side to move,
+not a search result. In-check values are labeled diagnostic only. `help` lists
+supported commands.
+
+Use `go perft N` for legal root-move counts and total/time/speed statistics. Wait
+for `info string perft complete ...`, or send `stop` to get an explicitly partial
+`stopped` summary. It needs no network and supports depths 0–16; start small.
+For example, `position startpos` followed by `go perft 5` totals 4,865,609 nodes.
+The older `perft N` / `divide N` commands remain synchronous. These console
+features require the current normal build; the two stable GUI copies are unchanged.
 
 `bm` begins ignored metadata through the end of the line. The supplied SAN
 answer and `M7` do not influence search, validate the answer, set `go mate`, or

@@ -11,6 +11,7 @@
 #include "chess0live/search.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <bit>
 #include <charconv>
 #include <chrono>
@@ -20,8 +21,11 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <mutex>
+#include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
@@ -112,8 +116,17 @@ public:
                 else if (command == "position") position(tokens);
                 else if (command == "go") go(tokens, received_at);
                 else if (command == "perft" || command == "divide") count(tokens);
-                else if (command == "eval") evaluate();
-                else if (command == "d") { stop(); output("info string fen " + position_.fen()); }
+                else if (command == "eval" || command == "d" || command == "show"
+                         || command == "display" || command == "flip" || command == "help") {
+                    if (tokens.size() != 1) { output("info string error: " + command + " takes no arguments"); continue; }
+                    stop();
+                    if (command == "eval") evaluate();
+                    else if (command == "help") help();
+                    else {
+                        if (command == "flip") flipped_ = !flipped_;
+                        display();
+                    }
+                }
                 // UCI permits ignoring commands an engine does not understand.
             } catch (const std::exception& error) {
                 output(std::string("info string error: ") + error.what());
@@ -142,6 +155,8 @@ private:
     bool hold_result_ = false;
     bool infinite_mode_ = false;
     bool ponder_mode_ = false;
+    bool flipped_ = false;
+    std::atomic<bool> perft_stop_{false};
 
     void output(const std::string& line) {
         std::lock_guard guard(output_mutex_);
@@ -167,6 +182,7 @@ private:
     /** Stop is published before joining; a just-created worker cannot erase it. */
     void stop() {
         search_.stop();
+        perft_stop_.store(true, std::memory_order_relaxed);
         {
             std::lock_guard guard(result_mutex_);
             hold_result_ = false;
@@ -314,6 +330,21 @@ private:
         history_ = std::move(keys);
     }
 
+    /** Use the same display normalization for static diagnostics and search.
+     * It keeps the pinned network's integer scale useful in GUIs; this is not
+     * a measured chess0live WDL model or a change to any search score.
+     */
+    long display_centipawns(int score) const {
+        int material = 0;
+        constexpr int values[] = {0, 1, 3, 3, 5, 9};
+        for (int type = 1; type <= 5; ++type)
+            for (Color side : {Color::white, Color::black})
+                material += values[type] * std::popcount(position_.pieces(side, static_cast<PieceType>(type)));
+        const double m = std::clamp(material, 17, 78) / 58.0;
+        const double scale = ((-142.72052667 * m + 372.35176398) * m - 340.71073572) * m + 415.23490212;
+        return std::lround(100.0 * score / scale);
+    }
+
     void report(const SearchInfo& info) {
         std::ostringstream line;
         line << "info depth " << info.depth << " seldepth " << info.seldepth << " score ";
@@ -321,16 +352,7 @@ private:
             const int plies = Search::mate_score - std::abs(info.score);
             line << "mate " << (info.score < 0 ? -1 : 1) * ((plies + 1) / 2);
         } else {
-            // SF19's display normalization keeps the upstream network's integer
-            // scale useful in GUIs. This is not a measured chess0live WDL model.
-            int material = 0;
-            constexpr int values[] = {0, 1, 3, 3, 5, 9};
-            for (int type = 1; type <= 5; ++type)
-                for (Color side : {Color::white, Color::black})
-                    material += values[type] * std::popcount(position_.pieces(side, static_cast<PieceType>(type)));
-            const double m = std::clamp(material, 17, 78) / 58.0;
-            const double scale = ((-142.72052667 * m + 372.35176398) * m - 340.71073572) * m + 415.23490212;
-            line << "cp " << std::lround(100.0 * info.score / scale);
+            line << "cp " << display_centipawns(info.score);
         }
         line << " nodes " << info.nodes << " time " << info.time_ms
              << " nps " << (info.nodes * 1000 / static_cast<std::uint64_t>(std::max<std::int64_t>(1, info.time_ms)))
@@ -398,6 +420,9 @@ private:
     void go(const std::vector<std::string>& tokens,
             std::chrono::steady_clock::time_point received_at) {
         stop();
+        // An invalid diagnostic must not fall through to ordinary go and start
+        // an unlimited search. No evaluation network is needed for legal perft.
+        if (tokens.size() > 1 && tokens[1] == "perft") { go_perft(tokens); return; }
         SearchLimits limits;
         limits.received_at = received_at;
         limits.move_overhead_ms = overhead_ms_;
@@ -485,11 +510,145 @@ private:
 
     void evaluate() {
         stop();
+        display();
         if (!ensure_network()) return;
         const auto raw = network_.evaluate(position_);
         nnue::Evaluator evaluator(network_);
+        const int score = evaluator.evaluate(position_);
+        if (position_.in_check(position_.turn())) {
+            output("info string NNUE evaluation: unavailable while in check; raw static diagnostic below is not a search score or mate assessment");
+        } else {
+            const std::string side = position_.turn() == Color::white ? "White" : "Black";
+            std::ostringstream line;
+            line << "info string NNUE evaluation: " << std::showpos << std::fixed << std::setprecision(2)
+                 << display_centipawns(score) / 100.0 << " pawns (" << side
+                 << " to move; positive favors " << side << "; static, not a search score)";
+            output(line.str());
+        }
+        // Keep this original diagnostic record last for existing consumers.
         output("info string eval psqt " + std::to_string(raw.psqt) + " positional " + std::to_string(raw.positional)
-               + " score " + std::to_string(evaluator.evaluate(position_)));
+               + " score " + std::to_string(score));
+    }
+
+    /** Display is a pure view: flip changes coordinates on paper, never pieces,
+     * side to move, the hash, repetition history, or evaluation perspective.
+     * Prefix every line as a UCI string and retain the FEN as the final sentinel.
+     */
+    void display() {
+        const auto fields = words(position_.fen());
+        output(std::string("info string Board (") + (flipped_ ? "Black" : "White")
+               + " at bottom; White uppercase, Black lowercase)");
+        constexpr const char* border = "info string   +---+---+---+---+---+---+---+---+";
+        output(border);
+        for (int row = 0; row < 8; ++row) {
+            const int rank = flipped_ ? row : 7 - row;
+            std::string line = "info string " + std::to_string(rank + 1) + " |";
+            for (int column = 0; column < 8; ++column) {
+                const int file = flipped_ ? 7 - column : column;
+                const auto piece = position_.at(rank * 8 + file);
+                const auto type = static_cast<unsigned>(type_of(piece));
+                line += ' ';
+                line += piece < 0 ? " pnbrqk"[type] : " PNBRQK"[type];
+                line += " |";
+            }
+            output(line);
+            output(border);
+        }
+        output(flipped_ ? "info string     h   g   f   e   d   c   b   a"
+                        : "info string     a   b   c   d   e   f   g   h");
+        std::ostringstream key;
+        key << "info string key 0x" << std::hex << std::uppercase << std::setw(16)
+            << std::setfill('0') << position_.key();
+        output(key.str());
+        output(std::string("info string side ") + (position_.turn() == Color::white ? "White" : "Black"));
+        output("info string castling " + fields[2]);
+        output("info string en-passant " + fields[3]);
+        output("info string halfmove " + fields[4]);
+        output("info string fullmove " + fields[5]);
+        output(std::string("info string check ") + (position_.in_check(position_.turn()) ? "yes" : "no"));
+        output("info string fen " + position_.fen());
+    }
+
+    void help() {
+        for (const char* line : {
+            "chess0live commands (diagnostics use info string lines):",
+            "d | show | display: show the board, FEN, hash, and position state",
+            "flip: toggle White/Black at bottom and display; position is unchanged",
+            "eval: display the board and static NNUE evaluation (positive favors side to move)",
+            "position startpos [moves <UCI moves>]: load start position and optional history",
+            "position fen <six fields> [moves <UCI moves>]: load a position and optional history",
+            "position fen <four or six fields> bm <notes>: ignore puzzle answer metadata",
+            "go perft N: legal move counts by root, total, elapsed milliseconds, nodes/second (0..16)",
+            "perft N | divide N: legacy synchronous count/divide diagnostics (0..16)",
+            "go depth N | go nodes N | go movetime MS: bounded search; limits may be combined",
+            "go wtime MS btime MS [winc MS binc MS movestogo N]: clock-managed search",
+            "go infinite: untimed search; go ponder: ponder until ponderhit starts the clock",
+            "go also accepts mate N and searchmoves <UCI moves>; use stop to return the current best move",
+            "stop: finish search or cancel go perft; ponderhit: start the ponder clock",
+            "uci: identify engine and list options; setoption name <name> [value <value>]: configure",
+            "isready: check readiness; ucinewgame: clear search state; quit: exit",
+            "help: show this command reference"}) output(std::string("info string ") + line);
+    }
+
+    /** A separate diagnostic traversal permits responsive stop/quit without
+     * changing the established, synchronous perft API or its test contract.
+     * Aborted subtrees return no count; completed root counts remain identifiable.
+     */
+    std::optional<std::uint64_t> cancellable_perft(Position& root, unsigned depth) {
+        if (perft_stop_.load(std::memory_order_relaxed)) return std::nullopt;
+        if (depth == 0) return 1;
+        const auto moves = root.legal_moves();
+        if (depth == 1) return moves.size();
+        std::uint64_t nodes = 0;
+        for (const auto move : moves) {
+            const auto undo = root.make_move(move);
+            const auto child = cancellable_perft(root, depth - 1);
+            root.unmake_move(move, undo);
+            if (!child) return std::nullopt;
+            if (*child > std::numeric_limits<std::uint64_t>::max() - nodes)
+                throw std::overflow_error("perft count exceeds 64-bit range");
+            nodes += *child;
+        }
+        return nodes;
+    }
+
+    void go_perft(const std::vector<std::string>& tokens) {
+        unsigned depth = 0;
+        if (tokens.size() != 3 || !number(tokens[2], depth) || depth > 16) {
+            output("info string error: expected go perft depth (0..16)"); return;
+        }
+        perft_stop_.store(false, std::memory_order_relaxed);
+        worker_ = std::thread([this, depth, root = position_]() mutable {
+            const auto begin = std::chrono::steady_clock::now();
+            std::uint64_t nodes = 0;
+            bool complete = true;
+            try {
+                if (depth == 0) nodes = 1;
+                else {
+                    auto moves = root.legal_moves();
+                    std::sort(moves.begin(), moves.end(), [](Move a, Move b) { return a.uci() < b.uci(); });
+                    for (const auto move : moves) {
+                        const auto undo = root.make_move(move);
+                        const auto child = cancellable_perft(root, depth - 1);
+                        root.unmake_move(move, undo);
+                        if (!child) { complete = false; break; }
+                        if (*child > std::numeric_limits<std::uint64_t>::max() - nodes)
+                            throw std::overflow_error("perft count exceeds 64-bit range");
+                        nodes += *child;
+                        output("info string " + move.uci() + ": " + std::to_string(*child));
+                    }
+                }
+                const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
+                std::ostringstream summary;
+                summary << "info string perft " << (complete ? "complete" : "stopped")
+                        << " depth " << depth << (complete ? " nodes " : " completed_root_nodes ") << nodes
+                        << " time_ms " << std::fixed << std::setprecision(3) << elapsed * 1000.0
+                        << " nps " << std::setprecision(0) << nodes / std::max(elapsed, 1e-9);
+                output(summary.str());
+            } catch (const std::exception& error) {
+                output(std::string("info string error: go perft failed: ") + error.what());
+            }
+        });
     }
 };
 } // namespace
@@ -501,7 +660,7 @@ int main(int argc, char** argv) {
     }
     if (argc > 1) {
         std::cout << "chess0live is a UCI engine. Run without arguments.\n"
-                     "Diagnostics on stdin: perft N, divide N, eval, d.\n";
+                     "Diagnostics on stdin: help, d/show/display, flip, eval, go perft N, perft N, divide N.\n";
         return std::string_view(argv[1]) == "--help" ? 0 : 2;
     }
     try {
