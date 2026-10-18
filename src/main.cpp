@@ -273,7 +273,8 @@ private:
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
         else if (name == "Move Overhead" && numeric >= 0 && numeric <= 5000) overhead_ms_ = numeric;
-        else if (name == "Threads" && numeric == 1) {}
+        else if (name == "Threads" && numeric >= 1 && numeric <= Search::max_threads)
+            search_.set_threads(numeric);
         else output("info string error: unsupported option or value");
     }
 
@@ -369,6 +370,19 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (result.smp.threads > 1) {
+            std::ostringstream line;
+            line << "info string smp v1 threads " << result.smp.threads
+                 << " total_nodes " << result.nodes
+                 << " leader_nodes " << result.smp.worker_nodes.front()
+                 << " worker_nodes ";
+            for (std::size_t i = 0; i < result.smp.worker_nodes.size(); ++i)
+                line << (i ? "," : "") << result.smp.worker_nodes[i];
+            line << " worker_depths ";
+            for (std::size_t i = 0; i < result.smp.worker_depths.size(); ++i)
+                line << (i ? "," : "") << result.smp.worker_depths[i];
+            output(line.str());
+        }
         {
             const auto& cache = diagnostics.cache;
             std::ostringstream line;
@@ -484,12 +498,27 @@ private:
         search_.reset_stop();
         worker_ = std::thread([this, limits, root = position_, history = history_]() mutable {
             SearchResult result;
-            try { result = search_.search(root, std::move(history), limits, [this](const auto& info) { report(info); }); }
+            // A startup/allocation failure still leaves a legal response. The
+            // explicit error remains visible; this is not a completed search.
+            try {
+                const auto fallback = root.legal_moves();
+                if (!fallback.empty()) result.best = fallback.front();
+                result = search_.search(root, std::move(history), limits,
+                    [this](const auto& info) { report(info); });
+            }
             catch (const std::exception& error) { output(std::string("info string search error: ") + error.what()); }
             {
                 std::unique_lock lock(result_mutex_);
                 result_ready_.wait(lock, [this] { return !hold_result_; });
             }
+            // Completed-depth reports cannot include the unfinished iteration.
+            // Publish exact totals after helpers join, without repeating a
+            // depth/score/PV that could be mistaken for another completed depth.
+            output("info nodes " + std::to_string(result.nodes)
+                   + " time " + std::to_string(result.time_ms)
+                   + " nps " + std::to_string(result.nodes * 1000
+                       / static_cast<std::uint64_t>(std::max<std::int64_t>(1, result.time_ms)))
+                   + " hashfull " + std::to_string(result.hashfull));
             report_diagnostics(result);
             std::string line = "bestmove " + result.best.uci();
             if (result.ponder.valid()) line += " ponder " + result.ponder.uci();

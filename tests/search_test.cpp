@@ -782,6 +782,107 @@ void selective_special_positions(Fixture& fixture) {
     require(result.score == 0, "A quiet move reaching rule 50 must remain a draw in selective mode");
 }
 
+/** SMP correctness uses a single small shared Hash and real NNUE weights.
+ * These checks assert lifecycle/accounting and chess invariants, never exact
+ * multithreaded trees: interleaving of sound shared bounds is nondeterministic.
+ */
+void parallel_search(Fixture& fixture) {
+    fixture.enable_lmr = false;
+    fixture.capture_ordering = CaptureOrdering::mvv_lva;
+    const auto root = Position::start();
+    for (int threads : {2, 4}) {
+        fixture.search.set_threads(threads);
+        auto limits = depth_limit(3);
+        limits.diagnostics = true;
+        std::uint64_t reported_nodes = 0;
+        const auto result = fixture.run(root, limits, {}, [&](const SearchInfo& info) {
+            require(info.nodes >= reported_nodes, "Aggregate reported nodes must be monotonic");
+            reported_nodes = info.nodes;
+            auto replay = root;
+            for (auto pv_move : info.pv) {
+                require(legal(replay, pv_move), "Shared-table principal variations must remain legal");
+                replay.make_move(pv_move);
+            }
+        });
+        require(result.depth == 3 && legal(root, result.best) && result.nodes >= reported_nodes,
+                "The leader must complete the requested depth with coherent aggregate nodes");
+        require(result.smp.threads == threads && result.smp.worker_nodes.size() == std::size_t(threads)
+                && result.smp.worker_depths.size() == std::size_t(threads),
+                "SMP accounting must include each configured worker exactly once");
+        std::uint64_t sum = 0;
+        for (auto count : result.smp.worker_nodes) sum += count;
+        require(sum == result.nodes, "Final aggregate nodes must equal all joined worker counts");
+        sum = 0;
+        for (const auto& iteration : result.diagnostics->iterations) sum += iteration.nodes;
+        require(sum == result.smp.worker_nodes.front(),
+                "Iteration diagnostics must describe exactly the leader's visited nodes");
+        require(result.diagnostics->cache.allocated_bytes == 8192 * 64,
+                "SMP must share one Hash allocation rather than allocate one per worker");
+        require(result.hashfull >= 0 && result.hashfull <= 1000 && result.time_ms >= 0,
+                "Final shared cache occupancy and elapsed time must be valid");
+
+        for (std::uint64_t budget : {1ULL, 50ULL, 1000ULL}) {
+            limits = {};
+            limits.nodes = budget;
+            limits.diagnostics = true;
+            const auto bounded = fixture.run(root, limits);
+            require(bounded.nodes == budget && legal(root, bounded.best),
+                    "A global node budget must be exact even when several workers race for the last node");
+            require(bounded.diagnostics->stop_reason == StopReason::node_limit,
+                    "The leader must report an exhausted global node limit");
+        }
+
+        // Reconfiguration and policy clearing may never consume an external
+        // stop posted before worker dispatch.
+        fixture.search.reset_stop();
+        fixture.search.stop();
+        limits = depth_limit(3);
+        limits.late_move_reductions = true;
+        limits.diagnostics = true;
+        const auto stopped = fixture.search.search(root, {}, limits);
+        require(stopped.nodes == 0 && legal(root, stopped.best)
+                && stopped.diagnostics->stop_reason == StopReason::external_stop,
+                "SMP startup and policy changes must preserve a prepublished stop");
+
+        // A reporter exception must join helpers before propagating. Clearing,
+        // resizing, then searching again exercises post-exception ownership.
+        bool propagated = false;
+        try {
+            (void)fixture.run(root, depth_limit(5), {}, [](const SearchInfo&) {
+                throw std::runtime_error("intentional reporter failure");
+            });
+        } catch (const std::runtime_error& error) {
+            propagated = std::string_view(error.what()) == "intentional reporter failure";
+        }
+        require(propagated, "Reporter exceptions must propagate after helper cleanup");
+        fixture.search.clear();
+        fixture.search.set_hash(1);
+        require(fixture.run(root, depth_limit(2)).depth == 2,
+                "Search must remain reusable after exceptional helper shutdown");
+
+        limits = depth_limit(3);
+        limits.searchmoves = {move(root, "a2a3")};
+        require(fixture.run(root, limits).best == limits.searchmoves.front(),
+                "All SMP workers must honor the same root restriction");
+        terminal_positions(fixture);
+        mate_at_draw_boundary(fixture);
+        quiescence_terminals_and_evasions(fixture);
+        repetition_history(fixture);
+        cancellation_and_pondering(fixture);
+        clock_limit(fixture);
+    }
+    for (int invalid : {0, Search::max_threads + 1}) {
+        bool rejected = false;
+        try { fixture.search.set_threads(invalid); }
+        catch (const std::invalid_argument&) { rejected = true; }
+        require(rejected, "Invalid worker counts must be rejected before mutation");
+        require(fixture.run(root, depth_limit(1)).smp.threads == 4,
+                "Rejected worker counts must leave the prior configuration usable");
+    }
+    fixture.search.set_threads(1);
+    fixture.search.clear();
+}
+
 void missing_network() {
     nnue::Network empty_network;
     Search search(empty_network, 1);
@@ -899,6 +1000,7 @@ int main(int argc, char** argv) {
         selective_search_verification_and_policy_switches(fixture);
         selective_special_positions(fixture);
         capture_ordering_and_policy_switches(fixture);
+        parallel_search(fixture);
         // Re-run the existing chess-rule cases with the experimental option on.
         // Their exact expectations remain mandatory despite selective search.
         fixture.search.clear();

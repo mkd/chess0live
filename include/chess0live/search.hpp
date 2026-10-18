@@ -97,6 +97,8 @@ struct IterationDiagnostics {
  * count occupied different-key evictions, never empty fills or same-key writes.
  * Interrupted work remains included. Event counters are updated only when
  * SearchLimits::diagnostics is enabled; no node event stream is retained.
+ * With SMP, geometry describes the single shared table and final event totals
+ * sum the separate worker counters after joining every helper.
  */
 struct CacheStatistics {
     std::size_t entry_bytes = 0;
@@ -147,24 +149,44 @@ struct OrderingStatistics {
     std::uint64_t losing_captures = 0;
 };
 
+/** Final accounting for independent workers sharing a transposition table.
+ * Worker zero is the leader and supplies the result/PV. Helpers contribute
+ * bounds and move ordering, never an unverified vote for the returned move.
+ * SearchInfo/SearchResult nodes are aggregate; iteration diagnostics describe
+ * only worker zero and sum to worker_nodes.front(). Worker depths are their
+ * last fully completed iterations, not a combined or averaged search depth.
+ */
+struct SmpStatistics {
+    int threads = 1;
+    std::vector<std::uint64_t> worker_nodes;
+    std::vector<int> worker_depths;
+};
+
 struct SearchResult {
     Move best;
     Move ponder;
     int score = 0;
     int depth = 0;
     std::uint64_t nodes = 0;
+    /** Final totals include interrupted work and helper shutdown. */
+    std::int64_t time_ms = 0;
+    int hashfull = 0;
+    SmpStatistics smp;
     std::optional<SearchDiagnostics> diagnostics;
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
 };
 
-/** Independent, single-worker iterative deepening search.
+/** Independent iterative deepening with optional shared-table Lazy SMP.
  *
- * The caller serializes search(), clear(), set_hash(), and destruction. Only
- * stop() and ponderhit() may run concurrently with search(). Call reset_stop()
+ * The caller serializes search(), clear(), set_hash(), set_threads(), and
+ * destruction. Only stop() and ponderhit() may run concurrently with search().
+ * Call reset_stop()
  * BEFORE launching an asynchronous search, not inside its new thread: this
  * preserves a stop received immediately after UCI "go". Immutable NNUE weights
- * may be shared, while the evaluator and transposition table are worker-local.
+ * are shared, as is one synchronized transposition table. Evaluators and all
+ * mutable search histories are worker-local. Every helper is joined before
+ * search() returns or propagates an exception; callbacks run only on the leader.
  *
  * The game history contains position keys through the root, in chronological
  * order; a missing final root key is appended. Full history enables exact
@@ -177,7 +199,7 @@ public:
     static constexpr int mate_score = 31000;
     static constexpr int mate_threshold = 30000;
     static constexpr int max_ply = 128;
-    static constexpr int max_threads = 1;
+    static constexpr int max_threads = 64;
     using Reporter = std::function<void(const SearchInfo&)>;
 
     explicit Search(const nnue::Network& network, std::size_t hash_mb = 64,
@@ -192,6 +214,10 @@ public:
     void ponderhit() noexcept;
     void clear();
     void set_hash(std::size_t megabytes);
+    /** Reconfigure workers while idle; preserve the previous configuration if
+     * allocation fails. A successful change clears learned search/cache state.
+     */
+    void set_threads(int threads);
 
 private:
     struct Impl;

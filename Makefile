@@ -34,8 +34,8 @@ endif
 ifeq ($(filter $(CPU),generic native),)
   $(error CPU must be generic or native)
 endif
-ifeq ($(filter $(MODE),release debug sanitize),)
-  $(error MODE must be release, debug, or sanitize)
+ifeq ($(filter $(MODE),release debug sanitize thread-sanitize),)
+  $(error MODE must be release, debug, sanitize, or thread-sanitize)
 endif
 ifeq ($(filter $(SIMD),auto scalar),)
   $(error SIMD must be auto or scalar)
@@ -64,6 +64,9 @@ ifeq ($(MODE),release)
   CXXFLAGS += -O3 -DNDEBUG
 else ifeq ($(MODE),debug)
   CXXFLAGS += -O0 -g
+else ifeq ($(MODE),thread-sanitize)
+  CXXFLAGS += -O1 -g -fsanitize=thread -fno-omit-frame-pointer
+  LDFLAGS += -fsanitize=thread
 else
   CXXFLAGS += -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer
   LDFLAGS += -fsanitize=address,undefined
@@ -184,6 +187,14 @@ test-profile-cpu:
 test-profile-cache:
 	$(PYTHON) tests/profile_cache_test.py
 
+# Lazy SMP protocol/PV checks use the optional independent python-chess referee.
+.PHONY: test-smp test-profile-smp
+test-smp: $(ENGINE)
+	$(PYTHON) tests/smp_uci_test.py "$(ENGINE)" --network "$(NET)"
+
+test-profile-smp:
+	$(PYTHON) tests/profile_smp_test.py
+
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
 test-qualification: test-phase3g test-phase3l
 	$(PYTHON) tests/qualify_time_policy_test.py
@@ -215,6 +226,9 @@ help:
 	@echo 'make net              Fetch and verify the pinned official SF19 network'
 	@echo 'make test             Run correctness checks; make net first'
 	@echo 'make MODE=sanitize test   Address/undefined-behavior checks'
+	@echo 'make MODE=thread-sanitize test-search test-smp   Shared-state race checks'
+	@echo 'make test-smp          Parallel UCI/PV checks (requirements-match.txt)'
+	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'

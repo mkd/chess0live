@@ -258,7 +258,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         engine.send("go depth 1 searchmoves e2e4")
         default_output = engine.until("bestmove ")
         assert bestmove(default_output) == "e2e4"
-        assert all(line.startswith(("info depth ", "bestmove ")) for line in default_output)
+        assert all(line.startswith(("info depth ", "info nodes ", "bestmove ")) for line in default_output)
         assert any(re.search(r" score cp -?\d+ nodes ", line) for line in default_output)
         assert not any(line.startswith("info string search-") for line in default_output)
         assert not any(line.startswith("info string lmr ") for line in default_output)
@@ -297,7 +297,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
             engine.send("go depth 3")
             mating_output = engine.until("bestmove ")
             hashfull_values(mating_output)
-            assert all(line.startswith(("info depth ", "bestmove ")) for line in mating_output)
+            assert all(line.startswith(("info depth ", "info nodes ", "bestmove ")) for line in mating_output)
             final_info = [line.split() for line in mating_output if line.startswith("info depth ")][-1]
             score_at = final_info.index("score")
             assert final_info[score_at + 1:score_at + 3] == ["mate", str(distance)], mating_output

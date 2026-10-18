@@ -21,8 +21,11 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <exception>
 #include <limits>
+#include <mutex>
 #include <stdexcept>
+#include <thread>
 #include <utility>
 
 namespace chess0live {
@@ -78,10 +81,8 @@ bool dead_material(const Position& position) {
     return !(bishops & dark_squares) || !(bishops & ~dark_squares);
 }
 
-/** A table is owned by exactly one searching thread. There are no concurrent
- * non-atomic reads/writes, torn entries, or locks on the node-search hot path.
- * Public resizing and clearing require the controller to join the worker first.
- */
+// Full-key compact entries are copied while their bucket stripe is locked.
+// A seqlock around non-atomic Entry fields would still be a C++ data race.
 using detail::transposition::Bound;
 using detail::transposition::Entry;
 using detail::transposition::Bucket;
@@ -137,15 +138,50 @@ TimeBudget allocate_time(const Position& position, const SearchLimits& limits) {
     return {true, soft, hard};
 }
 
-} // namespace
+/** One cache and one cancellation/time domain per Search. Clearing, sizing,
+ * generation changes, and worker configuration happen before launching helpers.
+ * A single-worker search never acquires a cache mutex. Mutexes are striped to
+ * bound synchronization storage independently of Hash; no reference to an Entry
+ * escapes a lock. Padded node publications avoid false sharing between workers.
+ */
+struct SharedSearch {
+    static constexpr std::size_t stripe_count = 1024;
+    struct alignas(64) PublishedNodes { std::atomic<std::uint64_t> value{0}; };
+    std::vector<Bucket> table;
+    std::array<std::mutex, stripe_count> stripes;
+    std::array<PublishedNodes, Search::max_threads> published;
+    std::atomic<bool> stopped{false};
+    std::atomic<bool> leader_finished{false};
+    std::atomic<std::int64_t> ponder_hit_ns{-1};
+    std::atomic<std::uint64_t> node_tickets{0};
+    int threads = 1;
+    std::uint8_t generation = 0;
 
-struct Search::Impl {
+    void resize(std::size_t megabytes) {
+        if (megabytes == 0 || megabytes > std::numeric_limits<std::size_t>::max() / (1024 * 1024))
+            throw std::invalid_argument("Hash must be a positive, representable number of megabytes");
+        const auto count = std::bit_floor(megabytes * 1024 * 1024
+                                         / detail::transposition::bucket_budget_bytes);
+        std::vector<Bucket> replacement(count);
+        table.swap(replacement);
+    }
+
+    std::unique_lock<std::mutex> lock_bucket(std::size_t bucket) {
+        std::unique_lock lock(stripes[bucket % stripe_count], std::defer_lock);
+        if (threads > 1) lock.lock();
+        return lock;
+    }
+};
+
+struct SearchWorker {
+    using Reporter = Search::Reporter;
+    static constexpr int max_ply = Search::max_ply;
+    static constexpr int mate_score = Search::mate_score;
+    static constexpr int mate_threshold = Search::mate_threshold;
     const nnue::Network& network;
     nnue::Evaluator evaluator;
-    std::atomic<bool> stopped{false};
-    std::atomic<std::int64_t> ponder_hit_ns{-1};
-    std::vector<Bucket> table;
-    std::uint8_t generation = 0;
+    SharedSearch& shared;
+    const std::size_t id;
     std::array<std::array<std::array<int, 64>, 64>, 2> history_score{};
     std::array<std::array<Move, 2>, max_ply> killers{};
     std::array<std::array<Move, max_ply>, max_ply> pv{};
@@ -161,29 +197,18 @@ struct Search::Impl {
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
     CacheStatistics cache;
-    bool cache_policy_valid = false;
+    int completed_depth = 0;
 
-    explicit Impl(const nnue::Network& weights) : network(weights), evaluator(weights) {}
-
-    void resize(std::size_t megabytes) {
-        if (megabytes == 0 || megabytes > std::numeric_limits<std::size_t>::max() / (1024 * 1024))
-            throw std::invalid_argument("Hash must be a positive, representable number of megabytes");
-        const auto count = std::bit_floor(megabytes * 1024 * 1024
-                                         / detail::transposition::bucket_budget_bytes);
-        std::vector<Bucket> replacement(count);
-        table.swap(replacement);
-    }
+    SearchWorker(const nnue::Network& weights, SharedSearch& state, std::size_t index)
+        : network(weights), evaluator(weights), shared(state), id(index) {}
 
     /** Search-policy changes cannot reuse heuristic bounds or move histories
      * from another policy. Do not clear the externally published stop flag.
      */
     void clear() {
-        std::fill(table.begin(), table.end(), Bucket{});
         history_score = {};
         killers = {};
-        generation = 0;
         evaluator.reset();
-        cache_policy_valid = false;
     }
 
     std::int64_t elapsed_ms() const { return elapsed_ns(now_ns(), started_ns) / 1000000; }
@@ -194,7 +219,7 @@ struct Search::Impl {
     double clock_elapsed_ms() const {
         auto from = started_ns;
         if (limits.ponder) {
-            from = ponder_hit_ns.load(std::memory_order_relaxed);
+            from = shared.ponder_hit_ns.load(std::memory_order_relaxed);
             if (from < 0) return -1.0;
         }
         return double(elapsed_ns(now_ns(), from)) / 1000000.0;
@@ -202,8 +227,12 @@ struct Search::Impl {
 
     bool must_stop() {
         if (aborted) return true;
-        if (stopped.load(std::memory_order_relaxed)) stop_reason = StopReason::external_stop;
-        else if (limits.nodes && nodes >= limits.nodes) stop_reason = StopReason::node_limit;
+        if (shared.stopped.load(std::memory_order_relaxed)
+            || shared.leader_finished.load(std::memory_order_relaxed))
+            stop_reason = StopReason::external_stop;
+        else if (limits.nodes && (shared.threads == 1 ? nodes
+            : shared.node_tickets.load(std::memory_order_relaxed)) >= limits.nodes)
+            stop_reason = StopReason::node_limit;
         else if (time.active && clock_elapsed_ms() >= time.hard_ms) stop_reason = StopReason::hard_time;
         else return false;
         aborted = true;
@@ -212,10 +241,37 @@ struct Search::Impl {
 
     bool visit(int ply) {
         if (must_stop()) return false;
+        // Only explicit global node limits pay for a contended atomic per
+        // visit. Each successful ticket represents exactly one visited node.
+        if (shared.threads > 1 && limits.nodes) {
+            auto ticket = shared.node_tickets.load(std::memory_order_relaxed);
+            do {
+                if (ticket >= limits.nodes) {
+                    aborted = true;
+                    stop_reason = StopReason::node_limit;
+                    return false;
+                }
+            } while (!shared.node_tickets.compare_exchange_weak(
+                ticket, ticket + 1, std::memory_order_relaxed));
+        }
         ++nodes;
+        if (shared.threads > 1 && (nodes & 127) == 0) publish_nodes();
         seldepth = std::max(seldepth, ply);
         pv_length[static_cast<std::size_t>(ply)] = ply;
         return true;
+    }
+
+    void publish_nodes() {
+        shared.published[id].value.store(nodes, std::memory_order_relaxed);
+    }
+
+    std::uint64_t total_nodes() const {
+        if (shared.threads == 1) return nodes;
+        auto total = nodes;
+        for (int index = 0; index < shared.threads; ++index)
+            if (std::size_t(index) != id)
+                total += shared.published[std::size_t(index)].value.load(std::memory_order_relaxed);
+        return total;
     }
 
     bool draw(const Position& position) const {
@@ -246,32 +302,38 @@ struct Search::Impl {
      * done only when reporting a completed iteration or terminal root; no
      * counters or table scan are added to the ordinary node-search path.
      */
-    int hashfull() const {
-        const auto sample = std::min(std::size_t{1000}, table.size() * std::size_t{4});
+    int hashfull() {
+        const auto sample = std::min(std::size_t{1000}, shared.table.size() * std::size_t{4});
         std::size_t occupied = 0;
-        for (std::size_t index = 0; index < sample; ++index) {
-            const auto& entry = table[index / 4].entries[index % 4];
-            occupied += entry.bound() != Bound::empty && entry.generation == generation;
+        for (std::size_t index = 0; index < sample; index += 4) {
+            const auto guard = shared.lock_bucket(index / 4);
+            for (std::size_t offset = 0; offset < 4 && index + offset < sample; ++offset) {
+                const auto& entry = shared.table[index / 4].entries[offset];
+                occupied += entry.bound() != Bound::empty && entry.generation == shared.generation;
+            }
         }
         return sample == 0 ? 0 : static_cast<int>(1000 * occupied / sample);
     }
 
-    const Entry* probe(std::uint64_t key) {
+    std::optional<Entry> probe(std::uint64_t key) {
         if (limits.diagnostics) ++cache.probes;
-        const auto& bucket = table[static_cast<std::size_t>(key) & (table.size() - 1)];
-        for (const auto& entry : bucket.entries) {
+        const auto bucket_index = static_cast<std::size_t>(key) & (shared.table.size() - 1);
+        const auto guard = shared.lock_bucket(bucket_index);
+        for (const auto& entry : shared.table[bucket_index].entries) {
             if (entry.bound() != Bound::empty && entry.key == key) {
                 if (limits.diagnostics) ++cache.hits;
-                return &entry;
+                return entry;
             }
         }
-        return nullptr;
+        return std::nullopt;
     }
 
     void save(std::uint64_t key, Move move, int score, int depth, int ply, Bound bound) {
         assert(depth > 0 && depth <= max_ply - 2);
         if (limits.diagnostics) ++cache.stores;
-        auto& entries = table[static_cast<std::size_t>(key) & (table.size() - 1)].entries;
+        const auto bucket_index = static_cast<std::size_t>(key) & (shared.table.size() - 1);
+        const auto guard = shared.lock_bucket(bucket_index);
+        auto& entries = shared.table[bucket_index].entries;
         Entry* victim = &entries.front();
         int lowest_quality = std::numeric_limits<int>::max();
         for (auto& entry : entries) {
@@ -279,7 +341,7 @@ struct Search::Impl {
                 victim = &entry;
                 break;
             }
-            const int age = static_cast<std::uint8_t>(generation - entry.generation);
+            const int age = static_cast<std::uint8_t>(shared.generation - entry.generation);
             const int quality = int(entry.depth) - 8 * age;
             if (quality < lowest_quality) {
                 lowest_quality = quality;
@@ -289,13 +351,13 @@ struct Search::Impl {
         // Keep a deeper exact result while refreshing only its generation.
         if (victim->bound() == Bound::exact && victim->key == key
             && victim->depth > depth && bound != Bound::exact) {
-            victim->generation = generation;
+            victim->generation = shared.generation;
             return;
         }
         if (limits.diagnostics && victim->bound() != Bound::empty && victim->key != key)
             ++cache.replacements;
         *victim = {key, move, static_cast<std::int16_t>(score_to_table(score, ply)),
-                   static_cast<std::uint8_t>(depth), bound, generation};
+                   static_cast<std::uint8_t>(depth), bound, shared.generation};
     }
 
     int ordering_score(const Position& position, Move move, Move tt_move, int ply) const {
@@ -311,6 +373,23 @@ struct Search::Impl {
         if (move == killers[static_cast<std::size_t>(ply)][0]) return 900000;
         if (move == killers[static_cast<std::size_t>(ply)][1]) return 800000;
         return history_score[static_cast<unsigned>(position.turn())][move.from][move.to];
+    }
+
+    /** Helpers vary only equally ranked root moves. TT/capture/promotion and
+     * history priorities stay authoritative; no new selective pruning is used.
+     * Worker zero retains the exact original deterministic tie order.
+     */
+    bool tie_before(Move left, Move right, int ply) const {
+        if (id != 0 && ply == 0) {
+            const auto key = [&](Move move) {
+                return mix(std::uint64_t(move.from) * 64 + move.to + 4096 * id
+                           + 65536 * static_cast<unsigned>(move.promotion));
+            };
+            if (key(left) != key(right)) return key(left) < key(right);
+        }
+        if (left.from != right.from) return left.from < right.from;
+        if (left.to != right.to) return left.to < right.to;
+        return left.promotion < right.promotion;
     }
 
     void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply) {
@@ -332,11 +411,9 @@ struct Search::Impl {
                 }
                 ranked.push_back({move, score});
             }
-            std::sort(ranked.begin(), ranked.end(), [](const RankedMove& left, const RankedMove& right) {
+            std::sort(ranked.begin(), ranked.end(), [&](const RankedMove& left, const RankedMove& right) {
                 if (left.score != right.score) return left.score > right.score;
-                if (left.move.from != right.move.from) return left.move.from < right.move.from;
-                if (left.move.to != right.move.to) return left.move.to < right.move.to;
-                return left.move.promotion < right.move.promotion;
+                return tie_before(left.move, right.move, ply);
             });
             std::transform(ranked.begin(), ranked.end(), moves.begin(),
                            [](const RankedMove& ranked_move) { return ranked_move.move; });
@@ -348,9 +425,7 @@ struct Search::Impl {
             const auto right_score = ordering_score(position, right, tt_move, ply);
             // Tie-breaking makes benchmark searches reproducible across libraries.
             if (left_score != right_score) return left_score > right_score;
-            if (left.from != right.from) return left.from < right.from;
-            if (left.to != right.to) return left.to < right.to;
-            return left.promotion < right.promotion;
+            return tie_before(left, right, ply);
         });
     }
 
@@ -447,7 +522,7 @@ struct Search::Impl {
 
         const auto key = table_key(position, digest);
         Move tt_move;
-        if (const auto* entry = probe(key)) {
+        if (const auto entry = probe(key)) {
             tt_move = entry->move();
             const int score = score_from_table(entry->score, ply);
             if (!pv_node && entry->depth >= depth) {
@@ -547,21 +622,18 @@ struct Search::Impl {
                      const SearchLimits& request, const Reporter& report) {
         if (!network.loaded()) throw std::runtime_error("A compatible NNUE network must be loaded before search");
         // Charge the accepted command's preparation and worker-dispatch delay,
-        // as well as any policy-dependent table clearing below. Without a
-        // caller timestamp, direct API use starts here as before. Clamping a
+        // including policy-dependent clearing already done by the coordinator.
+        // The coordinator supplies one origin for all workers. Clamping a
         // future origin prevents accidental extra budget or negative UCI time.
         const auto entered_at = Clock::now();
         const auto received_at = std::min(request.received_at.value_or(entered_at), entered_at);
         const auto search_started_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
             received_at.time_since_epoch()).count();
-        if (cache_policy_valid
-            && (request.late_move_reductions != limits.late_move_reductions
-                || request.capture_ordering != limits.capture_ordering)) clear();
         limits = request;
-        cache_policy_valid = true;
         time = allocate_time(position, limits);
         started_ns = search_started_ns;
         nodes = 0;
+        completed_depth = 0;
         seldepth = 0;
         aborted = false;
         stop_reason = StopReason::depth_limit;
@@ -573,12 +645,11 @@ struct Search::Impl {
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
             cache.bucket_bytes = sizeof(Bucket);
-            cache.buckets = table.size();
-            cache.capacity = table.size() * std::size_t{4};
-            cache.allocated_bytes = table.capacity() * sizeof(Bucket);
+            cache.buckets = shared.table.size();
+            cache.capacity = shared.table.size() * std::size_t{4};
+            cache.allocated_bytes = shared.table.capacity() * sizeof(Bucket);
         }
         evaluator.reset();
-        ++generation;
         for (auto& side : history_score)
             for (auto& from : side)
                 for (auto& score : from) score /= 2;
@@ -594,7 +665,7 @@ struct Search::Impl {
         // Fixed limits remain authoritative. Ponder searches retain the classic
         // policy even after ponderhit, so uncharged ponder iterations never seed
         // this estimator or consume the newly started clock through prediction.
-        const bool forecast_active = limits.time_policy == TimePolicy::forecast
+        const bool forecast_active = id == 0 && limits.time_policy == TimePolicy::forecast
             && time.active && limits.movetime_ms < 0 && limits.depth == 0
             && limits.nodes == 0 && limits.mate == 0 && !limits.infinite && !limits.ponder;
         const bool measure_iterations = forecast_active || limits.diagnostics;
@@ -605,6 +676,7 @@ struct Search::Impl {
             result.diagnostics->iterations.reserve(max_ply - 2);
         }
         const auto finish = [&]() {
+            publish_nodes();
             result.nodes = nodes;
             result.lmr = lmr;
             result.ordering = ordering;
@@ -687,15 +759,17 @@ struct Search::Impl {
             result.ponder = line.size() > 1 ? line[1] : Move{};
             result.score = score;
             result.depth = depth;
+            completed_depth = depth;
             result.nodes = nodes;
-            if (report) report({depth, seldepth, nodes, elapsed_ms(), score, line, hashfull()});
+            publish_nodes();
+            if (report) report({depth, seldepth, total_nodes(), elapsed_ms(), score, line, hashfull()});
 
             if (limits.mate > 0 && score >= mate_threshold
                 && mate_score - score <= 2LL * limits.mate) {
                 stop_reason = StopReason::mate_limit;
                 break;
             }
-            if (time.active && limits.movetime_ms < 0) {
+            if (id == 0 && time.active && limits.movetime_ms < 0) {
                 target_ms = time_management::iteration_target(
                     time.soft_ms, time.hard_ms, stable_iterations, score_drop);
                 const double charged_ms = clock_elapsed_ms();
@@ -713,10 +787,125 @@ struct Search::Impl {
     }
 };
 
+} // namespace
+
+/** The public Search owns workers and joins every helper on both normal and
+ * exceptional exits. Thread creation and reporter exceptions therefore cannot
+ * leave an evaluator touching weights during a later network reload.
+ */
+struct Search::Impl {
+    const nnue::Network& network;
+    SharedSearch shared;
+    std::vector<std::unique_ptr<SearchWorker>> workers;
+    bool cache_policy_valid = false;
+    bool previous_lmr = false;
+    CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
+
+    explicit Impl(const nnue::Network& weights) : network(weights) {}
+
+    void clear() {
+        std::fill(shared.table.begin(), shared.table.end(), Bucket{});
+        shared.generation = 0;
+        for (auto& worker : workers) worker->clear();
+        cache_policy_valid = false;
+    }
+
+    void set_threads(int count) {
+        if (count < 1 || count > Search::max_threads)
+            throw std::invalid_argument("Threads must be between 1 and 64");
+        if (std::size_t(count) == workers.size()) return;
+        std::vector<std::unique_ptr<SearchWorker>> replacement;
+        replacement.reserve(std::size_t(count));
+        for (int id = 0; id < count; ++id)
+            replacement.push_back(std::make_unique<SearchWorker>(network, shared, std::size_t(id)));
+        workers.swap(replacement);
+        shared.threads = count;
+        clear();
+    }
+
+    SearchResult run(Position position, std::vector<std::uint64_t> history,
+                     const SearchLimits& limits, const Reporter& report) {
+        if (!network.loaded()) throw std::runtime_error("A compatible NNUE network must be loaded before search");
+        auto request = limits;
+        const auto entered_at = Clock::now();
+        request.received_at = std::min(request.received_at.value_or(entered_at), entered_at);
+        if (cache_policy_valid && (request.late_move_reductions != previous_lmr
+            || request.capture_ordering != previous_ordering)) clear();
+        previous_lmr = request.late_move_reductions;
+        previous_ordering = request.capture_ordering;
+        cache_policy_valid = true;
+        ++shared.generation;
+        shared.leader_finished.store(false, std::memory_order_relaxed);
+        shared.node_tickets.store(0, std::memory_order_relaxed);
+        for (auto& counter : shared.published) counter.value.store(0, std::memory_order_relaxed);
+
+        std::vector<std::thread> helpers;
+        helpers.reserve(workers.size() - 1);
+        std::exception_ptr helper_error;
+        std::mutex error_mutex;
+        const auto join = [&]() {
+            shared.leader_finished.store(true, std::memory_order_relaxed);
+            for (auto& helper : helpers) if (helper.joinable()) helper.join();
+        };
+        SearchResult result;
+        try {
+            for (std::size_t id = 1; id < workers.size(); ++id) {
+                helpers.emplace_back([&, id, root = position, game = history]() mutable {
+                    try { (void)workers[id]->run(std::move(root), std::move(game), request, {}); }
+                    catch (...) {
+                        std::lock_guard guard(error_mutex);
+                        if (!helper_error) helper_error = std::current_exception();
+                        shared.leader_finished.store(true, std::memory_order_relaxed);
+                    }
+                });
+            }
+            result = workers.front()->run(std::move(position), std::move(history), request, report);
+        } catch (...) {
+            join();
+            throw;
+        }
+        join();
+        if (helper_error) std::rethrow_exception(helper_error);
+
+        result.smp.threads = shared.threads;
+        result.smp.worker_nodes.reserve(workers.size());
+        result.smp.worker_depths.reserve(workers.size());
+        result.nodes = 0;
+        for (std::size_t id = 0; id < workers.size(); ++id) {
+            const auto& worker = *workers[id];
+            result.smp.worker_nodes.push_back(worker.nodes);
+            result.smp.worker_depths.push_back(worker.completed_depth);
+            result.nodes += worker.nodes;
+            if (id == 0) continue;
+            result.lmr.reductions += worker.lmr.reductions;
+            result.lmr.researches += worker.lmr.researches;
+            result.lmr.fail_lows += worker.lmr.fail_lows;
+            result.lmr.verified_cutoffs += worker.lmr.verified_cutoffs;
+            result.ordering.see_calls += worker.ordering.see_calls;
+            result.ordering.losing_captures += worker.ordering.losing_captures;
+            if (result.diagnostics) {
+                auto& cache = result.diagnostics->cache;
+                cache.probes += worker.cache.probes;
+                cache.hits += worker.cache.hits;
+                cache.cutoffs += worker.cache.cutoffs;
+                cache.stores += worker.cache.stores;
+                cache.replacements += worker.cache.replacements;
+            }
+        }
+        const auto started = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            request.received_at->time_since_epoch()).count();
+        result.time_ms = elapsed_ns(now_ns(), started) / 1000000;
+        result.hashfull = workers.front()->hashfull();
+        if (result.diagnostics)
+            result.diagnostics->elapsed_ms = double(elapsed_ns(now_ns(), started)) / 1000000.0;
+        return result;
+    }
+};
+
 Search::Search(const nnue::Network& network, std::size_t hash_mb, int threads)
     : impl_(std::make_unique<Impl>(network)) {
-    if (threads != 1) throw std::invalid_argument("This baseline currently supports one search thread");
-    impl_->resize(hash_mb);
+    impl_->shared.resize(hash_mb);
+    impl_->set_threads(threads);
 }
 Search::~Search() = default;
 
@@ -725,17 +914,16 @@ SearchResult Search::search(Position position, std::vector<std::uint64_t> histor
     return impl_->run(std::move(position), std::move(history), limits, report);
 }
 void Search::reset_stop() {
-    impl_->stopped.store(false, std::memory_order_relaxed);
-    impl_->ponder_hit_ns.store(-1, std::memory_order_relaxed);
+    impl_->shared.stopped.store(false, std::memory_order_relaxed);
+    impl_->shared.ponder_hit_ns.store(-1, std::memory_order_relaxed);
 }
-void Search::stop() noexcept { impl_->stopped.store(true, std::memory_order_relaxed); }
+void Search::stop() noexcept { impl_->shared.stopped.store(true, std::memory_order_relaxed); }
 void Search::ponderhit() noexcept {
     std::int64_t expected = -1;
-    impl_->ponder_hit_ns.compare_exchange_strong(expected, now_ns(), std::memory_order_relaxed);
+    impl_->shared.ponder_hit_ns.compare_exchange_strong(expected, now_ns(), std::memory_order_relaxed);
 }
-void Search::clear() {
-    impl_->clear();
-}
-void Search::set_hash(std::size_t megabytes) { impl_->resize(megabytes); }
+void Search::clear() { impl_->clear(); }
+void Search::set_hash(std::size_t megabytes) { impl_->shared.resize(megabytes); }
+void Search::set_threads(int threads) { impl_->set_threads(threads); }
 
 } // namespace chess0live
