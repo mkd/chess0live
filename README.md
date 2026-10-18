@@ -2,48 +2,6 @@
 
 An independently written, GPL-3.0-or-later UCI chess engine in C++26.
 
-**Status: 0.1 development baseline.** The long-term objective is decisively
-stronger play than Stockfish 19 on equal desktop hardware. No Elo rating or
-competitive superiority has been established. The current search is an early
-single-worker implementation; strength testing and further optimization remain.
-
-**Search qualification: Phase 2D's initial time-policy and LMR screens are complete.**
-Both passed their independent evidence audits and were inconclusive under their
-predeclared rules. The [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md)
-scored **35W/82D/11L, 76/128 points (59.38%)**, with no operational failures.
-Its conditional 95% paired-score interval is **42.40–76.35%**; the favorable
-point estimate does not qualify LMR for promotion. Classic timing, LMR off,
-and MVV-LVA remain defaults. The frozen GUI test bundle is unchanged.
-
-**Phase 3B is complete:** [batched NNUE accumulator updates](docs/reports/2026-10-16-phase3b-nnue-batching.md)
-improved throughput by **7.8–8.4% in the three declared opening-search runs** on
-the M5 Pro. All 576 benchmark searches preserved exact results; native, scalar,
-sanitizer, and full 2,057-position SF19 oracle checks passed. The optimization is
-retained; search-policy defaults remain unchanged. This is a sampled speed gain,
-not a measured playing-strength gain or a new release.
-**Phase 3C is complete:** [broader validation](docs/reports/2026-10-16-phase3c-gamephases.md)
-confirmed **8.7–8.8% higher throughput on six composed middlegames**, with all
-432 searches across both game phases matching exactly. Endgame qualification
-remains inconclusive: one sparse pawn position was below the fixed timing floor.
-**Phase 3D is complete:** the [baseline-only depth ladder](docs/reports/2026-10-17-phase3d-workload.md)
-proposes depth 12 for that pawn ending, taking about 323–330 ms. All 40 searches
-matched exactly and replayed legally; this phase changed no engine code or defaults.
-**Phase 3E is complete:** the [new six-root endgame comparison](docs/reports/2026-10-17-phase3e-endgames.md)
-qualified the retained optimization at **8.4–8.9% higher sampled throughput**.
-All 216 searches matched exactly and replayed legally. Two individual slowdowns
-and timing drift are preserved in the report; no Elo gain or engine change is
-claimed. Phase 3C's original decision remains unchanged.
-**Phase 3F is complete:** [four-output NNUE inference](docs/reports/2026-10-17-phase3f-dense.md)
-improved sampled throughput over the retained Phase 3B engine by **19.6% in
-openings, 19.7–21.4% in middlegames, and 32.4–39.5% in endgames**. All 576
-searches matched exactly; native/scalar/sanitizer and the full SF19 oracle passed.
-All declared gates passed. Four individual slowdowns and substantial absolute-time
-drift remain documented; these measurements establish no Elo gain. The change is
-retained, and an optional [new GUI test bundle](docs/MANUAL_TESTING.md#optional-phase-3f-test-copy) is available.
-**Next proposed: Phase 3G — prepare fresh blitz strength qualification for the
-existing LMR experiment on the updated engine.** Follow the
-[development plan](docs/ROADMAP.md). No job or automatic schedule is active.
-
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
 ## Build and run
@@ -169,10 +127,11 @@ Python dependency to the engine itself.
 The [fixed Phase 2D workflow](docs/PHASE_2D.md) adds pinned preflight, a wall-clock
 cutoff, and an independent evidence audit; `make test-qualification` checks it.
 The [LMR protocol](docs/PHASE_2D_LMR.md) uses the same lifecycle with independently
-pinned audit expectations. `python3 tools/qualify_lmr.py check` performs readiness
-checks without searching; `run --output NEW_DIRECTORY` starts the fixed sample
-within the normal overnight window. The completed time-policy daytime exception
-does not authorize a daytime LMR run.
+pinned audit expectations. Both historical Phase 2D campaigns are complete;
+do not rerun them as fresh validation. The new [Phase 3G plan](docs/PHASE_3G.md)
+prepares a separate comparison on the current engine with original fresh roots.
+Its manual launch window is 23:00–23:15 Helsinki, after GUI games have stopped,
+with a shared 07:00 cutoff. Preparing the tools creates no scheduled job.
 
 For changes intended to preserve search behavior, use the
 [performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline

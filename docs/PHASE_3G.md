@@ -1,6 +1,8 @@
 # Phase 3G: fresh LMR blitz screen preparation
 
-Status: preparation in progress on October 18, 2026. No campaign has started.
+Status: preparation complete on October 18, 2026. No campaign has started.
+The protocol and original suites were recorded in `c177804` before any games;
+this status update changes no sample, setting, or decision rule.
 Protocol identifier: `phase3g-lmr-512-v1`. Preparation is this roadmap checkpoint;
 running and auditing the fixed sample is the next checkpoint. No automatic
 schedule, search-policy change, release, or strength improvement is implied.

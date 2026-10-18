@@ -38,6 +38,9 @@ release numbers; detailed measurements live in the linked experiment records.
 - Added correctness and sanitizer checks, independent legal-move verification,
   reproducible benchmarks, and paired-opening matches with saved PGNs, clocks,
   options, artifact hashes, and independent result audits.
+- Added coordinated overnight match testing with a shared resource budget,
+  cutoff, and independent whole-campaign audit. Fixed cancellation during engine
+  shutdown so a stopped test cannot silently begin another game.
 - Added GPL-3.0-or-later licensing, architecture and handover documentation,
   a development roadmap, and local resource controls with manual overrides.
 
@@ -50,6 +53,9 @@ release numbers; detailed measurements live in the linked experiment records.
   and [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md). Both passed
   their operational audits but were inconclusive under their predeclared rules.
   SEE also remains experimental; its small development match does not qualify it.
+- Prepared a [fresh 512-game LMR comparison](docs/PHASE_3G.md) on the retained
+  Phase 3F engine, with 256 original opening pairs and fixed decision rules.
+  The campaign has not run; this preparation establishes no strength gain.
 - Preserved rejected and inconclusive work, including the discarded NNUE
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).

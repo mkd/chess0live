@@ -50,7 +50,7 @@ This bundle passed a command-line handshake and depth-5 search from an unrelated
 temporary working directory with its default adjacent network. All reported PVs,
 bestmove, and ponder replayed legally. The record is
 `results/phase3f-20261017/gui-bundle-smoke.json`. **Cute Chess GUI testing of this
-new bundle has not yet been performed.** A few optional 3+2 games can check its
+new bundle has not yet been reported.** A few optional 3+2 games can check its
 integration; they are not required to continue development.
 
 Phase 3F improves measured local search throughput while preserving exact
@@ -72,9 +72,17 @@ Elo gain. See the [Phase 3F report](reports/2026-10-17-phase3f-dense.md).
    **Ponder = false**, and **Move Overhead = 20 ms** initially. Leave `EvalFile`
    at `nn-1a298aa575a0.nnue`; the copied network is beside the executable.
    For the Phase 3F bundle, keep **Time Policy = classic**, **Late Move
-   Reductions = false**, and **Capture Ordering = mvv-lva** at their defaults.
+   Reductions = false**, **Capture Ordering = mvv-lva**, and **Search
+   Diagnostics = false** at their defaults.
 5. Save the configuration and select this named engine for a normal standard
    chess game. A few 3+2 games are a useful first manual check.
+
+For the owner's current Phase 3F check, play two **3+2** games against Gargantua,
+reversing colors. Give both engines Threads 1, Hash 64 MB, and Ponder false.
+Save the PGNs and label feedback **`0.1-dev-phase3f-20261017`**. This is an
+integration check, not a strength estimate. Phase 3G tool preparation can proceed
+alongside these games; its controlled overnight match must wait until GUI games
+and other heavy work have stopped. The GUI copy keeps LMR off.
 
 The original `0.1-dev-4b8b35d` bundle passed a UCI handshake, evaluation, and legal
 search when launched from an unrelated directory, proving it finds its adjacent

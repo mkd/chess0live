@@ -135,6 +135,28 @@ and pair statistics. It applies the predeclared decision without changing engine
 defaults. `make test-qualification` tests both tools using bounded synthetic and
 fake-process fixtures. See the campaign protocol for exact commands and limits.
 
+### Fresh Phase 3G screen
+
+Both Phase 2D campaigns are completed, exposed evidence. The new
+[Phase 3G protocol](PHASE_3G.md) prepares 256 fresh opening pairs / 512 games
+using the retained Phase 3F executable in both roles, changing only LMR.
+`tools/qualify_phase3g.py check` validates inputs and UCI readiness without
+searching an opening. `run --output NEW_DIRECTORY` starts four coordinated
+match workers only during 23:00–23:15 Helsinki, retaining one 07:00 cutoff.
+Do not run it alongside the owner's Cute Chess games or other heavy work.
+
+Aggregate resource checks count four active searches and eight resident engines.
+Insufficient resources, invalid games, interruption, input drift, or missed
+monitoring cancel all workers and await engine cleanup. Valid clock forfeits
+remain scored. Historical single-worker commands keep their existing behavior.
+
+`tools/audit_phase3g.py` checks the entire master and all four raw campaigns,
+then recomputes one pair-level decision. Individual shards do not qualify a
+candidate. Preparation launches no campaign or schedule; no resumed run,
+replacement game, or automatic default promotion is supported. Use
+`make test-phase3g` for the opening, lifecycle, and aggregate-auditor tests;
+`make test-qualification` also includes the historical qualification checks.
+
 ### General baseline guidance
 
 Preserve a known binary outside the rebuild directory, together with its source

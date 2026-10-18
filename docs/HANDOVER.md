@@ -263,15 +263,34 @@ The qualified candidate, normal native executable, and optional
 `edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b`.
 The original `0.1-dev-4b8b35d` remains intact. The new bundle passed CLI startup,
 adjacent-network discovery and legal depth-5 search from an unrelated directory;
-Cute Chess testing is optional and not yet performed. The normal executable was
+Cute Chess testing is optional; no Phase 3F GUI result has been reported yet. The normal executable was
 intentionally promoted **after** the passing audit; the frozen manifest records
 its old hash. Those old bytes remain at the retained Phase 3B path. Use the final
 integrity record to distinguish promotion from unexplained artifact drift.
 
-**Next proposed: Phase 3G — fresh LMR blitz qualification preparation.** Freeze
-builds, original opening pairs, statistical gates and an overnight resource plan
-before matches. Do not reuse/extend the exposed Phase 2D sample. No Phase 3G job
-or automatic schedule exists; LMR remains off until strength qualification.
+**Phase 3G preparation is complete and tested.** The [fixed plan](PHASE_3G.md) compares
+LMR on/off using the same qualified Phase 3F executable on 256 fresh opening
+pairs / 512 games at 60+0.6. Four concurrent match workers require aggregate
+accounting for four active searches and eight resident engines. Launch manually
+23:00–23:15 Helsinki; one common 07:00 cutoff survives preflight and worker starts.
+Invalid games, insufficient resources, interruption, and artifact drift cancel
+all workers and await cleanup. Clock forfeits remain scored outcomes.
+
+The original 32 stems and deterministic legal continuations are not evaluated
+for balance; related roots and common-host load limit statistical assumptions.
+All 256 pairs must pass the independent aggregate audit. Its conditional 95%
+half-width is 8.488 percentage points: at least 299.5/512 points is only eligible
+for fresh confirmation, never automatic promotion; at most 212.5 is negative.
+Candidate clock forfeits take precedence. Do not resume, replace, or selectively
+extend a sample, and do not pool the exposed Phase 2D result. No Phase 3G strength
+game or schedule exists. The owner is testing the separate Phase 3F GUI bundle;
+do not start controlled matches while those games are running. LMR remains off.
+`tools/qualify_phase3g.py` supervises the run; `tools/audit_phase3g.py` checks all
+four raw campaigns and one pooled decision. `make test-phase3g` checks the new
+tools, while `make test-qualification test-match` includes historical regressions.
+The protocol/suite preparation commit is `c177804`; tools and lifecycle fixes
+are committed as `ff478a7`. See [validation](VALIDATION.md)
+for the distinction between synthetic lifecycle evidence and actual readiness.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 

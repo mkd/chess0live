@@ -490,6 +490,56 @@ was promoted after the successful audit and is byte-identical to the qualified
 candidate; `final-integrity.json` explicitly records that one intentional change.
 The optional new GUI snapshot passed a CLI smoke, not a Cute Chess GUI test.
 
+## Phase 3G qualification preparation — October 18, 2026
+
+The [fixed protocol](PHASE_3G.md) and original opening assets were committed as
+`c177804` before any games. The legal-move-only generator reproduces all four
+shards and metadata byte-for-byte: **256 distinct full histories**, 64 per
+shard, 128 roots per side to move, disjoint from all 132 earlier opening and
+performance roots. No continuation was rejected during generation; no engine
+evaluation or outcome selected these unevaluated positions.
+The tested supervisor, auditor, and lifecycle fixes are recorded in `ff478a7`.
+
+The latest relevant suites pass **172 tests**: 15 opening-generation tests,
+24 supervisor/lifecycle tests, 33 aggregate/raw-auditor tests, and 100 historical
+match/statistics/qualification tests. Reproduce with
+`make PYTHON=python3 test-match test-qualification`. The combined run included
+23 launcher cases; the final additional shutdown-cancellation case and all
+24 launcher cases passed after that launcher-only fix.
+
+Lifecycle checks use fake UCI processes and synthetic tasks. They verify four
+concurrent workers, aggregate CPU/memory rejection and owner-policy changes,
+the common cutoff and DST handling, missed monitoring, input drift, invalid
+games/stderr, valid scored clock forfeits, and cancellation during shutdown.
+Eight real **fake-UCI** subprocesses were checked for disappearance after
+repeated SIGINT/SIGTERM, including unresponsive quit. Cancellation now finishes
+both engines' cleanup and evidence persistence before propagating; a stopped
+worker cannot silently admit the next game. Whole-supervisor finalization is
+protected against a first signal arriving during an existing failure cleanup.
+
+The auditor's 28 aggregate tests use synthetic 512-record campaigns with mocked
+child audit results. Five separate tests exercise the actual inherited raw
+PGN/UCI verifier on 128-game synthetic fixtures, including transcript, PGN,
+clock, stderr, and partial-run corruption. Threshold subcases cover 299/299.5
+and 212.5/213 points. Master tests cover shard identity, full histories/colors,
+all 512 resource admissions, periodic gaps, preflight searches, source/pin
+drift, incomplete evidence, and refusal to overwrite. Independent code review
+found and resolved lifecycle and resource-timestamp issues before completion.
+
+A real **readiness-only** check passed on the pinned Phase 3F executable for
+both LMR roles, with zero `position` or `go` commands. The record is
+`results/phase3g-preparation-20261018/preflight.json`; its two UCI transcripts
+also passed the independent auditor's preflight checks. All four child profiles
+match the launcher/auditor pins and current source snapshots. Aggregate engine
+memory reservation is about **4.44 GiB**, an estimate rather than an OS limit.
+
+No actual Phase 3G strength game, reserved-position search, performance run,
+or C++ rebuild was performed. Both GUI snapshots and the normal executable
+remain unchanged. The real four-worker overnight campaign is **not yet run**;
+synthetic lifecycle tests and readiness do not establish its completion,
+playing strength, or foreign-platform execution. LMR remains off, and no
+automatic schedule or new release exists.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;
