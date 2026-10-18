@@ -25,6 +25,17 @@ move history. The files and their selection are GPL-3.0-or-later, copyright
   coverage was chosen before engine evaluation or timing; metadata records
   selection reasons and composition limits. Keep them separate from strength
   validation and report every root in the frozen performance comparison.
+- `openings-phase3g-{1,2,3,4}.json`: four 64-root execution shards for the
+  [fresh Phase 3G LMR screen](../../docs/PHASE_3G.md). The original 32 stems
+  each supply eight deterministic, uniformly sampled legal continuations;
+  no engine evaluation, balance filter, or game result selects them. All 256
+  full histories end at 19 or 20 plies and are disjoint from the 132 earlier
+  opening/performance roots. They remain unsearched during preparation.
+  `openings-phase3g-generation.json` records the fixed algorithm, all stems,
+  excluded-suite hashes, and rejection history. Reproduce bytes with
+  `python3 tools/generate_phase3g_openings.py --check`; the command uses only
+  the pinned legal-move referee. Related stems and unevaluated random tails
+  limit independence and representativeness; four shards are one experiment.
 
 The split is by selected line, not by opening family or statistical independence.
 These small suites are starting fixtures, not a representative sample of all
