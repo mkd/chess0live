@@ -1,6 +1,6 @@
 # Phase 3F: profile the retained engine and test one NNUE improvement
 
-Status: profiling audited; implementation hypothesis frozen below. This phase profiles the retained Phase 3B engine
+Status: complete and retained; all frozen correctness and performance gates passed. This phase profiles the retained Phase 3B engine
 across existing game phases, fixes one implementation hypothesis from the
 findings, and accepts it only with exact correctness and measured performance.
 No search policy, network architecture, or strength claim changes here.
@@ -190,3 +190,16 @@ calls, and input/model immutability. Integrate it into the standard NNUE target
 for native, forced-scalar, and sanitizer builds; do not compare only two shared
 production paths. The previously fixed correctness, full SF19 oracle, and all
 three game-phase performance gates remain unchanged.
+
+## Completed checkpoint
+
+Implementation `500b022` passed the independent arithmetic, full engine, and
+2,057-position stage oracle checks. All 576 timing searches matched exactly and
+replayed legally. Every phase passed its control, duration, pooled-root, and
+both-round improvement gates. The [result report](reports/2026-10-17-phase3f-dense.md)
+contains complete root/order/drift tables and all four individual slowdowns.
+Opening gains were 19.6%, middlegame 19.7–21.4%, and endgame 32.4–39.5% relative
+to retained Phase 3B. Significant absolute-time drift limits generalization.
+No Elo, new release, scalar/foreign-platform speed, or search-default change is
+claimed. Preserve the original protocol snapshots and raw evidence; no campaign
+was repeated or selectively extended. All jobs ended; publishing remains manual.

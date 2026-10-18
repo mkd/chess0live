@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3F — profiling preparation
+## Current checkpoint: Phase 3F complete and retained; Phase 3G proposed
 
 The October 14 Cute Chess feedback confirms useful initial GUI integration and
 exposes expensive opening iterations and severe subsequent time pressure.
@@ -22,7 +22,8 @@ The [game review](reports/2026-10-14-cutechess.md) records the evidence and limi
 | 3C | Validate the retained speedup across middlegames and endgames | Complete: middlegames qualified; endgames inconclusive under the duration floor |
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
 | 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
-| 3F | Profile the updated engine and implement one justified NNUE improvement | Active: profiles audited; four-output NNUE calculation hypothesis frozen before implementation |
+| 3F | Profile the updated engine and implement one justified NNUE improvement | Complete and retained: all 576 searches exact/legal; all three game-phase performance gates passed |
+| 3G | Prepare fresh blitz strength qualification for the existing LMR experiment on the updated engine | Proposed next: freeze opponent/builds, fresh opening pairs, resource plan, and decision rules before any match |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -129,19 +130,27 @@ worker under the ordinary daytime budget. Two individual candidate slowdowns,
 control outliers, and upward absolute-time drift remain in the report. No old
 timings were pooled; Phase 3C's earlier decision remains unchanged.
 
-**Next checkpoint: Phase 3F — the next measured NNUE bottleneck.** Profile the
-retained updated engine on opening, middlegame, and endgame workloads, then
-freeze and implement one isolated improvement if the measurements justify it.
-Require independent correctness/oracle checks, exact search agreement, and
-predeclared performance gates before retention. The [Phase 3F protocol](PHASE_3F.md) fixes all inputs, correctness checks, and
-performance gates before profiling. Profiling preparation is active.
-Clock-managed strength, parallel search, broader runtime validation, and release
-acceptance remain separate work.
+**Phase 3F is complete and retained.** The [report](reports/2026-10-17-phase3f-dense.md)
+records fresh all-phase profiles, a committed isolated dense-kernel hypothesis,
+and independent arithmetic/native/scalar/sanitizer/full-oracle checks. Four
+outputs now share each activation vector in the NEON multi-output layers. All
+576 performance searches matched exactly and replayed legally; every gate passed.
+Paired throughput gains versus retained Phase 3B were **19.6% opening,
+19.7–21.4% middlegame, and 32.4–39.5% endgame**. Four slowdowns and substantial
+absolute-time drift remain included. No rating, release, or search-default change.
+
+**Next proposed checkpoint: Phase 3G — return to measured playing strength.**
+Prepare a fresh controlled blitz qualification plan for the existing LMR
+experiment using the updated engine on both sides. Freeze builds, original
+opening pairs, statistical decision rules, and a feasible local overnight
+resource plan before launching any match. Prior Phase 2D samples are exposed
+and must not be extended opportunistically. Phase 3G has not started.
+Parallel search, broader runtime validation, and release acceptance remain open.
 
 Further LMR, forecast, and SEE strength
 qualification remains deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. All Phase 3E jobs have ended; no automatic schedule is active.
+inputs and rules. All Phase 3F jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long

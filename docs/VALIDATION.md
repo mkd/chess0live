@@ -460,6 +460,36 @@ All jobs ended; no schedule is active. Raw evidence is
 `0.1-dev-4b8b35d` are unchanged. Phase 3C's original endgame/combined decisions
 remain inconclusive; this result establishes no new release or platform runtime.
 
+## Phase 3F dense inference — October 17, 2026
+
+The [fixed protocol](PHASE_3F.md) and [full report](reports/2026-10-17-phase3f-dense.md)
+record the retained four-output NEON kernel. Native, forced-scalar and ASan/UBSan
+full suites passed, each including **1,515 independent dense cases / 84,126 output
+comparisons**, **360 update transitions**, and **537 incremental positions**.
+The fresh isolated SF19 oracle matched all **2,057 positions**, every integer
+stage and raw/wrapped score, retaining the earlier corpus and output digests.
+Scalar inference and the singleton-output path remain unchanged.
+
+The 96 release/symbol searches and 72 profile searches passed independent exact
+and legal checks. Two independent raw-stack aggregations agreed. The fixed
+nighttime performance campaign completed all **576 searches** in 746.807169
+seconds with one active worker: **3,552 legal PV lines / 15,840 plies**, plus
+576 bestmoves/ponders. Every root signature matched across roles/repetitions.
+All 55 frozen inputs, settings, orders, resources, and lifecycle checks passed.
+The control, duration, pooled-root, and both-round improvement gates passed in
+all three phases. Opening ratios were **1.196321/1.195963**, middlegame
+**1.196515/1.213653**, endgame **1.324133/1.394803**, versus retained Phase 3B.
+
+All four individual slowdowns, substantial absolute-time drift, and candidate
+endgame dispersion remain included. These observations limit generalization;
+no Elo, scalar speed, foreign-platform execution, or release claim follows.
+The recorder's 21 mock tests, launcher's 23 cases, and auditor's 52 checks passed.
+No failed audit attempt or repeated measurement campaign occurred. Original GUI
+`0.1-dev-4b8b35d` and all old frozen binaries remain intact. Normal native output
+was promoted after the successful audit and is byte-identical to the qualified
+candidate; `final-integrity.json` explicitly records that one intentional change.
+The optional new GUI snapshot passed a CLI smoke, not a Cute Chess GUI test.
+
 ## Release gates
 
 1. **Position correctness:** standard perft vectors and divide diagnostics;

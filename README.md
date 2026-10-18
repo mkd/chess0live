@@ -33,10 +33,16 @@ qualified the retained optimization at **8.4–8.9% higher sampled throughput**.
 All 216 searches matched exactly and replayed legally. Two individual slowdowns
 and timing drift are preserved in the report; no Elo gain or engine change is
 claimed. Phase 3C's original decision remains unchanged.
-**Active: Phase 3F — profile the updated engine and pursue one isolated NNUE
-improvement.** The [fixed protocol](docs/PHASE_3F.md) covers all three game phases,
-with correctness and performance gates before retention.
-Follow the [development plan](docs/ROADMAP.md). No automatic schedule is active.
+**Phase 3F is complete:** [four-output NNUE inference](docs/reports/2026-10-17-phase3f-dense.md)
+improved sampled throughput over the retained Phase 3B engine by **19.6% in
+openings, 19.7–21.4% in middlegames, and 32.4–39.5% in endgames**. All 576
+searches matched exactly; native/scalar/sanitizer and the full SF19 oracle passed.
+All declared gates passed. Four individual slowdowns and substantial absolute-time
+drift remain documented; these measurements establish no Elo gain. The change is
+retained, and an optional [new GUI test bundle](docs/MANUAL_TESTING.md#optional-phase-3f-test-copy) is available.
+**Next proposed: Phase 3G — prepare fresh blitz strength qualification for the
+existing LMR experiment on the updated engine.** Follow the
+[development plan](docs/ROADMAP.md). No job or automatic schedule is active.
 
 Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 

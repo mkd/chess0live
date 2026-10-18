@@ -1,4 +1,4 @@
-# Test the stable baseline in Cute Chess
+# Test chess0live in Cute Chess
 
 Manual testing and engine development can proceed together. Your GUI feedback
 helps find integration problems; automated correctness and controlled match
@@ -30,23 +30,55 @@ The executable SHA-256 is
 `5e2650fa3d9ff18ba836580bef942dec9223105e584da6853c3e0a81edc5330c`.
 Its network SHA-256 is recorded in [NNUE](NNUE.md) and the bundle manifest.
 
+## Optional Phase 3F test copy
+
+The retained October 17, 2026 implementation (`500b022`) has a separate local
+bundle, **`0.1-dev-phase3f-20261017`**, at:
+
+```text
+build/test-baselines/0.1-dev-phase3f-20261017/
+```
+
+It contains the macOS ARM64 executable, copied pinned network, license, and
+manifest. The executable SHA-256 is
+`edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b`.
+The original `0.1-dev-4b8b35d` bundle is preserved; register this one as a separate
+Cute Chess engine named **chess0live 0.1-dev Phase 3F** so feedback identifies the
+tested executable. Both still report the development version over UCI.
+
+This bundle passed a command-line handshake and depth-5 search from an unrelated
+temporary working directory with its default adjacent network. All reported PVs,
+bestmove, and ponder replayed legally. The record is
+`results/phase3f-20261017/gui-bundle-smoke.json`. **Cute Chess GUI testing of this
+new bundle has not yet been performed.** A few optional 3+2 games can check its
+integration; they are not required to continue development.
+
+Phase 3F improves measured local search throughput while preserving exact
+evaluation and search results in the fixed comparisons; it establishes no
+Elo gain. See the [Phase 3F report](reports/2026-10-17-phase3f-dense.md).
+
 ## Cute Chess setup
 
 1. Open Cute Chess's **Settings/Preferences**, select **Engines**, and add an
    engine with the **+** button. Depending on platform/version, Settings is in
    the Tools menu or the macOS application menu.
-2. Name it **chess0live 0.1-dev 4b8b35d**, select the **uci** protocol, and use
-   **Browse** beside Command to choose `chess0live` in the stable folder above.
+2. Choose the snapshot above and use its distinct engine name: **chess0live
+   0.1-dev 4b8b35d** or **chess0live 0.1-dev Phase 3F**. Select the **uci** protocol
+   and use **Browse** beside Command to choose `chess0live` in that snapshot's
+   folder.
 3. Set **Working Directory** to that same folder. Browse normally fills this
    automatically and handles spaces in the path; no launch arguments are needed.
 4. In the engine options, use **Threads = 1**, **Hash = 64 MB**,
    **Ponder = false**, and **Move Overhead = 20 ms** initially. Leave `EvalFile`
    at `nn-1a298aa575a0.nnue`; the copied network is beside the executable.
+   For the Phase 3F bundle, keep **Time Policy = classic**, **Late Move
+   Reductions = false**, and **Capture Ordering = mvv-lva** at their defaults.
 5. Save the configuration and select this named engine for a normal standard
    chess game. A few 3+2 games are a useful first manual check.
 
-The bundle passed a UCI handshake, evaluation, and legal search when launched
-from an unrelated directory, proving it finds its adjacent network. Cute Chess
+The original `0.1-dev-4b8b35d` bundle passed a UCI handshake, evaluation, and legal
+search when launched from an unrelated directory, proving it finds its adjacent
+network. Cute Chess
 GUI behavior received its first owner confirmation in two games on October 14;
 see the [replayed games and findings](reports/2026-10-14-cutechess.md). This is
 initial integration feedback, not exhaustive GUI validation. Setup fields and
@@ -63,8 +95,8 @@ exploratory owner observations, not a controlled score, rating, or equivalence
 claim. Game counts, PGNs, exact engine revisions, hardware, clocks, and options
 were not supplied with this update.
 
-The preserved GUI bundle remains `0.1-dev-4b8b35d`; the new feedback did not
-identify whether that bundle or a newer development executable was tested.
+The feedback did not identify whether the original preserved GUI bundle
+`0.1-dev-4b8b35d` or a newer development executable was tested.
 Do not silently attach these observations to a specific binary. Reported depth
 alone is not a common work/strength scale across different selective searches;
 the current chess0live default still has LMR disabled. No opponent source or
@@ -85,5 +117,5 @@ control, engine settings, PGN or starting FEN plus moves, and the exact steps to
 reproduce it. Include any GUI engine error text or protocol log if available.
 Do not spend time running a large tournament just to unblock development.
 
-This baseline is playable and single-threaded, with no established rating. It
-is a test snapshot rather than a released or competitive-strength milestone.
+Both snapshots are playable and single-threaded, with no established rating.
+Neither represents a release or a competitive-strength milestone.

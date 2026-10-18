@@ -19,6 +19,11 @@ release numbers; detailed measurements live in the linked experiment records.
   7.8–8.4% in opening tests, 8.7–8.8% in composed middlegames, and 8.4–8.9%
   in the revised composed endgame test. Exact evaluation/search checks passed;
   measured playing-strength improvement remains open.
+- Improved ARM64 neural-network inference by sharing inputs across four outputs.
+  The fixed M5 Pro screen measured 19.6% higher opening throughput, 19.7–21.4%
+  in middlegames, and 32.4–39.5% in endgames over the previous retained engine.
+  Exact results and all gates passed; timing variation and four individual
+  slowdowns remain recorded. This is not a measured playing-strength gain.
 - Added Cute Chess setup instructions and preserved a separate GUI test bundle
   so development rebuilds do not replace the owner's test executable.
 
@@ -28,6 +33,8 @@ release numbers; detailed measurements live in the linked experiment records.
   configuration-aware rebuilds, and reliable default-network discovery.
   Native macOS ARM64 execution and foreign cross-build evidence are documented
   separately; not every intended target has been run.
+- Added independent dense-network arithmetic checks for extreme values and all
+  input/output lanes, plus a separate Phase 3F Cute Chess test bundle.
 - Added correctness and sanitizer checks, independent legal-move verification,
   reproducible benchmarks, and paired-opening matches with saved PGNs, clocks,
   options, artifact hashes, and independent result audits.

@@ -71,6 +71,17 @@ only after they pass the same integer-stage and search-strength tests.
 On AArch64 with NEON available, independently written vector kernels accelerate
 accumulator updates and affine dot products. Other targets use the portable
 scalar implementation. Both preserve quantized lane arithmetic explicitly.
+The retained Phase 3F dense kernel processes four output rows together in the
+`1024→32` and `64→32` layers, reusing each 16-byte activation load across four
+independent sums. Weights remain row-major. Product sums fit int32 under the
+activation/weight bounds; adding the bias uses int64 before the final modulo
+conversion. The scalar kernel and `128→1` output path are unchanged.
+The [Phase 3F result](reports/2026-10-17-phase3f-dense.md) records measured
+throughput gains over the retained Phase 3B engine of about 19.6% for openings,
+19.7–21.4% for middlegames, and 32.4–39.5% for endgames on the fixed M5 Pro sample.
+These are local performance observations, not Elo gains or promises for every
+position or platform.
+
 Force the scalar backend with:
 
 ```sh
@@ -192,6 +203,14 @@ extreme modular lane values. This reference never calls the production batch
 kernel: both ordinary incremental and full-refresh evaluation do, so their
 agreement alone cannot exclude a shared arithmetic error.
 
+The same target also runs the independent dense-layer int64 arithmetic oracle
+in `tests/nnue_dense_test.cpp`: **1,515 cases / 84,126 repeated-call output
+comparisons** across all three layer shapes. It covers every input lane and
+output row, maximum products, extreme biases and modulo wraparound, cancellation,
+mixed edges, deterministic random values, and input/model immutability. It does
+not share the production vector grouping or call another production kernel as
+its expected-result calculation.
+
 ## Recorded validation: 2026-10-13
 
 On macOS ARM64, Apple Clang 21.0.0, the reproducible harness passed **2,057
@@ -217,6 +236,16 @@ stage/raw digests for native and scalar builds. New evidence is in
 `build/nnue-oracle-phase3b-20261016/`; the original directory is preserved.
 The full native/scalar/sanitizer engine suites also passed, including the new
 independent arithmetic checks. No foreign-platform throughput is inferred.
+
+The Phase 3F rerun on October 17 again passed the unchanged 2,057-position corpus
+for native and scalar builds, with identical corpus, full integer-stage, and
+raw/wrapped output digests shown above. Evidence is in
+`build/nnue-oracle-phase3f-20261017/`. Native, forced-scalar, and ASan/UBSan engine
+suites passed, including all 1,515 dense cases / 84,126 output comparisons per
+build, the 360 update transitions, and the existing incremental checks. The
+[Phase 3F report](reports/2026-10-17-phase3f-dense.md) records complete validation
+and the separate performance decision; no additional platform execution is
+claimed.
 
 ## Extending the evaluator
 

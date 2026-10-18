@@ -178,7 +178,8 @@ above the 1.03 gate; all 24 pooled root/depth medians passed the 0.98 guard.
 This establishes a sampled opening-search speedup on the M5 Pro, not Elo.
 Keep `results/phase3b-20261016/`, all three candidate build configurations in
 `build/experiments/phase3b-20261016/`, and `build/nnue-oracle-phase3b-20261016/`.
-The normal native executable is byte-identical to the tested candidate:
+At the Phase 3B checkpoint, the normal native executable was byte-identical
+to that tested candidate:
 `2b780105e53033d8070b280d43a37b7f4e474471896611c512cff8863f1879ae`.
 
 **Phase 3C is complete with a mixed qualification outcome.** The
@@ -233,14 +234,44 @@ schedule is active. Production code, defaults, normal and frozen binaries are
 unchanged. Phase 3C's original decision remains inconclusive; no old data was
 pooled into 3E, and this completed campaign must not be extended selectively.
 
-**Active checkpoint: Phase 3F — profile and improve one NNUE bottleneck.** Profile
-the retained updated engine across game phases before choosing the next isolated
-implementation hypothesis. Freeze its scope, preserve exact semantics, run
-independent correctness/oracle checks, and apply predeclared performance gates.
-The 96 equivalence and 72 profile searches passed independent audits. The
-four-output dense-kernel hypothesis is frozen; implementation and qualification
-are next. Parallel search and clock-managed
-strength qualification remain later work.
+**Phase 3F is complete and retained.** Read the [fixed protocol](PHASE_3F.md)
+and [result](reports/2026-10-17-phase3f-dense.md). Preparation `dd3d269` and
+hypothesis `876511b` preceded implementation `500b022`. The NEON dense kernel
+shares each activation across four output rows; scalar/singleton paths, feature
+math, state updates, and search/defaults are unchanged. All native/scalar/sanitizer
+suites passed (1,515 dense cases / 84,126 output comparisons, 360 update transitions,
+537 incremental positions per backend); the 2,057-position SF19 oracle retained
+all corpus/stage/raw digests. The 96 equivalence and 72 profile searches passed
+independent audits and two raw-stack aggregations agreed.
+
+All 576 timing searches matched exactly and replayed legally (3,552 PV lines /
+15,840 plies). Control and both candidate rounds passed every phase gate; ratios
+were opening **1.196321/1.195963**, middlegame **1.196515/1.213653**, and endgame
+**1.324133/1.394803**. Four individual slowdowns, order effects, and substantial
+absolute-time drift remain recorded. This finite engineering screen establishes
+sampled throughput, not Elo. The campaign ran 23:16:49–23:29:15 Helsinki on
+October 17, 746.807169 seconds, one active worker under the normal night budget.
+
+Preserve `results/phase3f-20261017/`, especially both protocol snapshots, all
+manifests/raw logs/samples, `timing-audit.json`, `final-integrity.json`, auditor
+scripts/checks, candidate patch and full tables. There were no failed audits;
+21 recorder tests, 23 launcher mock cases and 52 auditor checks passed. Setup-only
+fixes are documented. Timing evidence must not be repeated selectively.
+
+The qualified candidate, normal native executable, and optional
+`0.1-dev-phase3f-20261017` GUI bundle share SHA-256
+`edcfa5d37603983d0effeb8eac023f216bc2cd6d055f0608f0df70b5c017523b`.
+The original `0.1-dev-4b8b35d` remains intact. The new bundle passed CLI startup,
+adjacent-network discovery and legal depth-5 search from an unrelated directory;
+Cute Chess testing is optional and not yet performed. The normal executable was
+intentionally promoted **after** the passing audit; the frozen manifest records
+its old hash. Those old bytes remain at the retained Phase 3B path. Use the final
+integrity record to distinguish promotion from unexplained artifact drift.
+
+**Next proposed: Phase 3G — fresh LMR blitz qualification preparation.** Freeze
+builds, original opening pairs, statistical gates and an overnight resource plan
+before matches. Do not reuse/extend the exposed Phase 2D sample. No Phase 3G job
+or automatic schedule exists; LMR remains off until strength qualification.
 Quiescence legal generation still protects stalemate/checkmate precedence and
 is outside this optimization. No new search-policy default was promoted.
 
@@ -268,12 +299,3 @@ large networks, external oracle source, and raw match output out of Git. Record
 what actually ran and what did not. Update these documents when APIs, commands,
 test evidence, or limitations change. Make a small local commit on main and leave
 GitHub pushes to the owner. Do not amend unrelated commits or rewrite history.
-
-## Phase 3F preparation
-
-The [fixed protocol](PHASE_3F.md) is active: profile the retained engine across
-opening, middlegame, and revised endgame workloads before selecting one isolated
-NNUE change. The CPU recorder now supports 1–64 roots and per-root depths 1–12;
-21 mock tests passed. The profiles support the frozen four-output dense-kernel hypothesis; no
-candidate is implemented or qualified at this checkpoint.
-Preserve all earlier evidence and GUI `0.1-dev-4b8b35d`.

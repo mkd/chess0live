@@ -310,3 +310,15 @@ gain follows, and Phase 3C's original decisions remain unchanged. Next is Phase
 3F: profile the updated engine and choose one justified, isolated NNUE improvement
 with exact correctness and predeclared performance gates. Do not extend this
 completed campaign or pool favorable old roots into it.
+
+## Phase 3F — retained four-output NNUE inference, October 17, 2026
+
+[Protocol](PHASE_3F.md) and [result](reports/2026-10-17-phase3f-dense.md).
+Fresh all-phase profiles justified one NEON dense-kernel change. All independent
+arithmetic, native/scalar/sanitizer, and full 2,057-position SF19 stage checks
+passed. All 576 timed searches matched exactly and replayed legally. All three
+phase gates passed: sampled throughput gains versus retained Phase 3B were
+19.6% in openings, 19.7–21.4% middlegames, and 32.4–39.5% endgames. Retained as
+`500b022`; raw evidence under `results/phase3f-20261017/`. Four individual
+slowdowns and substantial absolute-time drift remain documented. This is not
+strength evidence or a new release; no default search policy changed.
