@@ -577,7 +577,34 @@ started **October 18 at 08:54:00.810565 Helsinki**, with all four shards running
 and initial admission/resource observations within the normal 50% daytime
 budget. The shared cutoff is **October 19 at 07:00 Helsinki**. The campaign
 manifest and append-only resource journal record the actual launch; readiness
-alone did not establish it. Final completion and aggregate audit are pending.
+alone did not establish it. The completed outcome is recorded below.
+
+## Phase 3G completed screen — October 18, 2026
+
+The one authorized attempt finished **15:12:09.041757 Helsinki**, after
+6 h 18 min 8.231192 s. All four shards completed 64 pairs / 128 games each;
+all **256 pairs / 512 games** remain included. The unchanged independent
+`tools/audit_phase3g.py` passed on its first full-campaign audit with zero
+errors and no live-source differences. It replayed **60,323 legal plies** and
+verified **50,352 charged search events**, full PGNs/UCI histories, actual
+options, terminations, paired colors, aggregate resource records, the dated
+authorization/cutoff, and unchanged before/after source and asset hashes.
+
+LMR-on scored **225W/155D/132L, 302.5/512 points (59.08%)**. The conditional
+95% pair-score interval is **50.5939–67.5702%**. Six candidate clock forfeits
+and seven baseline clock forfeits are valid scored outcomes. The candidate
+forfeits trigger the first frozen rule: **operational regression; no default
+change**, even though 302.5 exceeds the numerical 299.5-point boundary.
+No games were replaced, excluded, replayed, or appended. Both roles having
+clock losses does not establish their cause or make the candidate acceptable.
+
+See [the result report](reports/2026-10-18-phase3g-lmr.md) for evidence hashes,
+per-shard results, limitations, and audit reproduction. Raw evidence and the
+original `audit.json` remain in `results/phase3g-lmr-20261018-daytime/`.
+No C++ changes, rebuild, new engine tests, or further games were needed for
+this data-only audit and documentation checkpoint. Phase 3H will investigate
+clock reliability before any fresh confirmation. Both GUI snapshots and the
+README remain unchanged.
 
 ## Owner-run GUI feedback — October 18, 2026
 

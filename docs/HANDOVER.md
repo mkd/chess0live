@@ -281,7 +281,7 @@ The normal executable was intentionally promoted **after** the passing audit; th
 its old hash. Those old bytes remain at the retained Phase 3B path. Use the final
 integrity record to distinguish promotion from unexplained artifact drift.
 
-**Phase 3G is running.** The [fixed plan](PHASE_3G.md) compares
+**Phase 3G is complete and audited.** The [fixed plan](PHASE_3G.md) compares
 LMR on/off using the same qualified Phase 3F executable on 256 fresh opening
 pairs / 512 games at 60+0.6. Four concurrent match workers require aggregate
 accounting for four active searches and eight resident engines. Normal launch is
@@ -296,27 +296,33 @@ All 189 match/qualification checks pass, including 29 launcher and 45 auditor
 cases. Real v2 readiness plus independent transcript audit passed without a
 search; retain `results/phase3g-preparation-20261018/daytime-v2-preflight.json`
 alongside historical v1 records. See the validation amendment for exact scope.
-The first actual attempt began **October 18, 08:54:00 Helsinki**, with all four
-shards running and initial aggregate resource observations within the 50% budget.
-The common cutoff is **October 19, 07:00 Helsinki**. An idle-sleep assertion is
-attached to the foreground runner. No scheduler or automatic restart exists.
-Do not edit frozen sources, inputs, or `docs/PHASE_3G.md` while it runs. After
-completion, audit the entire campaign with `tools/audit_phase3g.py`; do not
-interpret a partial score or retry an interrupted sample. Outcome remains pending.
-Invalid games, insufficient resources, interruption, and artifact drift cancel
-all workers and await cleanup. Clock forfeits remain scored outcomes.
+The first actual attempt ran **October 18, 08:54:00–15:12:09 Helsinki**, before
+the common October 19 07:00 cutoff. All four shards finished with 128 games
+each. The independent `audit.json` passed with zero errors and no live-source
+differences, verifying 60,323 legal plies and 50,352 charged search events.
+The [result report](reports/2026-10-18-phase3g-lmr.md) records **225W/155D/132L,
+302.5/512 points (59.08%)** and conditional 95% bounds **50.59–67.57%**.
+Six candidate and seven baseline clock forfeits remain included. The frozen
+decision is **operational regression**, so LMR stays off despite clearing the
+numerical screen. This does not establish that LMR caused the flagfalls.
+The runner and its idle-sleep assertion have ended; no scheduler or restart
+exists. Preserve the full campaign, original audit, and frozen protocol.
 
 The original 32 stems and deterministic legal continuations are not evaluated
 for balance; related roots and common-host load limit statistical assumptions.
-All 256 pairs must pass the independent aggregate audit. Its conditional 95%
+All 256 pairs passed the independent aggregate audit. Its conditional 95%
 half-width is 8.488 percentage points: at least 299.5/512 points is only eligible
 for fresh confirmation, never automatic promotion; at most 212.5 is negative.
 Candidate clock forfeits take precedence. Do not resume, replace, or selectively
 extend a sample, and do not pool the exposed Phase 2D result. Initial owner
 feedback on the intended Phase 3F GUI
 bundle is recorded; no more manual games are required. Do not start controlled
-matches while any GUI games are running. LMR remains off. Investigate clock
-allocation separately after this fixed comparison; do not change its time policy.
+matches while any GUI games are running. LMR remains off. **Phase 3H is next:**
+diagnose all 13 clock forfeits and reproduce the failure before changing clock
+allocation or deadline handling. Both roles were affected at less than one second
+remaining. Distinguish engine response, protocol transport, and host scheduling;
+then validate a bounded repair before designing fresh strength qualification.
+No new engine change, match, or schedule is part of this result checkpoint.
 `tools/qualify_phase3g.py` supervises the run; `tools/audit_phase3g.py` checks all
 four raw campaigns and one pooled decision. `make test-phase3g` checks the new
 tools, while `make test-qualification test-match` includes historical regressions.

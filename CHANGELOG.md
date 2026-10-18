@@ -58,10 +58,10 @@ release numbers; detailed measurements live in the linked experiment records.
   and [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md). Both passed
   their operational audits but were inconclusive under their predeclared rules.
   SEE also remains experimental; its small development match does not qualify it.
-- Prepared a [fresh 512-game LMR comparison](docs/PHASE_3G.md) on the retained
-  Phase 3F engine, with 256 original opening pairs and fixed decision rules.
-  Its first campaign is running under an explicit daytime exception; completion
-  and independent audit remain pending. No strength gain is established.
+- Completed and audited the [512-game LMR comparison](docs/reports/2026-10-18-phase3g-lmr.md):
+  LMR-on scored 225 wins, 155 draws, and 132 losses (59.08%). Six candidate
+  clock forfeits block acceptance; seven baseline clock forfeits also need
+  investigation. LMR stays off, with clock reliability the next priority.
 - Preserved rejected and inconclusive work, including the discarded NNUE
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).

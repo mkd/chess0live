@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3F retained; Phase 3G campaign running
+## Current checkpoint: Phase 3G audited; Phase 3H clock diagnosis next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -27,7 +27,8 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
 | 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
 | 3F | Profile the updated engine and implement one justified NNUE improvement | Complete and retained: all 576 searches exact/legal; all three game-phase performance gates passed |
-| 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Running since October 18, 08:54 Helsinki under the owner's daytime exception; 189 checks passed before launch; completion and audit pending |
+| 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Complete and audited: 225W/155D/132L (59.08%); six candidate clock forfeits trigger the operational-regression gate, so LMR stays off |
+| 3H | Diagnose clock overruns, reproduce the cause, and validate a bounded repair | Next: investigate all 13 clock forfeits affecting both LMR roles before further strength qualification |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -143,31 +144,29 @@ Paired throughput gains versus retained Phase 3B were **19.6% opening,
 19.7–21.4% middlegame, and 32.4–39.5% endgame**. Four slowdowns and substantial
 absolute-time drift remain included. No rating, release, or search-default change.
 
-**Phase 3G is running.** The
-[fixed protocol](PHASE_3G.md) specifies 256 fresh opening pairs / 512 games at
-60+0.6, with LMR on versus off in the same qualified Phase 3F engine. Four
-match workers share aggregate resource checks and one 07:00 Helsinki cutoff.
-The original suite, launcher, and independent auditor have passed their checks.
-The next checkpoint is completion of the fixed sample followed by a full audit.
-Avoid GUI games or other heavy work on this host during the campaign. The initial owner check
-has been reported; no additional manual tournament is required. Normal manual
-launch is 23:00–23:15 Helsinki. The owner has explicitly authorized one October 18
-daytime start: protocol v2 records the dated exception without changing the
-50% daytime resource budget, sample, settings, decision, or next-07:00 cutoff.
-The amendment passed 189 checks and was committed as `fce2539` before launch.
-The first attempt started **October 18 at 08:54:00 Helsinki**, in
-`results/phase3g-lmr-20261018-daytime/`, with four active workers and a common
-**October 19, 07:00 Helsinki** cutoff. Initial admission/resource records passed.
-There is no final result or qualification decision yet. A positive result would warrant separate fresh
-confirmation, not automatic LMR promotion. Prior Phase 2D samples are exposed
-and must not be extended or pooled into the new decision.
-Parallel search, broader runtime validation, and release acceptance remain open.
+**Phase 3G is complete and audited.** The [result report](reports/2026-10-18-phase3g-lmr.md)
+records all 256 pairs / 512 games at 60+0.6, with LMR on versus off in the same
+qualified Phase 3F engine. The one authorized daytime attempt ran October 18,
+08:54–15:12 Helsinki, using four workers under the normal 50% resource budget.
+All 512 games passed independent replay, clock, option, and integrity checks.
+LMR-on scored **225W/155D/132L, 302.5/512 points (59.08%)**, with conditional
+95% pair-score bounds **50.59–67.57%**. This clears the numerical screen, but
+**six candidate clock forfeits take precedence** under the frozen protocol:
+the decision is **operational regression; keep LMR off**. Seven baseline clock
+forfeits also occurred, so the evidence does not isolate LMR as their cause.
 
-The current LMR screen is active; subsequent confirmation and forecast/SEE
-qualification remain deferred, not passed. Do not opportunistically extend or
-retune either completed match sample; future campaigns need fresh predeclared
-inputs and rules. All Phase 3F jobs have ended; no automatic schedule is active.
-GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.
+**Phase 3H is next: clock-overrun diagnosis and a bounded repair.** Start with
+all 13 saved flagfalls, distinguish internal deadline response from protocol
+transport and host scheduling, and establish a reproducible failing case before
+changing engine behavior. Validate any repair with focused clock/cancellation
+tests and the relevant correctness checks. Only then design fresh strength
+qualification; these now-exposed openings cannot serve as held-out confirmation.
+No further campaign is launched or scheduled by this checkpoint. No additional
+manual tournament is required now. Both stable GUI bundles remain preserved.
+
+LMR confirmation and forecast/SEE qualification remain deferred, not passed.
+Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel
+search, broader runtime validation, and release acceptance remain open.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
