@@ -40,11 +40,13 @@ not a search result. In-check values are labeled diagnostic only. `help` lists
 supported commands.
 
 Use `go perft N` for legal root-move counts and total/time/speed statistics. Wait
-for `info string perft complete ...`, or send `stop` to get an explicitly partial
+for `perft complete ...`, or send `stop` to get an explicitly partial
 `stopped` summary. It needs no network and supports depths 0–16; start small.
 For example, `position startpos` followed by `go perft 5` totals 4,865,609 nodes.
 The older `perft N` / `divide N` commands remain synchronous. These console
 features require the current normal build; the two stable GUI copies are unchanged.
+Console diagnostics use plain text without `info string` prefixes. Ordinary UCI
+search and error messages retain their protocol format.
 
 `bm` begins ignored metadata through the end of the line. The supplied SAN
 answer and `M7` do not influence search, validate the answer, set `go mate`, or
@@ -60,6 +62,11 @@ both if benchmarking mate problems. A centipawn score or a different mate
 distance does not prove the spreadsheet's mate claim. Keep full analysis output,
 time limit, options, machine, and binary identity with results. Clear Hash avoids
 giving later repetitions a warmed table; repeated timings can still vary.
+
+Positive `score mate X` favors the side to move; negative `score mate -X` means
+that side is getting mated. The distance is in moves, not plies. Ordinary
+`score cp X` remains the output when the search has not found mate. A 60-second
+search is a budget, not a guarantee of finding the supplied mate distance.
 
 ## Stable local test copy
 

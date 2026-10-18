@@ -812,3 +812,14 @@ checker accepted a synthetic fixture and rejected six deliberate corruptions.
 See the [report](reports/2026-10-18-phase3k-console-operations.md) for pins and
 scope. This is a bounded operational pass, not a strength or general reliability
 claim. Historical results/defaults are unchanged; Phase 3L preparation remains next.
+
+## Phase 3L console format and mate reporting — October 18, 2026
+
+At the owner's request, explicit board/evaluation/help/perft commands now print
+plain text. Standard search and error output retains UCI formatting. The native
+`make -j2 test` suite passed. UCI regressions verify plain output and retained
+board/state/cancellation behavior, ordinary centipawn search output, mate +1 and
+mate -1 for both colors with exact legal PVs, and mate 0 at a checkmated root.
+No search logic changed; the existing engine already supported mate scores.
+The static `eval` command does not search for mate. Saved Phase 3K evidence and
+its frozen binary remain unchanged. Campaign preparation is still in progress.

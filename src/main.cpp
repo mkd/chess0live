@@ -516,33 +516,34 @@ private:
         nnue::Evaluator evaluator(network_);
         const int score = evaluator.evaluate(position_);
         if (position_.in_check(position_.turn())) {
-            output("info string NNUE evaluation: unavailable while in check; raw static diagnostic below is not a search score or mate assessment");
+            output("NNUE evaluation: unavailable while in check; raw static diagnostic below is not a search score or mate assessment");
         } else {
             const std::string side = position_.turn() == Color::white ? "White" : "Black";
             std::ostringstream line;
-            line << "info string NNUE evaluation: " << std::showpos << std::fixed << std::setprecision(2)
+            line << "NNUE evaluation: " << std::showpos << std::fixed << std::setprecision(2)
                  << display_centipawns(score) / 100.0 << " pawns (" << side
                  << " to move; positive favors " << side << "; static, not a search score)";
             output(line.str());
         }
-        // Keep this original diagnostic record last for existing consumers.
-        output("info string eval psqt " + std::to_string(raw.psqt) + " positional " + std::to_string(raw.positional)
+        // Keep the raw diagnostic record last for console parsers.
+        output("eval psqt " + std::to_string(raw.psqt) + " positional " + std::to_string(raw.positional)
                + " score " + std::to_string(score));
     }
 
     /** Display is a pure view: flip changes coordinates on paper, never pieces,
      * side to move, the hash, repetition history, or evaluation perspective.
-     * Prefix every line as a UCI string and retain the FEN as the final sentinel.
+     * Explicit console commands use plain text. Ordinary UCI search output
+     * remains protocol-formatted; retain the FEN as the final view sentinel.
      */
     void display() {
         const auto fields = words(position_.fen());
-        output(std::string("info string Board (") + (flipped_ ? "Black" : "White")
+        output(std::string("Board (") + (flipped_ ? "Black" : "White")
                + " at bottom; White uppercase, Black lowercase)");
-        constexpr const char* border = "info string   +---+---+---+---+---+---+---+---+";
+        constexpr const char* border = "  +---+---+---+---+---+---+---+---+";
         output(border);
         for (int row = 0; row < 8; ++row) {
             const int rank = flipped_ ? row : 7 - row;
-            std::string line = "info string " + std::to_string(rank + 1) + " |";
+            std::string line = std::to_string(rank + 1) + " |";
             for (int column = 0; column < 8; ++column) {
                 const int file = flipped_ ? 7 - column : column;
                 const auto piece = position_.at(rank * 8 + file);
@@ -554,24 +555,24 @@ private:
             output(line);
             output(border);
         }
-        output(flipped_ ? "info string     h   g   f   e   d   c   b   a"
-                        : "info string     a   b   c   d   e   f   g   h");
+        output(flipped_ ? "    h   g   f   e   d   c   b   a"
+                        : "    a   b   c   d   e   f   g   h");
         std::ostringstream key;
-        key << "info string key 0x" << std::hex << std::uppercase << std::setw(16)
+        key << "key 0x" << std::hex << std::uppercase << std::setw(16)
             << std::setfill('0') << position_.key();
         output(key.str());
-        output(std::string("info string side ") + (position_.turn() == Color::white ? "White" : "Black"));
-        output("info string castling " + fields[2]);
-        output("info string en-passant " + fields[3]);
-        output("info string halfmove " + fields[4]);
-        output("info string fullmove " + fields[5]);
-        output(std::string("info string check ") + (position_.in_check(position_.turn()) ? "yes" : "no"));
-        output("info string fen " + position_.fen());
+        output(std::string("side ") + (position_.turn() == Color::white ? "White" : "Black"));
+        output("castling " + fields[2]);
+        output("en-passant " + fields[3]);
+        output("halfmove " + fields[4]);
+        output("fullmove " + fields[5]);
+        output(std::string("check ") + (position_.in_check(position_.turn()) ? "yes" : "no"));
+        output("fen " + position_.fen());
     }
 
     void help() {
         for (const char* line : {
-            "chess0live commands (diagnostics use info string lines):",
+            "chess0live commands (console diagnostics use plain text):",
             "d | show | display: show the board, FEN, hash, and position state",
             "flip: toggle White/Black at bottom and display; position is unchanged",
             "eval: display the board and static NNUE evaluation (positive favors side to move)",
@@ -587,7 +588,7 @@ private:
             "stop: finish search or cancel go perft; ponderhit: start the ponder clock",
             "uci: identify engine and list options; setoption name <name> [value <value>]: configure",
             "isready: check readiness; ucinewgame: clear search state; quit: exit",
-            "help: show this command reference"}) output(std::string("info string ") + line);
+            "help: show this command reference"}) output(line);
     }
 
     /** A separate diagnostic traversal permits responsive stop/quit without
@@ -635,12 +636,12 @@ private:
                         if (*child > std::numeric_limits<std::uint64_t>::max() - nodes)
                             throw std::overflow_error("perft count exceeds 64-bit range");
                         nodes += *child;
-                        output("info string " + move.uci() + ": " + std::to_string(*child));
+                        output(move.uci() + ": " + std::to_string(*child));
                     }
                 }
                 const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
                 std::ostringstream summary;
-                summary << "info string perft " << (complete ? "complete" : "stopped")
+                summary << "perft " << (complete ? "complete" : "stopped")
                         << " depth " << depth << (complete ? " nodes " : " completed_root_nodes ") << nodes
                         << " time_ms " << std::fixed << std::setprecision(3) << elapsed * 1000.0
                         << " nps " << std::setprecision(0) << nodes / std::max(elapsed, 1e-9);

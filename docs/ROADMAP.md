@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3K complete; Phase 3L qualification preparation next
+## Current checkpoint: Phase 3L preparation in progress; console feedback implemented
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -32,7 +32,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3I | Investigate short-clock resilience under scheduling and transport delays | Complete: same-batch match logging bias reproduced and fixed; 212 checks and 12 diagnostic controls passed; engine and historical results unchanged |
 | 3J | Isolate match persistence from active protocol clocks; accept annotated manual puzzles | Implemented and checked: 230 workflow checks, native/scalar/sanitizer suites, all 39 puzzle inputs; four-game canary has one capped game, so full operational acceptance remains open |
 | 3K | Add console diagnostics and complete operational validation before fresh LMR qualification | Complete: console commands validated; all four fresh operational games completed and passed independent audit with no clock/protocol/storage failures |
-| 3L | Prepare a fresh held-out 512-game LMR qualification campaign | Next: plan defined; new exclusions/openings, pins, launcher/auditor, and readiness checks still required; no long campaign launched |
+| 3L | Prepare a fresh held-out 512-game LMR qualification campaign; simplify console output | In progress: plain-text diagnostics and mate-reporting checks pass; fresh input catalog and dedicated launcher/auditor preparation underway |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -215,20 +215,30 @@ campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual overrid
 available. Preparing a command does not start it or create a recurring schedule.
 Do not describe a pending campaign as active or completed.
 
-## Other phases and continuing work
+## Broader roadmap and bounded checkpoints
 
-1. **Playable foundation:** legal moves, reversible state, pinned SF19 NNUE
-   parity, single-worker UCI search, perft, tests, and initial GUI feedback are
-   implemented. This remains `0.1-dev`, not a completed release or rated engine.
-2. **Search and time management:** the recorded experiments above. Keep changes isolated
-   enough to attribute their effects and record rejected/inconclusive results.
-3. **Desktop performance and parallel search:** efficient move generation and
-   NNUE updates, CPU backends, then multicore search with aggregate resource
-   limits and correctness/strength checks. NPS alone does not establish Elo.
-4. **Broader execution and network tooling:** finish runtime validation across
-   required targets and reproducible trainer/export integration. Portable build
-   work can proceed alongside earlier phases when toolchains are available;
-   do not postpone correctness or label build-only targets runtime-verified.
+The owner asked on October 18 to avoid repeatedly refining a single research
+phase while major engine capabilities remain. Phase 3L has a finite exit:
+tested plain-text diagnostics, reproducible unsearched inputs, frozen campaign
+pins, passing launcher/auditor checks, and serial readiness. It does not include
+new search tuning, repeated operational canaries, another clock investigation,
+or automatic campaign/confirmation launches. A future result gets one recorded
+decision under its fixed rules. Inconclusive evidence is recorded and shelved;
+it does not indefinitely block unrelated engine development.
+
+| Work area | Existing foundation | Next concrete deliverable |
+| --- | --- | --- |
+| 4A: search cache efficiency | Working four-entry transposition buckets, move/bound/depth storage, generation replacement, mate normalization, draw/history-aware keys, `Hash`/`Clear Hash`; incremental NNUE state | Measure cache hit/cutoff rates and memory cost on exposed development roots; implement at most one justified change, retaining it only with applicable correctness and performance/strength evidence |
+| 4B: Lazy SMP | Single worker; immutable network weights and worker-local evaluator interface | Add configurable workers, independent position/history/NNUE state, race-safe shared cache, coordinated stopping/time limits, and equal-resource multicore tests |
+| 4C: Syzygy | Legal endgames and rule-50/mate handling; no tablebase probing | Add optional endgame-table configuration and probing with tested draw-rule and mate semantics, including missing-table fallback |
+| 4D: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
+
+Freeze qualification binaries separately so later engine development cannot
+change an ongoing comparison. The normal build may advance after a frozen
+campaign is prepared. Each work area has a documented acceptance decision;
+failed or inconclusive experiments do not become default optimizations.
+Parallel search, tablebases, broader execution, and release acceptance remain
+unfinished. These are upcoming work areas, not implemented features.
 
 Every phase preserves the frozen GUI bundle `0.1-dev-4b8b35d`, the NNUE oracle,
 and core rule/UCI checks. Release 0.1 only after its [acceptance gates](VALIDATION.md)

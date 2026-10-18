@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Console board, evaluation, help, and perft output now prints as plain text,
+  without `info string` prefixes. Normal UCI search still reports centipawns
+  or a signed mate distance; both have explicit protocol regression checks.
 - Added ASCII board/state display with `d`, `show`, or `display`, a view-only
   `flip`, and built-in `help`. `eval` now includes the board and a clearly labeled
   static NNUE score. `go perft N` adds root counts, timing/speed statistics, and

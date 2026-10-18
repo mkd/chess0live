@@ -52,12 +52,13 @@ diagnostic only; static evaluation is not a searched score or a mate proof.
 
 `go perft 5` lists each legal root move's count and reports depth, total nodes,
 elapsed milliseconds, and nodes per second. The initial position totals
-4,865,609 nodes. Wait for `info string perft complete ...` before the next command,
+4,865,609 nodes. Wait for `perft complete ...` before the next command,
 or send `stop` to cancel; an interrupted count is explicitly marked `stopped`
 and includes only completed root subtrees. Move counting needs no network.
 Legacy synchronous `perft N` and `divide N` remain available. Diagnostic depths
-are 0–16; high depths can take a very long time. New console output uses UCI
-`info string` lines. Enter `quit` to exit. These commands do not add variants or
+are 0–16; high depths can take a very long time. Console diagnostics print plain
+text, without `info string` prefixes. Normal search output retains UCI formatting.
+Enter `quit` to exit. These commands do not add variants or
 an interactive SAN mode. Board, evaluation, and help commands stop any active
 search before printing.
 
@@ -74,6 +75,13 @@ followed by `bm` are also accepted, with missing move counters set to `0 1`.
 The board must still be valid. Remove the annotation when using a UCI `moves`
 history. See [manual puzzle testing](docs/MANUAL_TESTING.md#manual-puzzle-positions)
 for repeatable settings and how to read the result.
+
+During a search, `info ... score cp 120 ...` reports an ordinary evaluation in
+centipawns; `info ... score mate 7 ...` reports a found mate in seven moves.
+A negative mate distance means the side to move is getting mated. The engine
+reports centipawns until it finds a mating line within its search; a time limit
+does not guarantee solving the puzzle. `eval` is static and does not search for
+mate, and a trailing `bm ... M7` annotation never supplies the answer to search.
 
 ## Evaluation and search
 

@@ -54,6 +54,22 @@ single-worker evidence before enabling shared-memory search. Add pruning,
 reductions, parallelism, and speculative ideas through isolated experiments and
 matched-game testing, retaining changes only on appropriate evidence.
 
+Transposition caching is already implemented in `src/search.cpp`: four entries
+per bucket, stored moves/scores/depths/bounds, generation/depth replacement,
+mate-distance normalization, and a history/rule-50-aware key. `Hash` controls
+capacity and `Clear Hash` clears cached search state. The current table has one
+owning search thread; it is not yet safe to share by simply starting more threads.
+Future cache work should measure hit/cutoff behavior and memory cost before
+changing representation, key semantics, or replacement. Preserve repetition,
+rule-50, and policy-isolation correctness even when a faster key looks attractive.
+
+Lazy SMP is planned as separate worker-local position, history, and NNUE state
+over immutable shared weights, with explicitly safe transposition sharing and
+coordinated time/stop handling. Syzygy is a later optional endgame-probing module
+with its own correctness and configuration boundary. Neither feature exists in
+the current executable. These work areas follow the bounded qualification
+preparation checkpoint; they do not require repeatedly retuning the same screen.
+
 The first selective-search experiment is optional, conservative late-move
 reduction. Its [policy and verification contract](SELECTIVE_SEARCH.md) are
 separate from time management and move ordering. A reduced result that improves

@@ -2,9 +2,23 @@
 
 Prepared October 18, 2026 after the independently audited
 [Phase 3K operational pass](reports/2026-10-18-phase3k-console-operations.md).
-**Status: preparation plan only.** No new opening suite, campaign pins, dedicated
-launcher/auditor, or readiness result exists yet. No match or schedule is active.
-This document defines the next implementation checkpoint, not a launch command.
+**Status: preparation in progress.** The owner authorized this phase and asked
+for plain-text console diagnostics on October 18. No match or schedule is active.
+This is a bounded preparation checkpoint; final pins/readiness will be recorded
+only after all relevant checks pass.
+
+## Scope and exit
+
+Remove `info string` prefixes from explicit console board/evaluation/help/perft
+output, preserving standard UCI search/error messages. Verify signed mate and
+centipawn reporting without changing search logic. Update practical instructions
+and retain the README introduction and stable GUI bundles.
+
+Finish preparation once the fresh input catalog/generator, campaign pins,
+launcher/auditor tests, and serial readiness pass. Do not add new pruning, clock
+policies, repeat canaries, or silently promote LMR. The broader roadmap moves to
+cache efficiency, Lazy SMP, and optional Syzygy support after this checkpoint;
+a frozen campaign can be run separately without blocking unrelated development.
 
 ## Objective and fixed comparison
 
