@@ -925,3 +925,20 @@ a seven-piece execution claim, foreign-platform validation, a GUI visual pass,
 or an Elo/release acceptance result. Root and interior probes are intentionally
 conservative around repetition, halfmove clocks, and PVs. No strength match was
 started; existing defaults and frozen campaigns remain unchanged.
+
+## Phase 4D.1 — optional countermove ordering — October 18, 2026
+
+The [report](reports/2026-10-18-phase4d-countermove.md) records the fixed protocol,
+artifact identities and bounded decision. Native/scalar/ASan+UBSan suites and
+TSan search checks passed; all four builds passed 57 new referee-backed UCI
+cases, with direct API tests for counter state, policy switching, special moves,
+rules, diagnostics, interruption and SMP. The profiler passed 24 checks. Native
+Syzygy regressions remained green. All 180 cold/warm parent/off comparisons
+were exact and all 360 on/off profile searches replayed legally.
+
+No broad efficiency improvement was established. The candidate stays off and
+further tuning/strength qualification is parked. All final depth-6 scores and
+moves matched; intermediate warm score differences are documented rather than
+treated as proof of a defect or hidden. No default promotion, Elo claim,
+foreign execution, fresh GUI check, or release acceptance follows. Existing
+GUI bundles, README introduction, and frozen Phase 3L assets were preserved.

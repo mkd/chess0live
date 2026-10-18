@@ -9,7 +9,8 @@ release numbers; detailed measurements live in the linked experiment records.
 
 - Added experimental quiet countermove ordering, with worker-local reply memory
   and diagnostic counters. It changes move order without reducing search depth
-  or pruning. It remains disabled pending playing-strength qualification.
+  or pruning. The [mixed development screen](docs/reports/2026-10-18-phase4d-countermove.md)
+  did not establish a broad efficiency gain; it remains disabled.
 - Added optional Syzygy endgame probing through a pinned Fathom reader, with
   UCI path/piece/depth settings and `tbhits` reporting. Table files are downloaded
   separately and excluded from Git. Root move ranking respects the fifty-move

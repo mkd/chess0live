@@ -1,7 +1,9 @@
 # Phase 4D: search efficiency with strength gates
 
-Status: Phase 4D.1 implementation and validation in progress after Phase 4C,
-following the owner's October 18 request. This is a sequence of bounded experiments, not an enabled
+Status: Phase 4D.1 complete with countermove ordering parked after a mixed
+360-search screen; [results and decision](reports/2026-10-18-phase4d-countermove.md).
+Phase 4D.2 current-engine LMR qualification is next. This follows the owner's
+October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
 network tooling. No campaign or schedule is started by this document.
 

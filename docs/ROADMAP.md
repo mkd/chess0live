@@ -40,7 +40,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 in progress: isolated countermove ordering implemented and correctness-checked; bounded profiling next, followed by separate LMR/null-move qualification |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 complete: countermove remains off after a mixed 360-search screen; 4D.2 current-engine LMR qualification next, then verified null-move pruning |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -249,6 +249,18 @@ LMR confirmation is planned separately in 4D; forecast/SEE qualification remains
 deferred, not passed. Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel
 strength qualification, broader runtime validation, and release acceptance remain open.
 
+**Phase 4D.1 is complete:** the [countermove report](reports/2026-10-18-phase4d-countermove.md)
+records all four build-mode correctness checks, 180 exact parent/off searches,
+and 360 legal cold/warm on/off searches. The candidate changed no pruning or
+depth rules but produced no convincing broad efficiency gain: cold total nodes
+-0.19%, warm +3.78%, with higher aggregate depth-6 elapsed time. All fixed-depth
+final scores/moves agreed; intermediate warm differences remain recorded.
+It stays opt-in and further tuning/strength qualification is parked. No default
+or Elo improvement is claimed. **Next: 4D.2**, isolate current-engine LMR
+qualification; **4D.3** then implements verified null-move pruning. Internal
+iterative deepening, distinct futility variants, and ProbCut are recorded in
+the search plan following the owner's additional feedback.
+
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
 available. Preparing a command does not start it or create a recurring schedule.
@@ -270,7 +282,7 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | Full-depth PVS, aspiration windows, history/killer ordering, shared TT, and opt-in conservative LMR | Immediately after 4C, test one ordering candidate; then separately qualify LMR and conservative pruning, with fresh paired equal-time matches required for default promotion |
+| 4D: strength-gated search efficiency | Full-depth PVS, aspiration windows, history/killer ordering, shared TT, and opt-in conservative LMR; countermove screen complete and parked | Current-engine LMR qualification next, then conservative null-move/pruning candidates; fresh paired equal-time matches required for default promotion |
 | 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot

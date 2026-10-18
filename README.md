@@ -187,7 +187,8 @@ option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.
 Enable it with `setoption name Countermove Ordering value true`. Changing the
 policy clears learned search state. Leave it off for baseline comparisons;
-playing-strength qualification remains open. With `Search Diagnostics=true`,
+its mixed development results do not establish a performance or strength gain.
+With `Search Diagnostics=true`,
 the final `countermove v1` record reports lookups, legal matches, and updates
 summed across workers. Check it with `make test-countermove test-profile-countermove`
 after installing `requirements-match.txt`. The bounded, independently replayed
