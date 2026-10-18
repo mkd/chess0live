@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3F retained; Phase 3G ready for authorized daytime launch
+## Current checkpoint: Phase 3F retained; Phase 3G campaign running
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -27,7 +27,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3D | Characterize the short endgame workload before new qualification | Complete: 40 exact/legal searches; depth 12 proposed under the fixed diagnostic rule |
 | 3E | Requalify endgames using the longer pawn workload | Complete: all 216 searches exact/legal; revised endgame workload qualified at 8.4–8.9% higher sampled throughput |
 | 3F | Profile the updated engine and implement one justified NNUE improvement | Complete and retained: all 576 searches exact/legal; all three game-phase performance gates passed |
-| 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Preparation complete; October 18 daytime amendment validated with 189 checks and fresh readiness; first campaign not yet started |
+| 3G | Run fresh blitz strength qualification for the existing LMR experiment on the updated engine | Running since October 18, 08:54 Helsinki under the owner's daytime exception; 189 checks passed before launch; completion and audit pending |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -143,25 +143,28 @@ Paired throughput gains versus retained Phase 3B were **19.6% opening,
 19.7–21.4% middlegame, and 32.4–39.5% endgame**. Four slowdowns and substantial
 absolute-time drift remain included. No rating, release, or search-default change.
 
-**Phase 3G preparation is complete.** The
+**Phase 3G is running.** The
 [fixed protocol](PHASE_3G.md) specifies 256 fresh opening pairs / 512 games at
 60+0.6, with LMR on versus off in the same qualified Phase 3F engine. Four
 match workers share aggregate resource checks and one 07:00 Helsinki cutoff.
 The original suite, launcher, and independent auditor have passed their checks.
-The next checkpoint is one controlled overnight run followed by a full audit,
-only when no GUI games or other heavy work are running. The initial owner check
+The next checkpoint is completion of the fixed sample followed by a full audit.
+Avoid GUI games or other heavy work on this host during the campaign. The initial owner check
 has been reported; no additional manual tournament is required. Normal manual
 launch is 23:00–23:15 Helsinki. The owner has explicitly authorized one October 18
 daytime start: protocol v2 records the dated exception without changing the
 50% daytime resource budget, sample, settings, decision, or next-07:00 cutoff.
-The amendment is tested and committed before any game starts.
-No real Phase 3G game has run. A positive result would warrant separate fresh
+The amendment passed 189 checks and was committed as `fce2539` before launch.
+The first attempt started **October 18 at 08:54:00 Helsinki**, in
+`results/phase3g-lmr-20261018-daytime/`, with four active workers and a common
+**October 19, 07:00 Helsinki** cutoff. Initial admission/resource records passed.
+There is no final result or qualification decision yet. A positive result would warrant separate fresh
 confirmation, not automatic LMR promotion. Prior Phase 2D samples are exposed
 and must not be extended or pooled into the new decision.
 Parallel search, broader runtime validation, and release acceptance remain open.
 
-Further LMR, forecast, and SEE strength
-qualification remains deferred, not passed. Do not opportunistically extend or
+The current LMR screen is active; subsequent confirmation and forecast/SEE
+qualification remain deferred, not passed. Do not opportunistically extend or
 retune either completed match sample; future campaigns need fresh predeclared
 inputs and rules. All Phase 3F jobs have ended; no automatic schedule is active.
 GUI `0.1-dev-4b8b35d`, all frozen candidates, and the pinned network are intact.

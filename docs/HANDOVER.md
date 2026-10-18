@@ -281,20 +281,28 @@ The normal executable was intentionally promoted **after** the passing audit; th
 its old hash. Those old bytes remain at the retained Phase 3B path. Use the final
 integrity record to distinguish promotion from unexplained artifact drift.
 
-**Phase 3G preparation is complete and tested.** The [fixed plan](PHASE_3G.md) compares
+**Phase 3G is running.** The [fixed plan](PHASE_3G.md) compares
 LMR on/off using the same qualified Phase 3F executable on 256 fresh opening
 pairs / 512 games at 60+0.6. Four concurrent match workers require aggregate
 accounting for four active searches and eight resident engines. Normal launch is
 23:00–23:15 Helsinki; one common 07:00 cutoff survives preflight and worker starts.
 Before any games, the owner authorized a one-time October 18 daytime start.
 Protocol v2 and `--allow-daytime` encode that date-limited exception, preserving
-the 50% daytime budget and next-morning cutoff. Freeze/test/commit the amendment
-before starting `results/phase3g-lmr-20261018-daytime`; no sample or decision
+the 50% daytime budget and next-morning cutoff. The amendment was tested and
+committed as `fce2539` before starting `results/phase3g-lmr-20261018-daytime`;
+no sample or decision
 rule changed, no previous attempt ran, and no automatic restart is permitted.
 All 189 match/qualification checks pass, including 29 launcher and 45 auditor
 cases. Real v2 readiness plus independent transcript audit passed without a
 search; retain `results/phase3g-preparation-20261018/daytime-v2-preflight.json`
 alongside historical v1 records. See the validation amendment for exact scope.
+The first actual attempt began **October 18, 08:54:00 Helsinki**, with all four
+shards running and initial aggregate resource observations within the 50% budget.
+The common cutoff is **October 19, 07:00 Helsinki**. An idle-sleep assertion is
+attached to the foreground runner. No scheduler or automatic restart exists.
+Do not edit frozen sources, inputs, or `docs/PHASE_3G.md` while it runs. After
+completion, audit the entire campaign with `tools/audit_phase3g.py`; do not
+interpret a partial score or retry an interrupted sample. Outcome remains pending.
 Invalid games, insufficient resources, interruption, and artifact drift cancel
 all workers and await cleanup. Clock forfeits remain scored outcomes.
 
@@ -304,8 +312,8 @@ All 256 pairs must pass the independent aggregate audit. Its conditional 95%
 half-width is 8.488 percentage points: at least 299.5/512 points is only eligible
 for fresh confirmation, never automatic promotion; at most 212.5 is negative.
 Candidate clock forfeits take precedence. Do not resume, replace, or selectively
-extend a sample, and do not pool the exposed Phase 2D result. No Phase 3G strength
-game or schedule exists. Initial owner feedback on the intended Phase 3F GUI
+extend a sample, and do not pool the exposed Phase 2D result. Initial owner
+feedback on the intended Phase 3F GUI
 bundle is recorded; no more manual games are required. Do not start controlled
 matches while any GUI games are running. LMR remains off. Investigate clock
 allocation separately after this fixed comparison; do not change its time policy.

@@ -60,7 +60,8 @@ release numbers; detailed measurements live in the linked experiment records.
   SEE also remains experimental; its small development match does not qualify it.
 - Prepared a [fresh 512-game LMR comparison](docs/PHASE_3G.md) on the retained
   Phase 3F engine, with 256 original opening pairs and fixed decision rules.
-  The campaign has not run; this preparation establishes no strength gain.
+  Its first campaign is running under an explicit daytime exception; completion
+  and independent audit remain pending. No strength gain is established.
 - Preserved rejected and inconclusive work, including the discarded NNUE
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).

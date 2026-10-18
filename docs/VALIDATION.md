@@ -533,9 +533,9 @@ also passed the independent auditor's preflight checks. All four child profiles
 match the launcher/auditor pins and current source snapshots. Aggregate engine
 memory reservation is about **4.44 GiB**, an estimate rather than an OS limit.
 
-No actual Phase 3G strength game, reserved-position search, performance run,
-or C++ rebuild was performed. Both GUI snapshots and the normal executable
-remain unchanged. The real four-worker overnight campaign is **not yet run**;
+During v1 preparation, no actual Phase 3G strength game, reserved-position search,
+performance run, or C++ rebuild was performed. Both GUI snapshots and the normal
+executable remained unchanged. The real campaign had **not yet run**;
 synthetic lifecycle tests and readiness do not establish its completion,
 playing strength, or foreign-platform execution. LMR remains off, and no
 automatic schedule or new release exists.
@@ -572,6 +572,13 @@ amendment is committed locally before the one authorized campaign starts in
 `results/phase3g-lmr-20261018-daytime/`. Actual outcome and strength qualification
 remain pending; no restart, schedule, or default promotion is implied.
 
+The tested amendment was committed as **`fce2539`**. The first real attempt
+started **October 18 at 08:54:00.810565 Helsinki**, with all four shards running
+and initial admission/resource observations within the normal 50% daytime
+budget. The shared cutoff is **October 19 at 07:00 Helsinki**. The campaign
+manifest and append-only resource journal record the actual launch; readiness
+alone did not establish it. Final completion and aggregate audit are pending.
+
 ## Owner-run GUI feedback — October 18, 2026
 
 The owner reports two draws against Gargantua 2.1 with no engine errors or
@@ -591,7 +598,7 @@ timed search, rebuild, strength match, or new schedule was performed. The review
 local script initially failed on an integrity-record field name after move
 checks; its corrected rerun passed. Both GUI binaries and all Phase 3G source
 and artifact pins remain unchanged. This is exploratory feedback, not strength
-qualification; Phase 3G is still unstarted.
+qualification; Phase 3G had not started at the time of that feedback review.
 
 ## Release gates
 
