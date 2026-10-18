@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 3L preparation complete; Phase 4A is next
+## Current checkpoint: Phase 4A complete; Phase 4B Lazy SMP is next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -33,6 +33,7 @@ Clock allocation remains a separate research priority after the fixed LMR screen
 | 3J | Isolate match persistence from active protocol clocks; accept annotated manual puzzles | Implemented and checked: 230 workflow checks, native/scalar/sanitizer suites, all 39 puzzle inputs; four-game canary has one capped game, so full operational acceptance remains open |
 | 3K | Add console diagnostics and complete operational validation before fresh LMR qualification | Complete: console commands validated; all four fresh operational games completed and passed independent audit with no clock/protocol/storage failures |
 | 3L | Prepare a fresh held-out 512-game LMR qualification campaign; simplify console output | Complete: plain console output, signed mate checks, 256 fresh roots, 94 workflow checks, and independently audited serial readiness; 512-game campaign not started |
+| 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -205,9 +206,16 @@ against 851 excluded roots, frozen inputs, 94 passing workflow checks, and
 independently audited serial readiness. The [fixed protocol](PHASE_3L.md) retains
 512 games and the earlier decision thresholds. Zero held-out searches were sent;
 no long campaign or schedule is active. Both GUI bundles and all search defaults
-remain unchanged. **Next: Phase 4A, search-cache efficiency**, followed by Lazy
-SMP and optional Syzygy support. The frozen match can run separately under its
+remain unchanged. The frozen match can run separately under its
 overnight policy without blocking those development areas.
+
+**Phase 4A is complete:** [measurements and decision](reports/2026-10-18-phase4a-cache.md)
+confirm working cache reuse and retain one smaller representation with unchanged
+capacity/search semantics. Standard UCI hash occupancy is now reported. Native,
+scalar, sanitizer, 20 profiler checks, 72 cache-profile searches, and 36 timed
+searches passed their applicable gates. Memory fell by one third; timing was
+effectively neutral, and no strength gain is claimed. **Next: Phase 4B, Lazy SMP**,
+then optional Syzygy. No new cache-tuning subphase is required.
 
 LMR confirmation and forecast/SEE qualification remain deferred, not passed.
 Do not extend or pool the completed Phase 2D and Phase 3G samples. Parallel
@@ -231,7 +239,7 @@ it does not indefinitely block unrelated engine development.
 
 | Work area | Existing foundation | Next concrete deliverable |
 | --- | --- | --- |
-| 4A: search cache efficiency | Working four-entry transposition buckets, move/bound/depth storage, generation replacement, mate normalization, draw/history-aware keys, `Hash`/`Clear Hash`; incremental NNUE state | Measure cache hit/cutoff rates and memory cost on exposed development roots; implement at most one justified change, retaining it only with applicable correctness and performance/strength evidence |
+| 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Single worker; immutable network weights and worker-local evaluator interface | Add configurable workers, independent position/history/NNUE state, race-safe shared cache, coordinated stopping/time limits, and equal-resource multicore tests |
 | 4C: Syzygy | Legal endgames and rule-50/mate handling; no tablebase probing | Add optional endgame-table configuration and probing with tested draw-rule and mate semantics, including missing-table fallback |
 | 4D: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |

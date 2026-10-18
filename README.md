@@ -103,6 +103,14 @@ an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
 set `EvalFile` to its absolute path.
 
+Search reports include standard UCI `hashfull`, so GUIs can display recent hash
+occupancy. Values are in permille: `hashfull 949` means about 94.9%. The engine
+samples up to 1,000 entries saved/refreshed in the current search generation;
+the value may drop at the next search. It is neither a cache hit rate nor a RAM
+usage percentage. `Hash` sets a memory ceiling; bucket sizing can allocate less.
+The compact table preserves its established entry capacity: `Hash=64` currently
+uses 32 MiB of entry storage. Network/evaluator and other engine memory are extra.
+
 Timed requests include preparation after the engine receives `go`, including
 worker startup. Send `isready` and wait for `readyok` before starting a timed
 search so network loading is complete. `Move Overhead` reserves milliseconds
@@ -190,6 +198,20 @@ The [experiment log](docs/EXPERIMENTS.md) records decisions, including candidate
 that were not retained.
 `make test-profile` checks the bounded clock-policy profiler; `make test` also
 includes deterministic time-policy and iteration-accounting tests.
+For cache diagnostics, install `requirements-match.txt`, then run:
+
+```sh
+make test-profile-cache
+python3 tools/profile_cache.py --engine build/macos-arm64-generic-release/chess0live --depth 5 --hash-mb 64 --output results/cache-new.json
+```
+
+Choose a new output filename. The profiler runs three development positions with
+cold and warm state, saves raw output, and independently checks legal moves,
+hash occupancy, cache counters, and allocation size. Use `--suite gamephases`
+for the existing composed middlegame/endgame fixtures. Warm runs retain ordering
+state as well as the table, so their difference is not attributable to caching
+alone. The tool enables `Search Diagnostics`; normal GUI play can leave it off.
+
 `make test-profile-lmr` checks the optional selective-search profiler, using the
 same pinned referee dependency as matches. It compares LMR off/on at fixed
 depth or nodes and independently replays every reported principal variation.

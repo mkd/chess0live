@@ -851,3 +851,29 @@ No 512-game campaign or schedule was launched. See the
 [preparation report](reports/2026-10-18-phase3l-preparation.md) and
 [fixed protocol](PHASE_3L.md). This completes preparation only: strength results,
 default promotion, release acceptance, and broader platform execution remain open.
+
+## Phase 4A cache reporting and representation — October 18, 2026
+
+Native `make -j2 test`, scalar `make SIMD=scalar -j2 test`, and ASan/UBSan
+`make MODE=sanitize -j2 test` passed on macOS ARM64. New checks cover standard
+hashfull presence/range, populated occupancy and generation/clear/resize behavior,
+terminal reporting, diagnostic accounting and exact on/off search parity, and
+packed entry fields/limits/generation wrap/alignment. Twenty optional cache
+profiler checks passed; its Make target wiring was dry-run checked.
+
+The parent/instrumented comparison matched all 24 searches. The one compact
+layout candidate then matched all 72 profile searches / 36 pairs across declared
+exposed roots, cold/warm state, and Hash 1/64: full per-iteration signatures,
+occupancy, cache event counts, and independent legal move/PV checks. At Hash 64,
+entry storage fell from 48 to 32 MiB with the same 2,097,152 entries. The fixed
+36-search timing comparison passed all guards: root median paired ratios
+1.010283/0.996622/0.996106, geometric mean 1.000982, all baseline root medians
+above 0.1 seconds. Timing is effectively neutral; memory reduction is not Elo.
+
+The final profiler additionally revalidated saved baseline output after review
+fixed a capacity-assumption error and strengthened probe accounting. No engine
+search result was replaced. Full details, versioned tool evidence, hashes,
+scope limits, and the retain decision are in the
+[report](reports/2026-10-18-phase4a-cache.md). No new GUI visual test, foreign
+execution, full SF19 stage-oracle rerun, long campaign, or release is claimed.
+Both GUI snapshots, frozen Phase 3L assets, and search defaults remain intact.

@@ -433,6 +433,28 @@ for broader progress: finish this bounded preparation, then follow the roadmap's
 cache-efficiency (Phase 4A), Lazy SMP, and Syzygy work areas instead of indefinitely adding
 qualification subphases. Transposition caching already exists; SMP and Syzygy do not.
 
+**Phase 4A is complete:** [report](reports/2026-10-18-phase4a-cache.md) and
+[bounded plan](PHASE_4A.md). Standard search reports include `hashfull` in permille,
+including terminal/draw reports; diagnostics additionally expose cache counters
+and geometry. The one retained candidate packs entries to 16 bytes in aligned
+64-byte buckets, with the old 96-byte sizing divisor preserving all bucket
+counts and search semantics. At Hash 64, table storage is 32 MiB instead of
+48 MiB. Do not silently change that divisor to the physical size: it would
+double capacity and change collisions/search. Full keys, move flags/sentinels,
+scores, generation bytes, history/rule-50 keys, and replacement rules remain.
+
+Native/scalar/sanitizer suites and 20 profiler tests passed. All 72 bounded
+cache-profile searches preserved exact signatures/counters/occupancy across
+representations; the 36-search timing comparison passed the declared guards
+with effectively neutral timing. Evidence is in `results/phase4a-20261018/`;
+the retained native SHA-256 is
+`9caa5ccc3716ef25c289c8c43d63762c811163f2a4c7f1e8432fd9e012d8168c`.
+Next is **Phase 4B: Lazy SMP**. The table is still single-worker owned, and its
+packed/aligned representation provides no concurrency guarantees. Keep the
+Phase 3L binary/manifest and both GUI bundles frozen. To see hash reporting in
+Cute Chess, select the newly rebuilt normal executable, not a preserved bundle;
+the UCI bytes are tested, but GUI rendering has not been rechecked in this phase.
+
 Further experimental strength qualification, trainer integration, multi-platform
 execution, release acceptance, and public strength claims remain open. The owner
 can push the local commits. GUI `0.1-dev-4b8b35d` remains preserved; testing the

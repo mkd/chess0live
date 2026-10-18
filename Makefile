@@ -80,7 +80,7 @@ SOURCES := src/position.cpp src/nnue.cpp src/exchange.cpp src/search.cpp src/mai
 OBJECTS := $(patsubst src/%.cpp,$(BUILD)/%.o,$(SOURCES))
 NET := networks/nn-1a298aa575a0.nnue
 
-.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-clock-probes test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-qualification test-phase3g test-phase3l verify-moves bench resources clean FORCE
+.PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-clock-probes test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-profile-cache test-qualification test-phase3g test-phase3l verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
 $(BUILD):
@@ -181,6 +181,9 @@ test-profile-ordering: test-profile-lmr
 test-profile-cpu:
 	$(PYTHON) tests/profile_cpu_test.py
 
+test-profile-cache:
+	$(PYTHON) tests/profile_cache_test.py
+
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
 test-qualification: test-phase3g test-phase3l
 	$(PYTHON) tests/qualify_time_policy_test.py
@@ -219,6 +222,7 @@ help:
 	@echo 'make test-phase3l      Test fresh qualification inputs, readiness, supervision, and audit'
 	@echo 'make test-bench        Test deterministic baseline/candidate comparisons'
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
+	@echo 'make test-profile-cache Test cache profiling, counter validation, and failure evidence'
 	@echo 'make test-clock-probes Test saved-position clock diagnostic validation'
 	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
 	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'

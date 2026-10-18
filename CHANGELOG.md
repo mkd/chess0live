@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added standard UCI `hashfull` reporting so chess GUIs can show recent
+  transposition-table occupancy during analysis and play.
+- Reduced transposition-table storage by one third while preserving entry
+  capacity and tested search behavior. At `Hash=64`, table storage falls from
+  48 MiB to 32 MiB; sampled search timing was effectively unchanged.
 - Console board, evaluation, help, and perft output now prints as plain text,
   without `info string` prefixes. Normal UCI search still reports centipawns
   or a signed mate distance; both have explicit protocol regression checks.
@@ -47,6 +52,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Added optional cache hit/cutoff/replacement diagnostics and a bounded profiler
+  that checks legal search output, occupancy, memory accounting, and cold/warm
+  behavior on development positions.
 - Prepared a reproducible 512-game comparison with fresh openings, explicit
   prior-position exclusions, frozen engine inputs, resource controls, and an
   independent audit. Readiness passed without searching the test positions;

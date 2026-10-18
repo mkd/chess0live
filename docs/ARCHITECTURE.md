@@ -54,14 +54,32 @@ single-worker evidence before enabling shared-memory search. Add pruning,
 reductions, parallelism, and speculative ideas through isolated experiments and
 matched-game testing, retaining changes only on appropriate evidence.
 
-Transposition caching is already implemented in `src/search.cpp`: four entries
+Transposition caching is implemented in `src/search.cpp`: four entries
 per bucket, stored moves/scores/depths/bounds, generation/depth replacement,
 mate-distance normalization, and a history/rule-50-aware key. `Hash` controls
-capacity and `Clear Hash` clears cached search state. The current table has one
-owning search thread; it is not yet safe to share by simply starting more threads.
-Future cache work should measure hit/cutoff behavior and memory cost before
-changing representation, key semantics, or replacement. Preserve repetition,
-rule-50, and policy-isolation correctness even when a faster key looks attractive.
+capacity and `Clear Hash` clears cached search state. Internal representation is
+isolated in `include/chess0live/detail/transposition_entry.hpp`: 16-byte entries
+retain the full key, signed score, full generation byte, and all move information.
+Depth fits one byte under the root-depth/check-extension invariant. Four-entry
+buckets have 64-byte size/alignment; this is not a universal cache-line claim.
+The historical 96-byte budget divisor deliberately retains bucket count/indexing
+and collisions at every Hash setting. At `Hash=64`, 2,097,152 entries now occupy
+32 MiB instead of 48 MiB. Vector/allocator overhead and other engine memory are
+outside that entry-storage figure.
+
+Standard `hashfull` samples up to 1,000 entries in the current search generation
+at each report, in permille. Eight-bit generation wrap can alias old entries;
+this is approximate recent occupancy, not physical-memory use or hit rate.
+Opt-in `Search Diagnostics` adds one `info string cache v1` record per search,
+including geometry and probe/hit/cutoff/save-attempt/occupied-replacement counts.
+Counts include interrupted work and are not updated when diagnostics are off.
+The [cache profiler](../tools/profile_cache.py) checks exposed cold/warm roots;
+warm behavior includes retained ordering history, while the evaluator resets.
+
+The table still has one owning search thread; smaller/aligned entries do not
+make its access race-safe. Future changes must preserve repetition, rule-50,
+and policy-isolation correctness even when a faster key looks attractive. See
+the [Phase 4A decision](reports/2026-10-18-phase4a-cache.md).
 
 Lazy SMP is planned as separate worker-local position, history, and NNUE state
 over immutable shared weights, with explicitly safe transposition sharing and

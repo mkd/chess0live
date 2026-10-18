@@ -322,3 +322,18 @@ phase gates passed: sampled throughput gains versus retained Phase 3B were
 `500b022`; raw evidence under `results/phase3f-20261017/`. Four individual
 slowdowns and substantial absolute-time drift remain documented. This is not
 strength evidence or a new release; no default search policy changed.
+
+## Phase 4A — retained compact cache entries, October 18, 2026
+
+[Protocol](PHASE_4A.md) and [report](reports/2026-10-18-phase4a-cache.md).
+Initial cache diagnostics confirmed full-key hits/cutoffs and 24-byte entries.
+The one candidate preserves capacity, keys, moves, bounds, generations, and
+replacement semantics in 16-byte entries / aligned 64-byte buckets. Table
+storage at Hash 64 fell from 48 to 32 MiB. Native/scalar/sanitizer and 20 profiler
+checks passed; all 72 profile searches preserved exact signatures/counters and
+all 36 timing searches preserved exact work. Timing guards passed with root
+median ratios 1.010283/0.996622/0.996106 and geometric mean 1.000982: effectively
+neutral timing, including both slight slowdowns. Retain the storage reduction,
+without a speed or strength claim. Standard UCI hashfull and optional detailed
+cache diagnostics are included. Phase 4B Lazy SMP is next; no additional cache
+candidate or Phase 3L campaign was launched.
