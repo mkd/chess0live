@@ -56,6 +56,8 @@ struct SearchLimits {
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Experimental quiet reply ordering; changes neither depth nor pruning. */
     bool countermove_ordering = false;
+    /** Experimental reduced null probe followed by a legal-move verification. */
+    bool null_move_pruning = false;
     /** Zero disables probing. Interior probes require at least this depth;
      * root DTZ ranking is independent of the interior depth threshold. */
     int syzygy_probe_limit = 7;
@@ -170,6 +172,20 @@ struct CountermoveStatistics {
     std::uint64_t updates = 0;
 };
 
+/** Optional per-worker null-search counters, summed after all helpers join.
+ * Probes/verifications include interrupted attempts; accepted/rejected counts
+ * require completion. A verified shallow cutoff is still a heuristic, not a
+ * proof of the original-depth score. Disabled diagnostics leave counters zero.
+ */
+struct NullMoveStatistics {
+    bool enabled = false;
+    std::uint64_t probes = 0;
+    std::uint64_t fail_highs = 0;
+    std::uint64_t verifications = 0;
+    std::uint64_t cutoffs = 0;
+    std::uint64_t rejected = 0;
+};
+
 /** Final accounting for independent workers sharing a transposition table.
  * Worker zero is the leader and supplies the result/PV. Helpers contribute
  * bounds and move ordering, never an unverified vote for the returned move.
@@ -199,6 +215,7 @@ struct SearchResult {
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
+    NullMoveStatistics nullmove;
 };
 
 /** Independent iterative deepening with optional shared-table Lazy SMP.

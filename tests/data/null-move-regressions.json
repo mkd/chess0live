@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "description": "Exposed, independently composed Phase 4D.3 null-move safety cases. Every case is also color-mirrored by the test. These are correctness inputs, not a strength sample or known optimal-play oracle.",
+  "license": "GPL-3.0-or-later",
+  "copyright": "Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>",
+  "provenance": "Authored for chess0live from ordinary chess rules and a new legal opening history. No other engine's assets or reserved qualification roots were consulted.",
+  "history_limitations": "Opening/repetition cases retain complete start-position histories. Composed FENs assert only local board validity and supply no earlier history or retrograde reachability proof.",
+  "positions": [
+    {
+      "id": "fianchetto-opening",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "moves": ["g1f3", "d7d5", "g2g3", "c7c6", "f1g2", "g8f6", "e1g1", "c8f5", "d2d3", "b8d7", "b1d2", "e7e6"],
+      "depth": 4,
+      "category": "reachable_quiet_opening"
+    },
+    {
+      "id": "closed-middlegame",
+      "fen": "2r2rk1/pp2bppp/2npbn2/2p5/4PP2/1PN1BNP1/P1PQ2BP/2KR3R w - - 2 14",
+      "depth": 4,
+      "category": "composed_ordinary_material"
+    },
+    {
+      "id": "rook-file-check",
+      "fen": "4r1k1/pp3ppp/8/8/8/2N5/PP3PPP/4K2R w K - 2 20",
+      "depth": 4,
+      "in_check": true,
+      "category": "root_check_evasion"
+    },
+    {
+      "id": "en-passant",
+      "fen": "4k2r/8/8/2pP4/8/8/8/R3K3 w Q c6 0 1",
+      "depth": 4,
+      "searchmoves": ["d5c6"],
+      "zero_probes": true,
+      "category": "restricted_en_passant_capture"
+    },
+    {
+      "id": "kingside-castle",
+      "fen": "r3k2r/pp4pp/8/8/8/8/PP4PP/R3K2R w KQkq - 0 12",
+      "depth": 4,
+      "searchmoves": ["e1g1"],
+      "category": "restricted_kingside_castling"
+    },
+    {
+      "id": "queenside-castle",
+      "fen": "r3k2r/pp4pp/8/8/8/8/PP4PP/R3K2R w KQkq - 0 12",
+      "depth": 4,
+      "searchmoves": ["e1c1"],
+      "category": "restricted_queenside_castling"
+    },
+    {
+      "id": "queen-promotion",
+      "fen": "6k1/1P6/8/8/8/8/6p1/3K4 w - - 0 45",
+      "depth": 4,
+      "searchmoves": ["b7b8q"],
+      "zero_probes": true,
+      "category": "restricted_promotion"
+    },
+    {
+      "id": "knight-underpromotion",
+      "fen": "6k1/1P6/8/8/8/8/6p1/3K4 w - - 0 45",
+      "depth": 4,
+      "searchmoves": ["b7b8n"],
+      "zero_probes": true,
+      "category": "restricted_underpromotion"
+    },
+    {
+      "id": "capture-rook-underpromotion",
+      "fen": "r4k2/1P6/8/8/8/8/8/3K4 w - - 0 47",
+      "depth": 4,
+      "searchmoves": ["b7a8r"],
+      "zero_probes": true,
+      "category": "restricted_capture_underpromotion"
+    },
+    {
+      "id": "blocked-pawn-opposition",
+      "fen": "8/8/2k5/2p5/2P5/2K5/8/8 w - - 0 30",
+      "depth": 6,
+      "zero_probes": true,
+      "exact_off_parity": true,
+      "category": "pawn_only_zugzwang_risk"
+    },
+    {
+      "id": "single-minor-opposition",
+      "fen": "8/8/3k4/2p5/2P5/3K4/1N6/8 w - - 0 31",
+      "depth": 6,
+      "zero_probes": true,
+      "exact_off_parity": true,
+      "category": "single_nonpawn_zugzwang_risk"
+    },
+    {
+      "id": "sparse-rook-opposition",
+      "fen": "8/8/2k5/2p5/2P5/2K5/R7/8 w - - 0 31",
+      "depth": 6,
+      "zero_probes": true,
+      "exact_off_parity": true,
+      "category": "single_rook_and_low_total_material"
+    },
+    {
+      "id": "mate-before-rule50",
+      "fen": "7k/8/6K1/5Q2/8/8/8/8 w - - 99 1",
+      "depth": 3,
+      "score": ["mate", 1],
+      "zero_probes": true,
+      "category": "mate_overrides_imminent_rule50"
+    },
+    {
+      "id": "forced-loss",
+      "fen": "7k/8/5K2/6Q1/8/8/8/8 b - - 0 1",
+      "depth": 3,
+      "score": ["mate", -1],
+      "zero_probes": true,
+      "category": "signed_mate_loss"
+    },
+    {
+      "id": "checkmate-at-rule50",
+      "fen": "k7/1Q6/2K5/8/8/8/8/8 b - - 100 1",
+      "depth": 3,
+      "score": ["mate", 0],
+      "zero_probes": true,
+      "category": "terminal_checkmate_precedence"
+    },
+    {
+      "id": "stalemate",
+      "fen": "k7/8/1QK5/8/8/8/8/8 b - - 0 1",
+      "depth": 3,
+      "score": ["cp", 0],
+      "zero_probes": true,
+      "category": "terminal_stalemate"
+    },
+    {
+      "id": "rule50-draw",
+      "fen": "8/7k/8/7p/P7/8/K7/8 w - - 100 1",
+      "depth": 3,
+      "score": ["cp", 0],
+      "zero_probes": true,
+      "category": "terminal_rule50"
+    },
+    {
+      "id": "insufficient-material",
+      "fen": "7k/8/8/8/8/8/3K4/2B5 w - - 0 1",
+      "depth": 3,
+      "score": ["cp", 0],
+      "zero_probes": true,
+      "category": "terminal_material_draw"
+    },
+    {
+      "id": "twofold-history",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "moves": ["b1c3", "b8c6", "c3b1", "c6b8"],
+      "depth": 4,
+      "repetition": 2,
+      "category": "real_history_retained"
+    },
+    {
+      "id": "threefold-history",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "moves": ["b1c3", "b8c6", "c3b1", "c6b8", "b1c3", "b8c6", "c3b1", "c6b8"],
+      "depth": 3,
+      "repetition": 3,
+      "score": ["cp", 0],
+      "zero_probes": true,
+      "category": "terminal_repetition"
+    }
+  ]
+}

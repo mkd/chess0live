@@ -115,9 +115,8 @@ diagnostic accounting stays unchanged and emits no SMP record. Historical
 single-worker profilers remain single-worker tools.
 
 See the [Phase 4B contract](PHASE_4B.md) and the
-[Phase 4A cache decision](reports/2026-10-18-phase4a-cache.md). Syzygy remains a
-separate, unimplemented endgame-probing module with its own draw-rule and
-configuration boundary.
+[Phase 4A cache decision](reports/2026-10-18-phase4a-cache.md). Syzygy is a
+separate optional module with the draw-rule and configuration boundary below.
 
 The first selective-search experiment is optional, conservative late-move
 reduction. Its [policy and verification contract](SELECTIVE_SEARCH.md) are
@@ -138,6 +137,33 @@ comparator remains selectable. Search cache isolation covers both policy axes.
 The initial core has no variant framework, opening book, or puzzle service.
 Modularity means clear data and responsibility boundaries, not runtime machinery
 for extensions that do not yet exist.
+
+## Experimental verified null-move boundary
+
+`Null Move Pruning=false` remains the default. The independent opt-in candidate
+uses a fixed reduced pass probe only at eligible interior non-PV nodes, followed
+by a reduced search of legal moves on the original position. Both searches must
+finish and fail high outside the mate/tablebase bands before returning `beta`.
+This is a heuristic cutoff, not proof of the original-depth bound. Exact guards,
+depth reductions, and the bounded development contract are in the
+[experiment protocol](experiments/phase4d3-null-move.md).
+
+A by-value search mode propagates through every recursive and quiescence call.
+Both speculative subtrees disable further null probes, LMR, tablebase probes,
+TT reads/writes, and killer/history/countermove learning. Existing ordering hints
+may be read. The pass subtree never appends fictional history or adjudicates
+repetition/rule-50 draws; legal verification retains genuine history and draw
+rules. Terminal legal-move tests still precede evaluation and draws. Neither
+speculative PV escapes; only the ordinary search reports real lines. A direct
+verified null cutoff is not stored as an original-depth TT entry, though
+ancestors can naturally cache results influenced by the experimental policy.
+
+Policy changes clear cached bounds and learned state even through the public
+search API. Attempt/outcome counters stay worker-local and are summed after
+helpers join; diagnostics remain optional. All speculative work uses existing
+node tickets and clock/cancellation checks. Ordinary cancellation restores
+moves; exceptions discard the local position and reset worker state on reuse,
+rather than promising transactional unwinding of every legal descendant.
 
 ## Optional tablebase boundary
 

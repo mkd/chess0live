@@ -153,6 +153,27 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 test-search: $(BUILD)/search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 
+# Experimental null-search state and lifecycle checks; no strength claims.
+NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
+$(BUILD)/null-state-test$(EXE): tests/null_state_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) -o "$@"
+
+$(BUILD)/null-search-test$(EXE): tests/null_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-null-state test-null-search test-null-move test-profile-null-move
+test-null-state: $(BUILD)/null-state-test$(EXE)
+	"$(BUILD)/null-state-test$(EXE)" "$(NET)"
+
+test-null-search: $(BUILD)/null-search-test$(EXE)
+	"$(BUILD)/null-search-test$(EXE)" "$(NET)"
+
+test-null-move: $(ENGINE)
+	$(PYTHON) tests/null_move_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(NULL_MOVE_ACTIVATION_TIMEOUT)
+
+test-profile-null-move:
+	$(PYTHON) tests/profile_null_move_test.py
+
 # Optional independent-referee checks for the isolated quiet-reply experiment.
 .PHONY: test-countermove test-profile-countermove
 test-countermove: $(ENGINE)
@@ -280,6 +301,7 @@ help:
 	@echo 'make test-smp          Parallel UCI/PV checks (requirements-match.txt)'
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make test-countermove test-profile-countermove  Check experimental quiet reply ordering'
+	@echo 'make test-null-state test-null-search test-null-move  Check experimental verified null pruning'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'

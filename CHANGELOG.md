@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added experimental verified null-move pruning, with legal-move verification,
+  draw/endgame safeguards, and per-worker diagnostic counters. It remains
+  disabled by default until separate playing-strength qualification.
 - Added experimental quiet countermove ordering, with worker-local reply memory
   and diagnostic counters. It changes move order without reducing search depth
   or pruning. The [mixed development screen](docs/reports/2026-10-18-phase4d-countermove.md)

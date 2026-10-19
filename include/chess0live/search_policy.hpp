@@ -14,6 +14,33 @@
 
 namespace chess0live::search_policy {
 
+/** Cheap eligibility for the first verified null-move experiment. The search
+ * supplies material/history facts before paying for a fresh static evaluation.
+ * These exclusions reduce zugzwang exposure; they cannot rule it out generally.
+ */
+struct NullMoveContext {
+    int depth = 0;
+    int ply = 0;
+    bool pv_node = false;
+    bool in_check = false;
+    bool special_window = false;
+    bool speculative = false;
+    bool repeated = false;
+    bool advanced_pawn = false;
+    unsigned halfmove = 0;
+    int non_pawns = 0;
+    int pawns = 0;
+    int pieces = 0;
+    std::size_t legal_moves = 0;
+};
+
+constexpr bool probe_null_move(const NullMoveContext& c) {
+    return c.depth >= 5 && c.ply > 0 && !c.pv_node && !c.in_check
+        && !c.special_window && !c.speculative && !c.repeated && !c.advanced_pawn
+        && c.halfmove < 80 && c.non_pawns >= 2 && c.pawns >= 1
+        && c.pieces > 7 && c.legal_moves >= 2;
+}
+
 /** Inputs to the first, deliberately narrow late-move reduction experiment.
  * searched_moves counts earlier moves already searched at this node. The moved
  * piece and move flags describe the parent position; child_in_check describes

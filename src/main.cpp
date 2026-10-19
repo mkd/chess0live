@@ -149,6 +149,7 @@ private:
     bool late_move_reductions_ = false;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     bool countermove_ordering_ = false;
+    bool null_move_pruning_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -183,6 +184,7 @@ private:
         output("option name Late Move Reductions type check default false");
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("option name Countermove Ordering type check default false");
+        output("option name Null Move Pruning type check default false");
         output("uciok");
     }
 
@@ -290,6 +292,12 @@ private:
             else output("info string error: Countermove Ordering expects true or false");
             return; // Search isolates both cache and worker-local histories.
         }
+        if (name == "Null Move Pruning") {
+            if (value == "true") null_move_pruning_ = true;
+            else if (value == "false") null_move_pruning_ = false;
+            else output("info string error: Null Move Pruning expects true or false");
+            return; // Direct Search callers get the same policy-state isolation.
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -395,6 +403,14 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (result.nullmove.enabled) {
+            std::ostringstream line;
+            line << "info string nullmove v1 enabled true probes " << result.nullmove.probes
+                 << " fail_highs " << result.nullmove.fail_highs
+                 << " verifications " << result.nullmove.verifications
+                 << " cutoffs " << result.nullmove.cutoffs << " rejected " << result.nullmove.rejected;
+            output(line.str());
+        }
         if (result.smp.threads > 1) {
             std::ostringstream line;
             line << "info string smp v1 threads " << result.smp.threads
@@ -489,6 +505,7 @@ private:
         limits.late_move_reductions = late_move_reductions_;
         limits.capture_ordering = capture_ordering_;
         limits.countermove_ordering = countermove_ordering_;
+        limits.null_move_pruning = null_move_pruning_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};

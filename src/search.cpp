@@ -209,8 +209,14 @@ struct SearchWorker {
     LateMoveStatistics lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
+    NullMoveStatistics nullmove;
     CacheStatistics cache;
     int completed_depth = 0;
+
+    // Propagate by value through every descendant: neither a fictitious pass
+    // nor its legal-move verification may consume selective TT bounds or learn
+    // ordering state. Only verification retains genuine game-history draws.
+    enum class Mode { ordinary, null_probe, verification };
 
     SearchWorker(const nnue::Network& weights, SharedSearch& state, std::size_t index)
         : network(weights), evaluator(weights), shared(state), id(index) {}
@@ -288,7 +294,8 @@ struct SearchWorker {
         return total;
     }
 
-    bool draw(const Position& position) const {
+    bool draw(const Position& position, Mode mode = Mode::ordinary) const {
+        if (mode == Mode::null_probe) return dead_material(position);
         if (position.halfmove_clock() >= 100 || dead_material(position)) return true;
         int occurrences = 0;
         const auto reversible = std::min(game_history.size(),
@@ -298,6 +305,17 @@ struct SearchWorker {
             --index;
             if (game_history[index] == position.key() && ++occurrences == 3) return true;
         }
+        return false;
+    }
+
+    /** A twofold real-history occurrence is enough to exclude a null probe.
+     * The ordinary search still requires three occurrences to claim a draw.
+     */
+    bool repeated(const Position& position) const {
+        int occurrences = 0;
+        const auto count = std::min(game_history.size(), std::size_t(position.halfmove_clock()) + 1);
+        for (auto i = game_history.size(); i > game_history.size() - count;)
+            if (game_history[--i] == position.key() && ++occurrences == 2) return true;
         return false;
     }
 
@@ -473,12 +491,12 @@ struct SearchWorker {
      * stand-pat/draw handling so neither stalemate nor a rule-50 checkmate can
      * accidentally receive an ordinary neural evaluation or draw score.
      */
-    int quiescence(Position& position, int alpha, int beta, int ply) {
+    int quiescence(Position& position, int alpha, int beta, int ply, Mode mode = Mode::ordinary) {
         if (!visit(ply)) return 0;
         auto moves = position.legal_moves();
         const bool checked = position.in_check(position.turn());
         if (moves.empty()) return checked ? -mate_score + ply : 0;
-        if (draw(position)) return 0;
+        if (draw(position, mode)) return 0;
         if (ply >= max_ply - 1) return evaluate(position);
 
         if (!checked) {
@@ -492,9 +510,9 @@ struct SearchWorker {
         order(position, moves, {}, ply);
         for (const auto move : moves) {
             const auto undo = position.make_move(move);
-            game_history.push_back(position.key());
-            const int score = -quiescence(position, -beta, -alpha, ply + 1);
-            game_history.pop_back();
+            if (mode != Mode::null_probe) game_history.push_back(position.key());
+            const int score = -quiescence(position, -beta, -alpha, ply + 1, mode);
+            if (mode != Mode::null_probe) game_history.pop_back();
             position.unmake_move(move, undo);
             if (aborted) return 0;
             if (score > alpha) {
@@ -517,13 +535,13 @@ struct SearchWorker {
      */
     int alphabeta(Position& position, int depth, int alpha, int beta, int ply,
                   bool pv_node, std::uint64_t digest,
-                  std::size_t previous_move = no_previous_move) {
-        if (depth <= 0) return quiescence(position, alpha, beta, ply);
+                  std::size_t previous_move = no_previous_move, Mode mode = Mode::ordinary) {
+        if (depth <= 0) return quiescence(position, alpha, beta, ply, mode);
         if (!visit(ply)) return 0;
         auto moves = position.legal_moves();
         const bool checked = position.in_check(position.turn());
         if (moves.empty()) return checked ? -mate_score + ply : 0;
-        if (draw(position)) return 0;
+        if (draw(position, mode)) return 0;
         if (ply >= max_ply - 1) return evaluate(position);
         if (ply == 0 && !limits.searchmoves.empty()) {
             std::erase_if(moves, [&](Move move) {
@@ -542,7 +560,7 @@ struct SearchWorker {
         // proves a lower bound, not a precise score or mating distance; a loss
         // proves an upper bound. Keep PV nodes on ordinary search and do not
         // store these direct probe bounds in the TT.
-        if (shared.tablebase_limit > 0 && ply > 0 && !pv_node
+        if (mode == Mode::ordinary && shared.tablebase_limit > 0 && ply > 0 && !pv_node
             && depth >= limits.syzygy_probe_depth && position.halfmove_clock() == 0
             && position.castling_rights() == 0
             && std::popcount(position.occupied()) <= shared.tablebase_limit) {
@@ -560,7 +578,7 @@ struct SearchWorker {
 
         const auto key = table_key(position, digest);
         Move tt_move;
-        if (const auto entry = probe(key)) {
+        if (const auto entry = mode == Mode::ordinary ? probe(key) : std::nullopt) {
             tt_move = entry->move();
             const int score = score_from_table(entry->score, ply);
             if (!pv_node && entry->depth >= depth) {
@@ -569,6 +587,60 @@ struct SearchWorker {
                     || (entry->bound() == Bound::upper && score <= alpha)) {
                     if (limits.diagnostics) ++cache.cutoffs;
                     return score;
+                }
+            }
+        }
+
+        // A null probe is a fictional pass, never a move/history/TT entry. Its
+        // complete subtree is isolated, including quiescence. A fail-high is
+        // only a reason to search legal moves at reduced depth: it cannot by
+        // itself authorize a cutoff or supply a score/PV to the real game.
+        if (limits.null_move_pruning && mode == Mode::ordinary && depth >= 5
+            && ply > 0 && !pv_node && !checked) {
+            const auto side = position.turn();
+            const auto non_pawns = position.pieces(side, PieceType::knight)
+                | position.pieces(side, PieceType::bishop) | position.pieces(side, PieceType::rook)
+                | position.pieces(side, PieceType::queen);
+            const int band = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+            const bool advanced = (position.pieces(Color::white, PieceType::pawn) & (Bitboard{0xffff} << 40))
+                || (position.pieces(Color::black, PieceType::pawn) & (Bitboard{0xffff} << 8));
+            const search_policy::NullMoveContext context{
+                depth, ply, pv_node, checked, std::abs(alpha) >= band || std::abs(beta) >= band,
+                false, repeated(position), advanced, position.halfmove_clock(),
+                std::popcount(non_pawns), std::popcount(position.pieces(side, PieceType::pawn)),
+                std::popcount(position.occupied()), moves.size()};
+            if (search_policy::probe_null_move(context)) {
+                const int static_score = evaluate(position);
+                if (static_score >= beta && std::abs(static_score) < band) {
+                    if (limits.diagnostics) ++nullmove.probes;
+                    const auto undo = position.make_null_move();
+                    int null_score;
+                    try {
+                        null_score = -alphabeta(position, depth - 3, -beta, -beta + 1,
+                            ply + 1, false, 0, no_previous_move, Mode::null_probe);
+                    } catch (...) {
+                        position.unmake_null_move(undo);
+                        throw;
+                    }
+                    position.unmake_null_move(undo);
+                    pv_length[static_cast<std::size_t>(ply)] = ply;
+                    if (aborted) return 0;
+                    // Reject mate/tablebase-band pseudo evidence. Both passes
+                    // must finish normally before the real node may fail high.
+                    if (null_score >= beta && std::abs(null_score) < band) {
+                        if (limits.diagnostics) { ++nullmove.fail_highs; ++nullmove.verifications; }
+                        const int verified = alphabeta(position, depth - 2, beta - 1, beta,
+                            ply, false, digest, previous_move, Mode::verification);
+                        pv_length[static_cast<std::size_t>(ply)] = ply;
+                        if (aborted) return 0;
+                        if (verified >= beta && std::abs(verified) < band) {
+                            if (limits.diagnostics) ++nullmove.cutoffs;
+                            // Do not store a shallow heuristic as an ordinary
+                            // original-depth TT bound, and never return null's score.
+                            return beta;
+                        }
+                        if (limits.diagnostics) ++nullmove.rejected;
+                    }
                 }
             }
         }
@@ -599,15 +671,15 @@ struct SearchWorker {
             const auto child_key = position.key();
             const auto child_digest = position.halfmove_clock() == 0
                 ? mix(child_key) : digest + mix(child_key);
-            game_history.push_back(child_key);
+            if (mode != Mode::null_probe) game_history.push_back(child_key);
 
             int score;
             if (move_number == 0) {
                 score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
-                                   pv_node, child_digest, child_context);
+                                   pv_node, child_digest, child_context, mode);
             } else {
                 bool reduce = false;
-                if (limits.late_move_reductions) {
+                if (limits.late_move_reductions && mode == Mode::ordinary) {
                     const search_policy::LateMoveContext context{
                         depth, ply, move_number, pv_node, checked, false,
                         std::abs(alpha) >= (shared.tablebase_limit > 0 ? tablebase_score : mate_threshold)
@@ -622,11 +694,11 @@ struct SearchWorker {
                 }
                 if (reduce) ++lmr.reductions;
                 score = -alphabeta(position, depth - 1 - int(reduce), -alpha - 1, -alpha, ply + 1,
-                                   false, child_digest, child_context);
+                                   false, child_digest, child_context, mode);
                 if (reduce && !aborted && score > alpha) {
                     ++lmr.researches;
                     score = -alphabeta(position, depth - 1, -alpha - 1, -alpha, ply + 1,
-                                       false, child_digest, child_context);
+                                       false, child_digest, child_context, mode);
                     if (!aborted) {
                         if (score <= alpha) ++lmr.fail_lows;
                         else if (score >= beta) ++lmr.verified_cutoffs;
@@ -634,9 +706,9 @@ struct SearchWorker {
                 }
                 if (!aborted && score > alpha && score < beta)
                     score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
-                                       pv_node, child_digest, child_context);
+                                       pv_node, child_digest, child_context, mode);
             }
-            game_history.pop_back();
+            if (mode != Mode::null_probe) game_history.pop_back();
             position.unmake_move(move, undo);
             if (aborted) return 0;
             ++move_number;
@@ -650,7 +722,7 @@ struct SearchWorker {
                 update_pv(ply, move);
             }
             if (score >= beta) {
-                if (!move.is_capture() && move.promotion == PieceType::none) {
+                if (mode == Mode::ordinary && !move.is_capture() && move.promotion == PieceType::none) {
                     if (limits.countermove_ordering && previous_move != no_previous_move) {
                         countermoves[previous_move] = move;
                         if (limits.diagnostics) ++countermove.updates;
@@ -671,7 +743,7 @@ struct SearchWorker {
             : best_score > original_alpha ? Bound::exact : Bound::upper;
         // A restricted root proves bounds only over its requested subset. Never
         // publish those bounds for a later unrestricted search of this position.
-        if (ply != 0 || limits.searchmoves.empty())
+        if (mode == Mode::ordinary && (ply != 0 || limits.searchmoves.empty()))
             save(key, best_move, best_score, depth, ply, bound);
         return best_score;
     }
@@ -701,6 +773,8 @@ struct SearchWorker {
         ordering.policy = limits.capture_ordering;
         countermove = {};
         countermove.enabled = limits.countermove_ordering;
+        nullmove = {};
+        nullmove.enabled = limits.null_move_pruning;
         cache = {};
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
@@ -741,6 +815,7 @@ struct SearchWorker {
             result.lmr = lmr;
             result.ordering = ordering;
             result.countermove = countermove;
+            result.nullmove = nullmove;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -863,6 +938,7 @@ struct Search::Impl {
     bool previous_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
     bool previous_countermove = false;
+    bool previous_nullmove = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
 
@@ -901,11 +977,13 @@ struct Search::Impl {
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
             || request.capture_ordering != previous_ordering
             || request.countermove_ordering != previous_countermove
+            || request.null_move_pruning != previous_nullmove
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
         previous_ordering = request.capture_ordering;
         previous_countermove = request.countermove_ordering;
+        previous_nullmove = request.null_move_pruning;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
@@ -1004,6 +1082,11 @@ struct Search::Impl {
             result.countermove.lookups += worker.countermove.lookups;
             result.countermove.matches += worker.countermove.matches;
             result.countermove.updates += worker.countermove.updates;
+            result.nullmove.probes += worker.nullmove.probes;
+            result.nullmove.fail_highs += worker.nullmove.fail_highs;
+            result.nullmove.verifications += worker.nullmove.verifications;
+            result.nullmove.cutoffs += worker.nullmove.cutoffs;
+            result.nullmove.rejected += worker.nullmove.rejected;
             if (result.diagnostics) {
                 auto& cache = result.diagnostics->cache;
                 cache.probes += worker.cache.probes;

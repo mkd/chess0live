@@ -182,6 +182,19 @@ exchanges and searches apparently losing captures later. All captures remain
 available to search. It is evaluated independently with LMR off and classic
 timing; see [the ordering experiment](docs/MOVE_ORDERING.md).
 
+`Null Move Pruning` (default `false`) enables an experimental, guarded pass
+probe followed by a search of legal moves before accepting a cutoff. Enable it
+with `setoption name Null Move Pruning value true`. It excludes checks,
+principal-variation nodes, sparse material, advanced pawns, repeated positions,
+and positions near the fifty-move limit. These safeguards do not prove strength
+preservation; leave it off for ordinary baseline comparisons. Changing the
+policy clears cached search state. With `Search Diagnostics=true`, a final
+`nullmove v1` record reports probes, fail-highs, verifications, accepted cutoffs,
+and rejected verifications, summed across workers. Check state and protocol
+behavior with `make test-null-state test-null-search test-null-move`
+after installing `requirements-match.txt`. `make test-profile-null-move` checks
+the bounded development profiler without starting engine searches.
+
 `Countermove Ordering` (default `false`) is a separate experimental ordering
 option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.
