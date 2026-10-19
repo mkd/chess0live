@@ -988,3 +988,20 @@ timings are not throughput evidence. No default promotion, further null tuning,
 new strength campaign, foreign execution, GUI visual pass or release follows.
 Null pruning stays off. All existing GUI bundles, frozen Phase 3L/4D.2 inputs
 and the owner's README introduction were preserved.
+
+## Phase 4D.2 — completed LMR qualification audit — October 19, 2026
+
+The unchanged independent auditor passed all 1,024 games / 512 pairs, replaying
+115,571 legal plies including opening histories and 95,687 search events.
+There were no exclusions, audit errors, incomplete games or source/asset drift.
+The campaign finished at 05:34:17 Helsinki, before its 07:00 cutoff. Resource
+admission and monitoring records passed; they do not measure OS utilization.
+
+LMR-on scored 458W/299D/267L, 607.5 points (59.3262%), with conditional 95%
+pair-level bounds 53.3242–65.3282%. Its 19 flagfalls (17 losses, two draws)
+fail the protocol's absolute operational gate; the baseline had 65 flagfalls.
+Verdict: `operational_regression`, LMR remains off. No general Elo or default
+promotion follows. The [report](reports/2026-10-19-phase4d2-results.md) preserves
+the favorable score, failure, shared-host development overlap and causality
+limits. Keep all raw records and `final-audit.json`; diagnose clock behavior
+before any new qualification. No replacement campaign was launched.

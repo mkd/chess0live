@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.3 complete; Phase 4D.2 match running
+## Current checkpoint: Phase 4D.3 complete; Phase 4D.2 audit rejects promotion
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -40,7 +40,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 frozen LMR match running; 4D.3 null-move candidate checked and opt-in after mixed cold/warm work results; 4D.4 reverse futility next |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR promotion rejected by flagfalls; 4D.3 null-move opt-in after mixed work results; 4D.4 reverse futility next, with clock diagnosis before new qualification |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -256,8 +256,8 @@ depth rules but produced no convincing broad efficiency gain: cold total nodes
 -0.19%, warm +3.78%, with higher aggregate depth-6 elapsed time. All fixed-depth
 final scores/moves agreed; intermediate warm differences remain recorded.
 It stays opt-in and further tuning/strength qualification is parked. No default
-or Elo improvement is claimed. **Active: 4D.2**, isolate current-engine LMR
-qualification; the separate **4D.3** checkpoint is recorded below. Internal
+or Elo improvement is claimed. The **4D.2** current-engine LMR result and
+separate **4D.3** checkpoint are recorded below. Internal
 iterative deepening, distinct futility variants, and ProbCut are recorded in
 the search plan following the owner's additional feedback.
 
@@ -271,7 +271,12 @@ and launch status. One complete audited result is required before a default
 decision; incomplete or inconclusive evidence does not block 4D.3 indefinitely.
 The campaign launched October 18 at **23:13:40 Helsinki**, after 90 passing
 workflow checks and local commit `d376524`; cutoff is October 19 **07:00**.
-Results remain pending until all raw evidence is audited.
+The [complete result](reports/2026-10-19-phase4d2-results.md) was audited after
+all 1,024 games finished at 05:34:17 Helsinki: 458W/299D/267L, 59.3262%,
+conditional 95% score interval 53.3242–65.3282%. Nineteen candidate flagfalls
+(two adjudicated draws) and 65 baseline flagfalls fail the absolute reliability
+gate. Keep LMR off; no default promotion or new campaign follows. Diagnose
+clock behavior before another qualification; do not extend or pool this sample.
 
 **Phase 4D.3 is complete:** the [null-move report](reports/2026-10-18-phase4d3-null-move.md)
 records one independently implemented candidate, disabled by default, with
@@ -287,7 +292,7 @@ warm nodes rose 6.08%. This mixed three-root sample does not qualify strength
 or speed. The concurrent match prevents timing interpretation. No repeated
 tuning or new long campaign follows: keep null pruning off and move the next
 implementation checkpoint to **4D.4: conservative reverse futility**. The
-independent complete audit of the ongoing LMR match remains a separate gate.
+completed LMR audit above is separate and does not qualify either candidate.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override

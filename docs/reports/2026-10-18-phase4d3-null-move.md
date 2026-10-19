@@ -159,8 +159,9 @@ Keep the finite result and leave the candidate opt-in. No further tuning or
 new null-move match is launched at this checkpoint. Any later qualification
 needs a separate quiet equal-time development check and a frozen strength
 protocol; this small node screen does not establish that it is worth promoting.
-Phase 4D.2 needs its
-complete independent match audit before any LMR/default decision. The next
+The separate [Phase 4D.2 audit](2026-10-19-phase4d2-results.md), completed during
+final handover, rejects LMR promotion because of candidate flagfalls despite a
+favorable score. Diagnose clock behavior before another qualification. The next
 implementation is **4D.4: conservative reverse futility**, kept separate from
 null-move pruning. New equal-time strength qualification, broader platform
 execution, and release acceptance remain open; no new long match is launched

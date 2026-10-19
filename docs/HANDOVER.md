@@ -527,7 +527,7 @@ Raw evidence and frozen executables are in `results/phase4d-20261018/` and
 `build/experiments/phase4d-20261018/` respectively. Its follow-ups are the separate
 4D.2 LMR qualification and 4D.3 null-move checkpoint recorded below.
 
-**Phase 4D.2 is active:** see the [protocol](PHASE_4D2.md) and
+**Phase 4D.2 has finished:** see the [protocol](PHASE_4D2.md) and
 [preparation/launch record](reports/2026-10-18-phase4d2-preparation.md). It freezes
 the existing `74a908b` executable separately, changing only LMR on/off across
 1,024 paired games. Eight-worker exposed clock/cancellation checks and independent
@@ -541,7 +541,16 @@ The campaign launched October 18 at **23:13:40 Helsinki**, all eight shards
 running, with a fixed October 19 **07:00** cutoff. Preparation commit: `d376524`.
 Check the campaign manifest and raw records for current status; this timestamp
 is launch evidence only. No recurring task was scheduled. Run the independent
-auditor after completion before stating any strength/default decision.
+auditor after completion before stating any strength/default decision. That
+audit is now complete: [results](reports/2026-10-19-phase4d2-results.md).
+All 1,024 games / 512 pairs finished at 05:34:17 Helsinki, with no exclusions,
+audit errors or artifact drift. LMR scored 458W/299D/267L (59.3262%; conditional
+95% score interval 53.3242–65.3282%). However, 19 candidate flagfalls (17 losses,
+two draws) fail the fixed absolute reliability gate; baseline had 65 flagfalls.
+Keep LMR off. Preserve `final-audit.json` and all raw records, diagnose clock
+behavior before any new qualification, and do not rerun/extend/pool this sample.
+The foreground match command has exited. This is an operational rejection,
+not proof that LMR has worse timing than the baseline or a general Elo result.
 
 **Phase 4D.3 is complete**, implementation `51c426a`:
 [the report](reports/2026-10-18-phase4d3-null-move.md)
@@ -567,7 +576,7 @@ Current normal binary SHA-256:
 `d0617575e7ece0dc3c38d4f44f33b6bc93adad8cf947a129af6dec137246b530`.
 Raw evidence and frozen inputs are in `results/phase4d3-20261018/` and
 `build/experiments/phase4d3-20261018/`. Existing GUI snapshots, frozen Phase 3L
-assets, the running Phase 4D.2 campaign, and the README introduction are intact.
+assets, the completed Phase 4D.2 evidence, and the README introduction are intact.
 
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning

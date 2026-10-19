@@ -2,7 +2,10 @@
 
 Status: Phase 4D.1 complete with countermove ordering parked after a mixed
 360-search screen; [results and decision](reports/2026-10-18-phase4d-countermove.md).
-Phase 4D.2 current-engine LMR qualification is running on its frozen binary.
+Phase 4D.2 finished all 1,024 games: its [audited result](reports/2026-10-19-phase4d2-results.md)
+fails the absolute reliability gate despite 59.33% points, with 19 candidate
+flagfalls and 65 baseline flagfalls. LMR stays off; diagnose clock behavior
+before another qualification, without extending or retuning this sample.
 Phase 4D.3 verified null-move pruning is implemented and checked under its
 [separate development protocol](experiments/phase4d3-null-move.md). Its
 [mixed cold/warm screen](reports/2026-10-18-phase4d3-null-move.md) leaves it off
