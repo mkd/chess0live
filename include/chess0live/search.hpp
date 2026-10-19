@@ -58,6 +58,8 @@ struct SearchLimits {
     bool countermove_ordering = false;
     /** Experimental reduced null probe followed by a legal-move verification. */
     bool null_move_pruning = false;
+    /** Experimental shallow static cutoff at quiet interior scout nodes. */
+    bool reverse_futility_pruning = false;
     /** Zero disables probing. Interior probes require at least this depth;
      * root DTZ ranking is independent of the interior depth threshold. */
     int syzygy_probe_limit = 7;
@@ -186,6 +188,17 @@ struct NullMoveStatistics {
     std::uint64_t rejected = 0;
 };
 
+/** Fresh static evaluations and accepted shallow reverse-futility cutoffs.
+ * Worker-local counters include interrupted tree work, require diagnostics,
+ * and aggregate after every helper has joined. A cutoff is heuristic evidence,
+ * not a proof of the requested-depth score or preserved playing strength.
+ */
+struct ReverseFutilityStatistics {
+    bool enabled = false;
+    std::uint64_t evaluations = 0;
+    std::uint64_t cutoffs = 0;
+};
+
 /** Final accounting for independent workers sharing a transposition table.
  * Worker zero is the leader and supplies the result/PV. Helpers contribute
  * bounds and move ordering, never an unverified vote for the returned move.
@@ -216,6 +229,7 @@ struct SearchResult {
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;
+    ReverseFutilityStatistics reverse_futility;
 };
 
 /** Independent iterative deepening with optional shared-table Lazy SMP.

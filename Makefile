@@ -174,6 +174,21 @@ test-null-move: $(ENGINE)
 test-profile-null-move:
 	$(PYTHON) tests/profile_null_move_test.py
 
+# Experimental shallow static cutoffs; optional UCI tests use the referee.
+REVERSE_FUTILITY_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
+$(BUILD)/reverse-futility-search-test$(EXE): tests/reverse_futility_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-reverse-futility-search test-reverse-futility test-profile-reverse-futility
+test-reverse-futility-search: $(BUILD)/reverse-futility-search-test$(EXE)
+	"$(BUILD)/reverse-futility-search-test$(EXE)" "$(NET)"
+
+test-reverse-futility: $(ENGINE)
+	$(PYTHON) tests/reverse_futility_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(REVERSE_FUTILITY_ACTIVATION_TIMEOUT)
+
+test-profile-reverse-futility:
+	$(PYTHON) tests/profile_reverse_futility_test.py
+
 # Optional independent-referee checks for the isolated quiet-reply experiment.
 .PHONY: test-countermove test-profile-countermove
 test-countermove: $(ENGINE)
@@ -302,6 +317,7 @@ help:
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make test-countermove test-profile-countermove  Check experimental quiet reply ordering'
 	@echo 'make test-null-state test-null-search test-null-move  Check experimental verified null pruning'
+	@echo 'make test-reverse-futility-search test-reverse-futility  Check experimental static pruning'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'

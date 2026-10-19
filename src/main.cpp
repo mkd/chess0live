@@ -150,6 +150,7 @@ private:
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     bool countermove_ordering_ = false;
     bool null_move_pruning_ = false;
+    bool reverse_futility_pruning_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -185,6 +186,7 @@ private:
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("option name Countermove Ordering type check default false");
         output("option name Null Move Pruning type check default false");
+        output("option name Reverse Futility Pruning type check default false");
         output("uciok");
     }
 
@@ -298,6 +300,12 @@ private:
             else output("info string error: Null Move Pruning expects true or false");
             return; // Direct Search callers get the same policy-state isolation.
         }
+        if (name == "Reverse Futility Pruning") {
+            if (value == "true") reverse_futility_pruning_ = true;
+            else if (value == "false") reverse_futility_pruning_ = false;
+            else output("info string error: Reverse Futility Pruning expects true or false");
+            return; // Isolate cached bounds when the static pruning policy changes.
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -403,6 +411,13 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (result.reverse_futility.enabled) {
+            std::ostringstream line;
+            line << "info string reversefutility v1 enabled true evaluations "
+                 << result.reverse_futility.evaluations
+                 << " cutoffs " << result.reverse_futility.cutoffs;
+            output(line.str());
+        }
         if (result.nullmove.enabled) {
             std::ostringstream line;
             line << "info string nullmove v1 enabled true probes " << result.nullmove.probes
@@ -506,6 +521,7 @@ private:
         limits.capture_ordering = capture_ordering_;
         limits.countermove_ordering = countermove_ordering_;
         limits.null_move_pruning = null_move_pruning_;
+        limits.reverse_futility_pruning = reverse_futility_pruning_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};

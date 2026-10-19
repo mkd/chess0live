@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added experimental shallow reverse-futility pruning with tactical/endgame
+  exclusions and diagnostic counters. It is disabled by default pending
+  separate playing-strength qualification.
 - Added experimental verified null-move pruning, with legal-move verification,
   draw/endgame safeguards, and per-worker diagnostic counters. It remains
   disabled by default until separate playing-strength qualification.

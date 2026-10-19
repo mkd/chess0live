@@ -195,6 +195,17 @@ behavior with `make test-null-state test-null-search test-null-move`
 after installing `requirements-match.txt`. `make test-profile-null-move` checks
 the bounded development profiler without starting engine searches.
 
+`Reverse Futility Pruning` (default `false`) is an experimental shallow static
+cutoff, enabled with `setoption name Reverse Futility Pruning value true`.
+It excludes checks, principal-variation nodes, legal captures/promotions,
+sparse endings and draw-sensitive positions. Its fixed margins do not prove
+playing-strength preservation; leave it off for baseline comparisons. Changing
+the option clears reusable search state. With `Search Diagnostics=true`, a final
+`reversefutility v1` record reports eligible evaluations and cutoffs across all
+workers. After installing `requirements-match.txt`, run
+`make test-reverse-futility-search test-reverse-futility` for correctness checks,
+or `make test-profile-reverse-futility` for engine-free profiler checks.
+
 `Countermove Ordering` (default `false`) is a separate experimental ordering
 option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.

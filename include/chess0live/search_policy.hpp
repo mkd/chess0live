@@ -11,8 +11,53 @@
 #include "chess0live/types.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace chess0live::search_policy {
+
+/** Eligibility for one frozen reverse-futility hypothesis. A quiet position
+ * here has no legal capture or promotion; quiet checking moves are not excluded.
+ * Terminal states and actual draws must be handled before applying this policy.
+ * The guards and margins reduce risk, but cannot prove tactical safety.
+ */
+struct ReverseFutilityContext {
+    int depth = 0;
+    int ply = 0;
+    bool pv_node = false;
+    bool in_check = false;
+    bool special_window = false;
+    bool speculative = false;
+    bool repeated = false;
+    bool advanced_pawn = false;
+    bool tactical_moves = false;
+    unsigned halfmove = 0;
+    int non_pawns = 0;
+    int pawns = 0;
+    int pieces = 0;
+    std::size_t legal_moves = 0;
+};
+
+constexpr bool reverse_futility_eligible(const ReverseFutilityContext& c) {
+    return c.depth >= 1 && c.depth <= 3 && c.ply > 0 && !c.pv_node
+        && !c.in_check && !c.special_window && !c.speculative && !c.repeated
+        && !c.advanced_pawn && !c.tactical_moves && c.halfmove < 80
+        && c.non_pawns >= 2 && c.pawns >= 1 && c.pieces > 7 && c.legal_moves >= 2;
+}
+
+/** Fixed internal score-unit margins, not tunable UCI parameters. Zero denotes
+ * an unsupported depth; eligibility must still be checked by every caller.
+ */
+constexpr int reverse_futility_margin(int depth) {
+    return depth >= 1 && depth <= 3 ? 50 + 150 * depth : 0;
+}
+
+constexpr bool reverse_futility_cutoff(const ReverseFutilityContext& c,
+                                     int evaluation, int beta, int score_limit) {
+    return reverse_futility_eligible(c) && score_limit > 0
+        && evaluation > -score_limit && evaluation < score_limit
+        && beta > -score_limit && beta < score_limit
+        && std::int64_t(evaluation) - std::int64_t(beta) >= reverse_futility_margin(c.depth);
+}
 
 /** Cheap eligibility for the first verified null-move experiment. The search
  * supplies material/history facts before paying for a fresh static evaluation.

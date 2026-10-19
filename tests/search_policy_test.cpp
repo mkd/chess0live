@@ -22,6 +22,120 @@ void require(bool condition, std::string_view message) {
     if (!condition) throw std::runtime_error(std::string(message));
 }
 
+/** Each independent RFP exclusion is exercised with all remaining facts at an
+ * eligible boundary. These are policy tests, not a proof of tactical safety.
+ */
+ReverseFutilityContext futility_candidate() {
+    ReverseFutilityContext context;
+    context.depth = 1;
+    context.ply = 1;
+    context.halfmove = 79;
+    context.non_pawns = 2;
+    context.pawns = 1;
+    context.pieces = 8;
+    context.legal_moves = 2;
+    return context;
+}
+
+void protected_reverse_futility_nodes() {
+    require(!reverse_futility_eligible({}), "Unspecified nodes cannot be reverse-pruned");
+    const auto base = futility_candidate();
+    require(reverse_futility_eligible(base), "Boundary RFP context must be eligible");
+    struct Exclusion {
+        bool ReverseFutilityContext::*member;
+        std::string_view reason;
+    };
+    for (const auto exclusion : {
+        Exclusion{&ReverseFutilityContext::pv_node, "PV nodes retain ordinary search"},
+        Exclusion{&ReverseFutilityContext::in_check, "Check evasions retain ordinary search"},
+        Exclusion{&ReverseFutilityContext::special_window, "Mate/tablebase windows retain ordinary search"},
+        Exclusion{&ReverseFutilityContext::speculative, "Null-probe and verification descendants cannot reverse-prune"},
+        Exclusion{&ReverseFutilityContext::repeated, "A repeated current position cannot reverse-prune"},
+        Exclusion{&ReverseFutilityContext::advanced_pawn, "Advanced pawns of either color veto RFP"},
+        Exclusion{&ReverseFutilityContext::tactical_moves, "Any legal capture or promotion vetoes RFP"}}) {
+        auto context = base;
+        context.*(exclusion.member) = true;
+        require(!reverse_futility_eligible(context), exclusion.reason);
+        require(!reverse_futility_cutoff(context, 1000, 0, 30000), exclusion.reason);
+        context.*(exclusion.member) = false;
+        require(reverse_futility_eligible(context), "Clearing one guard restores eligibility");
+    }
+    for (const int depth : {-1, 0, 4, 20, std::numeric_limits<int>::max()}) {
+        auto context = base;
+        context.depth = depth;
+        require(!reverse_futility_eligible(context) && reverse_futility_margin(depth) == 0,
+                "Only remaining depths one to three have an RFP margin");
+        require(!reverse_futility_cutoff(context, 1000, 0, 30000), "Invalid depth cannot reverse-prune");
+    }
+    for (const int ply : {-1, 0}) {
+        auto context = base;
+        context.ply = ply;
+        require(!reverse_futility_eligible(context), "Root and invalid plies cannot reverse-prune");
+    }
+    for (const unsigned halfmove : {80U, 100U, std::numeric_limits<unsigned>::max()}) {
+        auto context = base;
+        context.halfmove = halfmove;
+        require(!reverse_futility_eligible(context), "Draw-near clocks retain ordinary search");
+    }
+    for (const int non_pawns : {0, 1}) {
+        auto context = base;
+        context.non_pawns = non_pawns;
+        require(!reverse_futility_eligible(context), "Low nonpawn material retains ordinary search");
+    }
+    auto context = base;
+    context.pawns = 0;
+    require(!reverse_futility_eligible(context), "Pawnless positions retain ordinary search");
+    context = base;
+    context.pieces = 7;
+    require(!reverse_futility_eligible(context), "Tablebase-size positions retain ordinary search");
+    for (const std::size_t moves : {std::size_t{0}, std::size_t{1}}) {
+        context = base;
+        context.legal_moves = moves;
+        require(!reverse_futility_eligible(context), "Terminal and forced-move nodes retain ordinary search");
+    }
+}
+
+void reverse_futility_score_boundaries() {
+    auto context = futility_candidate();
+    for (int depth = 1; depth <= 3; ++depth) {
+        context.depth = depth;
+        const int margin = 50 + 150 * depth;
+        require(reverse_futility_margin(depth) == margin, "Frozen RFP margins changed");
+        for (const int beta : {-1000, 0, 1000}) {
+            require(!reverse_futility_cutoff(context, beta + margin - 1, beta, 30000),
+                    "A score one point short cannot fail high");
+            require(reverse_futility_cutoff(context, beta + margin, beta, 30000),
+                    "The exact depth-dependent margin is inclusive");
+            require(reverse_futility_cutoff(context, beta + margin + 1, beta, 30000),
+                    "A score beyond the margin is eligible");
+        }
+    }
+    context.depth = 1;
+    for (const int band : {29000, 30000}) {
+        for (const int score : {-band, band, -band - 1, band + 1,
+                                std::numeric_limits<int>::min(), std::numeric_limits<int>::max()}) {
+            require(!reverse_futility_cutoff(context, score, -1000, band),
+                    "Mate/tablebase/out-of-range evaluations cannot reverse-prune");
+            require(!reverse_futility_cutoff(context, 1000, score, band),
+                    "Mate/tablebase/out-of-range beta cannot reverse-prune");
+        }
+        require(reverse_futility_cutoff(context, band - 1, band - 201, band),
+                "An ordinary positive score immediately below the band can pass");
+        require(reverse_futility_cutoff(context, -band + 201, -band + 1, band),
+                "An ordinary negative score immediately above the band can pass");
+    }
+    // Both operands pass the band check, but their difference exceeds INT_MAX.
+    // Widening must occur before subtraction; UBSan checks this call too.
+    const int maximum = std::numeric_limits<int>::max();
+    require(reverse_futility_cutoff(context, maximum - 1, -maximum + 1, maximum),
+            "Large valid operands require wide score subtraction");
+    require(!reverse_futility_cutoff(context, -maximum + 1, maximum - 1, maximum),
+            "A large negative difference must not wrap into a false cutoff");
+    for (const int invalid_band : {-1, 0})
+        require(!reverse_futility_cutoff(context, 1000, 0, invalid_band),
+                "Nonpositive score bands admit no evaluation");
+}
+
 /** Put every numeric guard at its least restrictive accepted boundary. Changing
  * one field below therefore tests that exclusion independently of the others.
  * Actual board extraction and static-evaluation gates are search-level tests.
@@ -199,6 +313,8 @@ void protected_move_types() {
 
 int main() {
     try {
+        protected_reverse_futility_nodes();
+        reverse_futility_score_boundaries();
         protected_null_nodes();
         protected_null_material_and_mobility();
         protected_nodes_and_ordering();

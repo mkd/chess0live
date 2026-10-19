@@ -149,7 +149,7 @@ depth reductions, and the bounded development contract are in the
 [experiment protocol](experiments/phase4d3-null-move.md).
 
 A by-value search mode propagates through every recursive and quiescence call.
-Both speculative subtrees disable further null probes, LMR, tablebase probes,
+Both speculative subtrees disable further null probes, LMR, reverse futility, tablebase probes,
 TT reads/writes, and killer/history/countermove learning. Existing ordering hints
 may be read. The pass subtree never appends fictional history or adjudicates
 repetition/rule-50 draws; legal verification retains genuine history and draw
@@ -164,6 +164,25 @@ helpers join; diagnostics remain optional. All speculative work uses existing
 node tickets and clock/cancellation checks. Ordinary cancellation restores
 moves; exceptions discard the local position and reset worker state on reuse,
 rather than promising transactional unwinding of every legal descendant.
+
+## Experimental reverse-futility boundary
+
+`Reverse Futility Pruning=false` remains the default. The opt-in candidate
+considers only ordinary interior non-PV nodes at depth 1–3, after legal terminal,
+draw, mate-distance, tablebase and transposition handling. A fresh evaluation
+must exceed beta by 200, 350 or 500 internal score units, respectively; these
+are not normalized UCI centipawns. The [fixed protocol](experiments/phase4d4-reverse-futility.md)
+records the quiet-position, material, advanced-pawn, history and score guards.
+
+An accepted cutoff returns beta, clears local PV length, makes no chess move
+and does not directly store an original-depth TT bound. Ordinary ancestors may
+still cache results influenced by this heuristic. Evaluation can update the
+worker-local NNUE accumulator cache using its existing transition mechanism.
+Policy switching clears reusable bounds/history. Optional evaluations/cutoffs
+counters remain private until helpers join. Both null-move speculative modes
+disable this policy through their complete subtrees. Quiescence is unchanged.
+Quiet checks, quiet defensive moves and distant threats remain possible failure
+modes; the restrictions and tests do not prove unchanged playing strength.
 
 ## Optional tablebase boundary
 

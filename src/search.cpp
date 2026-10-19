@@ -210,6 +210,7 @@ struct SearchWorker {
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;
+    ReverseFutilityStatistics reverse_futility;
     CacheStatistics cache;
     int completed_depth = 0;
 
@@ -591,6 +592,42 @@ struct SearchWorker {
             }
         }
 
+        // Reverse futility is a shallow static hypothesis, not a searched
+        // bound. Keep it out of root/PV/check nodes and both null subtrees.
+        // Terminal/draw/tablebase/TT handling above retains precedence. The
+        // quiet-position restriction deliberately excludes every legal capture
+        // or promotion; quiet checks and distant threats remain heuristic risks.
+        if (limits.reverse_futility_pruning && mode == Mode::ordinary
+            && depth >= 1 && depth <= 3 && ply > 0 && !pv_node && !checked) {
+            const auto side = position.turn();
+            const auto non_pawns = position.pieces(side, PieceType::knight)
+                | position.pieces(side, PieceType::bishop) | position.pieces(side, PieceType::rook)
+                | position.pieces(side, PieceType::queen);
+            const int band = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+            const bool advanced = (position.pieces(Color::white, PieceType::pawn) & (Bitboard{0xffff} << 40))
+                || (position.pieces(Color::black, PieceType::pawn) & (Bitboard{0xffff} << 8));
+            const bool tactical = std::any_of(moves.begin(), moves.end(), [](Move move) {
+                return move.is_capture() || move.promotion != PieceType::none;
+            });
+            const search_policy::ReverseFutilityContext context{
+                depth, ply, pv_node, checked, std::abs(alpha) >= band || std::abs(beta) >= band,
+                false, repeated(position), advanced, tactical, position.halfmove_clock(),
+                std::popcount(non_pawns), std::popcount(position.pieces(side, PieceType::pawn)),
+                std::popcount(position.occupied()), moves.size()};
+            if (search_policy::reverse_futility_eligible(context)) {
+                if (limits.diagnostics) ++reverse_futility.evaluations;
+                const int static_score = evaluate(position);
+                if (search_policy::reverse_futility_cutoff(context, static_score, beta, band)) {
+                    if (limits.diagnostics) ++reverse_futility.cutoffs;
+                    pv_length[static_cast<std::size_t>(ply)] = ply;
+                    // Return only the window edge; neither a fabricated line
+                    // nor a direct original-depth TT entry is justified. Real
+                    // ancestor bounds can still depend on this heuristic.
+                    return beta;
+                }
+            }
+        }
+
         // A null probe is a fictional pass, never a move/history/TT entry. Its
         // complete subtree is isolated, including quiescence. A fail-high is
         // only a reason to search legal moves at reduced depth: it cannot by
@@ -775,6 +812,8 @@ struct SearchWorker {
         countermove.enabled = limits.countermove_ordering;
         nullmove = {};
         nullmove.enabled = limits.null_move_pruning;
+        reverse_futility = {};
+        reverse_futility.enabled = limits.reverse_futility_pruning;
         cache = {};
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
@@ -816,6 +855,7 @@ struct SearchWorker {
             result.ordering = ordering;
             result.countermove = countermove;
             result.nullmove = nullmove;
+            result.reverse_futility = reverse_futility;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -939,6 +979,7 @@ struct Search::Impl {
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
     bool previous_countermove = false;
     bool previous_nullmove = false;
+    bool previous_reverse_futility = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
 
@@ -978,12 +1019,14 @@ struct Search::Impl {
             || request.capture_ordering != previous_ordering
             || request.countermove_ordering != previous_countermove
             || request.null_move_pruning != previous_nullmove
+            || request.reverse_futility_pruning != previous_reverse_futility
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
         previous_ordering = request.capture_ordering;
         previous_countermove = request.countermove_ordering;
         previous_nullmove = request.null_move_pruning;
+        previous_reverse_futility = request.reverse_futility_pruning;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
@@ -1087,6 +1130,8 @@ struct Search::Impl {
             result.nullmove.verifications += worker.nullmove.verifications;
             result.nullmove.cutoffs += worker.nullmove.cutoffs;
             result.nullmove.rejected += worker.nullmove.rejected;
+            result.reverse_futility.evaluations += worker.reverse_futility.evaluations;
+            result.reverse_futility.cutoffs += worker.reverse_futility.cutoffs;
             if (result.diagnostics) {
                 auto& cache = result.diagnostics->cache;
                 cache.probes += worker.cache.probes;
