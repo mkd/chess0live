@@ -78,9 +78,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
-- Added a standalone, dependency-free XLSX position batch runner for UCI
-  engines, with fresh per-position processes, configurable Threads/Hash/time,
-  signed mate scores, CSV and row-aligned copy/paste results, and protocol logs.
+- Added a small UCI batch runner with 39 embedded FENs, editable Threads/Hash/time
+  settings, and printed mate scores and best moves. Uses python-chess for engine
+  communication; no spreadsheet input is needed at runtime.
 
 - Added a separate 1,024-game current-engine LMR comparison with fresh paired
   openings, eight-worker resource controls, a fixed overnight cutoff, and an

@@ -83,51 +83,26 @@ reports centipawns until it finds a mating line within its search; a time limit
 does not guarantee solving the puzzle. `eval` is static and does not search for
 mate, and a trailing `bm ... M7` annotation never supplies the answer to search.
 
-### Batch spreadsheet positions
+### Batch puzzle positions
 
-Use the standalone Python 3.9+ runner with a UCI engine that advertises `Threads`
-and `Hash`. No extra Python packages are needed. From the project directory:
+`tools/batch_positions.py` contains an editable `FENS` list with the 39 supplied
+puzzles in spreadsheet order. Set `ENGINE`, `THREADS`, `HASH_MB`, and `MOVETIME_MS`
+at the top, then run it. An engine path argument overrides `ENGINE`:
 
 ```sh
-python3 tools/batch_positions.py "/path/to/engine" \
-  --input "$HOME/Downloads/Chess test positions benchmark.xlsx" \
-  --threads 4 --hash 1024 --movetime 60000
+python3 -m pip install chess==1.11.2  # Once, if python-chess is not installed.
+python3 tools/batch_positions.py "/path/to/engine"
 ```
 
-Or edit `ENGINE`, `SPREADSHEET`, `THREADS`, `HASH_MB`, and `MOVETIME_MS` near the
-top of the script. Defaults are one thread, 128 MB hash, and 60 seconds. Choose
-threads/hash within the [local resource budget](#local-resource-policy), including
-other engines running on the machine. This is a manually launched sequential run.
-
-It reads column A of the first worksheet, skips headings/blanks, strips `bm`
-annotations, and supplies `0 1` for omitted FEN move counters. Each position gets
-a fresh engine process, so earlier searches cannot warm the next position's hash.
-The input workbook is unchanged. The engine runs from its binary directory;
-use `--cwd "/path/to/assets"` if it needs another directory for networks/files.
-Engines may finish earlier than the requested movetime.
-
-Results are saved after each position under `results/`, with unique filenames:
-
-- `.csv`: source row, last exact main-line score, all exact mate distances seen,
-  expected mate annotation, best move, depth, PV, timing, settings, and errors.
-- `.scores.txt`: scores aligned to the original spreadsheet rows, including blank
-  rows. Paste the whole file into **row 1 of an empty result column**.
-- `.log`: engine commands, replies, and diagnostics for checking a result.
-
-`M7` means mate in seven for the side to move; `-M7` means it is being mated.
-`M0` is a reported terminal mate, and `+1.25` is an ordinary pawn score.
-Bound-only scores and secondary PVs are excluded. `mates_seen` also records mates
-that were later revised; it is not an automatic puzzle score or proof of a mate.
-Missing scores and errors are explicit, never carried over from another row.
-Unsupported/out-of-range settings fail visibly. FEN syntax is checked, but full
-chess legality and PV replay are outside this lightweight runner's scope.
-
-Use `--list-positions` to check inputs without launching an engine, `--limit 3`
-for a short subset, `--start-row 15` to begin at a particular worksheet row,
-`--sheet "Sheet1" --column A` to select inputs, or `--output results/my-run.csv`
-to name a run. Existing outputs are never overwritten. Ctrl-C keeps completed
-rows; a later run with `--start-row` creates separate output files. Run the
-tool's checks with `python3 tests/batch_positions_test.py`.
+Defaults are one thread, 128 MB hash, and 60 seconds per position. Stay within
+the [local resource budget](#local-resource-policy). Each FEN gets a fresh engine
+running from its binary directory. The script prints the last exact main-line
+score and best move, for example `01/39  M7  bestmove=f5f6`. `-M7` means the side
+to move is being mated; ordinary scores are signed pawn values such as `+1.25`.
+Errors and missing scores are explicit. To save the printed results, append
+`> results.txt` to the command. Edit or slice `FENS` for a shorter run.
+No spreadsheet file is needed at runtime. Check the script with
+`python3 tests/batch_positions_test.py`.
 
 ## Evaluation and search
 
