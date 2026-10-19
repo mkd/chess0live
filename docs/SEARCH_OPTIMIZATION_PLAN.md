@@ -9,7 +9,15 @@ before another qualification, without extending or retuning this sample.
 Phase 4D.3 verified null-move pruning is implemented and checked under its
 [separate development protocol](experiments/phase4d3-null-move.md). Its
 [mixed cold/warm screen](reports/2026-10-18-phase4d3-null-move.md) leaves it off
-by default; 4D.4 reverse futility is the next implementation checkpoint.
+by default. Phase 4D.4 reverse futility is also implemented and checked:
+[its 60-search screen](reports/2026-10-19-phase4d4-reverse-futility.md) found
+12.72% fewer fresh-cache nodes but only 1.53% fewer reused-cache nodes, with
+2.28% longer reused-cache elapsed time. It stays off without repeated tuning.
+Next implementation is **4D.5 quiescence work reduction**, initially one
+SEE capture-pruning candidate; delta pruning is separate. The
+[clock diagnosis](reports/2026-10-19-clock-diagnosis.md) calls for a short
+instrumented diagnostic before any further qualification match. No cause or
+clock fix has yet been established from the saved Phase 4D.2 failures.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and

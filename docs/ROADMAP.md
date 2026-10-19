@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.3 complete; Phase 4D.2 audit rejects promotion
+## Current checkpoint: Phase 4D.4 complete; Phase 4D.5 next
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -40,7 +40,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR promotion rejected by flagfalls; 4D.3 null-move opt-in after mixed work results; 4D.4 reverse futility next, with clock diagnosis before new qualification |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR rejected by flagfalls; 4D.3 null and 4D.4 reverse futility remain opt-in after mixed profiles; 4D.5 quiescence next. Instrument clock boundaries before new qualification |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -290,9 +290,27 @@ All 12 parent/off screen searches were exact. The six off/on pairs retained
 every per-depth score/PV and final move, while total cold nodes fell 16.47% and
 warm nodes rose 6.08%. This mixed three-root sample does not qualify strength
 or speed. The concurrent match prevents timing interpretation. No repeated
-tuning or new long campaign follows: keep null pruning off and move the next
-implementation checkpoint to **4D.4: conservative reverse futility**. The
+tuning or new long campaign follows: keep null pruning off. Its successor is
+the **4D.4 reverse-futility checkpoint below**. The
 completed LMR audit above is separate and does not qualify either candidate.
+
+**Phase 4D.4 is complete**, implementation `9ad2fe9`: the
+[report](reports/2026-10-19-phase4d4-reverse-futility.md) records one default-off
+shallow static-pruning candidate, native/scalar/ASan+UBSan/TSan checks and an
+independently audited 60-search profile. All 12 parent/off pairs matched exactly.
+Depth-6 total nodes fell 12.72% with fresh caches and 1.53% with reused caches;
+observed elapsed time fell 11.51% fresh but rose 2.28% reused. One of six timed
+roots completed one extra depth. Final moves matched and no common-depth
+score/PV differences occurred. This single exposed repetition qualifies neither
+speed nor playing strength. Keep reverse futility off and do not retune it here.
+
+The [read-only clock diagnosis](reports/2026-10-19-clock-diagnosis.md) checked
+all 84 saved flagfalls. Charged time often extends beyond the engine-reported
+interval; the existing logs cannot isolate transport, scheduling and engine
+bookkeeping costs. No clock policy or qualification result changed. Before
+another match qualification, use one short predeclared instrumented diagnostic.
+**Next implementation: 4D.5 quiescence work reduction**, starting with a separate
+SEE capture-pruning hypothesis; delta pruning remains a later isolated change.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
@@ -315,7 +333,7 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | Full-depth PVS, shared TT, optional LMR and tested verified null pruning; countermove parked | LMR match running; next implementation is 4D.4 reverse futility. Separate equal-time strength gates still control all pruning defaults |
+| 4D: strength-gated search efficiency | Full-depth PVS, shared TT, optional LMR, verified null pruning and reverse futility; countermove parked | LMR campaign complete with failed reliability gate. Next implementation: 4D.5 quiescence; instrument clock boundaries before further qualification. Pruning defaults remain off |
 | 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot

@@ -1005,3 +1005,35 @@ promotion follows. The [report](reports/2026-10-19-phase4d2-results.md) preserve
 the favorable score, failure, shared-host development overlap and causality
 limits. Keep all raw records and `final-audit.json`; diagnose clock behavior
 before any new qualification. No replacement campaign was launched.
+
+## Phase 4D.4 — optional reverse futility — October 19, 2026
+
+Native/scalar/ASan+UBSan full suites and TSan search checks passed. The new UCI
+suite passed 78 bounded independent-referee cases in all four builds, with
+one/four-worker lifecycle, policy reset, diagnostic, draw/terminal, interruption
+and node-limit checks. Pure policy tests cover exclusions, margin/score bands
+and integer boundaries. Existing native null interruption and real-fixture
+Syzygy search tests passed; the existing 43-case SMP suite also passed under
+TSan. The new profiler passed 26 unit checks. These are finite checks, not
+proof of optimal play, every thread schedule or a fresh NNUE/TB qualification.
+
+The one predeclared 60-search profile and independent audit passed: 36 process
+sessions, 351 iterations, 1,553 legal PV plies and 120 bestmove/ponder plies.
+All 12 parent/off pairs matched exactly. At depth 6, total fresh-cache nodes
+fell 12.72% and reused-cache nodes fell 1.53%; observed elapsed time changed
+−11.51% / +2.28%, respectively. All final fixed-depth moves/scores and all
+common-depth score/PVs matched. The six timed comparisons gained one completed
+depth on one endgame root, with its final score changing accordingly. This
+single exposed repetition does not qualify speed, strength or default promotion.
+
+The [report](reports/2026-10-19-phase4d4-reverse-futility.md) preserves settings,
+root variability, commands/logs, hashes and scope limits. All protected GUI and
+campaign assets and the README introduction matched. Reverse futility stays
+off; no retuning, new GUI visual pass, foreign execution, long campaign or
+release acceptance follows.
+
+The separate [84-flagfall audit](reports/2026-10-19-clock-diagnosis.md) verified
+92 saved input hashes and recomputed charged durations without accounting
+inconsistency. It identified timing-boundary ambiguity, not a proven root cause
+or clock repair. No engine or runner timing changed. A short instrumented
+diagnostic must precede another qualification match.

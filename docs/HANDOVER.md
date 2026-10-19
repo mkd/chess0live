@@ -568,15 +568,50 @@ pairs retained every per-depth score/PV and final move. Total cold nodes fell
 16.47%, but warm nodes rose 6.08%. This mixed three-root development sample
 does not establish speed or strength; timing cannot be interpreted while the
 frozen LMR campaign shares the host. Keep null pruning off and do not repeatedly
-tune this sample. **Next implementation: 4D.4 conservative reverse futility.**
+tune this sample. Its successor is the 4D.4 checkpoint recorded below.
 Any later null-move qualification needs separate quiet equal-time development
 evidence and a frozen strength protocol.
 
-Current normal binary SHA-256:
+Phase 4D.3 binary SHA-256:
 `d0617575e7ece0dc3c38d4f44f33b6bc93adad8cf947a129af6dec137246b530`.
 Raw evidence and frozen inputs are in `results/phase4d3-20261018/` and
 `build/experiments/phase4d3-20261018/`. Existing GUI snapshots, frozen Phase 3L
 assets, the completed Phase 4D.2 evidence, and the README introduction are intact.
+
+**Phase 4D.4 is complete**, implementation `9ad2fe9`:
+[reverse-futility report](reports/2026-10-19-phase4d4-reverse-futility.md).
+`Reverse Futility Pruning=false` remains the default. This shallow interior
+static cutoff has fixed margins and strict material, history, tactical and
+special-score exclusions; both null-move speculative modes disable it.
+Native/scalar/ASan+UBSan suites and TSan search checks passed, including 78 new
+UCI cases per build, direct API lifecycle/composition checks and 26 profiler
+tests. The profile finished all 60 searches with a separate passing raw-output
+audit. All 12 parent/off pairs were exact; all fixed-depth final decisions and
+common-depth score/PVs matched. Fresh-cache total nodes fell 12.72%, reused
+nodes 1.53%; reused elapsed time rose 2.28%. One of six timed roots completed
+one extra depth. These single-repetition observations establish no speed/Elo
+gain or universal tactical safety. No margin changed after measurement.
+
+Current normal binary SHA-256:
+`361c9a2ab92a5702d046fc6d9cfa6cb4e0840defc74c098e67cf846ba8b9a57f`.
+Raw evidence is in `results/phase4d4-20261019/`; frozen executables, manifest and
+protected pins are in `build/experiments/phase4d4-20261019/`. All three documented
+GUI snapshots, frozen Phase 3L assets, completed 4D.2 evidence and the README
+introduction are preserved. Normal builds remain separate from GUI snapshots.
+
+The accompanying [clock diagnosis](reports/2026-10-19-clock-diagnosis.md) checked
+the 84 saved flagfalls without running engines or changing clocks/runner code.
+For all 19 candidate failures, reported engine time was below the real remaining
+clock; charged duration includes additional time whose location is unresolved.
+Some records also exceed the internal hard budget. Do not blame a specific
+component, raise overhead from these selected failures, or rerun qualification.
+One short predeclared instrumented timing diagnostic is required before another
+qualification; its concrete boundary measurements are in the report.
+
+**Next implementation: 4D.5 quiescence work reduction**, initially one isolated
+SEE capture-pruning hypothesis. Keep delta pruning separate. No further reverse-
+futility tuning, default promotion, automatic schedule, new match or release
+is part of this completed checkpoint. Preserve failed/inconclusive evidence.
 
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning
