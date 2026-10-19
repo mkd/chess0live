@@ -103,6 +103,8 @@ Errors and missing scores are explicit. To save the printed results, append
 `> results.txt` to the command. Edit or slice `FENS` for a shorter run.
 No spreadsheet file is needed at runtime. Check the script with
 `python3 tests/batch_positions_test.py`.
+For development comparisons, follow the [puzzle progress checks](docs/VALIDATION.md#use-for-development-progress)
+to keep settings consistent and record both new solves and regressions.
 
 ## Evaluation and search
 

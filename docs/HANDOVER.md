@@ -643,6 +643,10 @@ The owner requested simplifying `tools/batch_positions.py`: it now embeds all
 It uses python-chess (`chess==1.11.2`) for UCI communication, starts a fresh engine
 per FEN, and prints scores/best moves. The former XLSX reader, file exports, and
 option-heavy CLI are removed. See the README and `tests/batch_positions_test.py`.
+The owner also requested adopting the suite for development progress: include
+matched before/after puzzle results at material search/evaluation checkpoints,
+following [the comparison rules](VALIDATION.md#use-for-development-progress).
+The first full baseline is pending; retain per-position gains and regressions.
 This is auxiliary tooling; Phase 4D.4 remains complete and 4D.5 remains next.
 
 Run the relevant correctness checks and inspect the diff. Keep generated binaries,

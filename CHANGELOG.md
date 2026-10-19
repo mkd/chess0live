@@ -80,7 +80,8 @@ release numbers; detailed measurements live in the linked experiment records.
 
 - Added a small UCI batch runner with 39 embedded FENs, editable Threads/Hash/time
   settings, and printed mate scores and best moves. Uses python-chess for engine
-  communication; no spreadsheet input is needed at runtime.
+  communication; no spreadsheet input is needed at runtime. Adopted the suite
+  for matched tactical progress/regression checks at development checkpoints.
 
 - Added a separate 1,024-game current-engine LMR comparison with fresh paired
   openings, eight-worker resource controls, a fixed overnight cutoff, and an

@@ -323,6 +323,9 @@ October 19 auxiliary tooling: a small UCI batch runner with embedded FENs suppor
 the owner's manual puzzle benchmark workflow, with editable engine settings and
 printed per-position scores. Short workflow checks are separate from
 strength qualification; this addition does not advance the 4D.5 engine checkpoint.
+At the owner's request, material search/evaluation checkpoints will also include
+matched before/after puzzle comparisons under the [validation rules](VALIDATION.md#use-for-development-progress).
+Establish the first full baseline before the next such comparison.
 
 The owner asked on October 18 to avoid repeatedly refining a single research
 phase while major engine capabilities remain. Phase 3L has a finite exit:

@@ -25,6 +25,34 @@ script. The earlier XLSX version's separate evidence remains in ignored
 the full 60-second-per-position benchmark and other engines/platforms were not
 run. Engine sources, defaults and stable GUI bundles were not changed or rebuilt.
 
+### Use for development progress
+
+The owner requested using this suite to track chess0live development. Include a
+before/after puzzle comparison at material search or evaluation checkpoints.
+Keep the script simple; use its existing printed output rather than adding a
+second benchmark framework.
+
+- Run the same 39 FENs in order with 60,000 ms per position, fresh processes,
+  identical Threads/Hash, machine and comparable host load. Keep the NNUE file
+  and all other engine settings fixed unless they are the declared change.
+- Save both complete outputs under `results/`, with source revisions, binary
+  and network hashes, settings and the exact FEN list. Preserve a baseline
+  binary before rebuilding. Follow the existing resource/overnight policy.
+- Compare each position's final exact score: expected positive mate distance,
+  another positive mate distance, no positive mate reported, or an error/missing
+  score. Report newly solved positions and regressions separately, including
+  changes in mate distance. Expected distances are supplied puzzle annotations,
+  not independently certified answers; this tally does not implement the
+  spreadsheet's separate any-depth points rule.
+
+Investigate one-run differences; multithreaded searches can vary. Use deliberate
+checkpoints: a full 39-position run allows about 39 minutes of search per build.
+This exposed suite measures tactical progress and regressions on these puzzles.
+It complements correctness checks and separate strength matches; it does not
+replace held-out qualification or establish an Elo gain. The first full
+60-second baseline is still pending. No run or schedule was started by adopting
+this workflow.
+
 ## Phase 4D.2 current-engine LMR qualification — October 18, 2026
 
 The [protocol](PHASE_4D2.md) fixes 1,024 games and 512 reversed-color pairs,
