@@ -78,6 +78,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Building, testing, and contributing
 
+- Added a standalone, dependency-free XLSX position batch runner for UCI
+  engines, with fresh per-position processes, configurable Threads/Hash/time,
+  signed mate scores, CSV and row-aligned copy/paste results, and protocol logs.
+
 - Added a separate 1,024-game current-engine LMR comparison with fresh paired
   openings, eight-worker resource controls, a fixed overnight cutoff, and an
   independent raw-game audit. This adds validation tooling; LMR remains disabled

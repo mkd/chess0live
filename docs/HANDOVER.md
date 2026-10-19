@@ -638,6 +638,15 @@ verified targets, and [NNUE](NNUE.md) owns the network pin and parity record.
 
 ## Before committing
 
+The owner's spreadsheet workflow now has `tools/batch_positions.py`, a standalone
+Python 3.9+ UCI batch runner (standard library only). It reads literal positions
+from XLSX, normalizes four-field FENs, strips answer annotations, and starts a
+fresh engine per row with validated Threads/Hash settings. CSV, row-aligned score
+text, and raw logs are flushed as each position completes. See the README's
+batch instructions and `tests/batch_positions_test.py`. The workbook and generated
+results stay outside Git. This is auxiliary testing tooling; Phase 4D.4 remains
+complete and 4D.5 remains next. It adds no engine behavior or strength claim.
+
 Run the relevant correctness checks and inspect the diff. Keep generated binaries,
 large networks, external oracle source, and raw match output out of Git. Record
 what actually ran and what did not. Update these documents when APIs, commands,

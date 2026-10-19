@@ -1,5 +1,28 @@
 # Validation and experiment protocol
 
+## Spreadsheet batch runner — October 19, 2026
+
+`python3 tests/batch_positions_test.py` passed nine focused checks using original
+synthetic XLSX/UCI fixtures. They cover row order, inline/shared text, annotation
+removal and missing counters, exact signed scores, MultiPV/bound filtering,
+fresh-process settings, row-aligned outputs, errors/crashes/timeouts, partial
+results, interruption, explicit engine diagnostics, and score/PV mismatches.
+The supplied workbook parses as 39 positions, four with counters filled as `0 1`.
+No spreadsheet rule was treated as an instruction or automatic point allocation.
+
+Short real-process smokes passed on the first three workbook positions for each
+of chess0live and the pinned unmodified Stockfish 19 reference: one thread,
+16 MB hash, 50 ms requested movetime, fresh process per position. CSV, score-text,
+and raw protocol evidence are in ignored `results/batch-positions-check-20261019/`.
+The executed binary SHA-256 values were
+`d11ed536a5c25336e7b6f8f61a6afd96bce9d19e0ae0c6eb1e9479e48533df59`
+(normal chess0live) and
+`61d09e76d41697555564498df2ecc7cab0bbe3b40ae626b9e7460ae3d9cbe969`
+(SF19, matching the pin in MATCHES.md). This validates the batch workflow only;
+the full 60-second-per-position benchmark, other engines/platforms, full FEN/PV
+legality, and spreadsheet-application paste behavior were not tested. Engine
+sources, defaults, and stable GUI bundles were not changed or rebuilt.
+
 ## Phase 4D.2 current-engine LMR qualification — October 18, 2026
 
 The [protocol](PHASE_4D2.md) fixes 1,024 games and 512 reversed-color pairs,

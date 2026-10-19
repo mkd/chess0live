@@ -319,6 +319,11 @@ Do not describe a pending campaign as active or completed.
 
 ## Broader roadmap and bounded checkpoints
 
+October 19 auxiliary tooling: a standalone XLSX/UCI batch-position runner now
+supports the owner's manual puzzle benchmark workflow, with configurable engine
+settings and saved per-row scores. Short workflow checks are separate from
+strength qualification; this addition does not advance the 4D.5 engine checkpoint.
+
 The owner asked on October 18 to avoid repeatedly refining a single research
 phase while major engine capabilities remain. Phase 3L has a finite exit:
 tested plain-text diagnostics, reproducible unsearched inputs, frozen campaign
