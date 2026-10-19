@@ -521,11 +521,11 @@ in 86/90 pairs and lower in four. Intermediate warm score deviations and root
 variability are retained in [the report](reports/2026-10-18-phase4d-countermove.md).
 Do not promote this candidate or start further tuning: park it as an opt-in
 experiment. All 180 default-off parent checks matched, including warm reuse;
-no default performance/Elo gain is claimed. Current normal binary SHA-256 is
+no default performance/Elo gain is claimed. That checkpoint's binary SHA-256 is
 `bda061408f4ff8339e2fc8f7d3536525373e8a790f7209a35418162928168f7f`.
 Raw evidence and frozen executables are in `results/phase4d-20261018/` and
-`build/experiments/phase4d-20261018/` respectively. **Next: 4D.2 current-engine
-LMR qualification**, then the separate 4D.3 verified null-move implementation.
+`build/experiments/phase4d-20261018/` respectively. Its follow-ups are the separate
+4D.2 LMR qualification and 4D.3 null-move checkpoint recorded below.
 
 **Phase 4D.2 is active:** see the [protocol](PHASE_4D2.md) and
 [preparation/launch record](reports/2026-10-18-phase4d2-preparation.md). It freezes
@@ -535,13 +535,39 @@ serial readiness passed. Results live in `results/phase4d2-20261018/`. Preserve
 all pinned sources until the one fixed campaign has ended and been audited;
 never resume or replace games. The hard cutoff is the launch's next 07:00 Helsinki.
 LMR remains off pending the complete result. Do not pool historical attempts or
-retarget the untouched Phase 3L sample. Next implementation is 4D.3 verified
-null-move pruning, with independent strength gates.
+retarget the untouched Phase 3L sample. The separate null-move implementation
+does not change this campaign's frozen executable or strength gates.
 The campaign launched October 18 at **23:13:40 Helsinki**, all eight shards
 running, with a fixed October 19 **07:00** cutoff. Preparation commit: `d376524`.
 Check the campaign manifest and raw records for current status; this timestamp
 is launch evidence only. No recurring task was scheduled. Run the independent
 auditor after completion before stating any strength/default decision.
+
+**Phase 4D.3 is complete**, implementation `51c426a`:
+[the report](reports/2026-10-18-phase4d3-null-move.md)
+records restrictive verified null-move pruning, exposed through the default-off
+`Null Move Pruning` option. Fictional-pass and legal verification subtrees isolate
+history, transposition access, tablebases and ordering learning; ordinary search
+defaults remain unchanged. Native/scalar/ASan+UBSan/ThreadSanitizer checks passed,
+including 76 new UCI cases per build, direct API interruption/worker checks,
+and incremental null-state tests. The initial TSan activation timeout and its
+separate passing retry are both preserved; it was a test-harness allowance,
+not a change to search limits or campaign rules.
+
+The fixed 24-search screen matched all 12 parent/off signatures. All six on/off
+pairs retained every per-depth score/PV and final move. Total cold nodes fell
+16.47%, but warm nodes rose 6.08%. This mixed three-root development sample
+does not establish speed or strength; timing cannot be interpreted while the
+frozen LMR campaign shares the host. Keep null pruning off and do not repeatedly
+tune this sample. **Next implementation: 4D.4 conservative reverse futility.**
+Any later null-move qualification needs separate quiet equal-time development
+evidence and a frozen strength protocol.
+
+Current normal binary SHA-256:
+`d0617575e7ece0dc3c38d4f44f33b6bc93adad8cf947a129af6dec137246b530`.
+Raw evidence and frozen inputs are in `results/phase4d3-20261018/` and
+`build/experiments/phase4d3-20261018/`. Existing GUI snapshots, frozen Phase 3L
+assets, the running Phase 4D.2 campaign, and the README introduction are intact.
 
 The [search-efficiency plan](SEARCH_OPTIMIZATION_PLAN.md) prioritizes strength
 over depth/NPS and includes the owner's new depth-10 transcript. Later pruning

@@ -2,7 +2,12 @@
 
 Status: Phase 4D.1 complete with countermove ordering parked after a mixed
 360-search screen; [results and decision](reports/2026-10-18-phase4d-countermove.md).
-Phase 4D.2 current-engine LMR qualification is next. This follows the owner's
+Phase 4D.2 current-engine LMR qualification is running on its frozen binary.
+Phase 4D.3 verified null-move pruning is implemented and checked under its
+[separate development protocol](experiments/phase4d3-null-move.md). Its
+[mixed cold/warm screen](reports/2026-10-18-phase4d3-null-move.md) leaves it off
+by default; 4D.4 reverse futility is the next implementation checkpoint.
+This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
 network tooling. No campaign or schedule is started by this document.

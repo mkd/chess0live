@@ -955,3 +955,36 @@ moves matched; intermediate warm score differences are documented rather than
 treated as proof of a defect or hidden. No default promotion, Elo claim,
 foreign execution, fresh GUI check, or release acceptance follows. Existing
 GUI bundles, README introduction, and frozen Phase 3L assets were preserved.
+
+## Phase 4D.3 — optional verified null-move pruning — October 18–19, 2026
+
+Native/scalar/ASan+UBSan full regression suites and ThreadSanitizer search checks
+passed on macOS ARM64. All four builds passed 76 new independent-referee UCI
+cases and direct API checks for policy resets, diagnostics, legal PVs, real
+history, mates, node caps, stop/expiry and one/four-worker joins. Native direct
+API execution additionally used real Syzygy fixtures. Deterministic interrupts
+at first null-probe entry (33,624 nodes) and first verification entry (33,667)
+published no incomplete speculative result and preserved fresh default reuse.
+Native/scalar/ASan null-state suites each covered 63 roots, 202 legal children
+and 1,045 incremental/full-refresh NNUE comparisons, including exact undo.
+
+The initial TSan UCI activation exceeded its harness's 30-second allowance;
+the original failure is retained. A test-only 180-second activation allowance
+passed all 76 cases without changing search caps or stop/clock-response waits.
+The existing 43-case SMP UCI suite also passed under TSan. Ten timeout-parser
+checks and 19 profiler checks passed. Pre-search profiler review repaired local
+shutdown-output collection; the frozen shared UCI client was not modified.
+The [report](reports/2026-10-18-phase4d3-null-move.md) records exact commands,
+raw logs, artifact hashes, repair chronology and finite coverage limits.
+
+All 24 predeclared depth-6 searches completed. The 12 parent/off searches matched
+every declared signature, and all six off/on pairs retained each per-depth
+score/PV and final move. Cold total nodes fell 16.47%; warm nodes rose 6.08%.
+An independent raw-output audit confirmed all 144 iterations, replayed 608 PV
+plies and 48 bestmove/ponder plies, recomputed totals, and verified saved pins.
+This mixed three-root sample has no speed or strength interpretation. The frozen
+LMR match ran concurrently within the shared nighttime resource budget, so raw
+timings are not throughput evidence. No default promotion, further null tuning,
+new strength campaign, foreign execution, GUI visual pass or release follows.
+Null pruning stays off. All existing GUI bundles, frozen Phase 3L/4D.2 inputs
+and the owner's README introduction were preserved.
