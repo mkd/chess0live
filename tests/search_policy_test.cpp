@@ -22,6 +22,70 @@ void require(bool condition, std::string_view message) {
     if (!condition) throw std::runtime_error(std::string(message));
 }
 
+/** Test entry-window eligibility independently of board extraction. A later
+ * stand-pat alpha update cannot retroactively turn a full window into a scout.
+ */
+void protected_qsearch_see_nodes() {
+    require(!qsearch_see_eligible({}), "Unspecified quiescence nodes cannot prune");
+    QSearchSeeContext base;
+    base.ply = 1;
+    base.scout = true;
+    base.halfmove = 79;
+    base.pieces = 9;
+    require(qsearch_see_eligible(base), "Boundary SEE-pruning node must be eligible");
+    struct Exclusion { bool QSearchSeeContext::*member; };
+    for (const auto exclusion : {
+        Exclusion{&QSearchSeeContext::in_check},
+        Exclusion{&QSearchSeeContext::special_window},
+        Exclusion{&QSearchSeeContext::speculative},
+        Exclusion{&QSearchSeeContext::repeated},
+        Exclusion{&QSearchSeeContext::advanced_pawn}}) {
+        auto context = base;
+        context.*(exclusion.member) = true;
+        require(!qsearch_see_eligible(context), "Every node exclusion must veto SEE pruning");
+    }
+    auto context = base;
+    context.scout = false;
+    require(!qsearch_see_eligible(context), "Full-window quiescence retains all captures");
+    for (const int ply : {-1, 0}) {
+        context = base;
+        context.ply = ply;
+        require(!qsearch_see_eligible(context), "Root and invalid plies cannot SEE-prune");
+    }
+    for (const unsigned halfmove : {80U, 100U, std::numeric_limits<unsigned>::max()}) {
+        context = base;
+        context.halfmove = halfmove;
+        require(!qsearch_see_eligible(context), "Draw-near nodes cannot SEE-prune");
+    }
+    for (const int pieces : {0, 2, 7, 8}) {
+        context = base;
+        context.pieces = pieces;
+        require(!qsearch_see_eligible(context), "Tablebase-sized children cannot be crossed by SEE pruning");
+    }
+    for (const int pieces : {9, 16, 32}) {
+        context = base;
+        context.pieces = pieces;
+        require(qsearch_see_eligible(context), "Ordinary larger boards pass material gate");
+    }
+}
+
+void protected_qsearch_see_moves() {
+    for (const bool capture : {false, true})
+        for (const bool promotion : {false, true})
+            for (const bool ep : {false, true})
+                require(qsearch_see_capture(capture, promotion, ep)
+                            == (capture && !promotion && !ep),
+                        "Only ordinary captures may undergo SEE pruning");
+    for (const int see : {std::numeric_limits<int>::min(), -900, -1, 0, 1,
+                          std::numeric_limits<int>::max()}) {
+        for (const bool checked : {false, true})
+            for (const bool has_moves : {false, true})
+                require(qsearch_see_skip(see, checked, has_moves)
+                            == (see < 0 && !checked && has_moves),
+                        "Negative SEE alone cannot discard a check or terminal child");
+    }
+}
+
 /** Each independent RFP exclusion is exercised with all remaining facts at an
  * eligible boundary. These are policy tests, not a proof of tactical safety.
  */
@@ -313,6 +377,8 @@ void protected_move_types() {
 
 int main() {
     try {
+        protected_qsearch_see_nodes();
+        protected_qsearch_see_moves();
         protected_reverse_futility_nodes();
         reverse_futility_score_boundaries();
         protected_null_nodes();

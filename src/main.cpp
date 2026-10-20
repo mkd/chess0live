@@ -151,6 +151,7 @@ private:
     bool countermove_ordering_ = false;
     bool null_move_pruning_ = false;
     bool reverse_futility_pruning_ = false;
+    bool qsearch_see_pruning_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -187,6 +188,7 @@ private:
         output("option name Countermove Ordering type check default false");
         output("option name Null Move Pruning type check default false");
         output("option name Reverse Futility Pruning type check default false");
+        output("option name QSearch SEE Pruning type check default false");
         output("uciok");
     }
 
@@ -306,6 +308,12 @@ private:
             else output("info string error: Reverse Futility Pruning expects true or false");
             return; // Isolate cached bounds when the static pruning policy changes.
         }
+        if (name == "QSearch SEE Pruning") {
+            if (value == "true") qsearch_see_pruning_ = true;
+            else if (value == "false") qsearch_see_pruning_ = false;
+            else output("info string error: QSearch SEE Pruning expects true or false");
+            return; // Leaf pruning can affect ancestor bounds and learned replies.
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -411,6 +419,12 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (result.qsearch_see.enabled) {
+            std::ostringstream line;
+            line << "info string qsearchsee v1 enabled true evaluations "
+                 << result.qsearch_see.evaluations << " pruned " << result.qsearch_see.pruned;
+            output(line.str());
+        }
         if (result.reverse_futility.enabled) {
             std::ostringstream line;
             line << "info string reversefutility v1 enabled true evaluations "
@@ -522,6 +536,7 @@ private:
         limits.countermove_ordering = countermove_ordering_;
         limits.null_move_pruning = null_move_pruning_;
         limits.reverse_futility_pruning = reverse_futility_pruning_;
+        limits.qsearch_see_pruning = qsearch_see_pruning_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};

@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added optional quiescence SEE capture pruning, with check, promotion,
+  endgame and draw safeguards, plus diagnostic counters. It remains disabled
+  by default pending tactical and playing-strength qualification.
 - Added experimental shallow reverse-futility pruning with tactical/endgame
   exclusions and diagnostic counters. It is disabled by default pending
   separate playing-strength qualification.

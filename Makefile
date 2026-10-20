@@ -189,6 +189,21 @@ test-reverse-futility: $(ENGINE)
 test-profile-reverse-futility:
 	$(PYTHON) tests/profile_reverse_futility_test.py
 
+# Experimental losing-capture filter; off by default and independently checked.
+QSEARCH_SEE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
+$(BUILD)/qsearch-see-search-test$(EXE): tests/qsearch_see_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-qsearch-see-search test-qsearch-see test-profile-qsearch-see
+test-qsearch-see-search: $(BUILD)/qsearch-see-search-test$(EXE)
+	"$(BUILD)/qsearch-see-search-test$(EXE)" "$(NET)"
+
+test-qsearch-see: $(ENGINE)
+	$(PYTHON) tests/qsearch_see_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(QSEARCH_SEE_ACTIVATION_TIMEOUT)
+
+test-profile-qsearch-see:
+	$(PYTHON) tests/profile_qsearch_see_test.py
+
 # Optional independent-referee checks for the isolated quiet-reply experiment.
 .PHONY: test-countermove test-profile-countermove
 test-countermove: $(ENGINE)

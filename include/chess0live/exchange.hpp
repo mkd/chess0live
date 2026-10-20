@@ -22,7 +22,8 @@ class Position;
  * This is a legal LVA exchange heuristic, not tactical minimax: alternative
  * attackers, off-target threats/evasions, and mating consequences are absent.
  * Even a checked side may stop the hypothetical exchange. It is suitable for
- * ordering moves, never for proving that a sacrifice or legal move is unsound.
+ * ordering moves and experimental heuristic filters, never for proving that a
+ * sacrifice or legal move is unsound.
  * The position, its history, and its incremental evaluation remain untouched.
  * Precondition: move is legal in position.
  */

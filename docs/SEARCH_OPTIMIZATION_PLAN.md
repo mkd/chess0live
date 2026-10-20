@@ -13,8 +13,14 @@ by default. Phase 4D.4 reverse futility is also implemented and checked:
 [its 60-search screen](reports/2026-10-19-phase4d4-reverse-futility.md) found
 12.72% fewer fresh-cache nodes but only 1.53% fewer reused-cache nodes, with
 2.28% longer reused-cache elapsed time. It stays off without repeated tuning.
-Next implementation is **4D.5 quiescence work reduction**, initially one
-SEE capture-pruning candidate; delta pruning is separate. The
+**4D.5 quiescence SEE is implemented and checked**, with
+[60 audited profile searches](reports/2026-10-20-phase4d5-qsearch-see.md):
+fresh-cache nodes fell 11.62%, reused nodes 1.58%, and one timed root completed
+an extra depth. Starting-position score/PV changes are retained. It stays off.
+The 39-position matched 1-second smoke is complete, with no positive mates in
+either build; the required matched 60-second puzzle checkpoint remains pending.
+Close that checkpoint before moving to a separate 4D.6 candidate; do not tune
+this exposed sample. Delta pruning remains separate and unimplemented. The
 [clock diagnosis](reports/2026-10-19-clock-diagnosis.md) calls for a short
 instrumented diagnostic before any further qualification match. No cause or
 clock fix has yet been established from the saved Phase 4D.2 failures.

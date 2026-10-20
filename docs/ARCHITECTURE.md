@@ -184,6 +184,30 @@ disable this policy through their complete subtrees. Quiescence is unchanged.
 Quiet checks, quiet defensive moves and distant threats remain possible failure
 modes; the restrictions and tests do not prove unchanged playing strength.
 
+## Experimental quiescence SEE boundary
+
+`QSearch SEE Pruning=false` remains the default. The independently implemented
+filter considers only ordinary interior quiescence nodes whose **entry**
+window has width one, after terminal/draw handling and a surviving stand-pat.
+The [fixed protocol](experiments/phase4d5-qsearch-see.md) records the check,
+score-band, repetition, halfmove, advanced-pawn and material exclusions.
+Requiring more than eight pieces also protects captures into seven-piece
+endings. Both null-probe and verification subtrees disable this filter.
+
+Only ordinary nonpromotion, non-en-passant captures receive an exchange test.
+A negative legal-LVA estimate proposes a skip; the real child must still have
+legal moves and must not be in check. Inspection makes/unmakes the position
+before any child history push or evaluation. Stop checks surround expensive
+probes, and skipped captures create neither child nodes nor PV entries. There
+is no new quiescence TT storage; ancestor bounds may depend on the heuristic.
+Changing the option clears reusable bounds and learned worker state.
+
+Worker-local exchange/pruned counters require diagnostics and aggregate after
+helpers join. The existing SEE model ignores off-square threats and alternate
+exchange choices, so nonchecking sacrifices can be misjudged. Correct legal
+output and reduced node counts do not establish unchanged playing strength.
+Delta pruning is a separate, unimplemented experiment.
+
 ## Optional tablebase boundary
 
 `Search` owns a configured Syzygy adapter. Path changes happen only while idle

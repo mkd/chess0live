@@ -53,6 +53,32 @@ replace held-out qualification or establish an Elo gain. The first full
 60-second baseline is still pending. No run or schedule was started by adopting
 this workflow.
 
+## Phase 4D.5 quiescence SEE — October 20, 2026
+
+The [candidate report](reports/2026-10-20-phase4d5-qsearch-see.md) records
+native/scalar/ASan+UBSan full suites and new Search API/UCI checks; TSan Search,
+SMP and new API/UCI checks also passed. Each build passed 98 bounded UCI cases.
+Ten engine-free profiler tests cover the evidence/deadline/resource lifecycle.
+The actual-board exception fixtures, pure policy boundaries and source review
+are separate from observed pruning activation and legal-output checks; none
+proves universal tactical safety.
+
+All 60 predeclared profile searches completed. The independent raw parser
+verified the matrix/settings/order, 351 iterations, 1,550 legal PV plies,
+120 bestmove/ponder plies, 12 exact parent/off pairs and summary arithmetic.
+Fresh/reused nodes fell 11.62%/1.58%; one timed root gained one depth. All final
+best moves matched, but starting-position score/PV changes remain recorded.
+Single-repetition elapsed changes qualify neither speed nor playing strength.
+
+The unchanged embedded puzzle runner, through a frozen temporary configuration
+adapter, completed a matched **1,000-ms smoke only**: 39 positions per build,
+all best moves matching, three centipawn-score differences, no errors or positive
+mates. The required matched **60,000-ms checkpoint remains pending**, including
+the first full baseline. Raw logs, pins and summaries are under
+`results/phase4d5-20261020/` and `build/experiments/phase4d5-20261020/`.
+No long run, schedule, match or default promotion was inferred. The separate
+clock-boundary diagnostic still precedes further strength qualification.
+
 ## Phase 4D.2 current-engine LMR qualification — October 18, 2026
 
 The [protocol](PHASE_4D2.md) fixes 1,024 games and 512 reversed-color pairs,

@@ -592,7 +592,7 @@ nodes 1.53%; reused elapsed time rose 2.28%. One of six timed roots completed
 one extra depth. These single-repetition observations establish no speed/Elo
 gain or universal tactical safety. No margin changed after measurement.
 
-Current normal binary SHA-256:
+At the Phase 4D.4 checkpoint, normal binary SHA-256:
 `361c9a2ab92a5702d046fc6d9cfa6cb4e0840defc74c098e67cf846ba8b9a57f`.
 Raw evidence is in `results/phase4d4-20261019/`; frozen executables, manifest and
 protected pins are in `build/experiments/phase4d4-20261019/`. All three documented
@@ -608,8 +608,8 @@ component, raise overhead from these selected failures, or rerun qualification.
 One short predeclared instrumented timing diagnostic is required before another
 qualification; its concrete boundary measurements are in the report.
 
-**Next implementation: 4D.5 quiescence work reduction**, initially one isolated
-SEE capture-pruning hypothesis. Keep delta pruning separate. No further reverse-
+The next implementation at that checkpoint was **4D.5 quiescence work reduction**,
+recorded below. Keep delta pruning separate. No further reverse-
 futility tuning, default promotion, automatic schedule, new match or release
 is part of this completed checkpoint. Preserve failed/inconclusive evidence.
 
@@ -636,6 +636,42 @@ versions. [Architecture](ARCHITECTURE.md) describes boundaries, [validation](VAL
 defines evidence, [portability](PORTABILITY.md) separates intended targets from
 verified targets, and [NNUE](NNUE.md) owns the network pin and parity record.
 
+## Phase 4D.5 implementation checkpoint — October 20, 2026
+
+The isolated quiescence SEE filter is implemented, with native/scalar full
+suites, ASan+UBSan, TSan Search/SMP checks and 98 new UCI cases per mode passing.
+The [report](reports/2026-10-20-phase4d5-qsearch-see.md) records all guards,
+limitations, evidence locations and the independent raw-output audit. The
+60-search screen found 11.62% fewer fresh-cache nodes and 1.58% fewer reused
+nodes; one timed root reached an extra depth. All final best moves matched,
+but starting-position score/PV changes are recorded. No speed/Elo conclusion.
+
+`QSearch SEE Pruning=false` remains the default. Switching it clears TT and
+worker learning; diagnostic counters aggregate only after helpers join.
+Never interpret its legal-LVA exchange estimate as proof against a sacrifice.
+Delta pruning, other defaults, clocks and evaluation mathematics are unchanged.
+
+The full matched **60,000-ms** puzzle comparison is still pending. A short
+1,000-ms smoke finished 39 positions per build without errors: identical best
+moves, three centipawn-score differences, no positive mates in either build.
+It does not satisfy the full checkpoint. The frozen existing-runner adapter
+and exact FEN/settings/source pins are in
+`build/experiments/phase4d5-20261020/`; it accepts `parent|on ENGINE MOVETIME_MS`.
+The full sequential pair needs about 78 minutes plus startup. Respect the
+overnight policy or obtain an owner daytime exception; no schedule exists.
+Finish that checkpoint before moving to 4D.6. Instrument clock boundaries
+before any new strength qualification; do not rerun or tune earlier campaigns.
+
+Current normal/frozen candidate SHA-256:
+`eaf26b5f13e9de38cc8e5b8da06dc582ff935ca7c01e27e0dc7a6451146a77b9`.
+Parent `dcfd23c` has SHA-256
+`361c9a2ab92a5702d046fc6d9cfa6cb4e0840defc74c098e67cf846ba8b9a57f`.
+All 31 protected pins, three documented GUI bundles and README introduction
+are intact. Preserve the owner's existing uncommitted `tools/batch_positions.py`
+settings (Threads 8, Hash 64 and personal engine paths); this work does not
+stage or commit them. Source/test/protocol pins freeze the candidate independently
+of its subsequent commit. The owner still handles GitHub pushes.
+
 ## Before committing
 
 The owner requested simplifying `tools/batch_positions.py`: it now embeds all
@@ -647,7 +683,7 @@ The owner also requested adopting the suite for development progress: include
 matched before/after puzzle results at material search/evaluation checkpoints,
 following [the comparison rules](VALIDATION.md#use-for-development-progress).
 The first full baseline is pending; retain per-position gains and regressions.
-This is auxiliary tooling; Phase 4D.4 remains complete and 4D.5 remains next.
+This is auxiliary tooling; the current 4D.5 checkpoint is recorded above.
 
 Run the relevant correctness checks and inspect the diff. Keep generated binaries,
 large networks, external oracle source, and raw match output out of Git. Record

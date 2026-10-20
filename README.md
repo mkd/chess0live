@@ -229,6 +229,18 @@ workers. After installing `requirements-match.txt`, run
 `make test-reverse-futility-search test-reverse-futility` for correctness checks,
 or `make test-profile-reverse-futility` for engine-free profiler checks.
 
+`QSearch SEE Pruning` (default `false`) is an experimental quiescence capture
+filter. Enable it with `setoption name QSearch SEE Pruning value true`.
+It skips selected captures with negative static exchange estimates, excluding
+checks, promotions, en passant, small endings and draw-sensitive positions.
+These estimates cannot prove that a sacrifice is unsound; leave the option off
+for baseline comparisons. Changing it clears reusable search state. With
+`Search Diagnostics=true`, the final `qsearchsee v1` record reports exchange
+evaluations and skipped captures across joined workers. After installing
+`requirements-match.txt`, use `make test-qsearch-see-search test-qsearch-see`
+for correctness checks, or `make test-profile-qsearch-see` for engine-free
+profiler checks.
+
 `Countermove Ordering` (default `false`) is a separate experimental ordering
 option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.

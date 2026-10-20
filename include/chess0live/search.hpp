@@ -60,6 +60,8 @@ struct SearchLimits {
     bool null_move_pruning = false;
     /** Experimental shallow static cutoff at quiet interior scout nodes. */
     bool reverse_futility_pruning = false;
+    /** Experimental negative-SEE capture filter in interior scout quiescence. */
+    bool qsearch_see_pruning = false;
     /** Zero disables probing. Interior probes require at least this depth;
      * root DTZ ranking is independent of the interior depth threshold. */
     int syzygy_probe_limit = 7;
@@ -199,6 +201,16 @@ struct ReverseFutilityStatistics {
     std::uint64_t cutoffs = 0;
 };
 
+/** Exchange evaluations and skipped captures for the optional quiescence
+ * filter. Counters require diagnostics, include interrupted work, and are
+ * summed only after joining helpers. No counter implies preserved strength.
+ */
+struct QSearchSeeStatistics {
+    bool enabled = false;
+    std::uint64_t evaluations = 0;
+    std::uint64_t pruned = 0;
+};
+
 /** Final accounting for independent workers sharing a transposition table.
  * Worker zero is the leader and supplies the result/PV. Helpers contribute
  * bounds and move ordering, never an unverified vote for the returned move.
@@ -230,6 +242,7 @@ struct SearchResult {
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
+    QSearchSeeStatistics qsearch_see;
 };
 
 /** Independent iterative deepening with optional shared-table Lazy SMP.

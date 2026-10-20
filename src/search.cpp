@@ -211,6 +211,7 @@ struct SearchWorker {
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
+    QSearchSeeStatistics qsearch_see;
     CacheStatistics cache;
     int completed_depth = 0;
 
@@ -500,6 +501,7 @@ struct SearchWorker {
         if (draw(position, mode)) return 0;
         if (ply >= max_ply - 1) return evaluate(position);
 
+        const int entry_alpha = alpha;
         if (!checked) {
             const int stand_pat = evaluate(position);
             if (stand_pat >= beta) return stand_pat;
@@ -508,9 +510,48 @@ struct SearchWorker {
                 return !move.is_capture() && move.promotion == PieceType::none;
             });
         }
+        // Use the entry window: stand-pat must not turn a wide/PV window
+        // into an eligible scout. Inspect material/history only after surviving
+        // stand-pat, and only when the optional policy is enabled.
+        bool filter_captures = false;
+        if (limits.qsearch_see_pruning && mode == Mode::ordinary
+            && !checked && std::int64_t(beta) - entry_alpha == 1) {
+            const int band = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+            const bool advanced = (position.pieces(Color::white, PieceType::pawn) & (Bitboard{0xffff} << 40))
+                || (position.pieces(Color::black, PieceType::pawn) & (Bitboard{0xffff} << 8));
+            const search_policy::QSearchSeeContext context{
+                ply, checked, std::abs(entry_alpha) >= band || std::abs(beta) >= band,
+                false, repeated(position), advanced, position.halfmove_clock(),
+                std::popcount(position.occupied()), true};
+            filter_captures = search_policy::qsearch_see_eligible(context);
+        }
         order(position, moves, {}, ply);
         for (const auto move : moves) {
+            int exchange = 0;
+            if (filter_captures && search_policy::qsearch_see_capture(
+                    move.is_capture(), move.promotion != PieceType::none,
+                    (move.flags & en_passant) != 0)) {
+                if (limits.diagnostics) ++qsearch_see.evaluations;
+                exchange = static_exchange(position, move);
+                if (must_stop()) return 0;
+            }
             const auto undo = position.make_move(move);
+            if (exchange < 0) {
+                // Protect checking sacrifices and terminal children using real
+                // legal state. No history push or NNUE evaluation occurs until
+                // this decision; even a skipped probe must poll search limits.
+                const bool child_check = position.in_check(position.turn());
+                const bool child_has_moves = child_check || !position.legal_moves().empty();
+                const bool skip = search_policy::qsearch_see_skip(
+                    exchange, child_check, child_has_moves);
+                const bool stopped = must_stop();
+                if (skip || stopped) {
+                    position.unmake_move(move, undo);
+                    if (stopped) return 0;
+                    if (limits.diagnostics) ++qsearch_see.pruned;
+                    continue;
+                }
+            }
             if (mode != Mode::null_probe) game_history.push_back(position.key());
             const int score = -quiescence(position, -beta, -alpha, ply + 1, mode);
             if (mode != Mode::null_probe) game_history.pop_back();
@@ -814,6 +855,8 @@ struct SearchWorker {
         nullmove.enabled = limits.null_move_pruning;
         reverse_futility = {};
         reverse_futility.enabled = limits.reverse_futility_pruning;
+        qsearch_see = {};
+        qsearch_see.enabled = limits.qsearch_see_pruning;
         cache = {};
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
@@ -856,6 +899,7 @@ struct SearchWorker {
             result.countermove = countermove;
             result.nullmove = nullmove;
             result.reverse_futility = reverse_futility;
+            result.qsearch_see = qsearch_see;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -980,6 +1024,7 @@ struct Search::Impl {
     bool previous_countermove = false;
     bool previous_nullmove = false;
     bool previous_reverse_futility = false;
+    bool previous_qsearch_see = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
 
@@ -1020,6 +1065,7 @@ struct Search::Impl {
             || request.countermove_ordering != previous_countermove
             || request.null_move_pruning != previous_nullmove
             || request.reverse_futility_pruning != previous_reverse_futility
+            || request.qsearch_see_pruning != previous_qsearch_see
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
@@ -1027,6 +1073,7 @@ struct Search::Impl {
         previous_countermove = request.countermove_ordering;
         previous_nullmove = request.null_move_pruning;
         previous_reverse_futility = request.reverse_futility_pruning;
+        previous_qsearch_see = request.qsearch_see_pruning;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
@@ -1132,6 +1179,8 @@ struct Search::Impl {
             result.nullmove.rejected += worker.nullmove.rejected;
             result.reverse_futility.evaluations += worker.reverse_futility.evaluations;
             result.reverse_futility.cutoffs += worker.reverse_futility.cutoffs;
+            result.qsearch_see.evaluations += worker.qsearch_see.evaluations;
+            result.qsearch_see.pruned += worker.qsearch_see.pruned;
             if (result.diagnostics) {
                 auto& cache = result.diagnostics->cache;
                 cache.probes += worker.cache.probes;

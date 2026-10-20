@@ -15,6 +15,41 @@
 
 namespace chess0live::search_policy {
 
+/** Eligibility for an experimental losing-capture filter in quiescence.
+ * scout describes the original entry window, before stand-pat changes alpha.
+ * More than eight pieces also keeps the capture's child outside seven-piece
+ * endings. These exclusions limit exposure; SEE is not a tactical proof.
+ */
+struct QSearchSeeContext {
+    int ply = 0;
+    bool in_check = false;
+    bool special_window = false;
+    bool speculative = false;
+    bool repeated = false;
+    bool advanced_pawn = false;
+    unsigned halfmove = 0;
+    int pieces = 0;
+    bool scout = false;
+};
+
+constexpr bool qsearch_see_eligible(const QSearchSeeContext& c) {
+    return c.ply > 0 && c.scout && !c.in_check && !c.special_window
+        && !c.speculative && !c.repeated && !c.advanced_pawn
+        && c.halfmove < 80 && c.pieces > 8;
+}
+
+constexpr bool qsearch_see_capture(bool capture, bool promotion, bool en_passant) {
+    return capture && !promotion && !en_passant;
+}
+
+/** A negative exchange estimate proposes a skip only after examining the real
+ * child. Checks and terminal children retain ordinary search. Nonchecking
+ * sacrifices with off-square threats can still be missed by this heuristic.
+ */
+constexpr bool qsearch_see_skip(int see, bool child_in_check, bool child_has_legal_moves) {
+    return see < 0 && !child_in_check && child_has_legal_moves;
+}
+
 /** Eligibility for one frozen reverse-futility hypothesis. A quiet position
  * here has no legal capture or promotion; quiet checking moves are not excluded.
  * Terminal states and actual draws must be handled before applying this policy.
