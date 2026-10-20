@@ -5,18 +5,17 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: four-worker LMR match-readiness preparation
+## Current checkpoint: four-worker readiness passed; fresh LMR qualification next
 
 The [October 20 clock-boundary replay](reports/2026-10-20-clock-boundaries.md)
 completed all 32 searches on time, with no reproduced historical delay.
-The normal release remains byte-identical; the new trace is a separate
-diagnostic build. This closes the bounded investigation, **not** the historical
-reliability blocker. The next [fixed readiness check](experiments/match-readiness-20261020.md)
-uses eight games, four fresh opening pairs, four active workers and a three-minute
-deadline through the existing match runner. Commit its tested preparation before
-launch. Any operational failure stops the transition to fresh conservative-LMR
-qualification. Keep existing LMR off and decide its status before adding broader
-Phase 4D.6 reductions. No long run or schedule has started.
+The subsequent [real-match readiness check](reports/2026-10-20-match-readiness.md)
+also passed: eight natural completions, 646 on-time searches, actual four-way
+overlap and verified cleanup in 23.949 seconds. The normal release remains
+byte-identical. This permits preparing a separately frozen fresh conservative-LMR
+qualification at four active workers; it does not establish a historical clock
+repair or strength gain. Keep existing LMR off and decide its status before
+adding broader Phase 4D.6 reductions. No long run or schedule has started.
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -51,7 +50,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Full puzzle comparison and bounded clock diagnostic complete. Next: real-match readiness before fresh existing-LMR qualification; broader 4D.6 reductions still pending |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Full puzzle comparison, bounded clock diagnostic and four-worker match readiness complete. Next: fresh existing-LMR qualification; broader 4D.6 reductions still pending |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles

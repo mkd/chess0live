@@ -79,7 +79,7 @@ are under `results/clock-boundary-20261020/`. Next: bounded real-match readiness
 at the proposed four-worker concurrency before a separately frozen fresh LMR
 qualification. Any clock failure remains a blocker.
 
-## Four-worker match-readiness preparation — October 20, 2026
+## Four-worker match readiness — October 20, 2026
 
 The [fixed protocol](experiments/match-readiness-20261020.md) uses eight games
 at 3+0.05, four active one-thread searches, fresh paired openings and an
@@ -87,11 +87,17 @@ unchanged frozen ordinary executable. Before play, `make test-match
 test-match-readiness` passed 94 checks: 17 statistics, 40 runner, 18 supervisor
 and 19 independent auditor checks. Deterministic opening regeneration and
 source replay also passed, with no engine evaluation or outcome selection.
-These checks do not constitute a completed live run or strength qualification.
 The supervisor reserves eight resident engines/6 GiB, checks resource/input
 stability and retains incomplete or failed evidence. The independent auditor
-must establish actual four-way overlap, legal replies and clocks, all eight
-natural completions and process cleanup. Long qualification remains separate.
+subsequently passed the single live attempt: eight natural completions,
+646 on-time searches, 806 legal game plies including openings, 5,180 legal PVs
+and 640 legal ponder moves. Peak concurrency was exactly four, with four
+active for 14.977 seconds. Total elapsed was 23.949 seconds; minimum clock
+slack was 9.659 ms. All 16 processes closed, 23 resource observations passed
+and source/protected identities stayed unchanged. The
+[report](reports/2026-10-20-match-readiness.md) records the 3W/2D/3L score,
+hashes and scope limits. This passes bounded operational readiness only;
+fresh long qualification remains separate and LMR stays off.
 
 ## Phase 4D.5 quiescence SEE — October 20, 2026
 

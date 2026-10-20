@@ -30,14 +30,16 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
-The immediate checkpoint is the [four-worker readiness protocol](experiments/match-readiness-20261020.md),
-following the completed clock-boundary diagnostic. Use the frozen ordinary
-release, existing runner, eight games and four fresh opening pairs. The
-supervisor and independent auditor have engine-free checks under
-`make test-match-readiness`. Commit preparation before its one live attempt;
-retain failures and do not retry the exposed sample. Engine sources/defaults,
-owner puzzle settings and GUI bundles remain unchanged. A clean result permits
-preparing fresh LMR qualification; it is not strength or reliability proof.
+The [four-worker readiness check](reports/2026-10-20-match-readiness.md) passed:
+8/8 natural games, 646 on-time searches, four-way overlap, unchanged pins and
+all 16 processes closed in 23.949 seconds. Preparation commit `2b04cd3`
+preceded the single attempt. `make test-match test-match-readiness` passed
+94 checks. Raw evidence and independent audit are in
+`results/match-readiness-20261020/`; its openings are now exposed.
+Next prepare a separately frozen fresh LMR strength qualification, following
+overnight/resource policy. No long run or schedule exists. Engine defaults,
+owner puzzle settings and GUI bundles remain unchanged. This is operational
+evidence, not a historical clock repair or strength proof.
 
 The first three steps are implemented as an unreleased `0.1-dev` baseline.
 Normal and sanitizer suites passed natively on macOS ARM64. SF19 integer parity
@@ -661,10 +663,9 @@ ASan+UBSan build, ordinary/scalar/sanitizer Search API checks and twelve exact
 parent/normal/trace depth-4 comparisons passed. Full evidence, protocol,
 limits and independent audit are linked in the report.
 
-Next prepare a bounded **real-match readiness check at four active workers**
-using the normal engine, existing runner, new pairs, fixed overhead and other
-settings. This tests the proposed lower-concurrency condition, not a claimed
-repair. A failure blocks the long run. If it passes, freeze a separate fresh
+The subsequent **real-match readiness check at four active workers** passed,
+as recorded in the current checkpoint above. Its 3+0.05 games test the proposed
+lower concurrency without establishing a repair. Next freeze a separate fresh
 qualification protocol for existing LMR and follow overnight/resource policy;
 the previous daytime exception is consumed and no schedule exists. Decide
 existing LMR's status before implementing broader 4D.6 reductions.

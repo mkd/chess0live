@@ -27,11 +27,11 @@ Do not tune this sample. The
 [short instrumented diagnostic](reports/2026-10-20-clock-boundaries.md) is now
 complete: 32/32 replies were on time, but the historical large delays did not
 reproduce. No cause or clock fix is established from the saved Phase 4D.2
-failures. Next prepare a bounded real-match readiness check at four active
-workers, using the ordinary engine and existing runner. The lower concurrency
-is a new test condition, not a repair. Any failure blocks a long run; if clean,
-declare one fresh qualification of existing conservative LMR under the ordinary
-overnight/resource policy. Make its promotion,
+failures. The subsequent [four-worker match-readiness screen](reports/2026-10-20-match-readiness.md)
+passed all eight games and 646 on-time searches, with actual four-way overlap
+and complete cleanup. The lower concurrency is a new test condition, not a
+repair. Next declare one fresh qualification of existing conservative LMR under
+the ordinary overnight/resource policy. Make its promotion,
 rejection or parking decision before adding broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.
 This follows the owner's
