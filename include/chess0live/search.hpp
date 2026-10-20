@@ -224,7 +224,27 @@ struct SmpStatistics {
     std::vector<int> worker_depths;
 };
 
+#ifdef CHESS0LIVE_CLOCK_TRACE
+/** Diagnostic-build-only monotonic boundaries. Zero denotes an unavailable
+ * sample (e.g. an exception); hard_stop_ns is also zero for non-hard stops.
+ * The leader's first hard-stop observation is sampled after the comparison,
+ * never with additional clock reads on ordinary visited nodes. These stamps
+ * are process clock values, not directly comparable to a host reader's epoch.
+ */
+struct SearchClockTrace {
+    std::int64_t search_started_ns = 0;
+    std::int64_t hard_stop_ns = 0;
+    std::int64_t leader_finished_ns = 0;
+    std::int64_t joined_ns = 0;
+    std::int64_t accounted_ns = 0;
+    std::int64_t hard_budget_ns = -1;
+};
+#endif
+
 struct SearchResult {
+#ifdef CHESS0LIVE_CLOCK_TRACE
+    SearchClockTrace clock_trace;
+#endif
     Move best;
     Move ponder;
     int score = 0;

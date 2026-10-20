@@ -5,6 +5,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ## Unreleased — working toward 0.1
 
+### Developer tools
+
+- Added an optional, separately built clock trace to diagnose position setup,
+  search deadlines and reply delivery, with calibrated replay and protocol
+  checks. Ordinary builds and playing settings are unchanged.
+
 ### Playing and analysis
 
 - Added optional quiescence SEE capture pruning, with check, promotion,

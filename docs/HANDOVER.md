@@ -636,6 +636,34 @@ versions. [Architecture](ARCHITECTURE.md) describes boundaries, [validation](VAL
 defines evidence, [portability](PORTABILITY.md) separates intended targets from
 verified targets, and [NNUE](NNUE.md) owns the network pin and parity record.
 
+## Current clock-boundary checkpoint — October 20, 2026
+
+The [bounded diagnostic](reports/2026-10-20-clock-boundaries.md) is complete:
+all 32 fresh-process searches returned within their transmitted clocks in
+18.973 seconds. Maximum final accounted deadline overrun was 0.007375 ms,
+position setup 0.160791 ms, and minimum reader-observed clock slack 19.734 ms.
+The earlier large delays did not reproduce. No clock repair or strength
+improvement is established; the old operational-failure decisions stand.
+
+`make CLOCK_TRACE=1` builds separately with compile-time-only timestamps and
+`clockping`; ordinary builds remain byte-identical to the 4D.5 parent.
+Twenty-three engine-free tests, eleven live trace cases per native/scalar/
+ASan+UBSan build, ordinary/scalar/sanitizer Search API checks and twelve exact
+parent/normal/trace depth-4 comparisons passed. Full evidence, protocol,
+limits and independent audit are linked in the report.
+
+Next prepare a bounded **real-match readiness check at four active workers**
+using the normal engine, existing runner, new pairs, fixed overhead and other
+settings. This tests the proposed lower-concurrency condition, not a claimed
+repair. A failure blocks the long run. If it passes, freeze a separate fresh
+qualification protocol for existing LMR and follow overnight/resource policy;
+the previous daytime exception is consumed and no schedule exists. Decide
+existing LMR's status before implementing broader 4D.6 reductions.
+
+Protected GUI snapshots, all 40 pinned assets and the owner's modified
+`tools/batch_positions.py` remain unchanged. The runner modification belongs
+to the owner and must remain unstaged. The README introduction is preserved.
+
 ## Phase 4D.5 completed checkpoint — October 20, 2026
 
 The isolated quiescence SEE filter is implemented, with native/scalar full
@@ -669,8 +697,8 @@ Complete printed outputs and independent audits are in
 Both searches and the launcher have ended; no schedule or new match exists.
 The one-run daytime exception is consumed.
 
-Next, prioritize the bounded clock-boundary diagnostic.
-No cause or clock repair is established yet. Validate any necessary repair and
+At that checkpoint, the next priority was the bounded clock-boundary diagnostic,
+now completed above. No cause or clock repair is established yet. Validate any necessary repair and
 operational readiness before a fresh qualification of existing conservative
 LMR. Decide its status before adding broader 4D.6 reductions; do not rerun or
 tune earlier campaigns or this exposed puzzle sample.

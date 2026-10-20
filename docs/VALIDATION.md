@@ -54,6 +54,31 @@ replace held-out qualification or establish an Elo gain. The first full
 below, under an explicit one-run daytime exception. Adopting this workflow
 does not authorize automatic runs or schedules.
 
+## Clock-boundary diagnostic — October 20, 2026
+
+The [protocol](experiments/clock-boundary-20261020.md) and
+[result](reports/2026-10-20-clock-boundaries.md) cover exactly 32 searches:
+two complete historical histories, 600/2,000-ms clocks, LMR off/on, position
+barrier off/on, and serial/four-process load. All replies arrived within their
+transmitted clocks. Final accounted overrun peaked at 0.007375 ms and full
+history processing at 0.160791 ms. No historical large delay was reproduced;
+this does not establish a repair or clear the reliability gate.
+
+Ordinary release position/UCI/resource/Search/time checks and 15 prior
+clock-probe tests passed. The new tool passed 23 engine-free tests; its UCI
+contract passed 11 searches in diagnostic release, scalar and ASan+UBSan
+builds. Scalar/sanitizer Search suites also passed. Twelve depth-4 searches
+matched parent/ordinary/diagnostic decisions, scores, PVs and nodes exactly.
+The ordinary executable hash is unchanged. No new TSan or foreign-platform
+run, strength match, full puzzle comparison, or default promotion is claimed.
+
+The initial live contract check rejected an expected empty-Syzygy setup
+notice; the test was corrected before measurement, and its failed log retained.
+Raw outputs, source/binary hashes, calibration bounds and independent audit
+are under `results/clock-boundary-20261020/`. Next: bounded real-match readiness
+at the proposed four-worker concurrency before a separately frozen fresh LMR
+qualification. Any clock failure remains a blocker.
+
 ## Phase 4D.5 quiescence SEE — October 20, 2026
 
 The [candidate report](reports/2026-10-20-phase4d5-qsearch-see.md) records
@@ -88,9 +113,8 @@ do not include full PVs or certify a mate. The complete pair took 78m05s
 (15:41–16:59 Helsinki). Raw logs, pins and summaries are under
 `results/phase4d5-20261020/` and `build/experiments/phase4d5-20261020/`.
 Both runs have ended and the one-run exception is consumed. No schedule,
-match or default promotion was inferred. The clock-boundary diagnostic is the
-next priority before fresh qualification of existing LMR; no clock cause or
-repair is established yet.
+match or default promotion was inferred. The subsequent clock-boundary
+diagnostic is recorded above; no clock cause or repair is established yet.
 
 ## Phase 4D.2 current-engine LMR qualification — October 18, 2026
 

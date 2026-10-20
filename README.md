@@ -316,6 +316,15 @@ the [match guide](docs/MATCHES.md) explains resource and evidence requirements.
 Preparing the tools creates no scheduled job.
 
 `make test-clock-probes` checks saved-position and response-timing diagnostics.
+
+For developer timing investigations, `make CLOCK_TRACE=1` creates a separate
+build whose directory ends in `-clock-trace`. It adds a versioned timing record
+after each `bestmove` and a `clockping N` calibration command. Ordinary builds
+omit this instrumentation. After installing `requirements-match.txt`, use
+`make CLOCK_TRACE=1 test-clock-trace` for live protocol checks and
+`make test-clock-boundaries` for engine-free diagnostic checks. The
+[saved-case workflow](docs/experiments/clock-boundary-20261020.md) additionally
+requires the locally archived case and campaign evidence.
 The [receipt diagnostic guide](docs/MATCHES.md#response-timing-diagnostics)
 explains how to distinguish consumer delay from observed engine response time.
 Its process-pause control requires POSIX signals; it does not change engine play.

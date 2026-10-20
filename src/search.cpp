@@ -255,11 +255,21 @@ struct SearchWorker {
         else if (limits.nodes && (shared.threads == 1 ? nodes
             : shared.node_tickets.load(std::memory_order_relaxed)) >= limits.nodes)
             stop_reason = StopReason::node_limit;
-        else if (time.active && clock_elapsed_ms() >= time.hard_ms) stop_reason = StopReason::hard_time;
+        else if (time.active && clock_elapsed_ms() >= time.hard_ms) {
+            stop_reason = StopReason::hard_time;
+#ifdef CHESS0LIVE_CLOCK_TRACE
+            // One extra clock read only when the first hard stop is observed.
+            hard_stop_ns = now_ns();
+#endif
+        }
         else return false;
         aborted = true;
         return true;
     }
+
+#ifdef CHESS0LIVE_CLOCK_TRACE
+    std::int64_t hard_stop_ns = 0;
+#endif
 
     bool visit(int ply) {
         if (must_stop()) return false;
@@ -845,6 +855,9 @@ struct SearchWorker {
         seldepth = 0;
         aborted = false;
         stop_reason = StopReason::depth_limit;
+#ifdef CHESS0LIVE_CLOCK_TRACE
+        hard_stop_ns = 0;
+#endif
         lmr = {};
         lmr.enabled = limits.late_move_reductions;
         ordering = {};
@@ -1146,11 +1159,27 @@ struct Search::Impl {
                 });
             }
             result = workers.front()->run(std::move(position), std::move(history), request, report);
+#ifdef CHESS0LIVE_CLOCK_TRACE
+            result.clock_trace.leader_finished_ns = now_ns();
+#endif
         } catch (...) {
             join();
             throw;
         }
         join();
+#ifdef CHESS0LIVE_CLOCK_TRACE
+        result.clock_trace.search_started_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            entered_at.time_since_epoch()).count();
+        result.clock_trace.joined_ns = now_ns();
+        result.clock_trace.hard_stop_ns = workers.front()->hard_stop_ns;
+        // The Search API accepts int64 millisecond clocks; this diagnostic field
+        // saturates rather than overflowing when such a clock is enormous.
+        const auto hard_ns = static_cast<long double>(budget.hard_ms) * 1000000.0L;
+        result.clock_trace.hard_budget_ns = !budget.active ? -1
+            : hard_ns >= static_cast<long double>(std::numeric_limits<std::int64_t>::max())
+                ? std::numeric_limits<std::int64_t>::max()
+                : static_cast<std::int64_t>(hard_ns);
+#endif
         if (helper_error) std::rethrow_exception(helper_error);
 
         result.smp.threads = shared.threads;
@@ -1192,7 +1221,12 @@ struct Search::Impl {
         }
         const auto started = std::chrono::duration_cast<std::chrono::nanoseconds>(
             request.received_at->time_since_epoch()).count();
+#ifdef CHESS0LIVE_CLOCK_TRACE
+        result.clock_trace.accounted_ns = now_ns();
+        result.time_ms = elapsed_ns(result.clock_trace.accounted_ns, started) / 1000000;
+#else
         result.time_ms = elapsed_ns(now_ns(), started) / 1000000;
+#endif
         result.hashfull = workers.front()->hashfull();
         result.tbhits = shared.tbhits.load(std::memory_order_relaxed);
         if (result.diagnostics)

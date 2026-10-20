@@ -22,6 +22,7 @@ TARGET ?= $(HOST_TARGET)
 CPU ?= generic
 MODE ?= release
 SIMD ?= auto
+CLOCK_TRACE ?= 0
 PYTHON ?= python3
 ifeq ($(origin CXX),default)
   CXX := c++
@@ -40,16 +41,24 @@ endif
 ifeq ($(filter $(SIMD),auto scalar),)
   $(error SIMD must be auto or scalar)
 endif
+ifeq ($(filter $(CLOCK_TRACE),0 1),)
+  $(error CLOCK_TRACE must be 0 or 1)
+endif
 ifeq ($(CPU),native)
   ifneq ($(TARGET),$(HOST_TARGET))
     $(error CPU=native cannot be used for a cross-build)
   endif
 endif
 
-BUILD := build/$(TARGET)-$(CPU)-$(MODE)$(if $(filter scalar,$(SIMD)),-scalar,)
+BUILD := build/$(TARGET)-$(CPU)-$(MODE)$(if $(filter scalar,$(SIMD)),-scalar,)$(if $(filter 1,$(CLOCK_TRACE)),-clock-trace,)
 EXE := $(if $(filter windows-%,$(TARGET)),.exe,)
 ENGINE := $(BUILD)/chess0live$(EXE)
 CPPFLAGS += -Iinclude -Ithird_party/fathom/src
+ifeq ($(CLOCK_TRACE),1)
+  # Timing instrumentation is absent from ordinary builds and has its own
+  # output directory so diagnostic binaries cannot replace normal GUI builds.
+  CPPFLAGS += -DCHESS0LIVE_CLOCK_TRACE
+endif
 ifeq ($(SIMD),scalar)
   CPPFLAGS += -DCHESS0LIVE_FORCE_SCALAR
 endif
@@ -266,6 +275,14 @@ test-profile:
 test-clock-probes:
 	$(PYTHON) tests/probe_clocks_test.py
 	$(PYTHON) tests/probe_receipt_test.py
+
+.PHONY: test-clock-boundaries test-clock-trace
+test-clock-boundaries:
+	$(PYTHON) tests/probe_clock_boundaries_test.py
+
+# Use CLOCK_TRACE=1; this checks the diagnostic binary, not a timing threshold.
+test-clock-trace: $(ENGINE)
+	$(PYTHON) tests/clock_boundary_uci.py "$(ENGINE)" "$(NET)"
 
 test-profile-lmr:
 	$(PYTHON) tests/profile_lmr_test.py

@@ -35,6 +35,13 @@ namespace {
 
 constexpr const char* default_network = "nn-1a298aa575a0.nnue";
 
+#ifdef CHESS0LIVE_CLOCK_TRACE
+/** Process-local steady clock; the diagnostic reader must calibrate its epoch. */
+std::int64_t trace_ns(std::chrono::steady_clock::time_point when = std::chrono::steady_clock::now()) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(when.time_since_epoch()).count();
+}
+#endif
+
 /** argv[0] may be a bare command name. Resolve PATH before locating adjacent
  * assets; otherwise launching from a GUI or another directory breaks defaults.
  */
@@ -110,10 +117,30 @@ public:
                     output("readyok");
                 }
                 else if (command == "stop") stop();
+#ifdef CHESS0LIVE_CLOCK_TRACE
+                else if (command == "clockping") {
+                    std::uint64_t id = 0;
+                    if (tokens.size() != 2 || !number(tokens[1], id))
+                        output("info string error: clockping expects an unsigned integer");
+                    else {
+                        const auto stamp = trace_ns();
+                        output("info string clock-ping v1 id " + std::to_string(id)
+                               + " now_ns " + std::to_string(stamp));
+                    }
+                }
+#endif
                 else if (command == "ponderhit") ponderhit();
                 else if (command == "ucinewgame") { stop(); search_.clear(); }
                 else if (command == "setoption") option(tokens);
-                else if (command == "position") position(tokens);
+                else if (command == "position") {
+#ifdef CHESS0LIVE_CLOCK_TRACE
+                    command_trace_.position_begin_ns = trace_ns(received_at);
+#endif
+                    position(tokens);
+#ifdef CHESS0LIVE_CLOCK_TRACE
+                    command_trace_.position_end_ns = trace_ns();
+#endif
+                }
                 else if (command == "go") go(tokens, received_at);
                 else if (command == "perft" || command == "divide") count(tokens);
                 else if (command == "eval" || command == "d" || command == "show"
@@ -164,13 +191,56 @@ private:
     bool flipped_ = false;
     std::atomic<bool> perft_stop_{false};
 
+#ifdef CHESS0LIVE_CLOCK_TRACE
+    struct CommandClockTrace {
+        std::uint64_t sequence = 0;
+        std::int64_t position_begin_ns = 0, position_end_ns = 0;
+        std::int64_t go_received_ns = 0, worker_started_ns = 0, search_returned_ns = 0;
+    } command_trace_;
+
+    /** The diagnostic record is formatted only AFTER bestmove was flushed.
+     * Holding the output lock keeps the paired record from interleaving with
+     * another response; lock waiting is measured separately from the write.
+     * These boundaries observe user-space code, not kernel pipe arrival.
+     */
+    void traced_bestmove(const std::string& line, const SearchResult& result,
+                         const CommandClockTrace& command) {
+        const auto ready = trace_ns();
+        std::lock_guard guard(output_mutex_);
+        const auto begin = trace_ns();
+        std::cout << line << '\n' << std::flush;
+        const auto flushed = trace_ns();
+        const auto& search = result.clock_trace;
+        std::cout << "info string clock-boundary v1 seq " << command.sequence
+                  << " position_begin_ns " << command.position_begin_ns
+                  << " position_end_ns " << command.position_end_ns
+                  << " go_received_ns " << command.go_received_ns
+                  << " worker_started_ns " << command.worker_started_ns
+                  << " search_started_ns " << search.search_started_ns
+                  << " hard_stop_ns " << search.hard_stop_ns
+                  << " leader_finished_ns " << search.leader_finished_ns
+                  << " joined_ns " << search.joined_ns
+                  << " accounted_ns " << search.accounted_ns
+                  << " search_returned_ns " << command.search_returned_ns
+                  << " reply_ready_ns " << ready
+                  << " bestmove_begin_ns " << begin
+                  << " bestmove_flushed_ns " << flushed
+                  << " hard_budget_ns " << search.hard_budget_ns
+                  << " reported_time_ms " << result.time_ms << '\n' << std::flush;
+    }
+#endif
+
     void output(const std::string& line) {
         std::lock_guard guard(output_mutex_);
         std::cout << line << '\n' << std::flush;
     }
 
     void identify() {
+#ifdef CHESS0LIVE_CLOCK_TRACE
+        output("id name chess0live 0.1-dev clock-trace");
+#else
         output("id name chess0live 0.1-dev");
+#endif
         output("id author Claudio M. Camacho");
         output("option name Hash type spin default 64 min 1 max 16384");
         output("option name Clear Hash type button");
@@ -579,7 +649,19 @@ private:
             hold_result_ = infinite_mode_ || ponder_mode_;
         }
         search_.reset_stop();
-        worker_ = std::thread([this, limits, root = position_, history = history_]() mutable {
+#ifdef CHESS0LIVE_CLOCK_TRACE
+        auto clock_trace = command_trace_;
+        clock_trace.sequence = ++command_trace_.sequence;
+        clock_trace.go_received_ns = trace_ns(received_at);
+#endif
+        worker_ = std::thread([this, limits, root = position_, history = history_
+#ifdef CHESS0LIVE_CLOCK_TRACE
+                              , clock_trace
+#endif
+                             ]() mutable {
+#ifdef CHESS0LIVE_CLOCK_TRACE
+            clock_trace.worker_started_ns = trace_ns();
+#endif
             SearchResult result;
             // A startup/allocation failure still leaves a legal response. The
             // explicit error remains visible; this is not a completed search.
@@ -590,6 +672,9 @@ private:
                     [this](const auto& info) { report(info); });
             }
             catch (const std::exception& error) { output(std::string("info string search error: ") + error.what()); }
+#ifdef CHESS0LIVE_CLOCK_TRACE
+            clock_trace.search_returned_ns = trace_ns();
+#endif
             {
                 std::unique_lock lock(result_mutex_);
                 result_ready_.wait(lock, [this] { return !hold_result_; });
@@ -606,7 +691,11 @@ private:
             report_diagnostics(result);
             std::string line = "bestmove " + result.best.uci();
             if (result.ponder.valid()) line += " ponder " + result.ponder.uci();
+#ifdef CHESS0LIVE_CLOCK_TRACE
+            traced_bestmove(line, result, clock_trace);
+#else
             output(line);
+#endif
         });
     }
 

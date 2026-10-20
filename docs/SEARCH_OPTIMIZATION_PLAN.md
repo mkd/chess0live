@@ -23,12 +23,15 @@ position 2 and centipawn scores on the other 38; only position 29's score
 differed (+9.16 to +9.59). There were no reported mate gains, losses or distance
 changes. The independent audit passed; this exposed suite establishes no Elo
 gain. The owner's October 20 daytime exception covered this completed run only.
-Do not tune this sample. The next priority is the short instrumented diagnostic
-proposed by the
-[clock diagnosis](reports/2026-10-19-clock-diagnosis.md). No cause or clock fix
-has yet been established from the saved Phase 4D.2 failures. Identify the cause,
-validate any necessary repair and satisfy the operational gate before one fresh
-qualification of the existing conservative LMR policy. Make its promotion,
+Do not tune this sample. The
+[short instrumented diagnostic](reports/2026-10-20-clock-boundaries.md) is now
+complete: 32/32 replies were on time, but the historical large delays did not
+reproduce. No cause or clock fix is established from the saved Phase 4D.2
+failures. Next prepare a bounded real-match readiness check at four active
+workers, using the ordinary engine and existing runner. The lower concurrency
+is a new test condition, not a repair. Any failure blocks a long run; if clean,
+declare one fresh qualification of existing conservative LMR under the ordinary
+overnight/resource policy. Make its promotion,
 rejection or parking decision before adding broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.
 This follows the owner's

@@ -5,7 +5,16 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.5 complete; clock diagnostic next
+## Current checkpoint: clock diagnostic complete; LMR match readiness next
+
+The [October 20 clock-boundary replay](reports/2026-10-20-clock-boundaries.md)
+completed all 32 searches on time, with no reproduced historical delay.
+The normal release remains byte-identical; the new trace is a separate
+diagnostic build. This closes the bounded investigation, **not** the historical
+reliability blocker. Next prepare one fresh conservative-LMR qualification,
+starting with a bounded real-match readiness check at four active workers.
+Any failure stops that transition. Keep existing LMR off and decide its status
+before adding broader Phase 4D.6 reductions. No long run or schedule has started.
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -40,7 +49,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. 4D.5 correctness/profile and full puzzle comparison complete, without demonstrated mate progress. Diagnose clock boundaries before fresh LMR qualification |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Full puzzle comparison and bounded clock diagnostic complete. Next: real-match readiness before fresh existing-LMR qualification; broader 4D.6 reductions still pending |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -334,10 +343,11 @@ losses or distance changes were observed. This is exposed puzzle evidence,
 not a strength qualification or proof that reported mates are correct.
 No recurring schedule or further match was created.
 
-Next, prioritize the short clock-boundary diagnostic
-before adding another pruning switch. Identify the cause and validate any
-necessary repair, then qualify the existing conservative LMR policy on fresh
-inputs. Its previous favorable score did not pass the clock-reliability gate.
+The subsequent short clock-boundary diagnostic is complete, with all 32
+replies on time and no historical delay reproduced. Next test real-match
+readiness at the proposed four-worker concurrency before qualifying existing
+conservative LMR on fresh inputs. Its previous favorable score did not pass
+the clock-reliability gate, and this diagnostic does not clear that gate.
 Broader 4D.6 reductions remain a separate later hypothesis, contingent on that
 decision; do not tune this exposed puzzle sample or combine pruning candidates.
 
@@ -371,7 +381,7 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | Full-depth PVS, shared TT, optional LMR, verified null pruning, reverse futility and quiescence SEE; countermove parked | 4D.5 checkpoint complete. Diagnose clock boundaries and validate any repair, then qualify existing LMR before considering broader 4D.6 reductions. Pruning defaults remain off |
+| 4D: strength-gated search efficiency | Full-depth PVS, shared TT, optional LMR, verified null pruning, reverse futility and quiescence SEE; countermove parked | 4D.5 and clock diagnostic complete. Next: four-worker real-match readiness, then fresh existing-LMR qualification before broader 4D.6 reductions. Pruning defaults remain off |
 | 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot
