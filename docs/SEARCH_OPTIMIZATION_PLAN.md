@@ -17,13 +17,20 @@ by default. Phase 4D.4 reverse futility is also implemented and checked:
 [60 audited profile searches](reports/2026-10-20-phase4d5-qsearch-see.md):
 fresh-cache nodes fell 11.62%, reused nodes 1.58%, and one timed root completed
 an extra depth. Starting-position score/PV changes are retained. It stays off.
-The 39-position matched 1-second smoke is complete, with no positive mates in
-either build; the required matched 60-second puzzle checkpoint remains pending.
-Close that checkpoint before moving to a separate 4D.6 candidate; do not tune
-this exposed sample. Delta pruning remains separate and unimplemented. The
-[clock diagnosis](reports/2026-10-19-clock-diagnosis.md) calls for a short
-instrumented diagnostic before any further qualification match. No cause or
-clock fix has yet been established from the saved Phase 4D.2 failures.
+The required matched 60-second puzzle checkpoint is also complete: 39 positions
+per build, one worker, no errors, all best moves matching. Both reported M7 on
+position 2 and centipawn scores on the other 38; only position 29's score
+differed (+9.16 to +9.59). There were no reported mate gains, losses or distance
+changes. The independent audit passed; this exposed suite establishes no Elo
+gain. The owner's October 20 daytime exception covered this completed run only.
+Do not tune this sample. The next priority is the short instrumented diagnostic
+proposed by the
+[clock diagnosis](reports/2026-10-19-clock-diagnosis.md). No cause or clock fix
+has yet been established from the saved Phase 4D.2 failures. Identify the cause,
+validate any necessary repair and satisfy the operational gate before one fresh
+qualification of the existing conservative LMR policy. Make its promotion,
+rejection or parking decision before adding broader 4D.6 reductions. Delta
+pruning remains separate and unimplemented.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
@@ -75,7 +82,7 @@ phases tuning a single unsuccessful heuristic.
 | 4D.3 | Verified null-move pruning | Begin with a restrictive interior non-PV experiment: no check, no mate-band window, no consecutive null moves, adequate depth, and non-pawn material. Add ordinary-search verification before a candidate cutoff and explicit zugzwang exclusions/tests. Material guards and verification reduce risk; neither proves every position safe. |
 | 4D.4 | Conservative reverse futility | Separate shallow interior non-PV candidate, disabled in check and near mate/tablebase score bands. Freeze depth-dependent margins before testing; keep checks, tactical exceptions, and draw handling explicit. |
 | 4D.5 | Quiescence work reduction | Test SEE-based capture pruning and delta pruning separately. Preserve all check evasions, promotions, mate/stalemate handling, and designated tactical exceptions. Static material estimates do not justify silently dropping a forced line. |
-| 4D.6 | Late quiet-move pruning or broader reductions | Consider only after earlier ordering/reduction evidence is understood. Keep this a separate higher-risk hypothesis with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. |
+| 4D.6 | Late quiet-move pruning or broader reductions | First resolve the clock-reliability blocker and make a qualification decision on existing conservative LMR. Only then consider one separate higher-risk reduction hypothesis, with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. |
 | 4D.7 | ProbCut | A separate later candidate: bounded reduced-depth tactical probes at an elevated cutoff threshold, with frozen margins and explicit check, mate/tablebase, and draw exclusions. A successful reduced probe is heuristic evidence, not proof of a full-depth bound. Require sacrificed-material and quiet-defense regressions and an isolated strength comparison. |
 
 The owner supplied Gargantua's optimization list during 4D.1. Treat it as a list

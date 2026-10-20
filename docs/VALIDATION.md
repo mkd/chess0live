@@ -50,8 +50,9 @@ checkpoints: a full 39-position run allows about 39 minutes of search per build.
 This exposed suite measures tactical progress and regressions on these puzzles.
 It complements correctness checks and separate strength matches; it does not
 replace held-out qualification or establish an Elo gain. The first full
-60-second baseline is still pending. No run or schedule was started by adopting
-this workflow.
+60-second baseline and matched candidate comparison completed in Phase 4D.5
+below, under an explicit one-run daytime exception. Adopting this workflow
+does not authorize automatic runs or schedules.
 
 ## Phase 4D.5 quiescence SEE — October 20, 2026
 
@@ -71,13 +72,25 @@ best moves matched, but starting-position score/PV changes remain recorded.
 Single-repetition elapsed changes qualify neither speed nor playing strength.
 
 The unchanged embedded puzzle runner, through a frozen temporary configuration
-adapter, completed a matched **1,000-ms smoke only**: 39 positions per build,
+adapter, completed a separate matched **1,000-ms smoke**: 39 positions per build,
 all best moves matching, three centipawn-score differences, no errors or positive
-mates. The required matched **60,000-ms checkpoint remains pending**, including
-the first full baseline. Raw logs, pins and summaries are under
+mates. The required matched **60,000-ms checkpoint also completed**, including
+the first full baseline, under the owner's explicit October 20 daytime exception.
+All 39 positions per build produced legal best moves and exact final scores.
+Both reported only M7 on position 2, matching its supplied annotation; 38/39
+ended with centipawn scores. No positive-mate gains, losses or distance changes
+were observed. All best moves matched; only position 29's score changed from
++9.16 to +9.59. These are fixed-time final scores, not same-depth comparisons.
+
+The independent audit checked all 78 legal moves, settings/order/exit codes,
+59 source/protected hashes and all six post-run hashes. Printed final outputs
+do not include full PVs or certify a mate. The complete pair took 78m05s
+(15:41–16:59 Helsinki). Raw logs, pins and summaries are under
 `results/phase4d5-20261020/` and `build/experiments/phase4d5-20261020/`.
-No long run, schedule, match or default promotion was inferred. The separate
-clock-boundary diagnostic still precedes further strength qualification.
+Both runs have ended and the one-run exception is consumed. No schedule,
+match or default promotion was inferred. The clock-boundary diagnostic is the
+next priority before fresh qualification of existing LMR; no clock cause or
+repair is established yet.
 
 ## Phase 4D.2 current-engine LMR qualification — October 18, 2026
 

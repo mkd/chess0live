@@ -636,7 +636,7 @@ versions. [Architecture](ARCHITECTURE.md) describes boundaries, [validation](VAL
 defines evidence, [portability](PORTABILITY.md) separates intended targets from
 verified targets, and [NNUE](NNUE.md) owns the network pin and parity record.
 
-## Phase 4D.5 implementation checkpoint — October 20, 2026
+## Phase 4D.5 completed checkpoint — October 20, 2026
 
 The isolated quiescence SEE filter is implemented, with native/scalar full
 suites, ASan+UBSan, TSan Search/SMP checks and 98 new UCI cases per mode passing.
@@ -651,16 +651,29 @@ worker learning; diagnostic counters aggregate only after helpers join.
 Never interpret its legal-LVA exchange estimate as proof against a sacrifice.
 Delta pruning, other defaults, clocks and evaluation mathematics are unchanged.
 
-The full matched **60,000-ms** puzzle comparison is still pending. A short
-1,000-ms smoke finished 39 positions per build without errors: identical best
-moves, three centipawn-score differences, no positive mates in either build.
-It does not satisfy the full checkpoint. The frozen existing-runner adapter
-and exact FEN/settings/source pins are in
+The full matched **60,000-ms** puzzle comparison completed October 20,
+15:41–16:59 Helsinki (78m05s), under the owner's explicit daytime exception.
+Each build searched all 39 FENs with one worker, Hash 64 and the same NNUE.
+Independent audit verified all 78 legal best moves, no missing/error scores,
+59 source/protected hash checks and all six post-run hashes. Both reported
+only M7 on position 2; the other 38 ended with centipawn scores. All best moves
+matched, and only position 29's score differed (+9.16 to +9.59). No reported
+mate gains, losses or distance changes; no Elo or certified-mate conclusion.
+
+The separate 1,000-ms smoke also finished 39 positions per build without errors:
+identical best moves, three centipawn-score differences and no positive mates.
+The frozen existing-runner adapter and exact FEN/settings/source pins are in
 `build/experiments/phase4d5-20261020/`; it accepts `parent|on ENGINE MOVETIME_MS`.
-The full sequential pair needs about 78 minutes plus startup. Respect the
-overnight policy or obtain an owner daytime exception; no schedule exists.
-Finish that checkpoint before moving to 4D.6. Instrument clock boundaries
-before any new strength qualification; do not rerun or tune earlier campaigns.
+Complete printed outputs and independent audits are in
+`results/phase4d5-20261020/`. Implementation commit: `8c772fe`.
+Both searches and the launcher have ended; no schedule or new match exists.
+The one-run daytime exception is consumed.
+
+Next, prioritize the bounded clock-boundary diagnostic.
+No cause or clock repair is established yet. Validate any necessary repair and
+operational readiness before a fresh qualification of existing conservative
+LMR. Decide its status before adding broader 4D.6 reductions; do not rerun or
+tune earlier campaigns or this exposed puzzle sample.
 
 Current normal/frozen candidate SHA-256:
 `eaf26b5f13e9de38cc8e5b8da06dc582ff935ca7c01e27e0dc7a6451146a77b9`.
@@ -682,7 +695,8 @@ option-heavy CLI are removed. See the README and `tests/batch_positions_test.py`
 The owner also requested adopting the suite for development progress: include
 matched before/after puzzle results at material search/evaluation checkpoints,
 following [the comparison rules](VALIDATION.md#use-for-development-progress).
-The first full baseline is pending; retain per-position gains and regressions.
+The first full baseline and matched candidate run completed in 4D.5; retain
+their per-position results, including differences and absent mate progress.
 This is auxiliary tooling; the current 4D.5 checkpoint is recorded above.
 
 Run the relevant correctness checks and inspect the diff. Keep generated binaries,
