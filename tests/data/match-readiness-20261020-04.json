@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "description": "Four-worker match readiness shard 4 of 4; one color-swapped pair",
+  "license": "GPL-3.0-or-later",
+  "copyright": "Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>",
+  "seed": 20261020401,
+  "shard": 4,
+  "provenance": "The first original chess0live 16-ply stem from each e4, d4, c4, and Nf3 family in generate_phase4d2_openings.STEMS, followed by four legal SHA-256-selected plies. No owner previous-engine assets, external games, engine searches, evaluations, outcomes, or balance filters were used.",
+  "limitations": "These four related opening roots are a short match-runner readiness sample, not strength evidence. Freshness means only disjoint canonical roots from the recorded available sources. Unrecorded positions and internal search nodes are not covered; no independent or representative sampling is claimed.",
+  "generator": "tools/generate_readiness_openings.py",
+  "generation_metadata": "match-readiness-20261020-generation.json",
+  "openings": [
+    {
+      "id": "match-readiness-20261020-nf3-01",
+      "stem_id": "nf3-01",
+      "moves": [
+        "g1f3",
+        "d7d5",
+        "c2c4",
+        "d5c4",
+        "e2e3",
+        "g8f6",
+        "f1c4",
+        "e7e6",
+        "e1g1",
+        "c7c5",
+        "d2d4",
+        "b8c6",
+        "b1c3",
+        "a7a6",
+        "d1e2",
+        "b7b5",
+        "c4d3",
+        "f6d5",
+        "b2b4",
+        "d8h4"
+      ],
+      "final_fen": "r1b1kb1r/5ppp/p1n1p3/1ppn4/1P1P3q/2NBPN2/P3QPPP/R1B2RK1 w kq - 1 11",
+      "canonical_root": "r1b1kb1r/5ppp/p1n1p3/1ppn4/1P1P3q/2NBPN2/P3QPPP/R1B2RK1 w kq -",
+      "accepted_attempt": 0
+    }
+  ]
+}

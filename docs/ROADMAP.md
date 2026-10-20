@@ -5,16 +5,18 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: clock diagnostic complete; LMR match readiness next
+## Current checkpoint: four-worker LMR match-readiness preparation
 
 The [October 20 clock-boundary replay](reports/2026-10-20-clock-boundaries.md)
 completed all 32 searches on time, with no reproduced historical delay.
 The normal release remains byte-identical; the new trace is a separate
 diagnostic build. This closes the bounded investigation, **not** the historical
-reliability blocker. Next prepare one fresh conservative-LMR qualification,
-starting with a bounded real-match readiness check at four active workers.
-Any failure stops that transition. Keep existing LMR off and decide its status
-before adding broader Phase 4D.6 reductions. No long run or schedule has started.
+reliability blocker. The next [fixed readiness check](experiments/match-readiness-20261020.md)
+uses eight games, four fresh opening pairs, four active workers and a three-minute
+deadline through the existing match runner. Commit its tested preparation before
+launch. Any operational failure stops the transition to fresh conservative-LMR
+qualification. Keep existing LMR off and decide its status before adding broader
+Phase 4D.6 reductions. No long run or schedule has started.
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening

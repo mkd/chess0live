@@ -30,6 +30,15 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+The immediate checkpoint is the [four-worker readiness protocol](experiments/match-readiness-20261020.md),
+following the completed clock-boundary diagnostic. Use the frozen ordinary
+release, existing runner, eight games and four fresh opening pairs. The
+supervisor and independent auditor have engine-free checks under
+`make test-match-readiness`. Commit preparation before its one live attempt;
+retain failures and do not retry the exposed sample. Engine sources/defaults,
+owner puzzle settings and GUI bundles remain unchanged. A clean result permits
+preparing fresh LMR qualification; it is not strength or reliability proof.
+
 The first three steps are implemented as an unreleased `0.1-dev` baseline.
 Normal and sanitizer suites passed natively on macOS ARM64. SF19 integer parity
 has a separate reproducible oracle harness. ARM64 NEON is implemented; the

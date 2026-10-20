@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a bounded four-worker match-readiness check with independent replay of
+  clocks, legal moves, settings, concurrency and process cleanup. It prepares
+  reliability validation without changing engine play or default settings.
 - Added an optional, separately built clock trace to diagnose position setup,
   search deadlines and reply delivery, with calibrated replay and protocol
   checks. Ordinary builds and playing settings are unchanged.

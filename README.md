@@ -315,6 +315,11 @@ openings as fresh validation. Prepare a new protocol before another campaign;
 the [match guide](docs/MATCHES.md) explains resource and evidence requirements.
 Preparing the tools creates no scheduled job.
 
+`make test-match-readiness` checks the bounded four-worker match supervisor
+and independent raw-game auditor without launching engines. Its fixed
+[readiness protocol](docs/experiments/match-readiness-20261020.md) documents
+the separate live check, required frozen inputs, resource budget and commands.
+
 `make test-clock-probes` checks saved-position and response-timing diagnostics.
 
 For developer timing investigations, `make CLOCK_TRACE=1` creates a separate

@@ -284,6 +284,11 @@ test-clock-boundaries:
 test-clock-trace: $(ENGINE)
 	$(PYTHON) tests/clock_boundary_uci.py "$(ENGINE)" "$(NET)"
 
+.PHONY: test-match-readiness
+test-match-readiness:
+	$(PYTHON) tests/check_match_readiness_test.py
+	$(PYTHON) tests/audit_match_readiness_test.py
+
 test-profile-lmr:
 	$(PYTHON) tests/profile_lmr_test.py
 
@@ -352,6 +357,7 @@ help:
 	@echo 'make test-reverse-futility-search test-reverse-futility  Check experimental static pruning'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
 	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
+	@echo 'make test-match-readiness Test bounded match supervisor and raw auditor'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'
 	@echo 'make test-phase3g      Test fresh openings, coordinated launcher, and aggregate audit'
 	@echo 'make test-phase3l      Test fresh qualification inputs, readiness, supervision, and audit'
