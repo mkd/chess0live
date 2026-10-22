@@ -5,16 +5,17 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: fresh LMR qualification authorized and ready to launch
+## Current checkpoint: fresh LMR qualification running
 
 The [October 22 preparation](reports/2026-10-22-lmr-preparation.md) passed
 145 workflow checks, opening-source replay and independent search-free engine
 readiness. The fixed comparison is 512 games/256 fresh pairs, four active
-workers, 60+0.6 and identical binaries with only LMR toggled. **Zero games have
-started.** The owner authorized one October 22 daytime launch after preparation
-commit `548ce74`. The explicit dated amendment passed 81 relevant tests, fresh
-independent readiness and protected-file checks; commit it before starting.
-Resource limits and the next-07:00 Helsinki cutoff stay fixed.
+workers, 60+0.6 and identical binaries with only LMR toggled. The authorized
+daytime attempt [started at 20:03 Warsaw / 21:03 Helsinki](reports/2026-10-22-lmr-launch.md)
+after preparation `548ce74` and amendment `a81c951`. All four games produced
+searches and moves; startup resource checks passed. The amendment passed 81
+relevant tests and fresh independent readiness. Resource limits and the original
+October 23, 07:00 Helsinki cutoff stay fixed. Results and final audit are pending.
 No schedule is created. Any either-role flagfall blocks
 eligibility. Decide existing LMR's status after this bounded comparison before
 adding broader Phase 4D.6 reductions. Engine code/defaults remain unchanged.
@@ -60,7 +61,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Full puzzle comparison, clock diagnostic and four-worker readiness complete. Fresh 512-game existing-LMR qualification prepared and independently checked; launch pending. Broader 4D.6 reductions still pending |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 LMR rejected by flagfalls; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Full puzzle comparison, clock diagnostic and four-worker readiness complete. Fresh 512-game existing-LMR qualification running under the owner's October 22 exception; final audit pending. Broader 4D.6 reductions still pending |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles

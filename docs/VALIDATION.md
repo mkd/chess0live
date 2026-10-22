@@ -2,8 +2,9 @@
 
 ## Fresh LMR qualification preparation — October 22, 2026
 
-The [fixed 512-game comparison](experiments/lmr-20261022.md) is prepared; it has
-not started. Tests passed: 17 opening checks, 23 supervisor checks, 48 independent
+The [fixed 512-game comparison](experiments/lmr-20261022.md)
+[launched October 22 at 20:03 Warsaw](reports/2026-10-22-lmr-launch.md); its final
+audit is pending. Preparation tests passed: 17 opening checks, 23 supervisor checks, 48 independent
 audit checks and 57 existing runner/statistics checks, **145 total**. Synthetic
 raw games exercise clocks, legal histories/PVs/ponders, actual options, both-role
 forfeit classification, corrupted evidence, resource failures, cancellation,
@@ -23,7 +24,7 @@ launch. Its dated amendment passed 27 launcher and 54 auditor tests (81 total),
 fresh search-free readiness/independent audit, and 60 protected-file checks.
 Evidence is under `results/lmr-20261022/daytime-preparation/` and the parent
 folder's `daytime-*-tests.log`. The exception preserves resources, match inputs
-and the next-07:00 Helsinki cutoff. No qualification game has started yet.
+and the next-07:00 Helsinki cutoff. It was committed as `a81c951` before launch.
 
 ## Embedded-position batch runner — October 19, 2026
 

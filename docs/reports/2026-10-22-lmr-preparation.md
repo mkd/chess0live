@@ -1,7 +1,9 @@
 # Fresh LMR qualification preparation — October 22, 2026
 
 **Preparation and independent search-free readiness passed. No qualification
-game has started, and no schedule exists.** The next action is one launch under
+game had started when preparation was recorded, and no schedule was created.**
+The authorized attempt subsequently [launched at 20:03 Warsaw](2026-10-22-lmr-launch.md).
+This report records the evidence preceding that one launch under
 the [fixed protocol](../experiments/lmr-20261022.md). Its original overnight-only
 preparation was committed as `548ce74`; the owner subsequently authorized the
 dated daytime amendment recorded below, before any game.
@@ -69,7 +71,7 @@ and the exact README introduction. The owner handles GitHub pushes.
 
 ## Decision still pending
 
-This is readiness evidence only. The long comparison has **zero games played**.
+This is readiness evidence only; there were **zero games played at preparation**.
 Its normal launch window is 22:00–22:30 Warsaw (23:00–23:30 Helsinki), with the
 original 06:00 Warsaw / 07:00 Helsinki cutoff. Budget approximately 6–8 hours;
 completion is not guaranteed. No automatic launch is implied by preparation.

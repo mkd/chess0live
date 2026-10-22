@@ -31,11 +31,12 @@ failures. The subsequent [four-worker match-readiness screen](reports/2026-10-20
 passed all eight games and 646 on-time searches, with actual four-way overlap
 and complete cleanup. The lower concurrency is a new test condition, not a
 repair. The [fresh 512-game qualification](reports/2026-10-22-lmr-preparation.md)
-is now prepared with 256 new pairs and four workers; 145 workflow checks and
-independent search-free readiness passed. No game or schedule has started.
-After preparation commit `548ce74`, the owner authorized one October 22 daytime
-launch; test and commit its dated amendment before starting. The existing
-resource limits and next-07:00 Helsinki cutoff stay fixed.
+uses 256 new pairs and four workers; 145 preparation checks and independent
+search-free readiness passed. After preparation `548ce74`, the owner authorized
+one October 22 daytime launch; amendment `a81c951` passed 81 relevant checks.
+The [attempt started at 20:03 Warsaw](reports/2026-10-22-lmr-launch.md).
+No schedule exists; results/audit are pending. The existing resource limits and
+original next-07:00 Helsinki cutoff stay fixed.
 Make its promotion,
 rejection or parking decision before adding broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.
