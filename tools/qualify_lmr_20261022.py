@@ -8,6 +8,7 @@ The existing QualificationProfile/run implementation owns every game's clocks,
 process cleanup, raw evidence and child manifests. This facade adds only the
 aggregate resource/deadline supervisor. Frozen Phase 3L sources remain unchanged.
 No scheduling, resume, sample overrides or inherited daytime exceptions.
+The owner's October 22 one-run exception requires an explicit CLI flag.
 """
 from __future__ import annotations
 
@@ -31,6 +32,7 @@ from qualify_phase3l import cooperative_signals, cancel_and_wait, append_resourc
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "lmr-20261022-512-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/lmr-20261022.md"
+DAYTIME_AUTHORIZATION = "Owner authorized one daytime launch on 2026-10-22: Run now; I authorize a daytime exception"
 CHESS_VERSION = "1.11.2"
 SHARDS, SHARD_PAIRS, PAIRS = 4, 64, 256
 SEEDS = tuple(range(202610224201, 202610224205))
@@ -112,14 +114,21 @@ def fingerprints():
             for path in paths for s in (path.stat(),)}
 
 
-def launch_policy(now=None, *, require_window=False):
-    policy = shared.launch_policy(now or utc_now(), allow_daytime=False)
+def launch_policy(now=None, *, allow_daytime=False, require_window=False):
+    """Keep the original cutoff and resource limits for the dated exception."""
+    policy = shared.launch_policy(now or utc_now(), allow_daytime=allow_daytime)
     local = datetime.fromisoformat(policy["local_time"])
     permitted = local.hour == 23 and local.minute < 30
     window = "23:00–23:30 Europe/Helsinki"
+    if allow_daytime:
+        permitted = (local.date().isoformat() == "2026-10-22"
+                     and local.hour >= 7
+                     and (local.hour < 23 or local.minute < 30))
+        window = "2026-10-22 07:00–23:30 Europe/Helsinki (one authorized launch)"
     if require_window and not permitted:
         raise ValueError(f"Fresh LMR qualification may launch only {window} (end exclusive)")
-    policy.update(launch_window=window, launch_permitted=permitted, daytime_authorization=None)
+    policy.update(launch_window=window, launch_permitted=permitted,
+                  daytime_authorization=DAYTIME_AUTHORIZATION if allow_daytime else None)
     return policy
 
 
@@ -234,12 +243,12 @@ def process_cleanup(output):
     return {"engine_pids": sorted(pids), "alive_pids": alive, "unverified_pids": unknown}
 
 
-async def run(output):
+async def run(output, allow_daytime=False):
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
         raise ValueError("Campaign output must be a new directory; overwrite/resume is disabled")
     started = utc_now()
-    policy = launch_policy(started, require_window=True)
+    policy = launch_policy(started, allow_daytime=allow_daytime, require_window=True)
     cutoff = datetime.fromisoformat(policy["cutoff_utc"])
     initial = snapshot()
     metadata = fingerprints()
@@ -300,7 +309,7 @@ async def run(output):
             raise shared.WindowExpired("Helsinki 07:00 cutoff; fixed sample incomplete")
 
         def child_window(**_):
-            current = shared.launch_policy(utc_now(), allow_daytime=False)
+            current = shared.launch_policy(utc_now(), allow_daytime=allow_daytime)
             current.update(cutoff_utc=policy["cutoff_utc"], cutoff_local=policy["cutoff_local"],
                            remaining_seconds=(cutoff - utc_now()).total_seconds(),
                            daytime_authorization=policy["daytime_authorization"])
@@ -311,7 +320,7 @@ async def run(output):
                 return await shared.disk_io(child_report, record, index)
             async def before_game(game_id):
                 await guard(game_id, index)
-            return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=False,
+            return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=allow_daytime,
                 preflight=cached_preflight, request=fixed_request, clock=utc_now, window=child_window,
                 run_guard=before_game, fail_fast=True, manage_deadline=False)
 
@@ -327,7 +336,7 @@ async def run(output):
                 raise shared.WindowExpired("Initial Helsinki cutoff elapsed during preflight")
             # Do not begin held-out games if setup has consumed the launch
             # window; the originally recorded 07:00 cutoff never moves.
-            launch_policy(utc_now(), require_window=True)
+            launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             match.atomic_json(output / "campaign.json", record)
             workers = [asyncio.create_task(worker(i), name=f"lmr-20261022-shard-{i}")
                        for i in range(1, SHARDS + 1)]
@@ -395,16 +404,20 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "run"), nargs="?", default="check")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--allow-daytime", action="store_true",
+                        help="Use the owner's one-run October 22 exception; resource limits/cutoff remain unchanged")
     args = parser.parse_args(argv)
     if args.action == "check" and args.output is not None:
         parser.error("check does not accept --output")
+    if args.action == "check" and args.allow_daytime:
+        parser.error("check does not accept --allow-daytime")
     if args.action == "run" and args.output is None:
         parser.error("run requires --output NEW_DIRECTORY")
     async def execute():
         # All coordinated hashing uses one background worker, not four more
         # unbounded CPU jobs alongside the four active engine search workers.
         asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=1))
-        return await cooperative_signals(check() if args.action == "check" else run(args.output))
+        return await cooperative_signals(check() if args.action == "check" else run(args.output, args.allow_daytime))
     try:
         print(json.dumps(asyncio.run(execute()), indent=2, allow_nan=False))
         return 0

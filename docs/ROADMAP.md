@@ -5,15 +5,17 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: fresh LMR qualification prepared; launch pending
+## Current checkpoint: fresh LMR qualification authorized and ready to launch
 
 The [October 22 preparation](reports/2026-10-22-lmr-preparation.md) passed
 145 workflow checks, opening-source replay and independent search-free engine
 readiness. The fixed comparison is 512 games/256 fresh pairs, four active
 workers, 60+0.6 and identical binaries with only LMR toggled. **Zero games have
-started.** The prepared tools permit overnight launch only. A new explicit
-daytime exception would first require a tested protocol/tool amendment;
-preparation creates no schedule. Any either-role flagfall blocks
+started.** The owner authorized one October 22 daytime launch after preparation
+commit `548ce74`. The explicit dated amendment passed 81 relevant tests, fresh
+independent readiness and protected-file checks; commit it before starting.
+Resource limits and the next-07:00 Helsinki cutoff stay fixed.
+No schedule is created. Any either-role flagfall blocks
 eligibility. Decide existing LMR's status after this bounded comparison before
 adding broader Phase 4D.6 reductions. Engine code/defaults remain unchanged.
 

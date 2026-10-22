@@ -29,6 +29,7 @@ from audit_phase3l import definitions, instant, root_key
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "lmr-20261022-512-v1"
+DAYTIME_AUTHORIZATION = "Owner authorized one daytime launch on 2026-10-22: Run now; I authorize a daytime exception"
 PROTOCOL_DOCUMENT = "docs/experiments/lmr-20261022.md"
 ENGINE_SHA256 = "eaf26b5f13e9de38cc8e5b8da06dc582ff935ca7c01e27e0dc7a6451146a77b9"
 NETWORK_SHA256 = "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2"
@@ -79,6 +80,13 @@ def game_reservation(network_bytes):
 def aggregate_reservation(network_bytes):
     """Reserve all eight engines, with a conservative six-GiB minimum."""
     return max(6*1024**3, SHARDS*game_reservation(network_bytes))
+
+
+def permitted_launch(local, allow_daytime):
+    """Apply the independently declared, one-date owner exception window."""
+    if allow_daytime:
+        return local.date().isoformat() == "2026-10-22" and 7*60 <= local.hour*60+local.minute < 23*60+30
+    return local.hour == 23 and local.minute < 30
 
 
 def child_protocol(index):
@@ -299,11 +307,12 @@ class AggregateAudit:
         policy = m["launch_policy"]
         require(policy["timezone"] == "Europe/Helsinki" and type(policy["allow_daytime"]) is bool,
                 "Master launch timezone or permission type changed")
-        require(policy["allow_daytime"] is False, "Fresh LMR qualification has no daytime exception")
-        require(local.hour == 23 and local.minute < 30,
-                "Master launch is outside 23:00–23:30 Helsinki")
-        require(policy["nighttime"] is True and policy["daytime_authorization"] is None,
-                "Master ordinary-night launch carries a daytime exception")
+        require(permitted_launch(local, policy["allow_daytime"]), "Master launch is outside its authorized date/window")
+        expected_authorization = DAYTIME_AUTHORIZATION if policy["allow_daytime"] else None
+        require(policy["daytime_authorization"] == expected_authorization,
+                "Master launch lacks its exact owner authorization or inherits an exception")
+        require(policy["nighttime"] is (local.hour >= 23 or local.hour < 7),
+                "Master nighttime flag differs from Helsinki civil time")
         expected_cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
         require(cutoff == expected_cutoff and started <= finished, "Master cutoff/timestamp ordering changed")
         require(instant(policy["cutoff_utc"]) == cutoff == instant(policy["cutoff_local"]), "Master cutoff drift")
@@ -416,7 +425,7 @@ class AggregateAudit:
         require(self.started <= checked <= self.finished, "Preflight timestamp escapes master")
         checked_local = checked.astimezone(ZoneInfo("Europe/Helsinki"))
         require(checked_local.date() == self.started.astimezone(ZoneInfo("Europe/Helsinki")).date()
-                and checked_local.hour == 23 and checked_local.minute < 30, "Preflight completed outside launch window")
+                and permitted_launch(checked_local, m["launch_policy"]["allow_daytime"]), "Preflight completed outside launch window")
         require(preflight["active_search_workers"] == SHARDS and preflight["resident_engines"] == 2*SHARDS
                 and preflight["estimated_memory_bytes"] == reservation
                 and preflight["memory_estimate_is_hard_cap"] is False

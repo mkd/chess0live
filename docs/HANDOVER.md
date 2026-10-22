@@ -37,10 +37,12 @@ four active workers, 60+0.6, same ordinary executable, only LMR on/off differs.
 All 145 workflow checks and full generation-source replay passed. Raw preparation
 records are in `results/lmr-20261022/`; frozen binary/manifest and protected pins
 are in `build/experiments/lmr-20261022/`. **No long run or schedule has started.**
-Launch requires the ordinary 23:00–23:30 Helsinki window (22:00–22:30 Warsaw).
-A newly authorized daytime exception would first require a tested, recorded
-amendment to the protocol, launcher and auditor. Do not inherit old daytime
-permission. The original next-07:00 Helsinki cutoff is immutable.
+After preparation commit `548ce74`, the owner authorized this one October 22
+daytime launch. The explicit `run --allow-daytime` amendment passed 81 relevant
+checks and fresh independent readiness; commit it before starting. It expires
+at 23:30 Helsinki that day. It grants no resource
+increase, repeat attempt or schedule. The original next-07:00 Helsinki cutoff
+is immutable. Ordinary unflagged launches still require 23:00–23:30 Helsinki.
 Any either-role flagfall blocks default eligibility. Preserve all fixed inputs
 through audit; no retry/resume, replacement, score-based stop or default change.
 The next checkpoint is the full independent qualification audit and an explicit

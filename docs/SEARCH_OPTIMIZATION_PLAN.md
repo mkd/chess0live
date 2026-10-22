@@ -33,8 +33,9 @@ and complete cleanup. The lower concurrency is a new test condition, not a
 repair. The [fresh 512-game qualification](reports/2026-10-22-lmr-preparation.md)
 is now prepared with 256 new pairs and four workers; 145 workflow checks and
 independent search-free readiness passed. No game or schedule has started.
-The prepared tools permit overnight launch only; a newly authorized daytime
-exception would first require a tested, recorded protocol/tool amendment.
+After preparation commit `548ce74`, the owner authorized one October 22 daytime
+launch; test and commit its dated amendment before starting. The existing
+resource limits and next-07:00 Helsinki cutoff stay fixed.
 Make its promotion,
 rejection or parking decision before adding broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.

@@ -2,9 +2,9 @@
 
 **Preparation and independent search-free readiness passed. No qualification
 game has started, and no schedule exists.** The next action is one launch under
-the [fixed protocol](../experiments/lmr-20261022.md), within the ordinary overnight
-window. A newly authorized daytime exception would first require a tested,
-recorded amendment to the protocol, launcher and auditor before any game.
+the [fixed protocol](../experiments/lmr-20261022.md). Its original overnight-only
+preparation was committed as `548ce74`; the owner subsequently authorized the
+dated daytime amendment recorded below, before any game.
 
 The planned comparison has **512 games / 256 reversed-color pairs**, four
 concurrent one-thread games, 60+0.6, Hash 64 MiB, Move Overhead 20 ms and classic
@@ -81,3 +81,25 @@ predeclared conditional confidence rule to reach a separate default review.
 An inconclusive or failed result is recorded and parked, not extended or tuned
 against these openings. Decide existing LMR's status before broader Phase 4D.6
 reductions. No rating, strength gain or release acceptance is claimed here.
+
+## Authorized daytime amendment
+
+After `548ce74`, the owner answered: **"Run now; I authorize a daytime
+exception"**. The explicit `run --allow-daytime` option permits this one October
+22 attempt before 23:30 Helsinki, retaining October 23's 07:00 Helsinki / 06:00
+Warsaw cutoff. Resource limits remain 50% daytime and 80% nighttime; all match
+inputs, settings and decision rules are unchanged. No schedule is created.
+
+All **81 relevant checks passed again**: 27 launcher and 54 independent-auditor
+tests. Coverage includes authorization/date/window expiry, child propagation,
+the unchanged daytime resource ceiling, crossing into nighttime policy and the
+original cutoff. Independent review found no blocking issue. A fresh serial
+real-engine readiness check and its independent audit passed with no searches.
+All 60 protection checks passed, including 57 historical pins, the owner's
+puzzle runner, exact README introduction and ordinary release binary.
+
+Evidence is in `results/lmr-20261022/daytime-preparation/` (`preflight.json`,
+`preflight-audit.json`, `protected-after.json`, `authorization.json`), with
+`daytime-launcher-tests.log` and `daytime-auditor-tests.log` in the parent folder.
+Original preparation evidence is retained unchanged. Commit the tested amendment
+before starting; preserve the resulting campaign and do not launch another run.

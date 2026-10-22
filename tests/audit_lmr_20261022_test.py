@@ -233,7 +233,7 @@ class AggregateTests(unittest.TestCase):
         helsinki = ZoneInfo("Europe/Helsinki")
         local = start.astimezone(helsinki)
         cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=helsinki).astimezone(timezone.utc)
-        marker = "owner-20261018-phase4d2" if allow_daytime else None
+        marker = auditor.DAYTIME_AUTHORIZATION if allow_daytime else None
         self.master["cutoff_utc"] = cutoff.isoformat()
         self.master["launch_policy"].update(
             local_time=local.isoformat(), nighttime=local.hour >= 23 or local.hour < 7,
@@ -292,7 +292,7 @@ class AggregateTests(unittest.TestCase):
 
 
     def test_daytime_requires_exact_recorded_owner_authorization(self):
-        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 22, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
         for marker in (None, "owner-other-campaign", "missing"):
             with self.subTest(marker=marker):
                 if marker == "missing":
@@ -302,7 +302,7 @@ class AggregateTests(unittest.TestCase):
                 self.check()
 
     def test_daytime_requires_explicit_boolean_permission(self):
-        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 22, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
         for flag in (False, 1, "true"):
             with self.subTest(flag=flag):
                 self.master["launch_policy"]["allow_daytime"] = flag
@@ -311,7 +311,7 @@ class AggregateTests(unittest.TestCase):
     def test_recorded_nighttime_must_match_launch_window(self):
         self.master["launch_policy"]["nighttime"] = False
         self.check()
-        self.move_campaign(datetime(2026, 10, 18, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 22, 10, 0, tzinfo=timezone.utc), allow_daytime=True)
         self.master["launch_policy"]["nighttime"] = True
         self.check()
 
@@ -338,6 +338,52 @@ class AggregateTests(unittest.TestCase):
     def test_all_daytime_launches_rejected_even_with_historical_authorization(self):
         self.move_campaign(datetime(2026, 10, 18, 6, tzinfo=timezone.utc), allow_daytime=True)
         self.check()
+
+    def test_authorized_daytime_uses_ordinary_budget_and_original_morning_cutoff(self):
+        self.move_campaign(datetime(2026, 10, 22, 10, tzinfo=timezone.utc), allow_daytime=True)
+        self.assertEqual(self.master["cutoff_utc"], "2026-10-23T04:00:00+00:00")
+        self.assertEqual(self.master["launch_policy"]["remaining_seconds"], 18*3600)
+        self.assertEqual(self.master["preflight"]["resource_policy"]["percent"], 50)
+        self.assertEqual(self.master["preflight"]["resource_policy"]["max_cpu_workers"], 9)
+        self.check("inconclusive")
+        self.master["cutoff_utc"] = "2026-10-24T04:00:00+00:00"
+        self.check()
+
+    def test_authorized_daytime_crosses_into_ordinary_night_resource_policy(self):
+        self.move_campaign(datetime(2026, 10, 22, 19, 58, tzinfo=timezone.utc), allow_daytime=True)
+        self.assertEqual({event["policy"]["percent"] for event in self.history}, {50, 80})
+        self.check("inconclusive")
+
+    def test_exception_has_exact_date_and_inclusive_exclusive_boundaries(self):
+        for start, expected in (
+                (datetime(2026, 10, 22, 3, 59, 59, tzinfo=timezone.utc), "invalid_or_incomplete"),
+                (datetime(2026, 10, 22, 4, 0, tzinfo=timezone.utc), "inconclusive"),
+                (datetime(2026, 10, 22, 20, 0, tzinfo=timezone.utc), "inconclusive"),
+                (datetime(2026, 10, 22, 20, 29, 59, tzinfo=timezone.utc), "inconclusive"),
+                (datetime(2026, 10, 22, 20, 30, tzinfo=timezone.utc), "invalid_or_incomplete"),
+                (datetime(2026, 10, 21, 10, tzinfo=timezone.utc), "invalid_or_incomplete"),
+                (datetime(2026, 10, 23, 10, tzinfo=timezone.utc), "invalid_or_incomplete")):
+            with self.subTest(start=start):
+                self.move_campaign(start, allow_daytime=True)
+                self.check(expected)
+
+    def test_preflight_must_finish_within_authorized_window(self):
+        self.move_campaign(datetime(2026, 10, 22, 20, 29, tzinfo=timezone.utc), allow_daytime=True)
+        self.master["checked_utc"] = "2026-10-22T20:30:00+00:00"
+        result = self.check()
+        self.assertTrue(any("Preflight completed outside launch window" in error for error in result["errors"]))
+
+    def test_daytime_exception_does_not_raise_resource_ceiling(self):
+        self.move_campaign(datetime(2026, 10, 22, 10, tzinfo=timezone.utc), allow_daytime=True)
+        self.history[1]["policy"].update(percent=80, max_cpu_workers=14, memory_fraction=.8)
+        result = self.check()
+        self.assertTrue(any("civil-time policy" in error for error in result["errors"]))
+
+    def test_daytime_child_must_preserve_exact_authorization(self):
+        self.move_campaign(datetime(2026, 10, 22, 10, tzinfo=timezone.utc), allow_daytime=True)
+        self.children[0]["launch"]["launch_policy"]["daytime_authorization"] = None
+        self.check()
+
 
     def test_exclusion_generator_metadata_and_build_pins_cannot_self_authorize(self):
         for name in auditor.INPUT_PINS:

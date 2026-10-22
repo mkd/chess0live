@@ -18,6 +18,13 @@ strength result is implied. The [preparation report](reports/2026-10-22-lmr-prep
 records hashes, raw logs and limitations. Full-match evidence and the one
 promote/reject/park decision remain pending; all defaults stay unchanged.
 
+After preparation commit `548ce74`, the owner authorized one October 22 daytime
+launch. Its dated amendment passed 27 launcher and 54 auditor tests (81 total),
+fresh search-free readiness/independent audit, and 60 protected-file checks.
+Evidence is under `results/lmr-20261022/daytime-preparation/` and the parent
+folder's `daytime-*-tests.log`. The exception preserves resources, match inputs
+and the next-07:00 Helsinki cutoff. No qualification game has started yet.
+
 ## Embedded-position batch runner — October 19, 2026
 
 At the owner's request, the initial XLSX runner was simplified to an embedded
