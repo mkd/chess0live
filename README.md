@@ -315,6 +315,12 @@ openings as fresh validation. Prepare a new protocol before another campaign;
 the [match guide](docs/MATCHES.md) explains resource and evidence requirements.
 Preparing the tools creates no scheduled job.
 
+`make test-lmr-qualification` checks the fresh fixed LMR comparison's opening
+generator, supervisor and independent auditor using synthetic evidence.
+The [qualification guide](docs/experiments/lmr-20261022.md) documents the
+separate search-free readiness command, frozen inputs and overnight launch
+restrictions. Test targets do not launch the strength match.
+
 `make test-match-readiness` checks the bounded four-worker match supervisor
 and independent raw-game auditor without launching engines. Its fixed
 [readiness protocol](docs/experiments/match-readiness-20261020.md) documents

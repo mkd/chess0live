@@ -30,8 +30,12 @@ reproduce. No cause or clock fix is established from the saved Phase 4D.2
 failures. The subsequent [four-worker match-readiness screen](reports/2026-10-20-match-readiness.md)
 passed all eight games and 646 on-time searches, with actual four-way overlap
 and complete cleanup. The lower concurrency is a new test condition, not a
-repair. Next declare one fresh qualification of existing conservative LMR under
-the ordinary overnight/resource policy. Make its promotion,
+repair. The [fresh 512-game qualification](reports/2026-10-22-lmr-preparation.md)
+is now prepared with 256 new pairs and four workers; 145 workflow checks and
+independent search-free readiness passed. No game or schedule has started.
+The prepared tools permit overnight launch only; a newly authorized daytime
+exception would first require a tested, recorded protocol/tool amendment.
+Make its promotion,
 rejection or parking decision before adding broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.
 This follows the owner's

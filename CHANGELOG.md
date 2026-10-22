@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Prepared a fresh paired-opening LMR strength comparison with four concurrent
+  games, fixed overnight limits and independent auditing. This adds testing
+  infrastructure; experimental search defaults remain unchanged.
 - Added a bounded four-worker match-readiness check with independent replay of
   clocks, legal moves, settings, concurrency and process cleanup. It prepares
   reliability validation without changing engine play or default settings.

@@ -30,14 +30,29 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+The [fresh October 22 LMR qualification](reports/2026-10-22-lmr-preparation.md)
+is prepared, tested and independently checked without searching its openings.
+Read its [fixed protocol](experiments/lmr-20261022.md): 512 games/256 pairs,
+four active workers, 60+0.6, same ordinary executable, only LMR on/off differs.
+All 145 workflow checks and full generation-source replay passed. Raw preparation
+records are in `results/lmr-20261022/`; frozen binary/manifest and protected pins
+are in `build/experiments/lmr-20261022/`. **No long run or schedule has started.**
+Launch requires the ordinary 23:00–23:30 Helsinki window (22:00–22:30 Warsaw).
+A newly authorized daytime exception would first require a tested, recorded
+amendment to the protocol, launcher and auditor. Do not inherit old daytime
+permission. The original next-07:00 Helsinki cutoff is immutable.
+Any either-role flagfall blocks default eligibility. Preserve all fixed inputs
+through audit; no retry/resume, replacement, score-based stop or default change.
+The next checkpoint is the full independent qualification audit and an explicit
+promote/reject/park decision before broader Phase 4D.6 reductions.
+
 The [four-worker readiness check](reports/2026-10-20-match-readiness.md) passed:
 8/8 natural games, 646 on-time searches, four-way overlap, unchanged pins and
 all 16 processes closed in 23.949 seconds. Preparation commit `2b04cd3`
 preceded the single attempt. `make test-match test-match-readiness` passed
 94 checks. Raw evidence and independent audit are in
 `results/match-readiness-20261020/`; its openings are now exposed.
-Next prepare a separately frozen fresh LMR strength qualification, following
-overnight/resource policy. No long run or schedule exists. Engine defaults,
+This permitted the separate preparation above. No long run or schedule exists. Engine defaults,
 owner puzzle settings and GUI bundles remain unchanged. This is operational
 evidence, not a historical clock repair or strength proof.
 

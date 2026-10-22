@@ -1,5 +1,23 @@
 # Validation and experiment protocol
 
+## Fresh LMR qualification preparation — October 22, 2026
+
+The [fixed 512-game comparison](experiments/lmr-20261022.md) is prepared; it has
+not started. Tests passed: 17 opening checks, 23 supervisor checks, 48 independent
+audit checks and 57 existing runner/statistics checks, **145 total**. Synthetic
+raw games exercise clocks, legal histories/PVs/ponders, actual options, both-role
+forfeit classification, corrupted evidence, resource failures, cancellation,
+PID cleanup and the unchanged 07:00 cutoff. Full generation-source replay
+verified 256 distinct roots against 168,111 recorded source roots.
+
+Serial real-engine readiness sent no `position` or `go`. Its independent audit
+passed actual settings, option types/defaults, source/asset identities, legal
+opening histories and saved-game exclusions. The unchanged ordinary engine uses
+the previously audited four-worker live readiness result; no repeat or fresh
+strength result is implied. The [preparation report](reports/2026-10-22-lmr-preparation.md)
+records hashes, raw logs and limitations. Full-match evidence and the one
+promote/reject/park decision remain pending; all defaults stay unchanged.
+
 ## Embedded-position batch runner — October 19, 2026
 
 At the owner's request, the initial XLSX runner was simplified to an embedded
