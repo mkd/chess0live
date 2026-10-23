@@ -180,6 +180,7 @@ private:
     bool null_move_pruning_ = false;
     bool reverse_futility_pruning_ = false;
     bool qsearch_see_pruning_ = false;
+    bool probcut_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -261,6 +262,7 @@ private:
         output("option name Null Move Pruning type check default false");
         output("option name Reverse Futility Pruning type check default false");
         output("option name QSearch SEE Pruning type check default false");
+        output("option name ProbCut type check default false");
         output("uciok");
     }
 
@@ -387,6 +389,12 @@ private:
             else output("info string error: Reverse Futility Pruning expects true or false");
             return; // Isolate cached bounds when the static pruning policy changes.
         }
+        if (name == "ProbCut") {
+            if (value == "true") probcut_ = true;
+            else if (value == "false") probcut_ = false;
+            else output("info string error: ProbCut expects true or false");
+            return;
+        }
         if (name == "QSearch SEE Pruning") {
             if (value == "true") qsearch_see_pruning_ = true;
             else if (value == "false") qsearch_see_pruning_ = false;
@@ -498,6 +506,18 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (result.probcut.enabled) {
+            std::ostringstream line;
+            line << "info string probcut v1 enabled true eligible_nodes "
+                 << result.probcut.eligible_nodes
+                 << " see_evaluations " << result.probcut.see_evaluations
+                 << " qsearches " << result.probcut.qsearches
+                 << " qsearch_passes " << result.probcut.qsearch_passes
+                 << " searches " << result.probcut.searches
+                 << " cutoffs " << result.probcut.cutoffs
+                 << " rejected " << result.probcut.rejected;
+            output(line.str());
+        }
         if (result.qsearch_see.enabled) {
             std::ostringstream line;
             line << "info string qsearchsee v1 enabled true evaluations "
@@ -627,6 +647,7 @@ private:
         limits.null_move_pruning = null_move_pruning_;
         limits.reverse_futility_pruning = reverse_futility_pruning_;
         limits.qsearch_see_pruning = qsearch_see_pruning_;
+        limits.probcut = probcut_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};

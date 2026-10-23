@@ -215,13 +215,15 @@ struct SearchWorker {
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;
+    ProbCutStatistics probcut;
     CacheStatistics cache;
     int completed_depth = 0;
 
     // Propagate by value through every descendant: neither a fictitious pass
     // nor its legal-move verification may consume selective TT bounds or learn
-    // ordering state. Only verification retains genuine game-history draws.
-    enum class Mode { ordinary, null_probe, verification };
+    // ordering state. ProbCut probes share that isolation but, like verification,
+    // retain genuine game-history draws because every searched move is legal.
+    enum class Mode { ordinary, null_probe, verification, probcut };
 
     SearchWorker(const nnue::Network& weights, SharedSearch& state, std::size_t index)
         : network(weights), evaluator(weights), shared(state), id(index) {}
@@ -747,6 +749,85 @@ struct SearchWorker {
         // are never inserted, and quiescence retains its original ordering.
         order(position, moves, tt_move, ply, reply);
 
+        // A tactical reduced search is only a prediction of a full-depth
+        // fail-high. Keep each subtree isolated from ordinary TT bounds,
+        // reductions and learned ordering state. Quiescence screens out cheap
+        // failures; the second pass includes every legal quiet defense.
+        if (limits.probcut && mode == Mode::ordinary && depth >= 5
+            && ply > 0 && !pv_node && !checked && beta - alpha == 1) {
+            const auto side = position.turn();
+            const auto non_pawns = position.pieces(side, PieceType::knight)
+                | position.pieces(side, PieceType::bishop) | position.pieces(side, PieceType::rook)
+                | position.pieces(side, PieceType::queen);
+            const int band = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+            const int raised_beta = beta + search_policy::probcut_margin;
+            const bool advanced = (position.pieces(Color::white, PieceType::pawn) & (Bitboard{0xffff} << 40))
+                || (position.pieces(Color::black, PieceType::pawn) & (Bitboard{0xffff} << 8));
+            const search_policy::ProbCutContext context{
+                depth, ply, pv_node, checked,
+                std::abs(alpha) >= band || std::abs(beta) >= band || raised_beta >= band,
+                false, repeated(position), advanced, position.halfmove_clock(),
+                std::popcount(non_pawns), std::popcount(position.pieces(side, PieceType::pawn)),
+                std::popcount(position.occupied()), moves.size(), true};
+            if (search_policy::probcut_eligible(context)) {
+                if (limits.diagnostics) ++probcut.eligible_nodes;
+                int examined = 0;
+                for (const auto move : moves) {
+                    if (!search_policy::probcut_capture(move.is_capture(),
+                            move.promotion != PieceType::none, (move.flags & en_passant) != 0))
+                        continue;
+                    if (examined++ == search_policy::probcut_capture_limit) break;
+                    if (limits.diagnostics) ++probcut.see_evaluations;
+                    const int exchange = static_exchange(position, move);
+                    if (must_stop()) return 0;
+                    if (exchange < 0) continue;
+
+                    const auto undo = position.make_move(move);
+                    const auto history_size = game_history.size();
+                    int score = 0;
+                    bool searched = false;
+                    try {
+                        game_history.push_back(position.key());
+                        if (limits.diagnostics) ++probcut.qsearches;
+                        score = -quiescence(position, -raised_beta, -raised_beta + 1,
+                                            ply + 1, Mode::probcut);
+                        if (!aborted && score >= raised_beta && std::abs(score) < band) {
+                            if (limits.diagnostics) {
+                                ++probcut.qsearch_passes;
+                                ++probcut.searches;
+                            }
+                            searched = true;
+                            // Captures zero the rule-50 clock, so the real child
+                            // history digest starts afresh. Probe mode cannot use
+                            // the TT, but retain correct context nonetheless.
+                            score = -alphabeta(position, search_policy::probcut_child_depth(depth),
+                                -raised_beta, -raised_beta + 1, ply + 1, false,
+                                mix(position.key()), no_previous_move, Mode::probcut);
+                        }
+                    } catch (...) {
+                        game_history.resize(history_size);
+                        position.unmake_move(move, undo);
+                        pv_length[static_cast<std::size_t>(ply)] = ply;
+                        throw;
+                    }
+                    game_history.resize(history_size);
+                    position.unmake_move(move, undo);
+                    pv_length[static_cast<std::size_t>(ply)] = ply;
+                    if (aborted) return 0;
+                    if (searched) {
+                        if (score >= raised_beta && std::abs(score) < band) {
+                            if (limits.diagnostics) ++probcut.cutoffs;
+                            // Do not publish the elevated score, speculative PV
+                            // or a direct original-depth TT entry. Ordinary
+                            // ancestor bounds may still depend on this heuristic.
+                            return beta;
+                        }
+                        if (limits.diagnostics) ++probcut.rejected;
+                    }
+                }
+            }
+        }
+
         int best_score = -infinity;
         Move best_move;
         std::vector<Move> searched_quiets;
@@ -890,6 +971,8 @@ struct SearchWorker {
         reverse_futility.enabled = limits.reverse_futility_pruning;
         qsearch_see = {};
         qsearch_see.enabled = limits.qsearch_see_pruning;
+        probcut = {};
+        probcut.enabled = limits.probcut;
         cache = {};
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
@@ -934,6 +1017,7 @@ struct SearchWorker {
             result.nullmove = nullmove;
             result.reverse_futility = reverse_futility;
             result.qsearch_see = qsearch_see;
+            result.probcut = probcut;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
                 diagnostics.policy = limits.time_policy;
@@ -1060,6 +1144,7 @@ struct Search::Impl {
     bool previous_nullmove = false;
     bool previous_reverse_futility = false;
     bool previous_qsearch_see = false;
+    bool previous_probcut = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
 
@@ -1102,6 +1187,7 @@ struct Search::Impl {
             || request.null_move_pruning != previous_nullmove
             || request.reverse_futility_pruning != previous_reverse_futility
             || request.qsearch_see_pruning != previous_qsearch_see
+            || request.probcut != previous_probcut
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
@@ -1111,6 +1197,7 @@ struct Search::Impl {
         previous_nullmove = request.null_move_pruning;
         previous_reverse_futility = request.reverse_futility_pruning;
         previous_qsearch_see = request.qsearch_see_pruning;
+        previous_probcut = request.probcut;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
         cache_policy_valid = true;
@@ -1238,6 +1325,13 @@ struct Search::Impl {
             result.reverse_futility.cutoffs += worker.reverse_futility.cutoffs;
             result.qsearch_see.evaluations += worker.qsearch_see.evaluations;
             result.qsearch_see.pruned += worker.qsearch_see.pruned;
+            result.probcut.eligible_nodes += worker.probcut.eligible_nodes;
+            result.probcut.see_evaluations += worker.probcut.see_evaluations;
+            result.probcut.qsearches += worker.probcut.qsearches;
+            result.probcut.qsearch_passes += worker.probcut.qsearch_passes;
+            result.probcut.searches += worker.probcut.searches;
+            result.probcut.cutoffs += worker.probcut.cutoffs;
+            result.probcut.rejected += worker.probcut.rejected;
             if (result.diagnostics) {
                 auto& cache = result.diagnostics->cache;
                 cache.probes += worker.cache.probes;

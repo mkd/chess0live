@@ -65,6 +65,8 @@ struct SearchLimits {
     bool reverse_futility_pruning = false;
     /** Experimental negative-SEE capture filter in interior scout quiescence. */
     bool qsearch_see_pruning = false;
+    /** Experimental elevated-threshold, reduced-depth legal-capture probes. */
+    bool probcut = false;
     /** Zero disables probing. Interior probes require at least this depth;
      * root DTZ ranking is independent of the interior depth threshold. */
     int syzygy_probe_limit = 7;
@@ -226,6 +228,22 @@ struct QSearchSeeStatistics {
     std::uint64_t pruned = 0;
 };
 
+/** Optional worker-local tactical probe accounting. Attempts include interrupted
+ * work; cutoffs/rejected count completed reduced searches only. Failed qsearch
+ * screens do not enter that outcome partition. Diagnostics must be enabled.
+ * These counts describe heuristic work, not verified full-depth bounds.
+ */
+struct ProbCutStatistics {
+    bool enabled = false;
+    std::uint64_t eligible_nodes = 0;
+    std::uint64_t see_evaluations = 0;
+    std::uint64_t qsearches = 0;
+    std::uint64_t qsearch_passes = 0;
+    std::uint64_t searches = 0;
+    std::uint64_t cutoffs = 0;
+    std::uint64_t rejected = 0;
+};
+
 /** Final accounting for independent workers sharing a transposition table.
  * Worker zero is the leader and supplies the result/PV. Helpers contribute
  * bounds and move ordering, never an unverified vote for the returned move.
@@ -279,6 +297,7 @@ struct SearchResult {
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;
+    ProbCutStatistics probcut;
 };
 
 /** Independent iterative deepening with optional shared-table Lazy SMP.

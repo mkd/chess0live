@@ -261,6 +261,16 @@ evaluations and skipped captures across joined workers. After installing
 for correctness checks, or `make test-profile-qsearch-see` for engine-free
 profiler checks.
 
+`ProbCut` defaults to `false`. Enable the experimental tactical probe policy
+with `setoption name ProbCut value true`. It searches a few promising captures
+at reduced depth against a raised cutoff threshold, including quiet defensive
+replies before accepting a cutoff. It can miss deeper tactics and has not been
+qualified for playing strength; leave it off for baseline comparisons. Changing
+it clears reusable search state. `Search Diagnostics=true` adds a `probcut v1`
+record with probe attempts, cutoffs and rejected reduced searches, summed across
+joined workers. Use `make test-probcut-search test-probcut-uci` for correctness
+checks and `make test-profile-probcut` for engine-free profiler checks.
+
 `Countermove Ordering` (default `false`) is a separate experimental ordering
 option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.

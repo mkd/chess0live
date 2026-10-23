@@ -185,6 +185,21 @@ test-bounded-time-uci: $(ENGINE)
 test-profile-deep-quiet:
 	$(PYTHON) tests/profile_deep_quiet_test.py
 
+# The direct probe regression includes search.cpp to inspect speculative state;
+# do not also link search.o. Production builds expose only the ordinary API.
+$(BUILD)/probcut-search-test$(EXE): tests/probcut_search_test.cpp src/search.cpp include/chess0live/search.hpp include/chess0live/search_policy.hpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-probcut-search test-probcut-uci test-profile-probcut
+test-probcut-search: $(BUILD)/probcut-search-test$(EXE)
+	"$(BUILD)/probcut-search-test$(EXE)" "$(NET)"
+
+test-probcut-uci: $(ENGINE)
+	$(PYTHON) tests/probcut_uci_test.py "$(ENGINE)" --network "$(NET)"
+
+test-profile-probcut:
+	$(PYTHON) tests/profile_probcut_test.py
+
 # Experimental null-search state and lifecycle checks; no strength claims.
 NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/null-state-test$(EXE): tests/null_state_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o

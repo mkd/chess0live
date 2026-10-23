@@ -1,5 +1,38 @@
 # Validation and experiment protocol
 
+## Phase 4D.7 implementation — October 23, 2026
+
+The [frozen ProbCut protocol](experiments/phase4d7-probcut.md) isolates one
+default-off candidate. Native/scalar/ASan+UBSan/TSan direct tests passed real
+two-stage activation, both-color quiet mating defenses that reject the shallow
+screen, negative-SEE sacrifices retained by ordinary search, checking mates,
+mate/tablebase threshold guards, real repetition/rule-50 draws, isolated TT
+and learned-state behavior, exact cancellation and policy-reset parity.
+Controlled interior windows exercise rare paths; they are correctness checks,
+not strength samples. The production API and normal search use no test hook.
+
+Each build passed 30 short UCI lifecycle cases, including one/four workers,
+invalid option preservation, node limits, stop, ponder, special moves, legal
+PVs and cleanup. Native passed the existing 43-case SMP suite and core, policy,
+time and ordinary search checks; scalar and ASan+UBSan also passed ordinary
+search checks. No sanitizer or race finding occurred. The profiler passed
+31 engine-free tests covering corruption, exact parent signatures, interrupted
+accounting, resource/deadline gates, drift and cleanup. Saved logs are under
+`results/phase4d7-20261023/`.
+
+The single fixed 60-search screen and independent saved-evidence audits passed
+all 12 exact parent/off cold/warm pairs, 359 legal PVs (1,626 plies), 60 best
+moves and 60 ponder moves; all 36 sessions recorded clean exits. All 29 profile
+artifact hashes and 62 protected files remained unchanged. Depth-6 fresh-cache
+nodes fell 22.05%, reused-cache nodes 2.98%, with matching final decisions;
+reused-cache elapsed time rose 1.62%. One of six timed roots gained a ply and
+changed its final score/PV; all common-depth scores/PVs matched. See the
+[full account and limits](reports/2026-10-23-phase4d7.md). The one-second puzzle
+smoke passed independent output/corpus/pin audit: 78 legal final moves, all
+39 best moves matching, 14 score differences and no reported mates or errors.
+The matched full puzzle comparison and separate playing-strength qualification
+are not established by these checks.
+
 ## Phase 4D.6 implementation — October 23, 2026
 
 See the [report](reports/2026-10-23-phase4d6.md) and fixed

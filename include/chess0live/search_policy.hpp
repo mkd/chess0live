@@ -15,6 +15,46 @@
 
 namespace chess0live::search_policy {
 
+/** Eligibility for one fixed tactical ProbCut hypothesis. The caller handles
+ * terminal states and actual draws first. These material/history exclusions
+ * reduce exposure, not prove that a shallow capture predicts a deep bound.
+ */
+struct ProbCutContext {
+    int depth = 0;
+    int ply = 0;
+    bool pv_node = false;
+    bool in_check = false;
+    bool special_window = false;
+    bool speculative = false;
+    bool repeated = false;
+    bool advanced_pawn = false;
+    unsigned halfmove = 0;
+    int non_pawns = 0;
+    int pawns = 0;
+    int pieces = 0;
+    std::size_t legal_moves = 0;
+    bool scout = false;
+};
+
+constexpr int probcut_margin = 200;
+constexpr int probcut_capture_limit = 3;
+
+constexpr bool probcut_eligible(const ProbCutContext& c) {
+    return c.depth >= 5 && c.ply > 0 && !c.pv_node && c.scout && !c.in_check
+        && !c.special_window && !c.speculative && !c.repeated && !c.advanced_pawn
+        && c.halfmove < 80 && c.non_pawns >= 2 && c.pawns >= 1
+        && c.pieces > 8 && c.legal_moves >= 2;
+}
+
+/** The move into the probe child consumes one ply; reduce three additional
+ * plies there. Only eligible depths may call this function.
+ */
+constexpr int probcut_child_depth(int depth) { return depth - 4; }
+
+constexpr bool probcut_capture(bool capture, bool promotion, bool en_passant) {
+    return capture && !promotion && !en_passant;
+}
+
 /** Eligibility for an experimental losing-capture filter in quiescence.
  * scout describes the original entry window, before stand-pat changes alpha.
  * More than eight pieces also keeps the capture's child outside seven-piece

@@ -5,7 +5,22 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.6 complete; deeper reductions remain opt-in
+## Current checkpoint: Phase 4D.7 implemented; full puzzle comparison pending
+
+Phase 4D.7 is an isolated, default-off ProbCut candidate under its
+[fixed scope](experiments/phase4d7-probcut.md). It tests a bounded set of legal
+captures against an elevated threshold, then includes quiet defenses in a
+reduced search before accepting a heuristic cutoff. Correctness, policy
+isolation and native/scalar/sanitizer checks passed. The independently audited
+[60-search screen](reports/2026-10-23-phase4d7.md) found 22.05% fewer fresh-cache
+nodes and 2.98% fewer reused-cache nodes, with matching fixed-depth decisions;
+reused-cache time was slightly worse. One of six timed roots gained a ply.
+The one-second puzzle smoke passed with 78 legal results and unchanged best
+moves. The required matched 60-second comparison is prepared but not started.
+No strength/default claim follows from these finite checks. After that audit,
+record a qualification-or-parking decision without tuning the exposed suite.
+
+## Completed Phase 4D.6 checkpoint
 
 Phase 4D.6 implements one opt-in extra-ply reduction for selected late quiet
 piece moves. In parallel, the owner's October 23 120+1 game prompted a separate
@@ -88,7 +103,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 complete: full puzzle audit passed without additional mates; deeper reductions parked off. Next: 4D.7 ProbCut |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 complete: full puzzle audit passed without additional mates; deeper reductions parked off. Current: 4D.7 ProbCut implemented and bounded checks passed; full puzzles pending, default off |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles
@@ -382,13 +397,12 @@ losses or distance changes were observed. This is exposed puzzle evidence,
 not a strength qualification or proof that reported mates are correct.
 No recurring schedule or further match was created.
 
-The subsequent short clock-boundary diagnostic is complete, with all 32
-replies on time and no historical delay reproduced. Next test real-match
-readiness at the proposed four-worker concurrency before qualifying existing
-conservative LMR on fresh inputs. Its previous favorable score did not pass
-the clock-reliability gate, and this diagnostic does not clear that gate.
-Broader 4D.6 reductions remain a separate later hypothesis, contingent on that
-decision; do not tune this exposed puzzle sample or combine pruning candidates.
+The subsequent short clock-boundary diagnostic completed all 32 replies on
+time without reproducing historical delay. Four-worker real-match readiness
+then passed, followed by the fresh 512-game LMR qualification and separate
+default integration recorded above. Broader 4D.6 reductions completed their
+finite checkpoint and remain off; the current isolated hypothesis is 4D.7.
+Do not tune these exposed samples or combine pruning candidates.
 
 Small daytime correctness/profiling checks use the 50% resource budget. Long
 campaigns run during 23:00–07:00 Europe/Helsinki at 80%, with a manual override
@@ -420,7 +434,7 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | Full-depth PVS, shared TT, optional LMR, verified null pruning, reverse futility and quiescence SEE; countermove parked | 4D.5 and clock diagnostic complete. Next: four-worker real-match readiness, then fresh existing-LMR qualification before broader 4D.6 reductions. Pruning defaults remain off |
+| 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 complete and parked off. Current: isolated 4D.7 ProbCut implementation and finite validation, then a recorded qualification/parking decision |
 | 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot

@@ -30,6 +30,32 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4D.7 implements the isolated, default-off `ProbCut` hypothesis under its
+[fixed protocol](experiments/phase4d7-probcut.md), committed before candidate
+searches as `563c040`. Native/scalar/ASan+UBSan/TSan direct and UCI checks passed,
+including both-color quiet-defense rejection, checking mates, sacrifice
+retention, score/draw boundaries, cancellation and cache isolation. The native
+ordinary SMP suite passed 43 cases; the new UCI suite passed 30 per build.
+Ordinary search checks passed native/scalar/ASan+UBSan. No sanitizer/race finding
+occurred. Two independent reviews found no production blocker; the profiler
+passed 31 engine-free checks. The independently audited 60-search screen
+preserved all 12 parent/off signatures, including hash occupancy, and found
+22.05% fewer fresh-cache nodes and 2.98% fewer reused-cache nodes. Reused-cache
+elapsed time rose 1.62%; one of six timed roots gained a ply. Fixed-depth
+decisions and all common-depth scores/PVs matched. These are exposed,
+instrumented measurements, not strength qualification. See the
+[report](reports/2026-10-23-phase4d7.md). Current measurement evidence is under
+`results/phase4d7-20261023/`; frozen inputs under
+`build/experiments/phase4d7-20261023/`. The one-second puzzle smoke passed
+independent audit: 78 legal results, matching best moves, 14 score differences
+and no reported mates. The full puzzle comparison still needs a
+permitted overnight window or new daytime exception; no schedule exists.
+Keep conservative LMR enabled, all other experimental pruning disabled, timing
+classic and the protected GUI bundles intact. Do not overwrite the owner's
+editable batch settings. This phase has no strength-qualified result yet.
+
+## Previous completed checkpoint
+
 Phase 4D.6 is complete under its [fixed scope](experiments/phase4d6-deep-quiet.md).
 Native/scalar/ASan+UBSan/TSan checks and finite development profiles passed.
 The [report](reports/2026-10-23-phase4d6.md) records exact default search parity,

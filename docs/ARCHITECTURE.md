@@ -209,6 +209,29 @@ exchange choices, so nonchecking sacrifices can be misjudged. Correct legal
 output and reduced node counts do not establish unchanged playing strength.
 Delta pruning is a separate, unimplemented experiment.
 
+## Experimental ProbCut boundary
+
+`ProbCut=false` is the default. The independently authored candidate admits
+only guarded interior non-PV scout nodes after terminal, draw, mate-distance,
+tablebase and TT handling. Normal ordering selects at most three ordinary
+captures for SEE; a nonnegative estimate permits a quiescence screen and then
+a reduced legal-move search against beta plus 200 internal score units. The
+second pass includes quiet defenses. Both must complete outside special score
+bands and reach the raised threshold before returning only the original beta.
+The [fixed protocol](experiments/phase4d7-probcut.md) defines all guards and
+depths; no calibrated probability or full-depth proof is claimed.
+
+`Mode::probcut` propagates through the entire probe subtree, including
+quiescence. It preserves real history, repetition, rule-50 and check evasions,
+but disables TT access, optional pruning, LMR and ordering-state learning.
+Existing ordering hints may be read. Probe PVs do not escape a direct cutoff,
+and no original-depth TT bound is stored there. Ordinary ancestor results may
+depend on the heuristic; changing the option clears TT and learned histories.
+Every probe uses ordinary node/clock/stop accounting. Legal moves and history
+are undone after normal completion or cancellation; exceptions follow the
+existing worker-reset contract rather than promising transactional unwinding
+of every descendant. Diagnostic counters stay private until workers join.
+
 ## Optional tablebase boundary
 
 `Search` owns a configured Syzygy adapter. Path changes happen only while idle

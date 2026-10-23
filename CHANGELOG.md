@@ -27,6 +27,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added optional `ProbCut` tactical probes with draw/endgame safeguards,
+  reduced searches that include quiet defenses, and diagnostic counters.
+  It is disabled by default pending tactical and playing-strength qualification.
 - Fixed misleading hash occupancy resets in GUIs: retained entries now count
   across searches. Cache lookup and replacement behavior are unchanged.
 - Added optional `Time Policy=bounded` to limit long clock-based thinks, plus
