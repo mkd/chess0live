@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed a 39-position, 60-second-per-position comparison of deeper quiet
+  reductions against the accepted baseline. All 78 final moves were legal;
+  best moves and reported mates matched. Deeper reductions remain experimental
+  and disabled by default. See the [audit](docs/reports/2026-10-23-phase4d6.md).
 - Completed and independently audited a 512-game LMR on/off comparison: 59.08%
   for LMR, with no clock forfeits. The subsequent default integration has its
   own regression checks and preserved opt-out.

@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.6 checked; full puzzles running
+## Current checkpoint: Phase 4D.6 complete; deeper reductions remain opt-in
 
 Phase 4D.6 implements one opt-in extra-ply reduction for selected late quiet
 piece moves. In parallel, the owner's October 23 120+1 game prompted a separate
@@ -13,10 +13,16 @@ retained-hash display correction and opt-in bounded clock policy. The fixed
 [scope and checks](experiments/phase4d6-deep-quiet.md) keep their effects isolated.
 Native/scalar/sanitizer/race checks and both finite development screens passed.
 [Results](reports/2026-10-23-phase4d6.md) show exact default search parity, small
-extra-reduction work savings and a time/depth tradeoff for bounded timing. The 78-search one-second puzzle smoke passed; the full matched 60-second
-comparison is prepared; the owner authorized one daytime launch after `d25e2e5`.
-The authorized comparison started at 06:44 Warsaw / 07:44 Helsinki on October 23.
-The first parent position completed successfully; final audit remains pending. No new strength/default claim is made.
+extra-reduction work savings and a time/depth tradeoff for bounded timing.
+The full matched 60-second puzzle comparison finished at 08:02 Warsaw on
+October 23, after 78m05s. Independent audit passed all 78 legal results and
+83 source/asset checks. Both builds reported the same M7 on position 2 and
+centipawn scores on the other 38; all 39 best moves matched. No additional
+mate solution was found. Keep deeper reductions off and timing classic by
+default; park this candidate without a long qualification match or further
+tuning of the exposed suite. Next is the separate **Phase 4D.7 ProbCut**
+hypothesis. No experiment or schedule is running, and no new strength claim
+or default change follows from this comparison.
 
 The fresh [512-game qualification](reports/2026-10-23-lmr-results.md) passed at
 **215 wins, 175 draws, 122 losses (59.08%)**, with zero clock forfeits or audit
@@ -24,8 +30,8 @@ errors. The separate [default integration](reports/2026-10-23-lmr-default.md)
 is complete and retained: conservative LMR is now enabled by default. Exact
 parent parity, native/scalar/sanitizer regressions and race checks all passed.
 Explicit opt-out remains available, other experimental policies stay off, and
-SMP playing strength is not established. The current checkpoint
-is **Phase 4D.6**, one separate broader quiet-move reduction candidate.
+SMP playing strength is not established. The completed **Phase 4D.6**
+candidate is separate from that accepted conservative LMR integration.
 Do not repeat or tune on the exposed qualification sample.
 
 The [October 22 preparation](reports/2026-10-22-lmr-preparation.md) passed
@@ -82,7 +88,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 implementation and validation active; new policies remain opt-in |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 complete: full puzzle audit passed without additional mates; deeper reductions parked off. Next: 4D.7 ProbCut |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles

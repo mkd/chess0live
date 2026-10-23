@@ -30,18 +30,24 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
-Phase 4D.6 is active under its [fixed scope](experiments/phase4d6-deep-quiet.md).
+Phase 4D.6 is complete under its [fixed scope](experiments/phase4d6-deep-quiet.md).
 Native/scalar/ASan+UBSan/TSan checks and finite development profiles passed.
 The [report](reports/2026-10-23-phase4d6.md) records exact default search parity,
 small extra-reduction work savings and the bounded-time depth tradeoff.
-The frozen puzzle adapter passed 39 one-second searches per role; the full
-60-second comparison is running from 06:44 Warsaw / 07:44 Helsinki on October 23.
-One parent position completed at startup; audit all 78 results before concluding. Frozen candidate SHA-256:
+The full 60-second comparison finished at 08:02 Warsaw on October 23 in 78m05s.
+Independent audit passed all 39 legal results per build and 83 source/asset
+checks. Both reported M7 on position 2 and centipawn scores on the other 38;
+all best moves matched, with 15 centipawn-score differences. No new or lost
+mate was reported. This is not a best-move solve rate or strength qualification.
+Frozen candidate SHA-256:
 `c1858bb92419e00bbe3846e2daa94dc4260effad6acea705a2455881c920c199`. Keep the
 accepted one-ply LMR default true, the new deep option false and timing classic.
-After implementation commit `d25e2e5`, the owner authorized one daytime
-launch of the prepared full puzzle comparison. This grants no repeat or schedule;
-check its live status/output under `results/phase4d6-20261023/` before proceeding.
+The one daytime run authorized after `d25e2e5` is finished; it grants no repeat
+or schedule. Raw output and `puzzles-full-audit.json` are under
+`results/phase4d6-20261023/`. Preserve the original supervisor status, which
+records completion pending audit; the separate audit file records the passed
+checks. Park deeper reductions as opt-in without another long qualification
+run. Next is the separately scoped **Phase 4D.7 ProbCut** hypothesis.
 Historical qualification tooling rejects the added Time Policy choice; preserve
 those frozen contracts and use a separately scoped protocol for new qualification.
 
@@ -55,7 +61,7 @@ The frozen rule returned `eligible_for_default_review`, followed by the separate
 defaults are now true; opt-out and every search rule remain intact. Exact
 parent parity, native/scalar/ASan+UBSan regressions and TSan search/SMP checks
 passed; the default integration is retained. Other experiments remain off.
-The active 4D.6 candidate is separate from this accepted integration. Do not pool historical results,
+The parked 4D.6 candidate is separate from this accepted integration. Do not pool historical results,
 retune/retry exposed openings or claim eight-thread strength. The owner's
 puzzle-runner settings are now committed unchanged as `dac8a19`; the README
 introduction and stable GUI snapshots remain protected.

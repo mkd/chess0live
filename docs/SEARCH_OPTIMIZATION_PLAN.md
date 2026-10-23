@@ -43,8 +43,13 @@ its unchanged conservative policy: native/scalar/sanitizer default-on parity and
 opt-out preservation passed, as did focused regressions and race checks.
 Conservative LMR is retained as the default. Do not retune or repeat the exposed
 qualification. The match does not establish SMP
-strength. Next is one isolated **4D.6** hypothesis against the accepted LMR-on
-baseline. Delta pruning remains separate and unimplemented.
+strength. **4D.6 is complete** against the accepted LMR-on baseline: its
+[audited development and puzzle results](reports/2026-10-23-phase4d6.md)
+show modest work savings, 78 legal final puzzle moves, identical best moves
+and no additional reported mate solution. Deeper reductions remain parked
+off; bounded timing also remains opt-in. Next is one isolated **4D.7 ProbCut**
+hypothesis, without extending this exposed experiment or launching a long
+match for it. Delta pruning remains separate and unimplemented.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and

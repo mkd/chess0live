@@ -29,9 +29,19 @@ on one root with tighter timing. New timing and reduction policies remain opt-in
 The frozen owner-runner adapter passed all 78 one-second smoke searches with
 legal results and unchanged best moves (two centipawn-score differences, no
 positive mates at that short limit). Full matched 60-second puzzle validation
-started under the owner's one-run daytime exception at 06:44 Warsaw on October 23.
-Its first parent result completed normally; final comparison/audit is pending.
-No match or schedule is running.
+ran under the owner's one-run daytime exception from 06:44 to 08:02 Warsaw
+on October 23 (78m05s). Both adapters exited zero. Independent audit passed
+all 78 legal final moves, the ordered 39-position corpus, 83 source/asset
+checks and the unchanged README introduction. Both builds reported M7 on
+position 2 and centipawn scores on the other 38. All 39 best moves matched;
+15 centipawn scores differed. No mate gain, loss or distance change occurred.
+Saved evidence: `results/phase4d6-20261023/puzzles-full-audit.json` and the
+original parent/on text outputs. The simple runner saves final scores/moves,
+not a full UCI/PV, depth or per-position timing trace. Legal moves are checked
+independently; mate proofs and supplied annotations are not independently
+certified. This is not a best-move solve rate or strength measurement.
+Close this finite checkpoint with deeper reductions parked off; next is
+Phase 4D.7 ProbCut. No match or schedule is running.
 
 ## LMR default integration — October 23, 2026
 
