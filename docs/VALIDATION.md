@@ -29,7 +29,9 @@ on one root with tighter timing. New timing and reduction policies remain opt-in
 The frozen owner-runner adapter passed all 78 one-second smoke searches with
 legal results and unchanged best moves (two centipawn-score differences, no
 positive mates at that short limit). Full matched 60-second puzzle validation
-is prepared but pending. No match or schedule is running.
+started under the owner's one-run daytime exception at 06:44 Warsaw on October 23.
+Its first parent result completed normally; final comparison/audit is pending.
+No match or schedule is running.
 
 ## LMR default integration — October 23, 2026
 

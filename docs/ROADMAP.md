@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.6 checked; full puzzles pending
+## Current checkpoint: Phase 4D.6 checked; full puzzles running
 
 Phase 4D.6 implements one opt-in extra-ply reduction for selected late quiet
 piece moves. In parallel, the owner's October 23 120+1 game prompted a separate
@@ -15,7 +15,8 @@ Native/scalar/sanitizer/race checks and both finite development screens passed.
 [Results](reports/2026-10-23-phase4d6.md) show exact default search parity, small
 extra-reduction work savings and a time/depth tradeoff for bounded timing. The 78-search one-second puzzle smoke passed; the full matched 60-second
 comparison is prepared; the owner authorized one daytime launch after `d25e2e5`.
-Startup and final results are recorded separately. No new strength/default claim is made.
+The authorized comparison started at 06:44 Warsaw / 07:44 Helsinki on October 23.
+The first parent position completed successfully; final audit remains pending. No new strength/default claim is made.
 
 The fresh [512-game qualification](reports/2026-10-23-lmr-results.md) passed at
 **215 wins, 175 draws, 122 losses (59.08%)**, with zero clock forfeits or audit

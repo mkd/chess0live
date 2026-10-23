@@ -35,7 +35,8 @@ Native/scalar/ASan+UBSan/TSan checks and finite development profiles passed.
 The [report](reports/2026-10-23-phase4d6.md) records exact default search parity,
 small extra-reduction work savings and the bounded-time depth tradeoff.
 The frozen puzzle adapter passed 39 one-second searches per role; the full
-60-second comparison is prepared but has not run. Frozen candidate SHA-256:
+60-second comparison is running from 06:44 Warsaw / 07:44 Helsinki on October 23.
+One parent position completed at startup; audit all 78 results before concluding. Frozen candidate SHA-256:
 `c1858bb92419e00bbe3846e2daa94dc4260effad6acea705a2455881c920c199`. Keep the
 accepted one-ply LMR default true, the new deep option false and timing classic.
 After implementation commit `d25e2e5`, the owner authorized one daytime
