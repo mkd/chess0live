@@ -14,7 +14,8 @@ retained-hash display correction and opt-in bounded clock policy. The fixed
 Native/scalar/sanitizer/race checks and both finite development screens passed.
 [Results](reports/2026-10-23-phase4d6.md) show exact default search parity, small
 extra-reduction work savings and a time/depth tradeoff for bounded timing. The 78-search one-second puzzle smoke passed; the full matched 60-second
-comparison is prepared and needs its own run authorization/window. No new strength/default claim is made.
+comparison is prepared; the owner authorized one daytime launch after `d25e2e5`.
+Startup and final results are recorded separately. No new strength/default claim is made.
 
 The fresh [512-game qualification](reports/2026-10-23-lmr-results.md) passed at
 **215 wins, 175 draws, 122 losses (59.08%)**, with zero clock forfeits or audit

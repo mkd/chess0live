@@ -38,7 +38,9 @@ The frozen puzzle adapter passed 39 one-second searches per role; the full
 60-second comparison is prepared but has not run. Frozen candidate SHA-256:
 `c1858bb92419e00bbe3846e2daa94dc4260effad6acea705a2455881c920c199`. Keep the
 accepted one-ply LMR default true, the new deep option false and timing classic.
-The full puzzle run needs its own overnight window or owner daytime exception.
+After implementation commit `d25e2e5`, the owner authorized one daytime
+launch of the prepared full puzzle comparison. This grants no repeat or schedule;
+check its live status/output under `results/phase4d6-20261023/` before proceeding.
 Historical qualification tooling rejects the added Time Policy choice; preserve
 those frozen contracts and use a separately scoped protocol for new qualification.
 
