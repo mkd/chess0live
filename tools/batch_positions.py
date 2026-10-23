@@ -17,9 +17,11 @@ import chess
 import chess.engine
 
 # Edit these settings. An engine path on the command line overrides ENGINE.
-ENGINE = "/path/to/engine"
-THREADS = 1
-HASH_MB = 128
+ENGINE = "/Users/claudio/projects/Chess/chess0live/build/macos-arm64-generic-release/chess0live"
+#ENGINE = "/Users/claudio/projects/Chess/gargantua/src/gargantua"
+#ENGINE = "/Users/claudio/projects/Chess/sic/sic"
+THREADS = 8
+HASH_MB = 64
 MOVETIME_MS = 60000
 
 # From your spreadsheet, in its original order. Comments show expected mates.
