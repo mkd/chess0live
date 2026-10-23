@@ -30,8 +30,10 @@ changed its final score/PV; all common-depth scores/PVs matched. See the
 [full account and limits](reports/2026-10-23-phase4d7.md). The one-second puzzle
 smoke passed independent output/corpus/pin audit: 78 legal final moves, all
 39 best moves matching, 14 score differences and no reported mates or errors.
-The matched full puzzle comparison and separate playing-strength qualification
-are not established by these checks.
+The owner-authorized full comparison started October 23 at 09:13 Warsaw /
+10:13 Helsinki after commit `21d416f`, independent pin checks and resource
+preflight. Final results and audit remain pending; this run is not a separate
+playing-strength qualification.
 
 ## Phase 4D.6 implementation — October 23, 2026
 

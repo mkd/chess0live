@@ -48,8 +48,13 @@ instrumented measurements, not strength qualification. See the
 `results/phase4d7-20261023/`; frozen inputs under
 `build/experiments/phase4d7-20261023/`. The one-second puzzle smoke passed
 independent audit: 78 legal results, matching best moves, 14 score differences
-and no reported mates. The full puzzle comparison still needs a
-permitted overnight window or new daytime exception; no schedule exists.
+and no reported mates. After `21d416f`, the owner authorized this one daytime
+full puzzle comparison; it started October 23 at 09:13 Warsaw / 10:13 Helsinki.
+One worker runs 39 positions per build at 60 seconds each. Read
+`puzzles-full-status.json` and the parent/on output files in the results folder
+for current progress; supervisor tool session 66275, launch PID 79986. The
+owner requested updates per completed position. Final results/audit are
+pending; no repeat or schedule is authorized.
 Keep conservative LMR enabled, all other experimental pruning disabled, timing
 classic and the protected GUI bundles intact. Do not overwrite the owner's
 editable batch settings. This phase has no strength-qualified result yet.
