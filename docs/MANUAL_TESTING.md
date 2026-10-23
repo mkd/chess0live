@@ -29,8 +29,13 @@ position fen q3rk2/4r3/1p1p1n1b/5Q2/3P3p/P3R2P/1B3P1N/1K2R3 w - - 2 36 bm Qxf6+ 
 go movetime 60000
 ```
 
-Wait for `bestmove` before entering another position. Keep classic time policy,
-LMR off, MVV-LVA capture ordering, and pondering off for default comparisons.
+Wait for `bestmove` before entering another position. Current defaults use
+classic time policy, LMR on, MVV-LVA capture ordering, and pondering off.
+For historical LMR-off comparisons, explicitly send
+`setoption name Late Move Reductions value false` and record that setting.
+Cute Chess may retain a saved `false` value after you rebuild: select `true` in
+its engine settings to use the current default policy. The stable GUI snapshots
+below retain their original binaries and settings.
 `movetime` requests a 60-second budget; the configured overhead is reserved.
 Send `stop` to end a search early. `d`, `show`, or `display` displays the loaded
 ASCII board and normalized FEN, plus hash, side, castling, en passant, counters,

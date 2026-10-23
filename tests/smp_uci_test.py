@@ -92,6 +92,15 @@ def validate_result(lines, board, threads, allowed=None, node_limit=None):
             assert pv[0] in allowed, line
 
     summary = only_record(lines, "info string search-summary v1 ")
+    # Every case leaves LMR untouched, including zero-node cancellation and
+    # lifecycle cases. Default enablement must survive worker reconfiguration.
+    lmr = only_record(lines, "info string lmr v1 ")
+    assert lmr["enabled"] == "true", lmr
+    counters = {key: int(lmr[key]) for key in
+                ("reductions", "researches", "fail_lows", "verified_cutoffs")}
+    assert all(value >= 0 for value in counters.values()), counters
+    assert counters["researches"] <= counters["reductions"], counters
+    assert counters["fail_lows"] + counters["verified_cutoffs"] <= counters["researches"], counters
     total = int(summary["nodes"])
     assert total >= max(0, previous_nodes), (summary, previous_nodes)
     assert lines[-2].startswith("info string search-summary v1 "), lines[-3:]
@@ -164,6 +173,7 @@ def run(executable, network):
     with Engine(executable) as engine:
         advertised = engine.handshake()
         assert "option name Threads type spin default 1 min 1 max 64" in advertised
+        assert "option name Late Move Reductions type check default true" in advertised
         engine.send(f"setoption name EvalFile value {network}")
         engine.send("setoption name Search Diagnostics value true")
         engine.send("setoption name Hash value 1")
@@ -307,6 +317,7 @@ def run(executable, network):
                 break
             if line is not None:
                 remaining.append(line)
+        validate_result(remaining, board, threads)
         for line in engine.transcript + remaining:
             assert not any(marker in line for marker in
                            ("Sanitizer", "runtime error:", "data race")), line

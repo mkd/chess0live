@@ -8,8 +8,8 @@ release numbers; detailed measurements live in the linked experiment records.
 ### Developer tools
 
 - Completed and independently audited a 512-game LMR on/off comparison: 59.08%
-  for LMR, with no clock forfeits. It qualifies for default review; the current
-  engine default remains unchanged.
+  for LMR, with no clock forfeits. The subsequent default integration has its
+  own regression checks and preserved opt-out.
 - Prepared a fresh paired-opening LMR strength comparison with four concurrent
   games, fixed cutoff/resource limits and independent auditing. An explicit
   dated flag supports the owner's one-run daytime exception. This adds testing
@@ -22,6 +22,11 @@ release numbers; detailed measurements live in the linked experiment records.
   checks. Ordinary builds and playing settings are unchanged.
 
 ### Playing and analysis
+
+- Enabled conservative late-move reductions by default following the successful
+  512-game comparison and a separate integration check. Explicit opt-out remains
+  available; saved GUI settings may need `Late Move Reductions=true`. See the
+  [scope and validation](docs/reports/2026-10-23-lmr-default.md).
 
 - Added optional quiescence SEE capture pruning, with check, promotion,
   endgame and draw safeguards, plus diagnostic counters. It remains disabled
@@ -144,8 +149,8 @@ release numbers; detailed measurements live in the linked experiment records.
 ### Research status
 
 - Added optional forecast timing, late-move reductions (LMR), and SEE capture
-  ordering. **Defaults remain classic timing, LMR off, and MVV-LVA ordering.**
-  No accepted playing-strength gain is established.
+  ordering. Current defaults are classic timing, conservative LMR on, and
+  MVV-LVA ordering; forecast timing and SEE ordering remain experimental.
 - Completed the [64-game time-policy screen](docs/reports/2026-10-15-phase2d-time-policy.md)
   and [128-game LMR screen](docs/reports/2026-10-16-phase2d-lmr.md). Both passed
   their operational audits but were inconclusive under their predeclared rules.
@@ -153,7 +158,8 @@ release numbers; detailed measurements live in the linked experiment records.
 - Completed and audited the [512-game LMR comparison](docs/reports/2026-10-18-phase3g-lmr.md):
   LMR-on scored 225 wins, 155 draws, and 132 losses (59.08%). Six candidate
   clock forfeits block acceptance; seven baseline clock forfeits also need
-  investigation. LMR stays off, with clock reliability the next priority.
+  investigation. That historical attempt kept LMR off; the later successful
+  qualification and separate integration are recorded above.
 - Preserved rejected and inconclusive work, including the discarded NNUE
   buffer-reuse candidate and early forecast policy, in the
   [experiment log](docs/EXPERIMENTS.md).

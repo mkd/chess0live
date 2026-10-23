@@ -1,5 +1,20 @@
 # Validation and experiment protocol
 
+## LMR default integration — October 23, 2026
+
+The [separate integration record](reports/2026-10-23-lmr-default.md) changes only
+the existing LMR default and checks explicit opt-out against the frozen parent.
+Native, scalar and ASan+UBSan builds each passed 23 deterministic searches and
+15 exact comparisons, with legal PVs and actual reductions. A direct API test
+covers untouched `SearchLimits`; UCI tests cover advertised/active defaults and
+invalid-option preservation. Native/scalar/ASan+UBSan core, search, policy,
+time, exchange and isolated pruning suites passed, as did TSan search checks.
+All four builds passed the 43-case SMP lifecycle suite with default LMR-on.
+The integration is retained; opt-out and all unrelated defaults are preserved.
+All 60 protected files and the README introduction remained exact.
+The completed qualification below remains frozen; no additional match or
+SMP-strength claim is implied.
+
 ## Fresh LMR qualification result — October 23, 2026
 
 The [final audit](reports/2026-10-23-lmr-results.md) passed all 512 games/256 pairs
@@ -14,8 +29,9 @@ Raw replay verified 50,367 searches, 60,351 legal plies including openings,
 The run finished at 02:18 Warsaw in 6h15m35s, before cutoff. The unchanged auditor
 produced `results/lmr-20261022/final-audit.json`; a separate tally agrees and
 60 final protection checks passed. No engines, builds or additional matches
-were started to audit the saved data. A bounded default integration review is
-next; no automatic promotion, absolute rating or SMP strength claim follows.
+were started to audit the saved data. That audit did not automatically promote
+the default; the subsequent integration is recorded above. No absolute rating
+or SMP strength claim follows.
 
 ## Fresh LMR qualification preparation — October 22, 2026
 
@@ -34,7 +50,7 @@ opening histories and saved-game exclusions. The unchanged ordinary engine uses
 the previously audited four-worker live readiness result; no repeat or fresh
 strength result is implied. The [preparation report](reports/2026-10-22-lmr-preparation.md)
 records hashes, raw logs and limitations. Full-match evidence is now audited;
-separate default integration remains pending and all defaults stay unchanged.
+default integration is a separate subsequent step recorded above.
 
 After preparation commit `548ce74`, the owner authorized one October 22 daytime
 launch. Its dated amendment passed 27 launcher and 54 auditor tests (81 total),

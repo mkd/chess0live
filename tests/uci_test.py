@@ -22,7 +22,7 @@ def bestmove(lines):
     return lines[-1].split()[1]
 
 
-def search_diagnostics(lines):
+def search_diagnostics(lines, *, expected_lmr=None):
     """Check the public versioned trace and return its final summary fields."""
     summaries = [line for line in lines if line.startswith("info string search-summary v1 ")]
     assert len(summaries) == 1
@@ -49,6 +49,8 @@ def search_diagnostics(lines):
     fields = lmr_lines[0].split()[4:]
     lmr = dict(zip(fields[::2], fields[1::2]))
     assert lmr["enabled"] in ("true", "false")
+    if expected_lmr is not None:
+        assert lmr["enabled"] == str(expected_lmr).lower(), lmr
     assert int(lmr["researches"]) <= int(lmr["reductions"])
     assert int(lmr["fail_lows"]) + int(lmr["verified_cutoffs"]) <= int(lmr["researches"])
     ordering_lines = [line for line in lines if line.startswith("info string ordering v1 ")]
@@ -134,7 +136,7 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
     assert any(line.startswith("id name chess0live") for line in handshake)
     assert "option name Time Policy type combo default classic var classic var forecast" in handshake
     assert "option name Search Diagnostics type check default false" in handshake
-    assert "option name Late Move Reductions type check default false" in handshake
+    assert "option name Late Move Reductions type check default true" in handshake
     assert "option name Capture Ordering type combo default mvv-lva var mvv-lva var see" in handshake
     engine.send("position startpos")
     views = []
@@ -266,10 +268,28 @@ with Engine(Path(sys.argv[1]).resolve()) as engine:
         assert not any(line.startswith("info string cache ") for line in default_output)
         hashfull_values(default_output)
 
+        # No LMR setoption precedes this bounded search: verify the active
+        # default, not only its advertised spelling or an explicit-on path.
+        engine.send("setoption name Hash value 1")
+        engine.send("setoption name Search Diagnostics value true")
+        engine.send("go depth 5 nodes 20000")
+        default_selective = engine.until("bestmove ")
+        search_diagnostics(default_selective, expected_lmr=True)
+        assert any(line.startswith("info string lmr v1 enabled true reductions ")
+                   and int(line.split()[7]) > 0 for line in default_selective)
+        for expected in (True, False):
+            if not expected:
+                engine.send("setoption name Late Move Reductions value false")
+            engine.send("setoption name Late Move Reductions value invalid")
+            assert "Late Move Reductions expects" in engine.until("info string error:")[-1]
+            engine.send("go depth 1")
+            search_diagnostics(engine.until("bestmove "), expected_lmr=expected)
+        engine.send("setoption name Late Move Reductions value true")
+        engine.send("setoption name Search Diagnostics value false")
+
         # A small table fills sufficiently for visible permille reporting in a
         # bounded search. Clearing, resizing, and a new game must discard entries;
         # a terminal root reports without adding any new table contents.
-        engine.send("setoption name Hash value 1")
         engine.send("ucinewgame")
         engine.send("position startpos")
         engine.send("go depth 4")

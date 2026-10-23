@@ -34,11 +34,15 @@ The [October 23 final LMR audit](reports/2026-10-23-lmr-results.md) passed:
 512/512 games, 215W/175D/122L (59.08%), no clock forfeits or audit errors.
 The campaign ended at 02:18 Warsaw; all 1,024 engine processes exited. Raw audit
 and summary are in `results/lmr-20261022/`. No experiment is currently running.
-The frozen rule returns `eligible_for_default_review`; accept that result and
-close this sample. Next perform one bounded existing-LMR default integration
-review before broader 4D.6. Defaults remain unchanged; do not pool historical
-results, retune/retry these openings or claim eight-thread strength. Preserve
-the README introduction, owner puzzle-runner edits and GUI snapshots.
+The frozen rule returned `eligible_for_default_review`, followed by the separate
+[default integration](reports/2026-10-23-lmr-default.md). Only LMR's API/UCI
+defaults are now true; opt-out and every search rule remain intact. Exact
+parent parity, native/scalar/ASan+UBSan regressions and TSan search/SMP checks
+passed; the default integration is retained. Other experiments remain off.
+Next is one separate 4D.6 candidate, not a bundle of pruning rules. Do not pool historical results,
+retune/retry exposed openings or claim eight-thread strength. The owner's
+puzzle-runner settings are now committed unchanged as `dac8a19`; the README
+introduction and stable GUI snapshots remain protected.
 
 The [fresh October 22 LMR qualification](reports/2026-10-22-lmr-launch.md)
 started at 20:03 Warsaw / 21:03 Helsinki after commits `548ce74` and `a81c951`.
@@ -59,8 +63,8 @@ increase, repeat attempt or schedule. The original next-07:00 Helsinki cutoff
 is immutable. Ordinary unflagged launches still require 23:00–23:30 Helsinki.
 Any either-role flagfall blocks default eligibility. Preserve all fixed inputs
 through audit; no retry/resume, replacement, score-based stop or default change.
-The qualification checkpoint is complete. The next checkpoint is the separate
-default integration decision before broader Phase 4D.6 reductions.
+The qualification checkpoint is complete. Its default integration is recorded
+above, separately from the frozen match protocol and audit.
 
 The [four-worker readiness check](reports/2026-10-20-match-readiness.md) passed:
 8/8 natural games, 646 on-time searches, four-way overlap, unchanged pins and
@@ -68,9 +72,10 @@ all 16 processes closed in 23.949 seconds. Preparation commit `2b04cd3`
 preceded the single attempt. `make test-match test-match-readiness` passed
 94 checks. Raw evidence and independent audit are in
 `results/match-readiness-20261020/`; its openings are now exposed.
-This permitted the separate qualification above. No schedule exists. Engine defaults,
-owner puzzle settings and GUI bundles remain unchanged. This is operational
-evidence, not a historical clock repair or strength proof.
+This permitted the separate qualification above. No schedule exists. At that
+readiness checkpoint engine defaults, owner puzzle settings and GUI bundles
+were unchanged. It was operational evidence, not a historical clock repair
+or strength proof. Later default integration is recorded above.
 
 The first three steps are implemented as an unreleased `0.1-dev` baseline.
 Normal and sanitizer suites passed natively on macOS ARM64. SF19 integer parity
@@ -122,7 +127,8 @@ campaign described below; it is now exposed evidence, not fresh validation.
 Use preserved binaries and complete records when auditing that comparison.
 
 Phase 2C now has a conservative one-ply late-move-reduction candidate, selectable
-with `Late Move Reductions=true`; the default remains false. Read
+with `Late Move Reductions=true`; its initial default was false (the October 23
+integration above supersedes that setting). Read
 [selective search](SELECTIVE_SEARCH.md) for guards, mandatory ordinary-depth
 verification, exact hashes, and results. Native/scalar/sanitizer checks passed,
 and the new fixed-depth/node profiler independently checks legal PVs. Turning

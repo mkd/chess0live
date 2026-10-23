@@ -52,8 +52,15 @@ bool legal(Position position, Move candidate) {
     return std::find(moves.begin(), moves.end(), candidate) != moves.end();
 }
 
-SearchLimits depth_limit(int depth = 2) {
+/** Keep historical baseline and isolated-policy cases independent of defaults. */
+SearchLimits baseline_limits() {
     SearchLimits limits;
+    limits.late_move_reductions = false;
+    return limits;
+}
+
+SearchLimits depth_limit(int depth = 2) {
+    auto limits = baseline_limits();
     limits.depth = depth;
     return limits;
 }
@@ -146,6 +153,48 @@ struct Fixture {
         return search.search(std::move(position), std::move(history), request, std::move(reporter));
     }
 };
+
+/** Exercise the public API default directly, bypassing Fixture's mode override. */
+void default_selective_search(Fixture& fixture) {
+    SearchLimits limits;
+    limits.depth = 5;
+    limits.nodes = 20000;
+    const auto position = Position::start();
+    const auto run = [&](std::vector<SearchInfo>& reports) {
+        fixture.search.clear();
+        fixture.search.reset_stop();
+        return fixture.search.search(position, {}, limits, [&](const SearchInfo& info) {
+            auto replay = position;
+            for (const auto candidate : info.pv) {
+                require(legal(replay, candidate), "Default LMR must report legal principal variations");
+                replay.make_move(candidate);
+            }
+            reports.push_back(info);
+        });
+    };
+    std::vector<SearchInfo> default_reports;
+    const auto implicit = run(default_reports);
+    require(implicit.lmr.enabled && implicit.lmr.reductions > 0
+            && implicit.nodes <= limits.nodes && legal(position, implicit.best),
+            "An untouched API LMR setting must enable bounded selective search");
+
+    limits.late_move_reductions = true;
+    std::vector<SearchInfo> explicit_reports;
+    const auto explicit_on = run(explicit_reports);
+    require(implicit.best == explicit_on.best && implicit.ponder == explicit_on.ponder
+            && implicit.score == explicit_on.score && implicit.depth == explicit_on.depth
+            && implicit.nodes == explicit_on.nodes && default_reports.size() == explicit_reports.size(),
+            "Default LMR must match the explicit-on single-worker search");
+    for (std::size_t i = 0; i < default_reports.size(); ++i) {
+        const auto& actual = default_reports[i];
+        const auto& expected = explicit_reports[i];
+        require(actual.depth == expected.depth && actual.seldepth == expected.seldepth
+                && actual.score == expected.score && actual.nodes == expected.nodes
+                && actual.pv == expected.pv,
+                "Default and explicit-on iterations must have identical search signatures");
+    }
+    fixture.search.clear();
+}
 
 void terminal_positions(Fixture& fixture) {
     // Checkmate wins even though the halfmove clock has reached the draw limit.
@@ -281,7 +330,7 @@ void limits_and_principal_variations(Fixture& fixture) {
     require(first.best == second.best && first.score == second.score && first.nodes == second.nodes,
             "Fresh single-worker bounded searches must be deterministic");
 
-    limits = {};
+    limits = baseline_limits();
     limits.nodes = 50;
     auto result = fixture.run(position, limits);
     require(legal(position, result.best) && result.nodes <= limits.nodes,
@@ -316,7 +365,7 @@ void cancellation_and_pondering(Fixture& fixture) {
     // No wall-clock racing is needed: the first completed iteration signals that
     // the worker has entered search, then cancellation is sent from this thread.
     fixture.search.reset_stop();
-    limits = {};
+    limits = baseline_limits();
     limits.late_move_reductions = fixture.enable_lmr;
     limits.capture_ordering = fixture.capture_ordering;
     limits.countermove_ordering = fixture.enable_countermove;
@@ -338,7 +387,7 @@ void cancellation_and_pondering(Fixture& fixture) {
             "Concurrent stop must preserve a completed iteration's legal result");
 
     // A hit can arrive before the search thread starts, just like immediate stop.
-    limits = {};
+    limits = baseline_limits();
     limits.late_move_reductions = fixture.enable_lmr;
     limits.capture_ordering = fixture.capture_ordering;
     limits.countermove_ordering = fixture.enable_countermove;
@@ -363,7 +412,7 @@ void cancellation_and_pondering(Fixture& fixture) {
 }
 
 void clock_limit(Fixture& fixture) {
-    SearchLimits limits;
+    auto limits = baseline_limits();
     limits.movetime_ms = 30;
     limits.move_overhead_ms = 0;
     const auto position = Position::start();
@@ -386,7 +435,7 @@ void clock_limit(Fixture& fixture) {
  * or relying on the host scheduler to pause a particular worker. */
 void command_time_accounting(Fixture& fixture) {
     const auto position = Position::start();
-    SearchLimits limits;
+    auto limits = baseline_limits();
     limits.received_at = std::chrono::steady_clock::now() - 2s;
     limits.movetime_ms = 620;
     limits.diagnostics = true;
@@ -640,7 +689,7 @@ void hashfull_and_cache_diagnostic_parity(Fixture& fixture) {
 
 void forecast_scope_and_clock_budgets(Fixture& fixture) {
     const auto position = Position::start();
-    SearchLimits base;
+    auto base = baseline_limits();
     base.time_policy = TimePolicy::forecast;
     base.diagnostics = true;
     base.wtime_ms = 5000;
@@ -710,7 +759,7 @@ void selective_search_verification_and_policy_switches(Fixture& fixture) {
     fixture.search.clear();
     const auto baseline = fixture.run(position, depth_limit(3), history);
     require(!baseline.lmr.enabled && baseline.lmr.reductions == 0 && baseline.lmr.researches == 0,
-            "The default search must not perform selective reductions");
+            "An explicitly disabled baseline must not perform selective reductions");
 
     auto limits = depth_limit(6);
     limits.nodes = 100000;
@@ -833,7 +882,7 @@ void parallel_search(Fixture& fixture) {
                 "Final shared cache occupancy and elapsed time must be valid");
 
         for (std::uint64_t budget : {1ULL, 50ULL, 1000ULL}) {
-            limits = {};
+            limits = baseline_limits();
             limits.nodes = budget;
             limits.diagnostics = true;
             const auto bounded = fixture.run(root, limits);
@@ -1123,6 +1172,7 @@ int main(int argc, char** argv) {
         transposition_entry_round_trips();
         missing_network();
         Fixture fixture{std::filesystem::path(argv[1])};
+        default_selective_search(fixture);
         terminal_positions(fixture);
         mate_at_draw_boundary(fixture);
         quiescence_terminals_and_evasions(fixture);
@@ -1142,7 +1192,7 @@ int main(int argc, char** argv) {
         countermove_ordering_and_policy_switches(fixture);
         countermove_special_move_contexts(fixture);
         parallel_search(fixture);
-        // Re-run the existing chess-rule cases with the experimental option on.
+        // Re-run the existing chess-rule cases with selective search on.
         // Their exact expectations remain mandatory despite selective search.
         fixture.search.clear();
         fixture.enable_lmr = true;

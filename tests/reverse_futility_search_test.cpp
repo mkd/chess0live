@@ -42,6 +42,7 @@ bool legal(Position position, Move move) {
 
 SearchLimits limits(int depth = 5) {
     SearchLimits request;
+    request.late_move_reductions = false; // Combined-policy cases opt in explicitly.
     request.depth = depth;
     request.nodes = 200000;
     request.reverse_futility_pruning = true;

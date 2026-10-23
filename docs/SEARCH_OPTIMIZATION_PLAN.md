@@ -4,8 +4,8 @@ Status: Phase 4D.1 complete with countermove ordering parked after a mixed
 360-search screen; [results and decision](reports/2026-10-18-phase4d-countermove.md).
 Phase 4D.2 finished all 1,024 games: its [audited result](reports/2026-10-19-phase4d2-results.md)
 fails the absolute reliability gate despite 59.33% points, with 19 candidate
-flagfalls and 65 baseline flagfalls. LMR stays off; diagnose clock behavior
-before another qualification, without extending or retuning this sample.
+flagfalls and 65 baseline flagfalls. That attempt kept LMR off and required
+clock diagnosis before another qualification, without extending or retuning it.
 Phase 4D.3 verified null-move pruning is implemented and checked under its
 [separate development protocol](experiments/phase4d3-null-move.md). Its
 [mixed cold/warm screen](reports/2026-10-18-phase4d3-null-move.md) leaves it off
@@ -37,12 +37,14 @@ one October 22 daytime launch; amendment `a81c951` passed 81 relevant checks.
 The [final audit](reports/2026-10-23-lmr-results.md) passed all 512 games at
 59.08% (215W/175D/122L), with no either-role clock forfeits or audit errors.
 The attempt ended at 02:18 Warsaw on October 23; no run or schedule remains.
-Accept this result as eligible for separate default review and close the sample.
-Next complete one bounded existing-LMR integration/default checkpoint, including
-default-on/explicit-on parity and opt-out preservation plus relevant regressions.
-Do not retune or repeat the exposed qualification. The match does not establish
-SMP strength. Make the integration decision before broader 4D.6 reductions. Delta
-pruning remains separate and unimplemented.
+That result made existing LMR eligible for separate default review. The
+[bounded integration](reports/2026-10-23-lmr-default.md) now checks and promotes
+its unchanged conservative policy: native/scalar/sanitizer default-on parity and
+opt-out preservation passed, as did focused regressions and race checks.
+Conservative LMR is retained as the default. Do not retune or repeat the exposed
+qualification. The match does not establish SMP
+strength. Next is one isolated **4D.6** hypothesis against the accepted LMR-on
+baseline. Delta pruning remains separate and unimplemented.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
@@ -72,14 +74,15 @@ not merely imitate the other engine's reported depth.
 
 chess0live already has mate-distance bounds, PVS, aspiration windows, interior
 check extensions, transposition bounds, MVV-LVA, killer ordering, bounded
-positive/negative history-gravity updates, quiescence, and an opt-in conservative
-LMR experiment. Outer iterative deepening is implemented; internal iterative
-deepening at a node without a useful hash move is a separate, unimplemented idea. The
-[LMR development record](SELECTIVE_SEARCH.md) reported 49.79% fewer nodes at
-depth 5 on its exposed sample, but that was not strength qualification. Later
-qualification was inconclusive or failed an operational gate. The fresh October
-22 attempt passed; it permits a separate bounded default integration review.
-The ordinary default is still off until that review and its checks pass.
+positive/negative history-gravity updates, quiescence, and conservative LMR
+enabled by default. Outer iterative deepening is implemented; internal iterative
+deepening at a node without a useful hash move is a separate, unimplemented idea.
+The [LMR development record](SELECTIVE_SEARCH.md) reported 49.79% fewer nodes at
+depth 5 on its exposed sample, but that was not strength qualification. Subsequent
+historical qualification was inconclusive or failed an operational gate. The
+fresh October 22 attempt passed, followed by the separate October 23 default
+integration and its exact-parity, regression and race checks. Explicit opt-out
+remains available; the accepted policy is the next experiment's baseline.
 
 ## Work order and finite checkpoints
 
@@ -95,7 +98,7 @@ phases tuning a single unsuccessful heuristic.
 | 4D.3 | Verified null-move pruning | Begin with a restrictive interior non-PV experiment: no check, no mate-band window, no consecutive null moves, adequate depth, and non-pawn material. Add ordinary-search verification before a candidate cutoff and explicit zugzwang exclusions/tests. Material guards and verification reduce risk; neither proves every position safe. |
 | 4D.4 | Conservative reverse futility | Separate shallow interior non-PV candidate, disabled in check and near mate/tablebase score bands. Freeze depth-dependent margins before testing; keep checks, tactical exceptions, and draw handling explicit. |
 | 4D.5 | Quiescence work reduction | Test SEE-based capture pruning and delta pruning separately. Preserve all check evasions, promotions, mate/stalemate handling, and designated tactical exceptions. Static material estimates do not justify silently dropping a forced line. |
-| 4D.6 | Late quiet-move pruning or broader reductions | First resolve the clock-reliability blocker and make a qualification decision on existing conservative LMR. Only then consider one separate higher-risk reduction hypothesis, with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. |
+| 4D.6 | Late quiet-move pruning or broader reductions | After the qualified conservative LMR integration, consider one separate higher-risk reduction hypothesis against LMR-on, with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. Do not broaden an unsuccessful candidate repeatedly or alter the qualified baseline. |
 | 4D.7 | ProbCut | A separate later candidate: bounded reduced-depth tactical probes at an elevated cutoff threshold, with frozen margins and explicit check, mate/tablebase, and draw exclusions. A successful reduced probe is heuristic evidence, not proof of a full-depth bound. Require sacrificed-material and quiet-defense regressions and an isolated strength comparison. |
 
 The owner supplied Gargantua's optimization list during 4D.1. Treat it as a list

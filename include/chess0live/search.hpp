@@ -52,7 +52,8 @@ struct SearchLimits {
     int move_overhead_ms = 20;
     TimePolicy time_policy = TimePolicy::classic;
     bool diagnostics = false;
-    bool late_move_reductions = false;
+    /** Conservative one-ply reductions; opt out for controlled comparisons. */
+    bool late_move_reductions = true;
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Experimental quiet reply ordering; changes neither depth nor pruning. */
     bool countermove_ordering = false;

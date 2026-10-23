@@ -1,11 +1,15 @@
 # Phase 2C: conservative late-move reductions
 
-Status: first candidate implemented and tested; retained as opt-in research.
-The initial eight-game smoke was unfavorable; the subsequent 128-game
-[Phase 2D screen](reports/2026-10-16-phase2d-lmr.md) had a favorable point
-estimate but remained inconclusive under its predeclared rule. This experiment
-changes search selectivity, not evaluation or time allocation. The existing
-search remains the default; no playing-strength improvement is established.
+Current status: the fresh [512-game qualification](reports/2026-10-23-lmr-results.md)
+passed its frozen gate at 59.08% with no clock forfeits. The separate
+[October 23 integration](reports/2026-10-23-lmr-default.md) makes existing
+conservative LMR default-on after exact parent parity and native/scalar/sanitizer
+and race checks passed. Explicit opt-out remains available. This evidence is limited to the tested one-thread
+60+0.6 condition; it does not prove arbitrary position safety or SMP strength.
+
+The historical development and unsuccessful/inconclusive screens below remain
+unchanged. The search policy is still the original guarded one-ply reduction;
+this integration neither retunes it nor changes evaluation or time allocation.
 
 ## Hypothesis
 

@@ -49,6 +49,7 @@ Move parsed(Position position, std::string_view text) {
 
 SearchLimits limits(int depth = 6) {
     SearchLimits request;
+    request.late_move_reductions = false; // Isolate null search from the LMR default.
     request.depth = depth;
     request.nodes = 200000;
     request.null_move_pruning = true;

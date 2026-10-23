@@ -5,17 +5,17 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: fresh LMR qualification passed; default review next
+## Current checkpoint: LMR enabled by default; Phase 4D.6 next
 
-The [final independent audit](reports/2026-10-23-lmr-results.md) passed all
-512 games/256 pairs: **215 wins, 175 draws, 122 losses (59.08%)**, zero clock
-forfeits in either role and zero audit errors. All 50,367 searches were replayed
-and all 1,024 engine processes exited. The one attempt finished at 02:18 Warsaw
-on October 23. The conditional score bound clears the predeclared threshold;
-the decision is **eligible for a separate default review**, not an automatic
-engine change. Accept the result and close this sample. Next complete one bounded
-LMR integration/default checkpoint, then proceed to broader Phase 4D.6. LMR is
-still off in the ordinary build; SMP strength is not established by this match.
+The fresh [512-game qualification](reports/2026-10-23-lmr-results.md) passed at
+**215 wins, 175 draws, 122 losses (59.08%)**, with zero clock forfeits or audit
+errors. The separate [default integration](reports/2026-10-23-lmr-default.md)
+is complete and retained: conservative LMR is now enabled by default. Exact
+parent parity, native/scalar/sanitizer regressions and race checks all passed.
+Explicit opt-out remains available, other experimental policies stay off, and
+SMP playing strength is not established. The next checkpoint
+is **Phase 4D.6**, one separate broader quiet-move reduction/pruning candidate.
+Do not repeat or tune on the exposed qualification sample.
 
 The [October 22 preparation](reports/2026-10-22-lmr-preparation.md) passed
 145 workflow checks, opening-source replay and independent search-free engine
@@ -26,17 +26,17 @@ after preparation `548ce74` and amendment `a81c951`. All four games produced
 searches and moves; startup resource checks passed. The amendment passed 81
 relevant tests and fresh independent readiness. Resource limits and the original
 October 23, 07:00 Helsinki cutoff stayed fixed. The final result is recorded above.
-No schedule is created. Any either-role flagfall blocks
-eligibility. Decide existing LMR's status after this bounded comparison before
-adding broader Phase 4D.6 reductions. Engine code/defaults remain unchanged.
+No schedule was created. Any either-role flagfall would have blocked
+eligibility. This completed qualification kept engine code/defaults unchanged;
+the separately recorded integration above follows it.
 
 The [October 20 clock-boundary replay](reports/2026-10-20-clock-boundaries.md)
 completed all 32 searches on time, with no reproduced historical delay.
 The subsequent [real-match readiness check](reports/2026-10-20-match-readiness.md)
 also passed: eight natural completions, 646 on-time searches, actual four-way
-overlap and verified cleanup in 23.949 seconds. The normal release remains
-byte-identical. This permitted the preparation above; it does not establish a
-historical clock repair or strength gain. Existing LMR stays off.
+overlap and verified cleanup in 23.949 seconds. The normal release remained
+byte-identical at that checkpoint. This permitted the preparation above; it did
+not establish a historical clock repair or strength gain.
 
 The October 14 and [October 18 Cute Chess feedback](reports/2026-10-18-cutechess.md)
 provide useful initial GUI integration evidence and expose expensive opening
@@ -71,7 +71,7 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Next: bounded LMR default review, then one separate 4D.6 reduction candidate |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. Next: one isolated 4D.6 reduction candidate |
 | 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
 
 For 2B, the first soft-target gate stopped too early in development profiles

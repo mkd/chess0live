@@ -151,6 +151,7 @@ void tactical_exemptions() {
 
 SearchLimits limits() {
     SearchLimits request;
+    request.late_move_reductions = false; // Combined-policy cases opt in explicitly.
     request.depth = 5;
     request.nodes = 200000;
     request.qsearch_see_pruning = true;

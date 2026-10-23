@@ -173,7 +173,7 @@ private:
     int overhead_ms_ = 20;
     TimePolicy time_policy_ = TimePolicy::classic;
     bool diagnostics_ = false;
-    bool late_move_reductions_ = false;
+    bool late_move_reductions_ = true;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     bool countermove_ordering_ = false;
     bool null_move_pruning_ = false;
@@ -253,7 +253,7 @@ private:
         output("option name Ponder type check default false");
         output("option name Time Policy type combo default classic var classic var forecast");
         output("option name Search Diagnostics type check default false");
-        output("option name Late Move Reductions type check default false");
+        output("option name Late Move Reductions type check default true");
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("option name Countermove Ordering type check default false");
         output("option name Null Move Pruning type check default false");

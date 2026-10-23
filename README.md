@@ -195,10 +195,12 @@ Forecast estimates whether another search iteration will fit the hard deadline;
 it is not yet a demonstrated strength improvement. See
 [the time-management experiment](docs/TIME_MANAGEMENT.md) before enabling it.
 
-`Late Move Reductions` (default `false`) enables the separate Phase 2C search
-experiment: guarded one-ply reductions with ordinary-depth verification of
-promising probes. See [selective search](docs/SELECTIVE_SEARCH.md) for safeguards,
-comparison settings, and results. It is not yet an accepted strength improvement.
+`Late Move Reductions` defaults to `true`: guarded one-ply reductions with
+ordinary-depth verification of promising probes. Use
+`setoption name Late Move Reductions value false` to disable it for controlled
+comparisons. Saved GUI settings can override the new default; select `true` in
+the engine settings when using a rebuilt executable. See
+[selective search](docs/SELECTIVE_SEARCH.md) for safeguards and validation.
 
 `Capture Ordering` defaults to `mvv-lva`; experimental `see` estimates material
 exchanges and searches apparently losing captures later. All captures remain
