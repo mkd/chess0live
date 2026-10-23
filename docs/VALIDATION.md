@@ -1,10 +1,27 @@
 # Validation and experiment protocol
 
+## Fresh LMR qualification result — October 23, 2026
+
+The [final audit](reports/2026-10-23-lmr-results.md) passed all 512 games/256 pairs
+with no exclusions, errors, live-source drift or either-role clock forfeits.
+LMR-on scored 215W/175D/122L, 302.5/512 points (59.08%); its conditional 95%
+score interval is 50.594%–67.570%. The frozen decision is
+`eligible_for_default_review`, with `default_change=false`. This remains limited
+to the tested one-thread 60+0.6 condition and its stated independence assumptions.
+
+Raw replay verified 50,367 searches, 60,351 legal plies including openings,
+2,639,322 PV plies and 50,015 ponder moves; all 1,024 recorded processes exited.
+The run finished at 02:18 Warsaw in 6h15m35s, before cutoff. The unchanged auditor
+produced `results/lmr-20261022/final-audit.json`; a separate tally agrees and
+60 final protection checks passed. No engines, builds or additional matches
+were started to audit the saved data. A bounded default integration review is
+next; no automatic promotion, absolute rating or SMP strength claim follows.
+
 ## Fresh LMR qualification preparation — October 22, 2026
 
 The [fixed 512-game comparison](experiments/lmr-20261022.md)
 [launched October 22 at 20:03 Warsaw](reports/2026-10-22-lmr-launch.md); its final
-audit is pending. Preparation tests passed: 17 opening checks, 23 supervisor checks, 48 independent
+audit is recorded above. Preparation tests passed: 17 opening checks, 23 supervisor checks, 48 independent
 audit checks and 57 existing runner/statistics checks, **145 total**. Synthetic
 raw games exercise clocks, legal histories/PVs/ponders, actual options, both-role
 forfeit classification, corrupted evidence, resource failures, cancellation,
@@ -16,8 +33,8 @@ passed actual settings, option types/defaults, source/asset identities, legal
 opening histories and saved-game exclusions. The unchanged ordinary engine uses
 the previously audited four-worker live readiness result; no repeat or fresh
 strength result is implied. The [preparation report](reports/2026-10-22-lmr-preparation.md)
-records hashes, raw logs and limitations. Full-match evidence and the one
-promote/reject/park decision remain pending; all defaults stay unchanged.
+records hashes, raw logs and limitations. Full-match evidence is now audited;
+separate default integration remains pending and all defaults stay unchanged.
 
 After preparation commit `548ce74`, the owner authorized one October 22 daytime
 launch. Its dated amendment passed 27 launcher and 54 auditor tests (81 total),

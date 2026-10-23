@@ -34,11 +34,14 @@ repair. The [fresh 512-game qualification](reports/2026-10-22-lmr-preparation.md
 uses 256 new pairs and four workers; 145 preparation checks and independent
 search-free readiness passed. After preparation `548ce74`, the owner authorized
 one October 22 daytime launch; amendment `a81c951` passed 81 relevant checks.
-The [attempt started at 20:03 Warsaw](reports/2026-10-22-lmr-launch.md).
-No schedule exists; results/audit are pending. The existing resource limits and
-original next-07:00 Helsinki cutoff stay fixed.
-Make its promotion,
-rejection or parking decision before adding broader 4D.6 reductions. Delta
+The [final audit](reports/2026-10-23-lmr-results.md) passed all 512 games at
+59.08% (215W/175D/122L), with no either-role clock forfeits or audit errors.
+The attempt ended at 02:18 Warsaw on October 23; no run or schedule remains.
+Accept this result as eligible for separate default review and close the sample.
+Next complete one bounded existing-LMR integration/default checkpoint, including
+default-on/explicit-on parity and opt-out preservation plus relevant regressions.
+Do not retune or repeat the exposed qualification. The match does not establish
+SMP strength. Make the integration decision before broader 4D.6 reductions. Delta
 pruning remains separate and unimplemented.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
@@ -74,8 +77,9 @@ LMR experiment. Outer iterative deepening is implemented; internal iterative
 deepening at a node without a useful hash move is a separate, unimplemented idea. The
 [LMR development record](SELECTIVE_SEARCH.md) reported 49.79% fewer nodes at
 depth 5 on its exposed sample, but that was not strength qualification. Later
-qualification was inconclusive or failed an operational gate. These results
-motivate useful next work; they do not authorize switching LMR on by default.
+qualification was inconclusive or failed an operational gate. The fresh October
+22 attempt passed; it permits a separate bounded default integration review.
+The ordinary default is still off until that review and its checks pass.
 
 ## Work order and finite checkpoints
 

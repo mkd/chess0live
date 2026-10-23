@@ -7,6 +7,9 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed and independently audited a 512-game LMR on/off comparison: 59.08%
+  for LMR, with no clock forfeits. It qualifies for default review; the current
+  engine default remains unchanged.
 - Prepared a fresh paired-opening LMR strength comparison with four concurrent
   games, fixed cutoff/resource limits and independent auditing. An explicit
   dated flag supports the owner's one-run daytime exception. This adds testing

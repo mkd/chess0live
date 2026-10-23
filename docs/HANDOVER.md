@@ -30,17 +30,27 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+The [October 23 final LMR audit](reports/2026-10-23-lmr-results.md) passed:
+512/512 games, 215W/175D/122L (59.08%), no clock forfeits or audit errors.
+The campaign ended at 02:18 Warsaw; all 1,024 engine processes exited. Raw audit
+and summary are in `results/lmr-20261022/`. No experiment is currently running.
+The frozen rule returns `eligible_for_default_review`; accept that result and
+close this sample. Next perform one bounded existing-LMR default integration
+review before broader 4D.6. Defaults remain unchanged; do not pool historical
+results, retune/retry these openings or claim eight-thread strength. Preserve
+the README introduction, owner puzzle-runner edits and GUI snapshots.
+
 The [fresh October 22 LMR qualification](reports/2026-10-22-lmr-launch.md)
 started at 20:03 Warsaw / 21:03 Helsinki after commits `548ce74` and `a81c951`.
 All four games produced searches and moves with startup resources within limits.
-Final results/audit are pending; do not overlap builds or other engine testing.
+Its completed result and independent audit are recorded above.
 Read its [fixed protocol](experiments/lmr-20261022.md): 512 games/256 pairs,
 four active workers, 60+0.6, same ordinary executable, only LMR on/off differs.
 All 145 workflow checks and full generation-source replay passed. Raw preparation
 records are in `results/lmr-20261022/`; frozen binary/manifest and protected pins
 are in `build/experiments/lmr-20261022/`. Live evidence is under
 `results/lmr-20261022/campaign/`; console/session records are in its parent.
-**The one long run is active; no schedule exists.**
+**The one long run has finished; no schedule exists.**
 After preparation commit `548ce74`, the owner authorized this one October 22
 daytime launch. The explicit `run --allow-daytime` amendment passed 81 relevant
 checks and fresh independent readiness, committed as `a81c951`. It expires
@@ -49,8 +59,8 @@ increase, repeat attempt or schedule. The original next-07:00 Helsinki cutoff
 is immutable. Ordinary unflagged launches still require 23:00–23:30 Helsinki.
 Any either-role flagfall blocks default eligibility. Preserve all fixed inputs
 through audit; no retry/resume, replacement, score-based stop or default change.
-The next checkpoint is the full independent qualification audit and an explicit
-promote/reject/park decision before broader Phase 4D.6 reductions.
+The qualification checkpoint is complete. The next checkpoint is the separate
+default integration decision before broader Phase 4D.6 reductions.
 
 The [four-worker readiness check](reports/2026-10-20-match-readiness.md) passed:
 8/8 natural games, 646 on-time searches, four-way overlap, unchanged pins and
