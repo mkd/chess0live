@@ -23,6 +23,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Fixed misleading hash occupancy resets in GUIs: retained entries now count
+  across searches. Cache lookup and replacement behavior are unchanged.
+- Added optional `Time Policy=bounded` to limit long clock-based thinks, plus
+  separate experimental `Deep Quiet Reductions`. Both require explicit selection;
+  neither is a demonstrated strength gain.
+
 - Enabled conservative late-move reductions by default following the successful
   512-game comparison and a separate integration check. Explicit opt-out remains
   available; saved GUI settings may need `Late Move Reductions=true`. See the

@@ -639,7 +639,7 @@ void hashfull_and_cache_diagnostic_parity(Fixture& fixture) {
     int previous_hashfull = 0;
     for (const auto& info : plain_reports) {
         require(info.hashfull >= previous_hashfull && info.hashfull <= 1000,
-                "Current-generation occupancy must be bounded and cannot fall within one search");
+                "Retained occupancy must be bounded and cannot fall without clearing");
         previous_hashfull = info.hashfull;
     }
     require(previous_hashfull > 0, "A populated small table must report nonzero sampled occupancy");
@@ -669,8 +669,8 @@ void hashfull_and_cache_diagnostic_parity(Fixture& fixture) {
             && activity.replacements <= activity.stores,
             "Completed unrestricted searches reconcile probes with stores and bound cutoffs");
 
-    // The table remains physically populated, but these new generations do no
-    // tree work. Reporting old entries would falsely imply current activity.
+    // New generations with no tree work retain occupancy. Separate event
+    // counters must still report zero activity; occupancy is not a hit rate.
     for (const auto text : {"7k/6Q1/6K1/8/8/8/8/8 b - - 100 51",
                             "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
                             "7k/8/5K2/8/8/8/8/8 w - - 0 1"}) {
@@ -679,10 +679,10 @@ void hashfull_and_cache_diagnostic_parity(Fixture& fixture) {
             reports.push_back(info);
         });
         const auto& idle = terminal.diagnostics->cache;
-        require(terminal.nodes == 0 && reports.size() == 1 && reports.front().hashfull == 0
+        require(terminal.nodes == 0 && reports.size() == 1 && reports.front().hashfull == previous_hashfull
                 && idle.probes == 0 && idle.hits == 0 && idle.cutoffs == 0
                 && idle.stores == 0 && idle.replacements == 0,
-                "Terminal and drawn roots report empty current-generation activity");
+                "Terminal and drawn roots retain occupancy without cache activity");
     }
     fixture.search.clear();
 }

@@ -1,5 +1,36 @@
 # Validation and experiment protocol
 
+## Phase 4D.6 implementation — October 23, 2026
+
+See the [report](reports/2026-10-23-phase4d6.md) and fixed
+[experiment](experiments/phase4d6-deep-quiet.md). The retained-occupancy reporting
+fix passed nine real UCI searches and retained the parent's exact search in
+all 12 cold/warm pairs. Native core/search/policy/time tests passed. Native,
+scalar, ASan+UBSan and TSan each passed direct deeper-reduction/time tests and
+24 deep-option / 14 bounded-time UCI cases across one/four workers; native also
+passed 43 ordinary SMP cases, scalar/ASan passed the full search suite. No race
+or sanitizer finding occurred. TSan completed normally; its long instrumentation
+cost is not engine performance evidence.
+
+The first extra-tier activation test incorrectly required a rare alpha-raising
+probe. Six bounded fixtures observed activation without that event. The revised
+test exercises interruption at the first extra reduction (node 65,900), shared
+ordinary-LMR verification and state/cache restoration. Extra-tier verification
+was not observed and is not claimed as tested directly; source review checked
+the shared ordinary-depth path. Search policy was not tuned to this fixture.
+
+A 28-check mocked profiler suite validates exact time budgets, cache sizing and
+counters, schema corruption, parent parity, interruption, cleanup and source drift.
+Its single 60-search screen passed with all source pins stable: about 1.05% cold
+and 2.23% warm node savings at depth 6, matching final decisions. All six timed
+pairs retained the same completed depth/decision. This does not establish Elo.
+The independent six-search PGN-clock replay kept all best moves but lost one ply
+on one root with tighter timing. New timing and reduction policies remain opt-in.
+The frozen owner-runner adapter passed all 78 one-second smoke searches with
+legal results and unchanged best moves (two centipawn-score differences, no
+positive mates at that short limit). Full matched 60-second puzzle validation
+is prepared but pending. No match or schedule is running.
+
 ## LMR default integration — October 23, 2026
 
 The [separate integration record](reports/2026-10-23-lmr-default.md) changes only

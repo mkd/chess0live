@@ -70,9 +70,10 @@ and collisions at every Hash setting. At `Hash=64`, 2,097,152 entries now occupy
 32 MiB instead of 48 MiB. Vector/allocator overhead and other engine memory are
 outside that entry-storage figure.
 
-Standard `hashfull` samples up to 1,000 entries in the current search generation
-at each report, in permille. Eight-bit generation wrap can alias old entries;
-this is approximate recent occupancy, not physical-memory use or hit rate.
+Standard `hashfull` samples up to 1,000 nonempty retained entries at each report,
+in permille, including older generations. Generation still ages replacement
+priority; it does not filter probes or the occupancy display. This is sampled
+occupancy, not physical-memory use, activity or hit rate.
 Opt-in `Search Diagnostics` adds one `info string cache v1` record per search,
 including geometry and probe/hit/cutoff/save-attempt/occupied-replacement counts.
 Counts include interrupted work and are not updated when diagnostics are off.

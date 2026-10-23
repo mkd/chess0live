@@ -36,7 +36,9 @@ history, interrupted verification, node/time limits and one/four-worker state
 restoration. Run relevant native/scalar/ASan+UBSan and TSan checks.
 
 Reuse the six exposed positions selected by `profile_reverse_futility.load_positions`
-from `tests/data/performance-gamephases.json`, without editing that corpus.
+from `tests/data/countermove-profile.json`, without editing that corpus.
+This source path was corrected before the first development-screen search;
+the six fixed IDs and their previously selected positions are unchanged.
 Use Threads 1, Hash 64, accepted LMR on, classic timing, MVV-LVA, other experiments
 off and Syzygy off. Alternate role order by position. A single 60-search matrix:
 parent versus candidate-off at depth 6 cold/warm (24); off versus on at depth 6

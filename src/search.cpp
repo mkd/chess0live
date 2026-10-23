@@ -138,7 +138,9 @@ TimeBudget allocate_time(const Position& position, const SearchLimits& limits) {
     const double planned = available / std::max(1, moves)
         + 0.8 * double(std::max(std::int64_t{0}, increment));
     const double soft = std::min(available, std::max(1.0, planned));
-    const double hard = std::min(available, std::max(soft + 5.0, soft * 4.0));
+    const bool bounded = limits.time_policy == TimePolicy::bounded
+        && limits.depth == 0 && limits.nodes == 0 && limits.mate == 0 && !limits.ponder;
+    const double hard = time_management::clock_hard_limit(available, soft, bounded);
     return {true, soft, hard};
 }
 
@@ -207,6 +209,7 @@ struct SearchWorker {
     bool aborted = false;
     StopReason stop_reason = StopReason::depth_limit;
     LateMoveStatistics lmr;
+    DeepLateMoveStatistics deep_lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;
@@ -342,7 +345,7 @@ struct SearchWorker {
                    ^ mix(std::uint64_t(position.halfmove_clock()) + 1));
     }
 
-    /** UCI hashfull is a cheap generation-local occupancy sample. Sampling is
+    /** UCI hashfull samples all retained nonempty entries, including older searches. Sampling is
      * done only when reporting a completed iteration or terminal root; no
      * counters or table scan are added to the ordinary node-search path.
      */
@@ -353,7 +356,7 @@ struct SearchWorker {
             const auto guard = shared.lock_bucket(index / 4);
             for (std::size_t offset = 0; offset < 4 && index + offset < sample; ++offset) {
                 const auto& entry = shared.table[index / 4].entries[offset];
-                occupied += entry.bound() != Bound::empty && entry.generation == shared.generation;
+                occupied += entry.bound() != Bound::empty;
             }
         }
         return sample == 0 ? 0 : static_cast<int>(1000 * occupied / sample);
@@ -579,11 +582,10 @@ struct SearchWorker {
     /** Principal-variation search: only the first move needs a full window.
      * Subsequent moves first prove whether they can improve alpha; a successful
      * challenge receives a full-window re-search before becoming the PV.
-     * The optional late-move experiment first scouts selected quiet moves one
-     * ply shallower. Every reduced result above alpha must be verified at its
-     * ordinary depth before causing a cutoff or entering a full-window search.
-     * Reduced fail-lows are heuristic and may miss tactics; the default search
-     * remains unreduced, with no null-move or futility pruning.
+     * Guarded late quiet moves scout one ply shallower by default; the optional
+     * deeper tier uses two. Every reduced result above alpha must be verified at
+     * ordinary depth before a cutoff or full-window search. Reduced fail-lows
+     * remain heuristic and can miss tactics. Null/futility pruning stays opt-in.
      */
     int alphabeta(Position& position, int depth, int alpha, int beta, int ply,
                   bool pv_node, std::uint64_t digest,
@@ -766,7 +768,7 @@ struct SearchWorker {
                 score = -alphabeta(position, depth - 1, -beta, -alpha, ply + 1,
                                    pv_node, child_digest, child_context, mode);
             } else {
-                bool reduce = false;
+                int reduction = 0;
                 if (limits.late_move_reductions && mode == Mode::ordinary) {
                     const search_policy::LateMoveContext context{
                         depth, ply, move_number, pv_node, checked, false,
@@ -777,19 +779,35 @@ struct SearchWorker {
                         killers[static_cast<std::size_t>(ply)][1]};
                     // Only pay for the additional attack test after all cheap
                     // parent/move guards pass; a checking child is never reduced.
-                    reduce = search_policy::reduce_late_move(context)
-                        && !position.in_check(position.turn());
+                    if (search_policy::reduce_late_move(context)
+                        && !position.in_check(position.turn())) {
+                        reduction = 1;
+                        if (limits.deep_quiet_reductions
+                            && search_policy::deep_quiet_reduction(
+                                context, std::popcount(position.occupied())))
+                            reduction = 2;
+                    }
                 }
-                if (reduce) ++lmr.reductions;
-                score = -alphabeta(position, depth - 1 - int(reduce), -alpha - 1, -alpha, ply + 1,
+                const bool trace_deep = reduction == 2 && limits.diagnostics;
+                if (reduction) ++lmr.reductions;
+                if (trace_deep) ++deep_lmr.extra_reductions;
+                score = -alphabeta(position, depth - 1 - reduction, -alpha - 1, -alpha, ply + 1,
                                    false, child_digest, child_context, mode);
-                if (reduce && !aborted && score > alpha) {
+                if (reduction && !aborted && score > alpha) {
                     ++lmr.researches;
+                    if (trace_deep) ++deep_lmr.researches;
+                    // Both tiers verify directly at ordinary depth. A stopped
+                    // or intermediate reduced probe never establishes a bound.
                     score = -alphabeta(position, depth - 1, -alpha - 1, -alpha, ply + 1,
                                        false, child_digest, child_context, mode);
                     if (!aborted) {
-                        if (score <= alpha) ++lmr.fail_lows;
-                        else if (score >= beta) ++lmr.verified_cutoffs;
+                        if (score <= alpha) {
+                            ++lmr.fail_lows;
+                            if (trace_deep) ++deep_lmr.fail_lows;
+                        } else if (score >= beta) {
+                            ++lmr.verified_cutoffs;
+                            if (trace_deep) ++deep_lmr.verified_cutoffs;
+                        }
                     }
                 }
                 if (!aborted && score > alpha && score < beta)
@@ -860,6 +878,8 @@ struct SearchWorker {
 #endif
         lmr = {};
         lmr.enabled = limits.late_move_reductions;
+        deep_lmr = {};
+        deep_lmr.enabled = limits.deep_quiet_reductions;
         ordering = {};
         ordering.policy = limits.capture_ordering;
         countermove = {};
@@ -908,6 +928,7 @@ struct SearchWorker {
             publish_nodes();
             result.nodes = nodes;
             result.lmr = lmr;
+            result.deep_lmr = deep_lmr;
             result.ordering = ordering;
             result.countermove = countermove;
             result.nullmove = nullmove;
@@ -1033,6 +1054,7 @@ struct Search::Impl {
     std::vector<std::unique_ptr<SearchWorker>> workers;
     bool cache_policy_valid = false;
     bool previous_lmr = false;
+    bool previous_deep_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
     bool previous_countermove = false;
     bool previous_nullmove = false;
@@ -1074,6 +1096,7 @@ struct Search::Impl {
         shared.tablebase_limit = std::min(request.syzygy_probe_limit,
                                          int(shared.tablebases.largest()));
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
+            || request.deep_quiet_reductions != previous_deep_lmr
             || request.capture_ordering != previous_ordering
             || request.countermove_ordering != previous_countermove
             || request.null_move_pruning != previous_nullmove
@@ -1082,6 +1105,7 @@ struct Search::Impl {
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
         previous_lmr = request.late_move_reductions;
+        previous_deep_lmr = request.deep_quiet_reductions;
         previous_ordering = request.capture_ordering;
         previous_countermove = request.countermove_ordering;
         previous_nullmove = request.null_move_pruning;
@@ -1196,6 +1220,10 @@ struct Search::Impl {
             result.lmr.researches += worker.lmr.researches;
             result.lmr.fail_lows += worker.lmr.fail_lows;
             result.lmr.verified_cutoffs += worker.lmr.verified_cutoffs;
+            result.deep_lmr.extra_reductions += worker.deep_lmr.extra_reductions;
+            result.deep_lmr.researches += worker.deep_lmr.researches;
+            result.deep_lmr.fail_lows += worker.deep_lmr.fail_lows;
+            result.deep_lmr.verified_cutoffs += worker.deep_lmr.verified_cutoffs;
             result.ordering.see_calls += worker.ordering.see_calls;
             result.ordering.losing_captures += worker.ordering.losing_captures;
             result.countermove.lookups += worker.countermove.lookups;

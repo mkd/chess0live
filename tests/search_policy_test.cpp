@@ -373,6 +373,90 @@ void protected_move_types() {
         require(!reduce_late_move(context), "Both colors' seventh-rank pawn pushes are protected");
     }
 }
+
+/** The new tier is a strict subset of the accepted one-ply policy. Boundary
+ * checks deliberately include legal-looking quiet moves of both colors and
+ * invalid/default context rather than deriving expectations from the helper.
+ */
+void deep_quiet_boundaries() {
+    require(!deep_quiet_reduction({}, 32), "An unspecified move cannot receive the extra ply");
+    auto base = quiet_candidate();
+    base.depth = 5;
+    base.searched_moves = 8;
+    require(deep_quiet_reduction(base, 8), "The ninth quiet piece move at depth five is eligible");
+    for (const int depth : {0, 2, 3, 4, 5, 6, 127}) {
+        auto context = base;
+        context.depth = depth;
+        require(deep_quiet_reduction(context, 8) == (depth >= 5),
+                "The additional ply starts at exactly depth five");
+    }
+    for (const std::size_t searched : {std::size_t{0}, std::size_t{3}, std::size_t{4},
+                                      std::size_t{7}, std::size_t{8}, std::size_t{217}}) {
+        auto context = base;
+        context.searched_moves = searched;
+        require(deep_quiet_reduction(context, 8) == (searched >= 8),
+                "The first eight ordered moves cannot receive the additional ply");
+    }
+    for (const int pieces : {-1, 0, 2, 6, 7, 8, 16, 32})
+        require(deep_quiet_reduction(base, pieces) == (pieces > 7),
+                "Every tablebase-sized ending retains the accepted one-ply policy");
+    for (const auto color : {Color::white, Color::black}) {
+        for (const auto type : {PieceType::pawn, PieceType::knight, PieceType::bishop,
+                               PieceType::rook, PieceType::queen, PieceType::king}) {
+            auto context = base;
+            context.moved = make_piece(color, type);
+            context.move = color == Color::white ? Move{8, 16} : Move{48, 40};
+            const bool ordinary_piece = type != PieceType::pawn && type != PieceType::king;
+            require(reduce_late_move(context), "Quiet early pawn/king moves still pass accepted LMR");
+            require(deep_quiet_reduction(context, 32) == ordinary_piece,
+                    "Only knight, bishop, rook and queen moves may receive the additional ply");
+        }
+    }
+}
+
+void deep_quiet_inherits_protection() {
+    auto base = quiet_candidate();
+    base.depth = 5;
+    base.searched_moves = 8;
+    for (int guard = 0; guard < 10; ++guard) {
+        auto context = base;
+        if (guard == 0) context.ply = 0;
+        if (guard == 1) context.pv_node = true;
+        if (guard == 2) context.parent_in_check = true;
+        if (guard == 3) context.child_in_check = true;
+        if (guard == 4) context.mate_window = true;
+        if (guard == 5) context.move = {};
+        if (guard == 6) context.moved = 0;
+        if (guard == 7) context.tt_move = context.move;
+        if (guard == 8) context.killer_a = context.move;
+        if (guard == 9) context.killer_b = context.move;
+        require(!reduce_late_move(context) && !deep_quiet_reduction(context, 32),
+                "The extra ply cannot bypass any accepted node, validity or ordering guard");
+    }
+    for (const auto color : {Color::white, Color::black}) {
+        auto context = base;
+        context.moved = make_piece(color, PieceType::rook);
+        context.move.flags = capture;
+        require(!deep_quiet_reduction(context, 32), "Captures cannot receive the extra ply");
+        context.move.flags = capture | en_passant;
+        require(!deep_quiet_reduction(context, 32), "En passant cannot receive the extra ply");
+        context.move.flags = castle;
+        require(!deep_quiet_reduction(context, 32), "Castling cannot receive the extra ply");
+        context.move.flags = 0;
+        for (const auto promotion : {PieceType::knight, PieceType::bishop, PieceType::rook, PieceType::queen}) {
+            context.move.promotion = promotion;
+            require(!deep_quiet_reduction(context, 32), "Every promotion choice retains ordinary depth");
+        }
+        context.move.promotion = PieceType::none;
+        context.moved = make_piece(color, PieceType::pawn);
+        for (const int relative_rank : {5, 6}) {
+            const int rank = color == Color::white ? relative_rank : 7 - relative_rank;
+            context.move.to = static_cast<std::uint8_t>(8 * rank);
+            require(!reduce_late_move(context) && !deep_quiet_reduction(context, 32),
+                    "Both colors' advanced pawn breakthroughs retain ordinary depth");
+        }
+    }
+}
 } // namespace
 
 int main() {
@@ -385,6 +469,8 @@ int main() {
         protected_null_material_and_mobility();
         protected_nodes_and_ordering();
         protected_move_types();
+        deep_quiet_boundaries();
+        deep_quiet_inherits_protection();
         std::cout << "Selective-search policy checks passed\n";
     } catch (const std::exception& error) {
         std::cerr << "Search-policy test failed: " << error.what() << '\n';

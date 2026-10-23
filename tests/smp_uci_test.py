@@ -52,7 +52,7 @@ def validate_result(lines, board, threads, allowed=None, node_limit=None):
     assert not any("error:" in line for line in lines), lines
     prefixes = ("info depth ", "info nodes ", "bestmove ",
                 "info string cache v1 ", "info string search-iteration v1 ",
-                "info string ordering v1 ", "info string lmr v1 ",
+                "info string ordering v1 ", "info string lmr v1 ", "info string deep-lmr v1 ",
                 "info string smp v1 ", "info string search-summary v1 ")
     assert all(line.startswith(prefixes) for line in lines), lines
     best_lines = [line for line in lines if line.startswith("bestmove ")]

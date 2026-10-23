@@ -32,6 +32,36 @@ void target_signals() {
     require(iteration_target(0, 0, 0, 0) == 0, "Exhausted budget remains exhausted");
 }
 
+void bounded_clock_ceiling() {
+    // 120 seconds + 1 second, 20 ms overhead, and the opening 32-move horizon.
+    constexpr double available = 119980;
+    constexpr double soft = 4549.375;
+    require(clock_hard_limit(available, soft, false) == 18197.5,
+            "Classic and forecast retain their original four-times ceiling");
+    require(clock_hard_limit(available, soft, true) == 9098.75,
+            "Bounded timing halves this opening hard ceiling without altering soft time");
+    require(clock_hard_limit(0, 0, true) == 0
+            && clock_hard_limit(1, 1, true) == 1,
+            "Exhausted and tiny clocks cannot spend a future increment");
+    require(clock_hard_limit(100, 1, true) == 6
+            && clock_hard_limit(100, 1, false) == 6,
+            "The existing five-millisecond floor still applies to tiny nominal targets");
+    for (const auto available_ms : {0., 1., 20., 100., 120000., 9e18}) {
+        for (const auto fraction : {0., 0.01, 0.25, 0.5, 1.}) {
+            const auto soft_ms = available_ms * fraction;
+            const auto classic = clock_hard_limit(available_ms, soft_ms, false);
+            const auto bounded = clock_hard_limit(available_ms, soft_ms, true);
+            require(soft_ms <= bounded && bounded <= classic && classic <= available_ms,
+                    "A bounded ceiling must stay between soft and the existing available ceiling");
+            for (const auto stable : {0, 2, 3})
+                for (const auto drop : {0, 80, 81})
+                    require(iteration_target(soft_ms, bounded, stable, drop)
+                                == iteration_target(soft_ms, classic, stable, drop),
+                            "Bounded hard time must retain every existing soft-target signal");
+        }
+    }
+}
+
 void forecast_boundaries() {
     IterationForecast forecast;
     require(forecast.predicted_next_ms() == 0 && forecast.should_start_next(3, 1, 1),
@@ -102,6 +132,7 @@ void conservative_growth_and_extremes() {
 int main() {
     try {
         target_signals();
+        bounded_clock_ceiling();
         forecast_boundaries();
         conservative_growth_and_extremes();
         std::cout << "Time-management policy checks passed\n";

@@ -265,3 +265,17 @@ appears. Depth remains the leader's nominal completed depth; more workers do
 not guarantee a particular depth increase or a win. Two games are integration
 feedback, not a strength qualification. No fresh GUI visual check is implied
 by the automated UCI checks.
+
+## October 23 feedback and optional clock trial
+
+The [120+1 feedback investigation](reports/2026-10-23-phase4d6.md) records the
+owner's Threads=10, LMR=true and Hash=1028 settings. Time Policy and the exact
+GUI executable identity were not captured. The ordinary rebuild includes the
+retained-hash display correction; protected snapshots above are unchanged.
+
+To isolate clock allocation in a manual trial, leave `Deep Quiet Reductions`
+false and select `Time Policy=bounded` (or send
+`setoption name Time Policy value bounded`). Compare with classic using the same
+engine/options, openings, colors and time control. Record the executable hash,
+all saved GUI options, PGN and preferably the UCI log. Earlier stopping can lose
+depth; this is an exploratory trial, not qualified stronger play.

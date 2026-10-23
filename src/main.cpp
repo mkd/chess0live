@@ -174,6 +174,7 @@ private:
     TimePolicy time_policy_ = TimePolicy::classic;
     bool diagnostics_ = false;
     bool late_move_reductions_ = true;
+    bool deep_quiet_reductions_ = false;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     bool countermove_ordering_ = false;
     bool null_move_pruning_ = false;
@@ -251,9 +252,10 @@ private:
         output("option name SyzygyProbeDepth type spin default 1 min 1 max 128");
         output("option name Move Overhead type spin default 20 min 0 max 5000");
         output("option name Ponder type check default false");
-        output("option name Time Policy type combo default classic var classic var forecast");
+        output("option name Time Policy type combo default classic var classic var forecast var bounded");
         output("option name Search Diagnostics type check default false");
         output("option name Late Move Reductions type check default true");
+        output("option name Deep Quiet Reductions type check default false");
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("option name Countermove Ordering type check default false");
         output("option name Null Move Pruning type check default false");
@@ -337,13 +339,20 @@ private:
         if (name == "Time Policy") {
             if (value == "classic") time_policy_ = TimePolicy::classic;
             else if (value == "forecast") time_policy_ = TimePolicy::forecast;
-            else output("info string error: Time Policy expects classic or forecast");
+            else if (value == "bounded") time_policy_ = TimePolicy::bounded;
+            else output("info string error: Time Policy expects classic, forecast or bounded");
             return;
         }
         if (name == "Search Diagnostics") {
             if (value == "true") diagnostics_ = true;
             else if (value == "false") diagnostics_ = false;
             else output("info string error: Search Diagnostics expects true or false");
+            return;
+        }
+        if (name == "Deep Quiet Reductions") {
+            if (value == "true") deep_quiet_reductions_ = true;
+            else if (value == "false") deep_quiet_reductions_ = false;
+            else output("info string error: Deep Quiet Reductions expects true or false");
             return;
         }
         if (name == "Late Move Reductions") {
@@ -558,6 +567,15 @@ private:
                  << " verified_cutoffs " << result.lmr.verified_cutoffs;
             output(line.str());
         }
+        if (result.deep_lmr.enabled) {
+            std::ostringstream line;
+            line << "info string deep-lmr v1 enabled true extra_reductions "
+                 << result.deep_lmr.extra_reductions
+                 << " researches " << result.deep_lmr.researches
+                 << " fail_lows " << result.deep_lmr.fail_lows
+                 << " verified_cutoffs " << result.deep_lmr.verified_cutoffs;
+            output(line.str());
+        }
         const char* reason = "depth_limit";
         if (result.countermove.enabled) {
             std::ostringstream line;
@@ -580,7 +598,8 @@ private:
         std::ostringstream line;
         line << std::fixed << std::setprecision(3) << std::boolalpha
              << "info string search-summary v1 policy "
-             << (diagnostics.policy == TimePolicy::classic ? "classic" : "forecast")
+             << (diagnostics.policy == TimePolicy::classic ? "classic"
+                 : diagnostics.policy == TimePolicy::forecast ? "forecast" : "bounded")
              << " forecast_active " << diagnostics.forecast_active
              << " stop_reason " << reason << " nodes " << result.nodes
              << " completed_depth " << result.depth << " elapsed_ms " << diagnostics.elapsed_ms
@@ -602,6 +621,7 @@ private:
         limits.time_policy = time_policy_;
         limits.diagnostics = diagnostics_;
         limits.late_move_reductions = late_move_reductions_;
+        limits.deep_quiet_reductions = deep_quiet_reductions_;
         limits.capture_ordering = capture_ordering_;
         limits.countermove_ordering = countermove_ordering_;
         limits.null_move_pruning = null_move_pruning_;

@@ -162,6 +162,29 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 test-search: $(BUILD)/search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 
+# Isolated deeper-reduction and clock policies; both remain opt-in.
+$(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+$(BUILD)/bounded-time-test$(EXE): tests/bounded_time_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+
+.PHONY: test-deep-quiet-search test-deep-quiet-uci test-bounded-time test-bounded-time-uci test-profile-deep-quiet
+test-deep-quiet-search: $(BUILD)/deep-quiet-search-test$(EXE)
+	"$(BUILD)/deep-quiet-search-test$(EXE)" "$(NET)"
+
+test-deep-quiet-uci: $(ENGINE)
+	$(PYTHON) tests/deep_quiet_uci_test.py "$(ENGINE)" --network "$(NET)"
+
+test-bounded-time: $(BUILD)/bounded-time-test$(EXE)
+	"$(BUILD)/bounded-time-test$(EXE)" "$(NET)"
+
+test-bounded-time-uci: $(ENGINE)
+	$(PYTHON) tests/bounded_time_uci_test.py "$(ENGINE)" --network "$(NET)"
+
+test-profile-deep-quiet:
+	$(PYTHON) tests/profile_deep_quiet_test.py
+
 # Experimental null-search state and lifecycle checks; no strength claims.
 NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/null-state-test$(EXE): tests/null_state_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o

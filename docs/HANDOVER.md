@@ -30,6 +30,19 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4D.6 is active under its [fixed scope](experiments/phase4d6-deep-quiet.md).
+Native/scalar/ASan+UBSan/TSan checks and finite development profiles passed.
+The [report](reports/2026-10-23-phase4d6.md) records exact default search parity,
+small extra-reduction work savings and the bounded-time depth tradeoff.
+The frozen puzzle adapter passed 39 one-second searches per role; the full
+60-second comparison is prepared but has not run. Frozen candidate SHA-256:
+`c1858bb92419e00bbe3846e2daa94dc4260effad6acea705a2455881c920c199`. Keep the
+accepted one-ply LMR default true, the new deep option false and timing classic.
+The full puzzle run needs its own overnight window or owner daytime exception.
+Historical qualification tooling rejects the added Time Policy choice; preserve
+those frozen contracts and use a separately scoped protocol for new qualification.
+
+
 The [October 23 final LMR audit](reports/2026-10-23-lmr-results.md) passed:
 512/512 games, 215W/175D/122L (59.08%), no clock forfeits or audit errors.
 The campaign ended at 02:18 Warsaw; all 1,024 engine processes exited. Raw audit
@@ -39,7 +52,7 @@ The frozen rule returned `eligible_for_default_review`, followed by the separate
 defaults are now true; opt-out and every search rule remain intact. Exact
 parent parity, native/scalar/ASan+UBSan regressions and TSan search/SMP checks
 passed; the default integration is retained. Other experiments remain off.
-Next is one separate 4D.6 candidate, not a bundle of pruning rules. Do not pool historical results,
+The active 4D.6 candidate is separate from this accepted integration. Do not pool historical results,
 retune/retry exposed openings or claim eight-thread strength. The owner's
 puzzle-runner settings are now committed unchanged as `dac8a19`; the README
 introduction and stable GUI snapshots remain protected.

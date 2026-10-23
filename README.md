@@ -146,11 +146,12 @@ an undisclosed evaluator. `isready` prepares a changed network before a timed
 search. When distributing the executable, put the default network beside it or
 set `EvalFile` to its absolute path.
 
-Search reports include standard UCI `hashfull`, so GUIs can display recent hash
+Search reports include standard UCI `hashfull`, so GUIs can display retained hash
 occupancy. Values are in permille: `hashfull 949` means about 94.9%. The engine
-samples up to 1,000 entries saved/refreshed in the current search generation;
-the value may drop at the next search. It is neither a cache hit rate nor a RAM
-usage percentage. `Hash` sets a memory ceiling; bucket sizing can allocate less.
+samples up to 1,000 nonempty entries, including earlier searches. Starting a new
+move does not reset this percentage. Clearing/resizing the table, starting a new
+game, or changing incompatible search policies can reset it. This is neither a
+cache hit rate nor a RAM usage percentage. `Hash` sets a memory ceiling; bucket sizing can allocate less.
 The compact table preserves its established entry capacity: `Hash=64` currently
 uses 32 MiB of entry storage. Network/evaluator and other engine memory are extra.
 
@@ -190,10 +191,19 @@ search so network loading is complete. `Move Overhead` reserves milliseconds
 for response delivery; pondering starts consuming its clock at `ponderhit`.
 
 The development executable also offers `Time Policy` (`classic`, the default,
-or experimental `forecast`) and optional `Search Diagnostics` (default off).
+or experimental `forecast` / `bounded`) and optional `Search Diagnostics` (default off).
 Forecast estimates whether another search iteration will fit the hard deadline;
 it is not yet a demonstrated strength improvement. See
 [the time-management experiment](docs/TIME_MANAGEMENT.md) before enabling it.
+
+For a tighter ordinary clock budget, try `setoption name Time Policy value bounded`.
+It caps each move at twice the nominal soft allocation instead of four times
+(with the existing five-millisecond floor and remaining-clock cap). It keeps the
+same soft target and can abandon an expensive iteration earlier. Explicit
+`movetime`, depth, nodes, mate, infinite and ponder requests keep existing budgets;
+`go movetime 60000` is unaffected. This policy is optional and has not been
+qualified for playing strength. Test its protocol with
+`make test-bounded-time test-bounded-time-uci`.
 
 `Late Move Reductions` defaults to `true`: guarded one-ply reductions with
 ordinary-depth verification of promising probes. Use
@@ -201,6 +211,14 @@ ordinary-depth verification of promising probes. Use
 comparisons. Saved GUI settings can override the new default; select `true` in
 the engine settings when using a rebuilt executable. See
 [selective search](docs/SELECTIVE_SEARCH.md) for safeguards and validation.
+
+`Deep Quiet Reductions` defaults to `false`. With ordinary LMR enabled, it
+experimentally reduces selected late quiet piece moves by two plies and verifies
+promising probes at ordinary depth. Enable it explicitly with
+`setoption name Deep Quiet Reductions value true`; changing it clears incompatible
+search state. It is not yet strength-qualified. `Search Diagnostics=true` adds a
+`deep-lmr v1` record with extra reductions and verification outcomes. Use
+`make test-deep-quiet-search` for state and tactical checks.
 
 `Capture Ordering` defaults to `mvv-lva`; experimental `see` estimates material
 exchanges and searches apparently losing captures later. All captures remain

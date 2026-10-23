@@ -54,6 +54,8 @@ struct SearchLimits {
     bool diagnostics = false;
     /** Conservative one-ply reductions; opt out for controlled comparisons. */
     bool late_move_reductions = true;
+    /** Experimental extra ply for late quiet piece moves; requires ordinary LMR. */
+    bool deep_quiet_reductions = false;
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Experimental quiet reply ordering; changes neither depth nor pruning. */
     bool countermove_ordering = false;
@@ -78,9 +80,9 @@ struct SearchInfo {
     std::int64_t time_ms = 0;
     int score = 0;
     std::vector<Move> pv;
-    /** Occupied entries from this search generation per thousand sampled
-     * entries, using at most the first 1,000 table entries. This is a bounded
-     * activity estimate, not the percentage of requested Hash bytes allocated.
+    /** Nonempty retained entries per thousand sampled entries, using at most
+     * the first 1,000 table entries. Includes older search generations; this
+     * is neither a cache hit rate nor the percentage of Hash bytes allocated.
      */
     int hashfull = 0;
     std::uint64_t tbhits = 0;
@@ -149,6 +151,18 @@ struct SearchDiagnostics {
 struct LateMoveStatistics {
     bool enabled = false;
     std::uint64_t reductions = 0;
+    std::uint64_t researches = 0;
+    std::uint64_t fail_lows = 0;
+    std::uint64_t verified_cutoffs = 0;
+};
+
+/** Extra-ply subset of ordinary LMR, measured only with diagnostics enabled.
+ * Attempts include interrupted work; outcomes require ordinary-depth verification.
+ * The enabled flag reports configuration even when master LMR is disabled.
+ */
+struct DeepLateMoveStatistics {
+    bool enabled = false;
+    std::uint64_t extra_reductions = 0;
     std::uint64_t researches = 0;
     std::uint64_t fail_lows = 0;
     std::uint64_t verified_cutoffs = 0;
@@ -259,6 +273,7 @@ struct SearchResult {
     std::uint64_t tbhits = 0;
     std::optional<SearchDiagnostics> diagnostics;
     LateMoveStatistics lmr;
+    DeepLateMoveStatistics deep_lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
     NullMoveStatistics nullmove;

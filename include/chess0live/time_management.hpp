@@ -13,9 +13,20 @@
 
 namespace chess0live {
 
-enum class TimePolicy { classic, forecast };
+enum class TimePolicy { classic, forecast, bounded };
 
 namespace time_management {
+
+/** Allocate a hard ceiling from an already validated ordinary-clock budget.
+ * The caller supplies finite 0 <= soft_ms <= available_ms and decides whether
+ * bounded timing is eligible. The experimental two-times ceiling changes only
+ * permitted overshoot of the nominal target; classic/forecast retain four.
+ * Keep the existing five-millisecond floor and never spend future increment.
+ */
+[[nodiscard]] inline double clock_hard_limit(double available_ms, double soft_ms,
+                                             bool bounded) noexcept {
+    return std::min(available_ms, std::max(soft_ms + 5.0, soft_ms * (bounded ? 2.0 : 4.0)));
+}
 
 /** Preserve the baseline's root-stability and score-drop allocation signals.
  * Durations are milliseconds. This is a target between completed iterations;

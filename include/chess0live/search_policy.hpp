@@ -121,7 +121,7 @@ constexpr bool probe_null_move(const NullMoveContext& c) {
         && c.pieces > 7 && c.legal_moves >= 2;
 }
 
-/** Inputs to the first, deliberately narrow late-move reduction experiment.
+/** Inputs to the accepted, deliberately narrow late-move reduction policy.
  * searched_moves counts earlier moves already searched at this node. The moved
  * piece and move flags describe the parent position; child_in_check describes
  * the position after making that move. No state is changed by this policy.
@@ -145,7 +145,8 @@ struct LateMoveContext {
  * Checks, special moves, ordering hints, and advanced pawn pushes retain their
  * ordinary depth. A successful reduced scout still requires ordinary-depth
  * verification in the search; a reduced fail-low is a heuristic assumption and
- * can miss a tactic. This policy is experimental and disabled by default.
+ * can miss a tactic. The accepted policy is enabled by default with an explicit
+ * opt-out; the separate deeper-reduction hypothesis below remains opt-in.
  */
 constexpr bool reduce_late_move(const LateMoveContext& context) {
     if (context.depth < 3 || context.ply <= 0 || context.searched_moves < 4
@@ -162,6 +163,23 @@ constexpr bool reduce_late_move(const LateMoveContext& context) {
         if (relative_rank >= 5) return false; // White rank 6+; Black rank 3-.
     }
     return true;
+}
+
+/** Propose one additional ply of reduction for one fixed opt-in hypothesis.
+ * The accepted one-ply predicate remains authoritative and unchanged. Only
+ * ninth-or-later ordinary piece moves at depth five or more can receive the
+ * second ply; every pawn/king move and seven-piece ending keeps its accepted
+ * treatment. The caller still excludes speculative search modes and checking
+ * children and verifies every reduced alpha-raiser at the original depth.
+ * These guards limit exposure; a reduced fail-low is not a tactical proof.
+ */
+constexpr bool deep_quiet_reduction(const LateMoveContext& context, int pieces) {
+    if (!reduce_late_move(context) || context.depth < 5
+        || context.searched_moves < 8 || pieces <= 7)
+        return false;
+    const auto type = type_of(context.moved);
+    return type == PieceType::knight || type == PieceType::bishop
+        || type == PieceType::rook || type == PieceType::queen;
 }
 
 } // namespace chess0live::search_policy

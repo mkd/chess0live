@@ -134,7 +134,7 @@ def diagnostic_perft(engine, depth, total, branches):
 with Engine(Path(sys.argv[1]).resolve()) as engine:
     handshake = engine.handshake()
     assert any(line.startswith("id name chess0live") for line in handshake)
-    assert "option name Time Policy type combo default classic var classic var forecast" in handshake
+    assert "option name Time Policy type combo default classic var classic var forecast var bounded" in handshake
     assert "option name Search Diagnostics type check default false" in handshake
     assert "option name Late Move Reductions type check default true" in handshake
     assert "option name Capture Ordering type combo default mvv-lva var mvv-lva var see" in handshake
