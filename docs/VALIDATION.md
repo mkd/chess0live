@@ -30,10 +30,18 @@ changed its final score/PV; all common-depth scores/PVs matched. See the
 [full account and limits](reports/2026-10-23-phase4d7.md). The one-second puzzle
 smoke passed independent output/corpus/pin audit: 78 legal final moves, all
 39 best moves matching, 14 score differences and no reported mates or errors.
-The owner-authorized full comparison started October 23 at 09:13 Warsaw /
-10:13 Helsinki after commit `21d416f`, independent pin checks and resource
-preflight. Final results and audit remain pending; this run is not a separate
-playing-strength qualification.
+The authorized full attempt after `21d416f` ran October 23 from 09:13 to
+11:20 Warsaw. Both adapters and supervisor exited zero. Independent audit
+verified all 78 legal ordered results, all 39 best moves matching, M7 on position
+2 in both roles, no additional reported mates, 19 score differences and frozen
+source/asset pins. This validates output integrity, **not equal-time tactical
+qualification**: OS logs confirm 13 sleep intervals totaling 52m39s across both
+roles. Wall elapsed 127m18.244s differs from monotonic 75m04.849s by 52m13.395s.
+The final-only runner cannot identify affected positions or certify equal
+actual search opportunity. Preserve raw status and outputs, plus separate
+`puzzles-full-audit.json` and `puzzles-power-events.txt`; no automatic repeat.
+Keep ProbCut off and close this attempt as timing-inconclusive. The earlier
+bounded screen is separate evidence and does not establish playing strength.
 
 ## Phase 4D.6 implementation — October 23, 2026
 

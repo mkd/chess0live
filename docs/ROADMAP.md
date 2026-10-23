@@ -5,7 +5,7 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.7 full puzzle comparison running
+## Current checkpoint: Phase 4D.7 attempt concluded; ProbCut remains off
 
 Phase 4D.7 is an isolated, default-off ProbCut candidate under its
 [fixed scope](experiments/phase4d7-probcut.md). It tests a bounded set of legal
@@ -16,12 +16,15 @@ isolation and native/scalar/sanitizer checks passed. The independently audited
 nodes and 2.98% fewer reused-cache nodes, with matching fixed-depth decisions;
 reused-cache time was slightly worse. One of six timed roots gained a ply.
 The one-second puzzle smoke passed with 78 legal results and unchanged best
-moves. The owner-authorized matched 60-second comparison started October 23
-at 09:13 Warsaw / 10:13 Helsinki: 39 positions per build, one worker, about
-78 minutes. The owner requested progress for each completed position. No
-schedule exists; final results and independent audit are pending.
-No strength/default claim follows from these finite checks. After that audit,
-record a qualification-or-parking decision without tuning the exposed suite.
+moves. The full one-thread attempt finished October 23 at 11:20 Warsaw.
+Independent audit verified 78 legal results, all 39 best moves matching and
+the same M7 on position 2, with 19 score differences and no additional mates.
+OS logs confirm sleep during both roles, mostly the candidate; per-position
+search opportunity cannot be recovered. Equal-time tactical qualification is
+therefore **inconclusive**. Park ProbCut off, preserve the evidence and do not
+automatically repeat or tune the exposed suite. No test or schedule is running.
+Next broader work is **Phase 4E runtime/platform and network tooling**; future
+ProbCut qualification requires a separately prepared sleep-aware protocol.
 
 ## Completed Phase 4D.6 checkpoint
 
@@ -106,8 +109,8 @@ strength-gated pruning experiments. See the
 | 4A | Measure cache effectiveness and memory cost; add UCI hash occupancy | Complete: standard hashfull, checked cache profiler, and compact entries retained; one-third smaller table storage with exact search parity and passing timing guards |
 | 4B | Add configurable Lazy SMP with a safe shared cache and measure scaling | Complete: native/scalar/sanitizer/race checks passed; 72-search screen measured 3.25× throughput and 2.09× faster depth-6 searches with four workers; default stays one worker |
 | 4C | Add optional Syzygy probing with correct draw-rule semantics and missing-table fallback | Complete: pinned Fathom reader, external UCI-configured data, rule/clock/probe checks in four native build modes |
-| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 complete: full puzzle audit passed without additional mates; deeper reductions parked off. Current: 4D.7 ProbCut implemented and bounded checks passed; full puzzles running under a one-run daytime exception, default off |
-| 4E | Broaden runtime support and add reproducible network tooling | Retained after the first bounded search-efficiency checkpoint |
+| 4D | Reduce search work while retaining or improving equal-time playing strength | 4D.1 countermove parked; historical 4D.2 failed its clock gate; 4D.3 null, 4D.4 reverse futility and 4D.5 quiescence SEE remain opt-in. Fresh 512-game LMR qualification passed at 59.08% with no forfeits. Default integration passed and conservative LMR is enabled. 4D.6 complete: full puzzle audit passed without additional mates; deeper reductions parked off. 4D.7 bounded checks passed; full attempt completed with unchanged moves/mate reports, but host sleep makes timing qualification inconclusive. ProbCut parked off; next broader work 4E |
+| 4E | Broaden runtime support and add reproducible network tooling | Next broader work area after the concluded 4D.7 attempt; qualification of parked pruning remains separate |
 
 For 2B, the first soft-target gate stopped too early in development profiles
 and was rejected. Its narrower replacement forecasts against the hard deadline
@@ -437,7 +440,7 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 complete and parked off. Current: isolated 4D.7 ProbCut implementation and finite validation, then a recorded qualification/parking decision |
+| 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
 
 Freeze qualification binaries separately so later engine development cannot

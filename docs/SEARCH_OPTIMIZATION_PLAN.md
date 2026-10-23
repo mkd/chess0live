@@ -52,10 +52,13 @@ is now implemented and has passed correctness, native/scalar/sanitizer checks
 and an independently audited finite development screen. Its
 [report](reports/2026-10-23-phase4d7.md) records fresh-cache savings, a weaker
 reused-cache result and one extra completed timed ply. ProbCut remains off;
-the full matched puzzle comparison started October 23 at 09:13 Warsaw under
-a one-run owner-authorized daytime exception. A subsequent
-qualification-or-parking decision must not become repeated tuning of this
-exposed suite. Delta pruning remains separate and unimplemented.
+the full attempt finished October 23 at 11:20 Warsaw with 78 legal results,
+matching best moves and M7 reports, and 19 score differences. Confirmed host
+sleep leaves equal-time tactical qualification inconclusive. Close this finite
+attempt with ProbCut parked off and no automatic repeat. Broader Phase 4E work
+can proceed independently; any later qualification needs a separately prepared
+sleep-aware protocol, not repeated tuning of this exposed suite. Delta pruning
+remains separate and unimplemented.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and
@@ -110,7 +113,7 @@ phases tuning a single unsuccessful heuristic.
 | 4D.4 | Conservative reverse futility | Separate shallow interior non-PV candidate, disabled in check and near mate/tablebase score bands. Freeze depth-dependent margins before testing; keep checks, tactical exceptions, and draw handling explicit. |
 | 4D.5 | Quiescence work reduction | Test SEE-based capture pruning and delta pruning separately. Preserve all check evasions, promotions, mate/stalemate handling, and designated tactical exceptions. Static material estimates do not justify silently dropping a forced line. |
 | 4D.6 | Late quiet-move pruning or broader reductions | After the qualified conservative LMR integration, consider one separate higher-risk reduction hypothesis against LMR-on, with dedicated late quiet tactics, pawn breakthroughs, and zugzwang tests. Do not broaden an unsuccessful candidate repeatedly or alter the qualified baseline. |
-| 4D.7 | ProbCut | Implemented, default off: bounded reduced-depth tactical probes at an elevated threshold, with frozen margins and check, mate/tablebase and draw exclusions. Sacrificed-material and quiet-defense regressions passed; full matched puzzles are running. A successful reduced probe is heuristic evidence, not proof of a full-depth bound. Any promotion requires an isolated strength comparison. |
+| 4D.7 | ProbCut | Implemented, default off: bounded reduced-depth tactical probes at an elevated threshold, with frozen margins and check, mate/tablebase and draw exclusions. Sacrificed-material and quiet-defense regressions passed; full attempt completed, but host sleep makes equal-time tactical qualification inconclusive. A successful reduced probe is heuristic evidence, not proof of a full-depth bound. Any promotion requires an isolated strength comparison. |
 
 The owner supplied Gargantua's optimization list during 4D.1. Treat it as a list
 of techniques to consider, not source or assets to copy. After this single

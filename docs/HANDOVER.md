@@ -48,13 +48,21 @@ instrumented measurements, not strength qualification. See the
 `results/phase4d7-20261023/`; frozen inputs under
 `build/experiments/phase4d7-20261023/`. The one-second puzzle smoke passed
 independent audit: 78 legal results, matching best moves, 14 score differences
-and no reported mates. After `21d416f`, the owner authorized this one daytime
-full puzzle comparison; it started October 23 at 09:13 Warsaw / 10:13 Helsinki.
-One worker runs 39 positions per build at 60 seconds each. Read
-`puzzles-full-status.json` and the parent/on output files in the results folder
-for current progress; supervisor tool session 66275, launch PID 79986. The
-owner requested updates per completed position. Final results/audit are
-pending; no repeat or schedule is authorized.
+and no reported mates. The authorized full attempt after `21d416f` finished
+October 23 at 11:20:28 Warsaw / 12:20:28 Helsinki; both adapters and supervisor
+exited zero. Audit verified 78 legal results, all 39 best moves matching, M7 on
+position 2 in both roles, no additional mates and 19 score differences. OS logs
+confirm 13 sleep intervals: 59 seconds during parent, 3,100 during candidate.
+Wall duration 127m18.244s differs from monotonic 75m04.849s; per-position search
+opportunity cannot be recovered. **Equal-time tactical qualification is
+inconclusive**, not passed. Preserve original outputs/status and the separate
+`puzzles-full-audit.json` / `puzzles-power-events.txt` under the results folder.
+The launch record is `0f741fa`; tool session 66275 has finished. No test, repeat
+or schedule is running/authorized. Close this attempt with ProbCut parked off;
+next broader work is Phase 4E. Any future qualification needs a separately
+prepared sleep-aware launcher and new authorization, without tuning this suite.
+The owner reports ten-thread Sic/Gargantua M7/M8/M9 solutions; this one-thread
+run cannot establish a comparison with those manually observed results.
 Keep conservative LMR enabled, all other experimental pruning disabled, timing
 classic and the protected GUI bundles intact. Do not overwrite the owner's
 editable batch settings. This phase has no strength-qualified result yet.
