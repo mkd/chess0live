@@ -92,9 +92,28 @@ std::string join(const std::vector<std::string>& tokens, std::size_t first, std:
  */
 class Controller {
 public:
-    explicit Controller(const std::filesystem::path& executable)
+    explicit Controller(const std::filesystem::path& executable,
+                        const std::optional<std::filesystem::path>& initial_network = std::nullopt)
         : executable_dir_(executable_directory(executable)),
-          position_(Position::start()), history_{position_.key()}, search_(network_) {}
+          position_(Position::start()), history_{position_.key()}, search_(network_) {
+        if (initial_network) {
+            // An explicit launch choice must load that exact file. Resolve it
+            // before UCI begins, without the default basename search/fallback.
+            const auto path = std::filesystem::absolute(*initial_network).lexically_normal();
+            launch_eval_file_ = path.string();
+            if (std::any_of(launch_eval_file_.begin(), launch_eval_file_.end(), [](unsigned char c) {
+                    return c < 32 || c == 127;
+                }))
+                throw std::invalid_argument("--eval-file path contains a UCI control character");
+            if (!std::filesystem::is_regular_file(path))
+                throw std::runtime_error("--eval-file is not a regular file: " + launch_eval_file_);
+            std::string error;
+            if (!network_.load(path, error))
+                throw std::runtime_error("--eval-file rejected network " + launch_eval_file_ + ": " + error);
+            eval_file_ = launch_eval_file_;
+            network_dirty_ = false;
+        }
+    }
     ~Controller() { stop(); }
 
     void run() {
@@ -168,6 +187,8 @@ private:
     std::vector<std::uint64_t> history_;
     nnue::Network network_;
     Search search_;
+    // Keep the launch default distinct from later explicit UCI overrides.
+    std::string launch_eval_file_ = default_network;
     std::string eval_file_ = default_network;
     bool network_dirty_ = true;
     int overhead_ms_ = 20;
@@ -247,7 +268,7 @@ private:
         output("option name Hash type spin default 64 min 1 max 16384");
         output("option name Clear Hash type button");
         output("option name Threads type spin default 1 min 1 max " + std::to_string(Search::max_threads));
-        output(std::string("option name EvalFile type string default ") + default_network);
+        output(std::string("option name EvalFile type string default ") + launch_eval_file_);
         output("option name SyzygyPath type string default <empty>");
         output("option name SyzygyProbeLimit type spin default 7 min 0 max 7");
         output("option name SyzygyProbeDepth type spin default 1 min 1 max 128");
@@ -911,16 +932,29 @@ private:
 } // namespace chess0live
 
 int main(int argc, char** argv) {
-    if (argc > 1 && std::string_view(argv[1]) == "--version") {
+    if (argc == 2 && std::string_view(argv[1]) == "--version") {
         std::cout << "chess0live 0.1-dev\n"; return 0;
     }
-    if (argc > 1) {
-        std::cout << "chess0live is a UCI engine. Run without arguments.\n"
+    if (argc == 2 && std::string_view(argv[1]) == "--help") {
+        std::cout << "chess0live is a UCI engine.\n"
+                     "Usage: chess0live [--eval-file PATH]\n"
+                     "       chess0live --help | --version\n"
+                     "--eval-file loads exactly PATH and advertises it as the UCI launch default.\n"
+                     "A later setoption name EvalFile value PATH explicitly overrides that choice.\n"
                      "Diagnostics on stdin: help, d/show/display, flip, eval, go perft N, perft N, divide N.\n";
-        return std::string_view(argv[1]) == "--help" ? 0 : 2;
+        return 0;
+    }
+    std::optional<std::filesystem::path> initial_network;
+    if (argc != 1) {
+        if (argc != 3 || std::string_view(argv[1]) != "--eval-file"
+            || std::string_view(argv[2]).empty() || std::string_view(argv[2]).starts_with("--")) {
+            std::cerr << "chess0live: expected no arguments, --eval-file PATH, --help or --version\n";
+            return 2;
+        }
+        initial_network = argv[2];
     }
     try {
-        chess0live::Controller controller(argv[0]);
+        chess0live::Controller controller(argv[0], initial_network);
         controller.run();
     } catch (const std::exception& error) {
         std::cerr << "chess0live: " << error.what() << '\n'; return 1;

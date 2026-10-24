@@ -122,3 +122,13 @@ Those tools need no third-party Python packages. The separate
 fine-tunes SFNNv16 weights, exports and qualifies them. Its initial runtime is
 macOS ARM64 CPU; unsupported training hosts fail explicitly before downloads.
 Managed network selection and further training hosts/GPU execution remain open.
+
+## Managed evaluation network choice
+
+`tools/managed_network.py` provides local registration, selection, rollback and
+launching using only Python's standard library. `make network-status` and
+`make network-run` expose the current choice. Registration automatically invokes
+the full network qualification workflow; it needs the native compiler/Git/Make
+prerequisites described in [managed selection](NETWORKS.md#managed-selection).
+The catalog stays outside Git, and neither inspection nor registration changes
+GUI settings or the original default network.

@@ -141,9 +141,10 @@ setoption name EvalFile value /absolute/path/to/candidate.nnue
 isready
 ```
 
-The tooling never changes that setting for you. Managed network selection,
-held-out data validation, trainer tuning, full optimizer resume and competitive
-training remain subsequent work.
+Training never changes that setting for you. The [managed selection workflow](NETWORKS.md#managed-selection)
+can register an export with its `network.metadata.json`, check it again and keep
+a reversible choice. Held-out data validation, trainer tuning, full optimizer
+resume and competitive training remain subsequent work.
 
 ## Cache and offline use
 

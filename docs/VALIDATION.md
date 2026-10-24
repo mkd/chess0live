@@ -1,5 +1,22 @@
 # Validation and experiment protocol
 
+## Phase 4E.7 managed network selection — October 24, 2026
+
+The [report](reports/2026-10-24-phase4e7.md) records a fresh 2,057-position
+native/scalar/reference qualification of a copied synthetic training export,
+retained evidence verification, and managed/direct UCI launch parity plus
+selection/revert/default checks. Catalog/evidence/CLI tests cover atomic failure,
+concurrent writers, stale sources, modified/truncated records, missing state,
+unsafe paths and explicit GUI overrides. The existing UCI suite also passed.
+
+The engine change is limited to explicit initial file selection and its
+advertised default. Normal no-argument defaults and search/evaluation code are
+unchanged. Native macOS ARM64 is the real execution scope; no foreign launch,
+match/puzzle, strength or new release claim follows. Existing engine binaries,
+owner batch settings/FENs, README intro and frozen GUI bundles are preserved.
+Evidence is in `results/phase4e7-20261024/`; see the report for exact test counts
+and limitations. The managed test catalog is isolated from user selection.
+
 ## Phase 4E.6 training/export tooling — October 24, 2026
 
 The [training report](reports/2026-10-24-phase4e6.md) records real automatic

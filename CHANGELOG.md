@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added reversible local network selection, retained compatibility/provenance
+  records, and one-command managed launching. The engine accepts `--eval-file`
+  and advertises the chosen launch default to GUIs. Failed checks preserve the
+  previous selection; ordinary launches keep their pinned default.
+
 - Added local CPU network training, fine-tuning and export on macOS ARM64,
   with automatic isolated Python/package setup, pinned trainer source, saved
   recipes and automatic export compatibility checks. Reports distinguish actual

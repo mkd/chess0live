@@ -115,8 +115,8 @@ counts are currently unknown in this project's provenance record.
 
 The [local training workflow](TRAINING.md) now creates or fine-tunes compatible
 weights and automatically qualifies its exports on the supported CPU host.
-Managed network selection remains subsequent work. For an already qualified
-compatible file, use the existing UCI option while idle:
+Use the managed workflow below to keep copies, evidence and a reversible
+selection. Alternatively, use the existing UCI option while idle:
 
 ```text
 setoption name EvalFile value /absolute/path/to/candidate.nnue
@@ -128,10 +128,107 @@ option or silently replace the default file. Keep network payloads and generated
 result directories outside Git; small provenance records may be versioned when
 their licensing and data-sharing terms permit it.
 
+## Managed selection
+
+The catalog is local to this checkout and affects only explicit managed
+launches. It never changes the pinned file, normal engine default, your GUI
+settings or frozen test bundles. No Python packages are required.
+
+```sh
+python3 tools/managed_network.py add my-network /path/to/candidate.nnue \
+  --metadata /path/to/network.metadata.json
+python3 tools/managed_network.py select my-network
+make network-status
+make network-run
+```
+
+Metadata is optional; omit the flag when unknown. Names use 1–64 lowercase
+letters, digits, underscores or hyphens; `default` is reserved. `add` always
+copies the network and runs a **new full qualification** before publishing the
+name. Even a previously trained/qualified export is rechecked. Duplicate names
+are refused. Registration does not select the new entry or modify its original
+file. It saves the copied metadata, complete oracle evidence and integrity
+records under `.local/networks/managed/`, outside Git. Allow several hundred MB
+per registered entry for payload, source/build and comparison evidence.
+
+A known network can be selected without a compiler or Internet access. `add`
+uses the same compiler/Git/Make prerequisites as `qualify` and accepts
+`--compiler PATH`, `--reference-dir PATH`, `--jobs 1|2` and `--offline`. Missing
+cached reference sources fail explicitly offline. No long training or match
+runs are started by selection.
+
+```sh
+make network-list
+make network-revert
+make network-default
+```
+
+`revert` swaps the active and previous choices, including the original default.
+Selecting the current choice again leaves rollback history intact. A failed
+registration, selection or rollback leaves the previous choice in place.
+If a selected file/evidence record is changed or missing, managed launches
+**refuse to start**; they do not silently substitute another network. To recover,
+select `default` (run `make net` if its file is missing) or register the source
+file under a fresh name. If evaluation/qualification sources changed since a
+registration, `status` labels its evidence `stale`; register a fresh check under
+a new name before using it. This conservatively includes evaluator headers and
+test adapters. An old receipt is not proof about a changed evaluator.
+
+The catalog uses a file lock and atomic state replacement for concurrent writers.
+Interrupted registrations retain an unregistered directory for diagnostics;
+they never publish a partial choice. Records detect accidental modification,
+not a malicious party rewriting all local files. Full arithmetic agreement
+still does not authenticate training history or establish stronger play. The
+built-in `default` is identified by its project-manifest hash, with that scope
+explicitly shown; selecting it does not claim a new oracle run.
+
+### Console and Cute Chess
+
+`make network-run` builds the ordinary native engine if necessary and launches
+it with the selected file. To choose another compatible build explicitly:
+
+```sh
+python3 tools/managed_network.py run --engine /path/to/chess0live
+python3 tools/managed_network.py config --engine /path/to/chess0live
+```
+
+`run` hands the terminal/protocol pipes directly to the engine, without a UCI
+proxy. `config` prints the executable identity, literal argument list, absolute
+network path and exact `setoption name EvalFile value ...` command. For Cute Chess,
+keep the executable as Command and add `--eval-file` plus the selected path in
+its arguments, or paste the path into its saved `EvalFile` option. The engine
+advertises the launch path as its UCI default. **A saved GUI EvalFile is an
+explicit override**: update it to match the selected path. Changing the catalog
+does not alter an already running engine or a GUI's saved configuration.
+
+You can also launch the engine directly:
+
+```sh
+/path/to/chess0live --eval-file /absolute/path/to/candidate.nnue
+```
+
+This loads exactly that file before accepting UCI commands; missing/corrupt
+files fail with a nonzero exit. Paths with spaces must be quoted in a shell.
+Direct launching checks decoding only; use registration for independent
+arithmetic qualification. The supplied executable is fingerprinted, not proven
+to come from the qualified checkout; use a current chess0live build. Later UCI `setoption` changes remain supported. Builds
+before this launch option was added reject the argument; rebuild first.
+
+`--store PATH` before the subcommand selects another catalog, useful for testing
+or keeping it outside a cloud-sync directory. Each catalog is local to one
+machine/checkout: its retained evidence contains absolute paths. Do not move or
+edit the store; register again at the new location. Read-only status/list queries
+do not create a store. Do not use the same catalog concurrently across machines.
+On Windows use `py -3` instead of `python3`. The code uses standard-library
+portable locking/argv interfaces; this checkpoint's real managed-launch evidence
+is macOS ARM64. Native Windows and Linux managed-launch execution remain separate
+acceptance work.
+
 ## Tool tests and implementation
 
 ```sh
 make test-network-tools
+make test-managed-networks
 ```
 
 The Python checks cover malformed headers, schema/digest binding, unknown counts,

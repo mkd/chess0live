@@ -28,7 +28,44 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint
+## Current checkpoint: Phase 4E.7
+
+Read [managed selection](NETWORKS.md#managed-selection) and the
+[report](reports/2026-10-24-phase4e7.md). `tools/managed_network.py` owns the
+external ignored catalog; the engine never reads it. Registration copies the
+network and optional metadata, runs a fresh full qualification, rechecks retained
+evidence through `network_receipt.py`, then atomically publishes an alias.
+Names are immutable; a new name triggers a new check after evaluator changes.
+State changes serialize under a file lock. Select/revert validate first; repeating
+a selection preserves rollback. Default means the untouched manifest-pinned file.
+
+Every managed launch verifies payload, metadata, reports, 2,057 corpus/output
+records, binaries/reference sources and current evaluator/tooling pins. These
+are local integrity records, not signed attestations or proof of training claims.
+Keep the whole store at its original path; reports use absolute paths. Missing
+catalog/evidence in an initialized store must fail, never silently choose default.
+Failures before alias publication retain an unregistered directory for diagnostics.
+
+`--eval-file PATH` loads exactly that file before UCI and advertises its absolute
+path as the launch default; invalid files exit1, malformed arguments exit2.
+Later `setoption EvalFile` remains explicit override. GUI saved values can thus
+override the launch argument: use `config --engine PATH` to obtain both argv
+and the EvalFile path. `run` inherits stdio directly, no proxy. Ordinary engine
+launches and existing GUI bundles retain their former defaults.
+
+Real native macOS registration/launch/rollback, complete oracle comparison,
+Python catalog/evidence checks, CLI cases and existing UCI regressions passed.
+Evidence is `results/phase4e7-20261024/`; tests use an isolated catalog there,
+not the user's `.local/networks/managed`. Synthetic weights are test data only.
+Normal binaries, owner batch inputs, exact README intro and GUI snapshot
+`0.1-dev-4b8b35d` are preserved. New main.cpp is built separately for validation.
+No long campaign, training run, strength promotion or foreign execution occurred.
+
+Next is **Phase 4F.1: a compact search baseline and the next isolated
+strength-gated candidate**. The first local network workflow is usable; broader
+training hosts/GPU and remaining platform/release work stay open in ROADMAP.
+
+## Previous checkpoint: Phase 4E.6
 
 Phase 4E.6 adds `tools/train.py`, `training_setup.py`, `training_backend.py`,
 trainer/runtime manifests and Make plan/setup/smoke/test targets. Read

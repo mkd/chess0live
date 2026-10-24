@@ -5,7 +5,36 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.6 local network training and export
+## Current checkpoint: Phase 4E.7 managed network selection
+
+[Managed selection](NETWORKS.md#managed-selection) now registers copied NNUE
+files only after a fresh full oracle comparison, retains declared provenance and
+complete evidence, and provides atomic select/revert/default commands. Read-only
+inspection distinguishes ready, stale and unavailable entries. Changed or missing
+files/evidence refuse managed launch; evaluation/source changes require a fresh
+registration. The external catalog lives outside Git and never changes the pinned
+network or GUI settings. A small `--eval-file PATH` engine launch option loads
+exactly the requested file and advertises it to UCI clients; saved GUI options
+remain explicit overrides.
+
+The native macOS workflow registered the synthetic training export, passed all
+2,057 exact evaluation comparisons, and checked managed/direct launching and
+rollback with bounded UCI searches. Tool, evidence and CLI checks passed; details
+are in the [report](reports/2026-10-24-phase4e7.md). Normal gameplay defaults,
+owner batch settings and stable GUI `0.1-dev-4b8b35d` are preserved. This is
+configuration/tooling acceptance, not a trained-network or strength promotion.
+Other host managed-launch execution remains unverified.
+
+This completes the first local inspect/train/export/select workflow. Next is
+**Phase 4F.1: return to strength-focused search development**: establish a compact,
+reproducible current-search baseline and choose the next isolated optimization
+under the existing strength gates. Do not launch long campaigns automatically
+or treat deeper search/fewer nodes as an Elo gain. Training on other hosts/GPU,
+held-out data validation, native Windows acceptance, further Linux provisioning
+and release acceptance remain explicit follow-ups rather than blocking all
+search work. No v0.1 release or rating is claimed.
+
+## Previous checkpoint: Phase 4E.6 local network training and export
 
 The [training workflow](TRAINING.md) now prepares a pinned isolated runtime,
 creates digest-bound recipes, trains or fine-tunes SFNNv16 weights on CPU,
@@ -600,7 +629,8 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | 4E.6 complete: automatic build/tool setup, network inspection/qualification, native CPU training/fine-tuning/export; all six engine targets have prior build evidence | 4E.7: managed network selection; training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning stay open |
+| 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
+| 4F: strength-focused search development | Existing independent search, optional pruning experiments and qualified conservative LMR | 4F.1: compact current baseline and an isolated next candidate, with correctness and strength gates |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

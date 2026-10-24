@@ -189,6 +189,27 @@ test-network-tools:
 	$(PYTHON) tests/network_tool_test.py
 	$(PYTHON) tests/verify_nnue_candidate_test.py
 
+.PHONY: network-status network-list network-default network-revert network-run test-managed-networks
+network-status:
+	$(PYTHON) tools/managed_network.py status
+
+network-list:
+	$(PYTHON) tools/managed_network.py list
+
+network-default:
+	$(PYTHON) tools/managed_network.py select default
+
+network-revert:
+	$(PYTHON) tools/managed_network.py revert
+
+network-run: $(ENGINE)
+	$(PYTHON) tools/managed_network.py run --engine "$(ENGINE)"
+
+test-managed-networks: $(ENGINE)
+	$(PYTHON) tests/managed_network_test.py
+	$(PYTHON) tests/network_receipt_test.py
+	$(PYTHON) tests/eval_file_cli_test.py "$(ENGINE)" --network "$(NET)"
+
 .PHONY: training-plan training-setup training-smoke test-training
 training-plan:
 	$(PYTHON) tools/train.py plan
@@ -477,6 +498,12 @@ help:
 	@echo 'make network-inspect   Identify the default network and known provenance'
 	@echo 'make network-qualify   Compare its arithmetic with the pinned SF19 oracle'
 	@echo 'make test-network-tools Check network inspection and qualification tooling'
+	@echo 'make network-status   Inspect the managed network selection and provenance'
+	@echo 'make network-list     List registered networks and verification status'
+	@echo 'make network-run      Launch this build with the managed network selection'
+	@echo 'make network-default  Select the original pinned network for managed launches'
+	@echo 'make network-revert   Restore the previous managed network selection'
+	@echo 'make test-managed-networks Check catalog integrity and explicit engine selection'
 	@echo 'make training-plan    Show local training requirements without setup'
 	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
 	@echo 'make test-training    Check training setup, recipes and provenance tooling'

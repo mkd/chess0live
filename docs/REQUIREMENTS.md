@@ -120,4 +120,5 @@ where known, positions, processed samples, training steps/epochs and parent
 checkpoint lineage. Unknown counts remain unknown; repeated training examples
 must not be advertised as additional unique games or playing strength. Preserve
 format/architecture versioning and verify exported arithmetic and compatibility.
-This is future tooling work, not a claim that custom-network training exists now.
+Current implementation and host coverage are recorded in ROADMAP and VALIDATION;
+these requirements do not imply that every training/runtime route is qualified.

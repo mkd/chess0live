@@ -157,6 +157,23 @@ playing strength, and unknown training counts stay unknown. See the
 [network guide](docs/NETWORKS.md) for provenance templates, offline use,
 compiler selection and how to choose a qualified file through `EvalFile`.
 
+### Select and switch networks
+
+```sh
+python3 tools/managed_network.py add my-network /path/to/candidate.nnue
+python3 tools/managed_network.py select my-network
+make network-run
+make network-revert
+```
+
+Registration copies the file and performs a fresh compatibility check. Add
+`--metadata /path/to/network.metadata.json` to retain declared training history.
+`make network-status` shows the active choice; `make network-default` restores
+the pinned network for managed launches. The engine also accepts
+`--eval-file /absolute/path/to/network.nnue`. Ordinary launches keep their
+original default. See [managed selection](docs/NETWORKS.md#managed-selection)
+for Cute Chess configuration, rollback and verification recovery.
+
 ### Train and export a network
 
 ```sh
