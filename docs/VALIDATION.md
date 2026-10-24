@@ -1,5 +1,33 @@
 # Validation and experiment protocol
 
+## Phase 4E.2 target coverage — October 24, 2026
+
+The [target coverage report](reports/2026-10-24-phase4e2.md) adds Linux RISC-V64
+execution under QEMU 10.0.13 and Windows x86-64 execution through Wine 10 on
+Docker's emulated x86-64 Linux. Each passed all eight portable runtime checks,
+including 537 NNUE incremental/full-refresh positions, twelve pinned raw/wrapped
+goldens, 360 update transitions, 1,515 dense cases / 84,126 repeated comparisons,
+search/policy/time checks and actual two-worker UCI activity. Each additionally
+passed 140 exact Syzygy WDL oracle cases and six search scenarios at Threads 1
+and 4. The 72-file table corpus was verified and remains external to Git.
+
+RISC-V uses Debian GCC 14.2.0 in C++26 mode, RV64GC/LP64D, without extra atomic
+link libraries. Windows ARM64 engine and seven tests compiled/linked with the
+verified LLVM-MinGW 20261020 archive / Clang 23.1.4. PE headers and imports were
+inspected. Its Wine ARM64 environment did not finish bootstrap: 90-second
+position probe, 30-second loader diagnostic and 45-second fresh-prefix/headless
+probe all timed out before a test completion marker. Preserve that failed
+environment evidence; Windows ARM64 remains build-only. No native Windows
+execution, GUI behavior, CPU speed, strength or new release is established.
+
+The verifier's new `compatibility` label requires a Windows target and explicit
+runner, preserving native/VM host matching and all existing binary/network
+checks. Thirty-four verifier and two Make tests passed. Engine/Fathom sources,
+network, README introduction, native engine and 62 protected assets remain
+unchanged. No full SF19 stage oracle, sanitizer/race suite or puzzle/strength
+campaign was rerun for this tooling-only checkpoint. Logs, configuration,
+package/asset pins and reports are under `results/phase4e2-20261024/`.
+
 ## Phase 4E.1 runtime verification — October 24, 2026
 
 The [portable runtime checkpoint](reports/2026-10-24-phase4e1.md) passed 28

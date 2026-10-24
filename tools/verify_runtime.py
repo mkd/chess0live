@@ -6,8 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 
 This verifies the supplied binaries, not an entire platform or release. A build
 stamp describes compiler configuration; it does not prove a source revision.
-VM/emulator labels are operator declarations, never inferred from a successful
-build. Runners must execute synchronously and preserve arguments and exit codes.
+VM/emulator/compatibility labels are operator declarations, never inferred from
+a successful build. Compatibility-layer checks are not native Windows tests.
+Runners must execute synchronously and preserve arguments and exit codes.
 """
 import argparse
 from datetime import datetime, timezone
@@ -29,6 +30,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ("macos-arm64", "linux-x86_64", "linux-arm64", "linux-riscv64",
            "windows-x86_64", "windows-arm64")
+EXECUTIONS = ("native", "VM", "emulator", "compatibility")
 CHECKS = (
     ("position-test", "position tests passed:"),
     ("nnue-test", "PASS NNUE parser,"),
@@ -120,9 +122,9 @@ def runner_arguments(value, execution):
     prefix = json.loads(value) if value is not None else []
     if not isinstance(prefix, list) or not all(clean_text(item) for item in prefix):
         raise ValueError("runner-json must be an array of nonempty argument strings")
-    if execution == "emulator" and not prefix:
-        raise ValueError("emulator execution requires a nonempty --runner-json argv prefix")
-    if execution != "emulator" and prefix:
+    if execution in ("emulator", "compatibility") and not prefix:
+        raise ValueError(f"{execution} execution requires a nonempty --runner-json argv prefix")
+    if execution in ("native", "VM") and prefix:
         raise ValueError("native/VM checks must run inside that host without a runner prefix")
     return prefix
 
@@ -312,10 +314,12 @@ def verify(args):
 
     try:
         save()
-        if args.target not in TARGETS or args.execution not in ("native", "VM", "emulator"):
+        if args.target not in TARGETS or args.execution not in EXECUTIONS:
             raise ValueError("unsupported target or execution mode")
         positive_timeout(args.timeout)
-        if args.execution != "emulator" and report["host"]["target"] != args.target:
+        if args.execution == "compatibility" and not args.target.startswith("windows-"):
+            raise ValueError("compatibility execution currently supports Windows targets only")
+        if args.execution in ("native", "VM") and report["host"]["target"] != args.target:
             raise ValueError("native/VM target does not match this host OS and architecture")
         prefix = runner_arguments(args.runner_json, args.execution)
         if not all(clean_text(str(path)) for path in (build, network)):
@@ -389,8 +393,8 @@ def main(argv=None):
     parser.add_argument("--build", required=True, help="directory containing engine, seven tests and toolchain.ok")
     parser.add_argument("--target", choices=TARGETS, required=True)
     parser.add_argument("--network", required=True)
-    parser.add_argument("--execution", choices=("native", "VM", "emulator"), required=True)
-    parser.add_argument("--runner-json", help="emulator argv prefix as a JSON array; never a shell command")
+    parser.add_argument("--execution", choices=EXECUTIONS, required=True)
+    parser.add_argument("--runner-json", help="emulator/compatibility argv prefix as a JSON array; never a shell command")
     parser.add_argument("--output", help="new evidence directory; must not already exist")
     parser.add_argument("--timeout", type=positive_timeout, default=180.0,
                         help="maximum seconds per standalone check / entire UCI session (default: 180)")

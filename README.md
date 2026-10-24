@@ -415,6 +415,9 @@ portable default; `CPU=native` is for the current machine only. macOS ARM64 buil
 require a supported macOS host and Apple SDK. Windows builds statically link the
 compiler runtimes. [Portability](docs/PORTABILITY.md) records tested versus
 intended targets and host restrictions; producing a binary is not runtime testing.
+It also documents the verified RISC-V cross-toolchain/QEMU route and the pinned
+macOS LLVM-MinGW package for Windows ARM64. Automatic dependency/toolchain
+setup and custom-network training remain planned work.
 
 ### Verify a target runtime
 
@@ -431,7 +434,7 @@ NNUE arithmetic and incremental state, search, time policies, and a two-thread
 UCI session. Each run writes a new JSON report and individual logs. A failed,
 skipped, or timed-out check prevents a passing report.
 
-Use the explicit VM/emulator options and prerequisites in
+Use the explicit VM/emulator/Windows compatibility-layer options and prerequisites in
 [Portability](docs/PORTABILITY.md#run-the-portable-checks). These correctness
 checks do not measure playing strength or certify every platform capability.
 

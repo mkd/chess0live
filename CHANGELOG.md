@@ -7,6 +7,13 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added and documented working C++26 build routes for Linux RISC-V64 and
+  Windows ARM64. RISC-V passed runtime/Syzygy checks under QEMU; Windows
+  ARM64 remains build-only pending a working runtime.
+- Added an explicit Windows compatibility-layer validation mode. Windows
+  x86-64 passed the runtime and Syzygy checks through Wine; this is separate
+  from native Windows validation.
+
 - Added portable runtime verification with saved reports, target/network checks,
   NNUE correctness and a two-thread UCI lifecycle. Current builds passed on
   macOS ARM64, Linux ARM64 in a VM, and emulated Linux x86-64; the Linux builds

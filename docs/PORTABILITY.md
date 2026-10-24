@@ -8,8 +8,9 @@ facilities before relying on a different toolchain or standard library.
 
 ## Current evidence — October 24, 2026
 
-The [Phase 4E.1 report](reports/2026-10-24-phase4e1.md) refreshes the current
-engine and adds foreign execution. These labels cover the bounded checks in
+The [Phase 4E.1 report](reports/2026-10-24-phase4e1.md) and
+[Phase 4E.2 follow-up](reports/2026-10-24-phase4e2.md) record current builds and
+foreign execution. These labels cover the bounded checks in
 that report, not an entire platform's release acceptance.
 
 | Target | Compiler used | Current evidence |
@@ -17,9 +18,9 @@ that report, not an entire platform's release acceptance.
 | macOS ARM64 | Apple Clang 21.0.0 | `native-tested`: eight portable runtime checks |
 | Linux ARM64 | GCC 15.2.0 cross-compiler | `VM-tested`: eight checks in ARM64 Docker Linux VM; separate Syzygy suites passed |
 | Linux x86-64 | GCC 15.2.0 cross-compiler | `emulator-tested`: eight checks through Docker x86-64 emulation on ARM64; separate Syzygy suites passed |
-| Windows x86-64 | MinGW GCC 16.2.0 | `cross-build-only`: current engine and seven test binaries linked; PE imports inspected |
-| Linux RISC-V64 | None configured locally | `unavailable`: not built or run |
-| Windows ARM64 | None configured locally | `unavailable`: not built or run |
+| Windows x86-64 | MinGW GCC 16.2.0 | `compatibility-tested`: eight checks and separate Syzygy suites through Wine 10 in emulated x86-64 Linux; no native Windows execution |
+| Linux RISC-V64 | Debian GCC 14.2.0 cross-compiler | `emulator-tested`: eight checks through QEMU 10.0.13; separate Syzygy suites passed |
+| Windows ARM64 | LLVM-MinGW 20261020 / Clang 23.1.4 | `cross-build-only`: engine and seven tests linked; Wine ARM64 could not complete bootstrap |
 
 Linux execution used Docker Engine 29.8.2 / LinuxKit 7.0.14, a pinned
 `python:3.13-slim-trixie` image, Python 3.13.17 and Debian glibc 2.41. Each test
@@ -46,7 +47,7 @@ foreign executables was run**, either natively or under emulation.
 
 The inventory does not establish the ThinkPad's installed OS. The existence of
 a compiler or a successful cross-build does not establish runtime correctness.
-Use `native-tested`, `VM-tested`, `emulator-tested`, `cross-build-only`, or
+Use `native-tested`, `VM-tested`, `emulator-tested`, `compatibility-tested`, `cross-build-only`, or
 `unavailable` evidence labels with exact versions and commands.
 
 On October 14, the Phase 2 diagnostics and hard-deadline forecast revision
@@ -109,14 +110,87 @@ Cross-compilation requires target headers, standard libraries, linker, and SDK
 where applicable, not just an architecture flag. The supported macOS release
 build route requires macOS and Apple's SDK (Command Line Tools are sufficient
 for command-line programs). Linux/Windows-to-macOS is not a promised supported
-route. LLVM-MinGW offers Windows ARM64 and x86-64 targeting from supported Linux
-or Windows hosts; a Linux VM is an option from macOS. Do not mix incompatible C++
+route. LLVM-MinGW offers Windows ARM64 and x86-64 targeting from supported macOS,
+Linux and Windows hosts; the pinned macOS universal distribution was used here. Do not mix incompatible C++
 toolchains' object files or libraries.
 
 Provide a generic CPU baseline before optimized variants. Native optimization
 flags describe the build machine and must never be silently used for portable
 release binaries or cross-builds. Emulation is useful for correctness; its speed
 is not evidence of native engine performance.
+
+## RISC-V64 and Windows ARM64 prerequisites
+
+The commands below are the current explicit setup route. Automatic dependency
+and toolchain setup is [planned](ROADMAP.md#tooling-usability-backlog--accepted-october-24-2026),
+not implemented by these commands yet. Nothing changes system Python or the
+engine's runtime dependencies.
+
+### Linux RISC-V64
+
+On Debian trixie ARM64 (including a local Linux VM/container), install the
+cross-toolchain and user-mode emulator, then use the existing Make interface:
+
+```sh
+apt-get update
+apt-get install --no-install-recommends make g++-14-riscv64-linux-gnu libc6-dev-riscv64-cross qemu-user
+make -j2 TARGET=linux-riscv64 CXX=riscv64-linux-gnu-g++-14 runtime-binaries
+python3 tools/verify_runtime.py \
+  --build build/linux-riscv64-generic-release --target linux-riscv64 \
+  --network networks/nn-1a298aa575a0.nnue --execution emulator \
+  --runner-json '["qemu-riscv64", "-L", "/usr/riscv64-linux-gnu"]' \
+  --output results/riscv64-runtime
+```
+
+Package installation requires administrator rights **in that Debian environment**.
+The observed compiler is GCC 14.2.0 (`14.2.0-19cross1`), with RV64GC/LP64D
+and no vector extension; QEMU is `10.0.13`. The cross-compiler already has its
+target library search paths: `/usr/riscv64-linux-gnu` above is QEMU's loader
+prefix, not an instruction to override Make's `SYSROOT`. The engine linked
+without adding `-latomic`. Emulated results do not prove native speed or
+hardware memory-model/race behavior. See the [Debian compiler package](https://packages.debian.org/trixie/g%2B%2B-14-riscv64-linux-gnu)
+and [QEMU user-mode documentation](https://www.qemu.org/docs/master/user/main.html).
+
+### Windows ARM64 from macOS
+
+Download the official [LLVM-MinGW 20261020 release](https://github.com/mstorsjo/llvm-mingw/releases/tag/20261020)
+archive `llvm-mingw-20261020-ucrt-macos-universal.tar.xz`. Verify its SHA-256:
+`e9c13e4ede38e715003ffc674d4d00a1088df8235439d1f0c16188ff0704c17e`
+(124,415,944 bytes), then extract it into the ignored `build/toolchains/` folder.
+This compiler/toolchain stays outside Git. Its observed Clang version is 23.1.4.
+
+```sh
+make -j2 TARGET=windows-arm64 \
+  CXX=build/toolchains/llvm-mingw-20261020-ucrt-macos-universal/bin/aarch64-w64-mingw32-clang++ \
+  runtime-binaries
+```
+
+Use a relative compiler path as shown if the checkout path contains spaces.
+Do not mix GCC and LLVM-MinGW object files/libraries; the build configuration
+stamp rebuilds outputs when the selected compiler changes. The resulting
+`build/windows-arm64-generic-release/chess0live.exe` imports Windows OS/UCRT
+libraries, with compiler C++/unwind libraries linked statically. It compiled
+and linked here; it has **not** passed execution on native Windows or Wine.
+The bounded Wine ARM64 attempt stalled during prefix bootstrap, before the
+position test ran. No engine failure or successful execution is inferred.
+
+### Wine execution evidence
+
+A Windows-compatible API layer is a separate route from a Windows OS. The
+verifier accepts `--execution compatibility` for Windows targets and requires
+an explicit runner, for example `--runner-json '["/usr/lib/wine/wine64"]'` inside
+a Linux environment with a matching Wine architecture. It retains all PE
+architecture, network, suite and UCI checks. Choose an isolated `WINEPREFIX`;
+keep Wine's daemon cleanup separate from ordinary process-group cleanup.
+The network and binary paths must be visible to Wine (the tested `/workspace`
+paths resolved through its Z: drive); no arbitrary path remapping is performed.
+Native/VM labels still require the actual matching host OS/architecture.
+
+Wine 10 x86-64 passed the eight checks inside Docker's emulated x86-64 Linux
+environment. This nested compatibility/emulation result is not native Windows
+execution, GUI verification, distribution certification, or a speed benchmark.
+Wine ARM64 did not complete environment startup. See the [Debian Wine package](https://packages.debian.org/trixie/wine64)
+and the [checkpoint report](reports/2026-10-24-phase4e2.md) for exact evidence.
 
 ## Run the portable checks
 
@@ -160,12 +234,13 @@ build logs and runtime/SDK versions with a distributed build. The seven C++
 suites retain assertions even in release builds. Test links honor `LDLIBS`,
 like the engine link, for target-specific runtime libraries.
 
-Choose `--execution native`, `VM`, or `emulator` honestly: the latter two labels
-are operator declarations. Native and VM checks require the verifier's host OS
+Choose `--execution native`, `VM`, `emulator`, or `compatibility` honestly:
+VM/emulator/compatibility labels are operator declarations. Native and VM checks require the verifier's host OS
 and architecture to match the target. For a synchronous emulator/launcher, use
 `--execution emulator --runner-json '["qemu-riscv64", "-L", "/target/sysroot"]'`
 with the corresponding RISC-V build. This example requires an installed emulator
 and suitable Linux host/sysroot; it does not imply they are available on macOS.
+Compatibility mode likewise requires a runner and accepts Windows targets only.
 The prefix is an argument array, never a shell command; all binary and network
 paths must also be accessible to the runner. The runner must propagate exit
 codes, stay attached, and clean up its children when stopped. Remote detached

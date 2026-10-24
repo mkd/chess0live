@@ -30,6 +30,37 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.2 is complete within available runtime limits. The
+[report](reports/2026-10-24-phase4e2.md) records new C++26 generic builds for
+Linux RISC-V64 (Debian GCC 14.2.0, RV64GC/LP64D) and Windows ARM64
+(LLVM-MinGW 20261020 / Clang 23.1.4). RISC-V passed eight checks under QEMU
+10.0.13; Windows x86-64 passed eight through Wine 10 inside emulated Linux.
+Both passed 140-case Syzygy oracle coverage plus six search scenarios at one
+and four threads. Windows ARM64 Wine bootstrap timed out before test execution;
+keep it build-only. Do not infer an engine defect or native Windows pass.
+
+The runtime verifier adds an explicit Windows-only `compatibility` route with
+mandatory runner arguments and unchanged artifact/architecture/network checks.
+Thirty-four verifier tests plus two Make tests passed. Evidence is in
+`results/phase4e2-20261024/`. All 24 engine/Fathom source pins and 62 protected
+assets match; the native engine, README intro and owner batch settings remain
+unchanged. Compiler archives, networks, tables and result files stay outside Git.
+Isolated phase containers/Wine processes were cleaned up; unrelated Docker
+services were not stopped. No long test or automatic schedule was launched.
+
+Next is **Phase 4E.3 one-command tooling setup**, incorporating the owner's
+October 24 feedback: automatic isolated dependency environments for tools,
+tests and benchmarks, followed by toolchain provisioning and network
+create/train/validate/select workflows with honest provenance/experience
+metadata. See the [backlog](ROADMAP.md#tooling-usability-backlog--accepted-october-24-2026).
+This is planned work; current explicit setup instructions are not automatic
+provisioning. Preserve `tools/batch_positions.py` settings when implementing
+its bootstrap. Remaining native Windows acceptance and new CPU/backend/network
+qualification stay explicit, bounded work rather than repeated Wine diagnosis.
+Keep LMR on, experimental pruning off and existing GUI snapshots intact.
+
+## Previous checkpoint: Phase 4E.1
+
 Phase 4E.1 is complete; see the [runtime report](reports/2026-10-24-phase4e1.md).
 `make runtime-binaries` cross-builds the engine plus seven correctness binaries
 without executing them. `make verify-runtime` checks native execution; the

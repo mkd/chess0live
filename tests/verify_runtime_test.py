@@ -30,7 +30,9 @@ RUNNER = """import sys
 from pathlib import Path
 path = sys.argv[1]
 sys.argv = sys.argv[1:]
-exec(compile(Path(path).read_bytes()[64:].decode(), path, 'exec'), {'__name__':'__main__', '__file__':path})
+data = Path(path).read_bytes()
+offset = 128 if data[:2] == b'MZ' else 64
+exec(compile(data[offset:].decode(), path, 'exec'), {'__name__':'__main__', '__file__':path})
 """
 FAKE_UCI = """import sys
 def emit(line): print(line, flush=True)
@@ -73,6 +75,7 @@ class RuntimeTests(unittest.TestCase):
         (self.build / "toolchain.ok").write_text(json.dumps(stamp))
         self.runner = self.root / "runner with spaces.py"
         self.runner.write_text(RUNNER)
+        self.fixture_target = "linux-arm64"
         for name, marker in runtime.CHECKS:
             self.write_fixture(name, "print(" + repr(marker + " fake fixture") + ")\n")
         self.write_fixture("chess0live", FAKE_UCI)
@@ -95,10 +98,33 @@ class RuntimeTests(unittest.TestCase):
         return report
 
     def write_fixture(self, name, source):
-        header = bytearray(64)
-        header[:6] = b"\x7fELF\x02\x01"
-        header[18:20] = (183).to_bytes(2, "little")
-        (self.build / name).write_bytes(header + source.encode())
+        if self.fixture_target.startswith("windows-"):
+            header = bytearray(128)
+            header[:2] = b"MZ"
+            header[60:64] = (64).to_bytes(4, "little")
+            header[64:68] = b"PE\0\0"
+            machine = 0xAA64 if self.fixture_target == "windows-arm64" else 0x8664
+            header[68:70] = machine.to_bytes(2, "little")
+            header[84:86] = (64).to_bytes(2, "little")
+            header[88:90] = b"\x0b\x02"
+            suffix = ".exe"
+        else:
+            header = bytearray(64)
+            header[:6] = b"\x7fELF\x02\x01"
+            header[18:20] = (183).to_bytes(2, "little")
+            suffix = ""
+        (self.build / (name + suffix)).write_bytes(header + source.encode())
+
+    def windows_fixtures(self, target="windows-arm64"):
+        self.fixture_target = self.args.target = target
+        self.args.execution = "compatibility"
+        stamp_path = self.build / "toolchain.ok"
+        stamp = json.loads(stamp_path.read_text())
+        stamp["target"] = target
+        stamp_path.write_text(json.dumps(stamp))
+        for name, marker in runtime.CHECKS:
+            self.write_fixture(name, "print(" + repr(marker + " fake fixture") + ")\n")
+        self.write_fixture("chess0live", FAKE_UCI)
 
     def failed_report(self, contains):
         report = self.run_fixture()
@@ -173,6 +199,65 @@ class RuntimeTests(unittest.TestCase):
                 self.args.output = str(self.root / (mode + "-runner"))
                 with patch.object(runtime, "host_identity", return_value={"target": "linux-arm64"}):
                     self.failed_report("without a runner")
+
+    def test_compatibility_requires_runner(self):
+        self.windows_fixtures()
+        for index, value in enumerate((None, "[]", '"wine"', '[""]', '[1]')):
+            with self.subTest(value=value):
+                self.args.runner_json = value
+                self.args.output = str(self.root / f"compatibility-runner-{index}")
+                report = self.run_fixture()
+                self.assertEqual(report["status"], "failed")
+                self.assertEqual(report["checks"], [])
+
+    def test_compatibility_preserves_label_and_all_checks(self):
+        for target in ("windows-arm64", "windows-x86_64"):
+            with self.subTest(target=target):
+                self.windows_fixtures(target)
+                self.args.output = str(self.root / target)
+                with patch.object(runtime, "host_identity", return_value={"target": "linux-arm64"}):
+                    report = self.run_fixture()
+                self.assertEqual(report["status"], "passed")
+                self.assertEqual(report["declared_execution"], "compatibility")
+                self.assertEqual(report["host"]["target"], "linux-arm64")
+                self.assertEqual(report["runner_argv"], [sys.executable, str(self.runner)])
+                self.assertEqual(len(report["checks"]), 8)
+                for check in report["checks"]:
+                    self.assertEqual(check["status"], "passed")
+                    self.assertEqual(check["exit_code"], 0)
+                for artifact in report["binaries"].values():
+                    self.assertEqual(artifact["identity"], {"format": "PE32+", "target": target})
+
+    def test_compatibility_rejects_non_windows_targets(self):
+        self.args.execution = "compatibility"
+        for target in ("linux-arm64", "linux-x86_64", "linux-riscv64", "macos-arm64"):
+            with self.subTest(target=target):
+                self.args.target = target
+                self.args.output = str(self.root / target)
+                report = self.failed_report("Windows targets only")
+                self.assertEqual(report["checks"], [])
+
+    def test_compatibility_rejects_wrong_pe_architecture(self):
+        self.windows_fixtures()
+        path = self.build / "chess0live.exe"
+        data = bytearray(path.read_bytes())
+        data[68:70] = (0x8664).to_bytes(2, "little")
+        path.write_bytes(data)
+        report = self.failed_report("PE32+ machine does not match windows-arm64")
+        self.assertEqual(report["checks"], [])
+
+    def test_compatibility_still_checks_network(self):
+        self.windows_fixtures()
+        self.network.write_bytes(b"wrong network")
+        report = self.failed_report("pinned manifest")
+        self.assertEqual(report["checks"], [])
+
+    def test_cli_accepts_explicit_compatibility(self):
+        with patch.object(runtime, "verify", return_value=0) as verify:
+            self.assertEqual(runtime.main(["--build", str(self.build), "--target", "windows-arm64",
+                "--network", str(self.network), "--execution", "compatibility",
+                "--runner-json", '["wine"]']), 0)
+        self.assertEqual(verify.call_args.args[0].execution, "compatibility")
 
     def test_matching_host_preserves_explicit_native_or_vm_label(self):
         original_launch = runtime.launch

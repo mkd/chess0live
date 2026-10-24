@@ -95,3 +95,29 @@ version 0.1 before its documented
 Every release must distinguish measured strength from aspiration, and tested
 platforms from merely intended targets. Source files have consistent copyright,
 license, and explanatory comments; explain invariants and non-obvious decisions.
+
+## Tooling experience — owner feedback, October 24, 2026
+
+Provide simple, documented commands for running tools/tests/benchmarks,
+cross-compiling, and creating/training/selecting a user-owned NNUE network.
+External Python/Make or other orchestration must discover and configure the
+needed dependencies automatically, using isolated user-local environments.
+Users should not have to manually create a Python environment or diagnose a
+missing package before running a tool. Existing editable user settings must be
+preserved. The engine remains independent of this setup/training tooling.
+
+Offer the same coherent workflow across supported host OS/CPU combinations.
+Automate toolchain, target-library, network and environment setup where possible;
+state unavoidable SDK, OS, licensing or permission requirements clearly instead
+of promising that every cross-target route is possible without prerequisites.
+Downloads need pinned identities/provenance, cache reuse and useful recovery
+from partial setup. Do not install into system Python or silently change global
+user settings as the convenience mechanism.
+
+Network tooling must support creation, training, validation and switching through
+simple commands. Report recorded training provenance: source/unique game counts
+where known, positions, processed samples, training steps/epochs and parent
+checkpoint lineage. Unknown counts remain unknown; repeated training examples
+must not be advertised as additional unique games or playing strength. Preserve
+format/architecture versioning and verify exported arithmetic and compatibility.
+This is future tooling work, not a claim that custom-network training exists now.
