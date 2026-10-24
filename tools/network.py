@@ -75,20 +75,28 @@ def load_metadata(path: Path, digest: str) -> dict:
     allowed = {"schema_version", "network_sha256", "name", "author", "license", "source", "training"}
     if not isinstance(data, dict) or set(data) - allowed:
         raise NetworkToolError("Metadata must be an object containing only documented fields")
-    if type(data.get("schema_version")) is not int or data["schema_version"] != 1:
-        raise NetworkToolError("Metadata schema_version must be 1")
+    if type(data.get("schema_version")) is not int or data["schema_version"] not in (1, 2):
+        raise NetworkToolError("Metadata schema_version must be 1 or 2")
     if data.get("network_sha256") != digest:
         raise NetworkToolError("Metadata network_sha256 does not match this file")
     for name in ("name", "author", "license", "source"):
         if data.get(name) is not None and not isinstance(data[name], str):
             raise NetworkToolError("Metadata " + name + " must be a string or null")
     training = data.get("training", {})
-    if not isinstance(training, dict) or set(training) - {"games", "positions", "epochs", "data_sources"}:
+    fields = {"games", "positions", "epochs", "data_sources"}
+    if data["schema_version"] == 2:
+        fields |= {"processed_samples", "steps", "parent_network_sha256", "trainer_commit", "dataset_sha256"}
+    if not isinstance(training, dict) or set(training) - fields:
         raise NetworkToolError("Metadata training must contain only documented fields")
-    for name in ("games", "positions", "epochs"):
+    for name in ("games", "positions", "epochs", "processed_samples", "steps"):
         value = training.get(name)
         if value is not None and (type(value) is not int or value < 0):
             raise NetworkToolError("Training " + name + " must be a nonnegative integer or null")
+    for name, length in (("parent_network_sha256", 64), ("dataset_sha256", 64), ("trainer_commit", 40)):
+        value = training.get(name)
+        if value is not None and (not isinstance(value, str) or len(value) != length
+                                 or any(c not in "0123456789abcdef" for c in value)):
+            raise NetworkToolError("Invalid training " + name)
     sources = training.get("data_sources", [])
     if not isinstance(sources, list) or not all(isinstance(item, str) for item in sources):
         raise NetworkToolError("Training data_sources must be a list of strings")

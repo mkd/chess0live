@@ -1,5 +1,27 @@
 # Validation and experiment protocol
 
+## Phase 4E.6 training/export tooling — October 24, 2026
+
+The [training report](reports/2026-10-24-phase4e6.md) records real automatic
+runtime/source setup and offline reuse, plus 132 distinct passing Python checks.
+Fresh CPU training (2 optimizer steps/32 samples) and parent-weight fine-tuning
+(1 step/4 samples) each exported SFNNv16 files and passed all 2,057 independent
+native/scalar/reference positions. An independent audit rehashed source, binary,
+dataset, actual checkpoint and result artifacts and verified lineage/counters.
+The fixture's 256 rows/eight positions/zero games are synthetic correctness data.
+
+macOS ARM64 CPU is the only qualified training route. Physical memory is queried;
+final admission reserves 8 GiB and tensor threads plus four loader threads. The
+fresh check measured about 5.34 GiB peak RSS, prompting an increase from its
+initial 6 GiB reservation; the parent run used the final policy. No strength,
+GPU, foreign training, held-out validation or full optimizer resume is claimed.
+The wrapper enforces hard worker/night deadlines and rejects incomplete work.
+A real nested-process cancellation regression verifies child cleanup, failed
+reports and retained logs; the final parent run includes that correction.
+Original engine sources/builds, owner batch inputs, GUI snapshot and README
+introduction are preserved. No long match/puzzle campaign or gameplay defaults
+changed. Evidence: `results/phase4e6-20261024/` and the linked report.
+
 ## Phase 4E.5 network tooling — October 24, 2026
 
 The [network report](reports/2026-10-24-phase4e5.md) records 66 native tool checks

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/official-stockfish/nnue-pytorch.git",
+  "commit": "aa2fff2f4a67d1a268dad991fcc03430781fde15",
+  "architecture": "SFNNv16",
+  "features": "Full_Threats+PP_3Wide+HalfKAv2_hm^",
+  "license": "GPL-3.0",
+  "source_url": "https://github.com/official-stockfish/nnue-pytorch/tree/aa2fff2f4a67d1a268dad991fcc03430781fde15",
+  "format": {
+    "version": "0x6a448afa",
+    "architecture_hash": "0xa85b2205",
+    "transformer_hash": "0xcb685313",
+    "layer_hash": "0x63337116",
+    "l1": 1024,
+    "l2": 32,
+    "l3": 32,
+    "psqt_buckets": 8,
+    "layer_stacks": 8,
+    "compression": "leb128"
+  },
+  "data_loader_notices": "The external trainer includes MIT-licensed Tomasz Sobczyk chess/binpack utilities and nodchip/Stockfish-derived data-format code. Preserve every upstream notice. None is linked into the chess0live engine.",
+  "selection_reason": "Last parent before removal of the PSQT accumulator; retains all pinned SF19 feature families and compressed serialization. Later master changes are incompatible.",
+  "execution_scope": "External CPU training/export tooling only. Native MPS/CUDA support upstream is not qualified by this adapter. No competitive-network or playing-strength claim."
+}

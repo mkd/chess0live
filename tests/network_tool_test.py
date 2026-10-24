@@ -154,7 +154,7 @@ class MetadataTests(NetworkFixture):
             tool.inspect_network(self.network, path)
 
     def test_schema_version_must_be_supported_integer(self):
-        for version in (0, 2, True, "1", None):
+        for version in (0, 3, True, "1", None):
             with self.subTest(version=version), self.assertRaises(tool.NetworkToolError):
                 tool.load_metadata(self.metadata(schema_version=version), self.digest)
 
@@ -173,6 +173,46 @@ class MetadataTests(NetworkFixture):
         self.assertEqual(report["provenance"]["training"]["games"], 0)
         self.assertEqual(report["provenance"]["training"]["positions"], 0)
         self.assertEqual(report["provenance"]["training"]["epochs"], 0)
+
+    def test_v2_training_counts_and_lineage_remain_declarations(self):
+        training = {"games": None, "positions": 20, "epochs": None,
+                    "steps": 2, "processed_samples": 32,
+                    "parent_network_sha256": "a" * 64, "dataset_sha256": "b" * 64,
+                    "trainer_commit": "c" * 40}
+        path = self.metadata(schema_version=2, training=training)
+        report = tool.inspect_network(self.network, path)
+        self.assertEqual(report["provenance"]["training"]["steps"], 2)
+        self.assertEqual(report["provenance"]["training"]["processed_samples"], 32)
+        self.assertEqual(report["provenance"]["training_status"], "declared_unverified")
+        self.assertEqual(report["verification"]["independent_oracle"], "not_run")
+        self.assertEqual(report["verification"]["playing_strength"], "not_measured")
+
+    def test_schema_one_rejects_schema_two_fields(self):
+        for name, value in (("steps", 2), ("processed_samples", 32),
+                            ("parent_network_sha256", "a" * 64),
+                            ("dataset_sha256", "b" * 64), ("trainer_commit", "c" * 40)):
+            with self.subTest(name=name), self.assertRaises(tool.NetworkToolError):
+                tool.load_metadata(self.metadata(training={name: value}), self.digest)
+
+    def test_schema_two_counts_reject_bools_negative_and_fractional_values(self):
+        for name in ("steps", "processed_samples"):
+            for value in (True, -1, .5, "2"):
+                with self.subTest(name=name, value=value), self.assertRaises(tool.NetworkToolError):
+                    tool.load_metadata(self.metadata(schema_version=2, training={name: value}), self.digest)
+
+    def test_schema_two_identity_fields_are_full_hex_or_unknown(self):
+        for name, width in (("parent_network_sha256", 64), ("dataset_sha256", 64), ("trainer_commit", 40)):
+            for value in ("x" * width, "a" * (width - 1), True, 42):
+                with self.subTest(name=name, value=value), self.assertRaises(tool.NetworkToolError):
+                    tool.load_metadata(self.metadata(schema_version=2, training={name: value}), self.digest)
+            result = tool.load_metadata(self.metadata(schema_version=2, training={name: None}), self.digest)
+            self.assertIsNone(result["training"][name])
+
+    def test_schema_two_zero_work_is_distinct_from_unknown(self):
+        result = tool.load_metadata(self.metadata(schema_version=2,
+            training={"steps": 0, "processed_samples": 0}), self.digest)
+        self.assertEqual(result["training"]["steps"], 0)
+        self.assertEqual(result["training"]["processed_samples"], 0)
 
     def test_unknown_fields_rejected_instead_of_silently_lost(self):
         with self.assertRaises(tool.NetworkToolError):

@@ -88,7 +88,9 @@ python3 tools/network.py inspect /path/to/candidate.nnue --metadata candidate.me
 python3 tools/network.py qualify /path/to/candidate.nnue --metadata candidate.metadata.json
 ```
 
-The template uses schema version 1. Fill in only facts you can support:
+The template uses schema version 1. The training workflow writes backward-compatible
+schema version 2 records with additional work/lineage fields. Fill in only facts
+you can support:
 
 | Field | Meaning |
 | --- | --- |
@@ -98,6 +100,9 @@ The template uses schema version 1. Fill in only facts you can support:
 | `training.positions` | Position records in the training dataset before epoch repetition; not necessarily unique FENs |
 | `training.epochs` | Completed full dataset passes, if known |
 | `training.data_sources` | List of source/citation strings for the data and its provenance |
+| `training.processed_samples`, `training.steps` (v2) | Samples and optimizer steps in the recorded run; repeats are not unique experience |
+| `training.parent_network_sha256` (v2) | Optional exact starting weights; optimizer/full-state resume is a separate capability |
+| `training.trainer_commit`, `training.dataset_sha256` (v2) | Pinned trainer and exact input data identities |
 
 Use `null` for unknown text/counts and an empty list for unknown data sources.
 Counts must be nonnegative integers; zero means a known zero, not unknown.
@@ -108,9 +113,10 @@ No training counts are inferred from file size, description, evaluation output,
 or the number of games played by the engine. The pinned SF19 network's training
 counts are currently unknown in this project's provenance record.
 
-Network export, automatic training integration and managed network selection
-are subsequent work. For an already qualified compatible file, use the existing
-UCI option while idle:
+The [local training workflow](TRAINING.md) now creates or fine-tunes compatible
+weights and automatically qualifies its exports on the supported CPU host.
+Managed network selection remains subsequent work. For an already qualified
+compatible file, use the existing UCI option while idle:
 
 ```text
 setoption name EvalFile value /absolute/path/to/candidate.nnue

@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added local CPU network training, fine-tuning and export on macOS ARM64,
+  with automatic isolated Python/package setup, pinned trainer source, saved
+  recipes and automatic export compatibility checks. Reports distinguish actual
+  optimizer steps/samples from unknown or declared game history. Synthetic smoke
+  networks are for correctness tests; engine defaults remain unchanged.
+
 - Added one-command network inspection and SFNNv16 compatibility checks against
   the separate pinned reference, with saved source/file identities and exact
   scalar/native evaluation comparisons. Alternative weights can be checked

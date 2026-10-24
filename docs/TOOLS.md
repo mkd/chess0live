@@ -117,5 +117,8 @@ compiler discovery and supported pinned Windows toolchains separately.
 The [network tools](NETWORKS.md) inspect artifacts, compare SFNNv16 evaluation
 against the pinned oracle and attach digest-bound training provenance. Unknown
 experience counts remain unknown; supplied claims are labeled unverified.
-Those tools need no third-party Python packages. Network export and actual
-training integration remain subsequent work.
+Those tools need no third-party Python packages. The separate
+[training workflow](TRAINING.md) prepares its own pinned runtime, creates or
+fine-tunes SFNNv16 weights, exports and qualifies them. Its initial runtime is
+macOS ARM64 CPU; unsupported training hosts fail explicitly before downloads.
+Managed network selection and further training hosts/GPU execution remain open.

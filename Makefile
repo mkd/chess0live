@@ -189,6 +189,21 @@ test-network-tools:
 	$(PYTHON) tests/network_tool_test.py
 	$(PYTHON) tests/verify_nnue_candidate_test.py
 
+.PHONY: training-plan training-setup training-smoke test-training
+training-plan:
+	$(PYTHON) tools/train.py plan
+
+training-setup:
+	$(PYTHON) tools/training_setup.py $(if $(filter 1,$(OFFLINE)),--offline,)
+
+training-smoke:
+	$(PYTHON) tools/train.py smoke $(if $(filter 1,$(OFFLINE)),--offline,)
+
+test-training:
+	$(PYTHON) tests/training_setup_test.py
+	$(PYTHON) tests/train_test.py
+	$(PYTHON) tests/network_tool_test.py
+
 $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
@@ -462,6 +477,9 @@ help:
 	@echo 'make network-inspect   Identify the default network and known provenance'
 	@echo 'make network-qualify   Compare its arithmetic with the pinned SF19 oracle'
 	@echo 'make test-network-tools Check network inspection and qualification tooling'
+	@echo 'make training-plan    Show local training requirements without setup'
+	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
+	@echo 'make test-training    Check training setup, recipes and provenance tooling'
 	@echo 'make                  Build native portable-CPU executable (one job by default)'
 	@echo 'make net              Fetch and verify the pinned official SF19 network'
 	@echo 'make test             Run correctness checks; make net first'

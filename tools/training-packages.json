@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "python_version": [
+    3,
+    12
+  ],
+  "runtime_scope": "CPU and Apple MPS packages only; no CUDA dependencies",
+  "python_fallbacks": {
+    "macos-arm64": {
+      "filename": "cpython-3.12.15+20261021-aarch64-apple-darwin-install_only.tar.gz",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261021/cpython-3.12.15%2B20261021-aarch64-apple-darwin-install_only.tar.gz",
+      "sha256": "a18cc33862b53bd54a148c710def5375c1b47470cccedf817a19c2d211764584",
+      "size": 25158763,
+      "root": "python",
+      "license": "Python-2.0 and bundled dependency notices retained",
+      "source": "https://github.com/astral-sh/python-build-standalone/releases/tag/20261021"
+    }
+  },
+  "platforms": {
+    "macos-arm64": {
+      "minimum_macos": "14.0",
+      "packages": [
+        {
+          "name": "torch",
+          "version": "2.14.1",
+          "filename": "torch-2.14.1-cp312-cp312-macosx_14_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/4b/3c/379349820e9a6e713826de3d0b88f07728541bdcabe2a3afd128871cdc4b/torch-2.14.1-cp312-cp312-macosx_14_0_arm64.whl",
+          "sha256": "420dbf314c180ee4b86e9bc00aee5746a7d6e5bacdd7df925af671ed393f0b2e",
+          "size": 127307099,
+          "license": "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT",
+          "metadata_source": "https://pypi.org/pypi/torch/2.14.1/json"
+        },
+        {
+          "name": "numpy",
+          "version": "1.26.4",
+          "filename": "numpy-1.26.4-cp312-cp312-macosx_11_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/75/5b/ca6c8bd14007e5ca171c7c03102d17b4f4e0ceb53957e8c44343a9546dcc/numpy-1.26.4-cp312-cp312-macosx_11_0_arm64.whl",
+          "sha256": "03a8c78d01d9781b28a6989f6fa1bb2c4f2d51201cf99d3dd875df6fbd96b23b",
+          "size": 13685868,
+          "license": "See upstream package license metadata and installed notices",
+          "metadata_source": "https://pypi.org/pypi/numpy/1.26.4/json"
+        },
+        {
+          "name": "numba",
+          "version": "0.68.0",
+          "filename": "numba-0.68.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/c5/cb/b6a39189f1f342baa04ad1055bb5f63ec4061ec1f80f6b34e90c68fe1e7f/numba-0.68.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "sha256": "0fdaa2f0256862ebbcd9632ef01ba2a4b94e6d116029e5051a92340d4050a501",
+          "size": 2760509,
+          "license": "BSD",
+          "metadata_source": "https://pypi.org/pypi/numba/0.68.0/json"
+        },
+        {
+          "name": "tyro",
+          "version": "1.0.16",
+          "filename": "tyro-1.0.16-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/23/d9/ea12ca0392c9eaeff7421efcc665f350dbc2ef30a113ee13c7afea21cf37/tyro-1.0.16-py3-none-any.whl",
+          "sha256": "2f9087196113699647190459a12b6b4f2784dd0703c50ab1f7bf0f85a3a794ea",
+          "size": 216925,
+          "license": "MIT",
+          "metadata_source": "https://pypi.org/pypi/tyro/1.0.16/json"
+        },
+        {
+          "name": "python-chess",
+          "version": "0.31.4",
+          "filename": "python_chess-0.31.4-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/6e/40/6d3f685d3ca87d7ec88b1921f8f3625e79cae628629801186e3c76201260/python_chess-0.31.4-py3-none-any.whl",
+          "sha256": "ce9e88e82cf9dcf131b44a04ee8be4891b411e2fee54f5389df27289dae32be4",
+          "size": 134586,
+          "license": "GPL-3.0+",
+          "metadata_source": "https://pypi.org/pypi/python-chess/0.31.4/json"
+        },
+        {
+          "name": "torchmetrics",
+          "version": "1.9.0",
+          "filename": "torchmetrics-1.9.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/c3/a2/c7f6ebf546f8f644edf0f999aa98ece106986a77a7b922316bf6414ff825/torchmetrics-1.9.0-py3-none-any.whl",
+          "sha256": "bfdcbff3dd1d96b3374bb2496eb39f23c4b28b8a845b6a18c313688e0d2d9ca1",
+          "size": 983384,
+          "license": "Apache-2.0",
+          "metadata_source": "https://pypi.org/pypi/torchmetrics/1.9.0/json"
+        },
+        {
+          "name": "setuptools",
+          "version": "80.9.0",
+          "filename": "setuptools-80.9.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl",
+          "sha256": "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922",
+          "size": 1201486,
+          "license": "MIT",
+          "metadata_source": "https://pypi.org/pypi/setuptools/80.9.0/json"
+        },
+        {
+          "name": "wheel",
+          "version": "0.45.1",
+          "filename": "wheel-0.45.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl",
+          "sha256": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248",
+          "size": 72494,
+          "license": "unspecified",
+          "metadata_source": "https://pypi.org/pypi/wheel/0.45.1/json"
+        },
+        {
+          "name": "llvmlite",
+          "version": "0.50.0",
+          "filename": "llvmlite-0.50.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/d9/1f/2576416b3e9b73f77b8331b7f2e41ce5ae7bbff0489eb16d98099a71693c/llvmlite-0.50.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "sha256": "55f50a6b7c0b8de88b05d6bc407d70a60486ce024013997dc97e202bd187c75b",
+          "size": 40534277,
+          "license": "BSD-2-Clause AND Apache-2.0 WITH LLVM-exception",
+          "metadata_source": "https://pypi.org/pypi/llvmlite/0.50.0/json"
+        },
+        {
+          "name": "docstring_parser",
+          "version": "0.18.0",
+          "filename": "docstring_parser-0.18.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a7/5f/ed01f9a3cdffbd5a008556fc7b2a08ddb1cc6ace7effa7340604b1d16699/docstring_parser-0.18.0-py3-none-any.whl",
+          "sha256": "b3fcbed555c47d8479be0796ef7e19c2670d428d72e96da63f3a40122860374b",
+          "size": 22484,
+          "license": "MIT",
+          "metadata_source": "https://pypi.org/pypi/docstring_parser/0.18.0/json"
+        },
+        {
+          "name": "fsspec",
+          "version": "2026.9.0",
+          "filename": "fsspec-2026.9.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/6c/c0/a98505f18594f1bce828bb159cec0fcf9860562f1a2c85913409fc8f3d9e/fsspec-2026.9.0-py3-none-any.whl",
+          "sha256": "8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f",
+          "size": 221738,
+          "license": "BSD-3-Clause",
+          "metadata_source": "https://pypi.org/pypi/fsspec/2026.9.0/json"
+        },
+        {
+          "name": "lightning-utilities",
+          "version": "0.15.3",
+          "filename": "lightning_utilities-0.15.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/25/f4/ead6e0e37209b07c9baa3e984ccdb0348ca370b77cea3aaea8ddbb097e00/lightning_utilities-0.15.3-py3-none-any.whl",
+          "sha256": "6c55f1bee70084a1cbeaa41ada96e4b3a0fea5909e844dd335bd80f5a73c5f91",
+          "size": 31906,
+          "license": "Apache-2.0",
+          "metadata_source": "https://pypi.org/pypi/lightning-utilities/0.15.3/json"
+        },
+        {
+          "name": "networkx",
+          "version": "3.7",
+          "filename": "networkx-3.7-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/7e/cd/fe58041e9011f307c490e3e17dd48cc516448f7c698a3f2d9d9d65d7e6a8/networkx-3.7-py3-none-any.whl",
+          "sha256": "e3fd2c13a7814cee3746340d8d7f8598a67f16a58bf47fb7f8793fab6efca1b0",
+          "size": 2142205,
+          "license": "BSD-3-Clause",
+          "metadata_source": "https://pypi.org/pypi/networkx/3.7/json"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3",
+          "filename": "packaging-26.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "size": 129956,
+          "license": "Apache-2.0 OR BSD-2-Clause",
+          "metadata_source": "https://pypi.org/pypi/packaging/26.3/json"
+        },
+        {
+          "name": "sympy",
+          "version": "1.14.0",
+          "filename": "sympy-1.14.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
+          "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+          "size": 6299353,
+          "license": "BSD",
+          "metadata_source": "https://pypi.org/pypi/sympy/1.14.0/json"
+        },
+        {
+          "name": "mpmath",
+          "version": "1.3.0",
+          "filename": "mpmath-1.3.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+          "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+          "size": 536198,
+          "license": "BSD",
+          "metadata_source": "https://pypi.org/pypi/mpmath/1.3.0/json"
+        },
+        {
+          "name": "typeguard",
+          "version": "4.6.0",
+          "filename": "typeguard-4.6.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/8f/eb/461d5f167b6f5c7d97696f397c82f82e3480e003fce3f0a1cd1dd26e2eb2/typeguard-4.6.0-py3-none-any.whl",
+          "sha256": "79878165bb86f2cf5d41d159a0ff1792a796cf496882d2fe1b1c6c7049b9cdd7",
+          "size": 36884,
+          "license": "MIT",
+          "metadata_source": "https://pypi.org/pypi/typeguard/4.6.0/json"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0",
+          "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+          "size": 45571,
+          "license": "PSF-2.0",
+          "metadata_source": "https://pypi.org/pypi/typing_extensions/4.16.0/json"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.4",
+          "filename": "filelock-4.2.4-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/e0/1b/5e74289a1878e666bb4b65fe5805a04cafcac2aa5f519ef1ead67ef91c56/filelock-4.2.4-py3-none-any.whl",
+          "sha256": "301241438c57936ef93f4243a94f2559022268bfcf9b375a9a72eb0f8db8358e",
+          "size": 162475,
+          "license": "MIT",
+          "metadata_source": "https://pypi.org/pypi/filelock/4.2.4/json"
+        },
+        {
+          "name": "Jinja2",
+          "version": "3.1.6",
+          "filename": "jinja2-3.1.6-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+          "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+          "size": 134899,
+          "license": "unspecified",
+          "metadata_source": "https://pypi.org/pypi/Jinja2/3.1.6/json"
+        },
+        {
+          "name": "MarkupSafe",
+          "version": "3.0.4",
+          "filename": "markupsafe-3.0.4-cp312-cp312-macosx_11_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/a2/f0/d6613774d86fbf6d145751d43c59875e47a6f9f17daee0aef173bd36d90e/markupsafe-3.0.4-cp312-cp312-macosx_11_0_arm64.whl",
+          "sha256": "0930db9bdc62d22944e10b066448bb65dc9abe9112880c7cab8da54db4284d5f",
+          "size": 12050,
+          "license": "BSD-3-Clause",
+          "metadata_source": "https://pypi.org/pypi/MarkupSafe/3.0.4/json"
+        }
+      ],
+      "imports": [
+        "torch",
+        "numpy",
+        "numba",
+        "tyro",
+        "chess",
+        "torchmetrics"
+      ]
+    }
+  }
+}

@@ -157,6 +157,21 @@ playing strength, and unknown training counts stay unknown. See the
 [network guide](docs/NETWORKS.md) for provenance templates, offline use,
 compiler selection and how to choose a qualified file through `EvalFile`.
 
+### Train and export a network
+
+```sh
+make training-plan
+make training-smoke
+```
+
+The initial CPU training route supports macOS ARM64 on macOS 14+. It prepares
+an isolated, pinned Python runtime automatically, performs a tiny synthetic
+training check, exports a network and verifies its evaluation. The smoke network
+is for correctness testing, not play. For your own `.binpack`/`.bin` dataset,
+use `tools/train.py init` and `run`; compatible parent weights are optional.
+See [local training](docs/TRAINING.md) for recipes, resource limits, provenance,
+offline setup and current host/GPU limitations. No engine setting changes.
+
 ## Evaluation and search
 
 - Versioned SF19/SFNNv16 file reader and independently implemented feature math.

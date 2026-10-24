@@ -30,6 +30,50 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.6 adds `tools/train.py`, `training_setup.py`, `training_backend.py`,
+trainer/runtime manifests and Make plan/setup/smoke/test targets. Read
+[TRAINING](TRAINING.md) and the [report](reports/2026-10-24-phase4e6.md).
+Automatic first use and offline reuse passed on macOS 14+ ARM64 with managed
+Python 3.12.15, Torch 2.14.1 and NumPy 1.26.4. Other training hosts/GPU routes
+are not qualified; do not infer coverage from engine cross-build support.
+
+The external trainer pin `aa2fff2f4a67d1a268dad991fcc03430781fde15` retains SF19
+PSQT/features/serialization. Never substitute current master merely because
+its outer network version matches. It and its data-format libraries remain
+external, with upstream notices. Source cache is `.local/training/source/`;
+runtime is `.local/training-runtime/`. No code is linked into the engine.
+
+Recipes bind data, settings and optional parent .nnue weights. Fine-tuning resets
+the optimizer; arbitrary pickle inputs/full-state resume are unsupported. CPU
+AdamW/eager mode, no filters and fixed batches are recorded. Sample counters come
+from actual checkpoint steps; configured epochs are not full dataset passes.
+Schema 2 metadata adds samples/steps/dataset/trainer/parent hashes and keeps
+unknown totals null; schema 1 remains accepted. Counts in supplied metadata are
+still unverified declarations. No competitive data or default was created.
+
+Admission reserves tensor threads + four loader/prefetch threads and 8 GiB,
+caps batch size at 1,024 and checks known physical memory. The outer process
+timeout enforces limits/night cutoff: upstream time checks only at epoch end.
+Interrupted runs fail and retain diagnostics/any already completed checkpoints.
+Qualification cancellation signals the wrapper first so the harness can stop
+its native process groups and record failure before bounded escalation. A real
+nested-process regression covers this path. No scheduler was created.
+CPU/reference work is sequential within a run.
+
+Accepted fresh (2 steps/32 samples) and parent (1 step/4 samples) exports each
+passed 2,057 exact oracle positions. Independent audit and 132 distinct Python
+checks passed. Fresh-run peak RSS was about 5.34 GiB; the final memory reservation
+was increased from 6 to 8 GiB afterward and used by the parent run. All 88
+preservation pins and README intro match, including GUI `0.1-dev-4b8b35d`.
+Evidence lives in `results/phase4e6-20261024/` and the exploratory ignored build
+directory. Synthetic fixture: 256 records, eight unique positions, zero games.
+
+Next: **Phase 4E.7 managed network selection**. Retain reversible choices and
+compatibility/provenance evidence. Broader training hosts/GPU execution, held-out
+data validation and competitive training remain separate acceptance work.
+
+## Previous checkpoint: Phase 4E.5
+
 Phase 4E.5 adds `tools/network.py` and `make network-inspect`/`network-qualify`.
 Read the [network guide](NETWORKS.md) and [report](reports/2026-10-24-phase4e5.md).
 The wrapper needs only Python's standard library; qualification also needs a

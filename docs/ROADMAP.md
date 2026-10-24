@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.5 network inspection and qualification
+## Current checkpoint: Phase 4E.6 local network training and export
+
+The [training workflow](TRAINING.md) now prepares a pinned isolated runtime,
+creates digest-bound recipes, trains or fine-tunes SFNNv16 weights on CPU,
+exports them and automatically verifies their arithmetic. The first runtime
+supports macOS 14+ ARM64; other training hosts and GPU routes fail explicitly or
+remain unqualified. No engine default changes. The compatible trainer is pinned
+before later incompatible architecture changes.
+
+Real fresh training (2 steps/32 samples) and parent-weight fine-tuning (1 step/4
+samples) both passed 2,057 exact native/scalar/reference comparisons. The 132
+distinct tool tests and independent artifact audit passed. Synthetic labels
+prove workflow correctness, not playing strength. Reports separate observed
+samples from unknown/declared game history and preserve exact parent lineage.
+The [report](reports/2026-10-24-phase4e6.md) records limits, measured resource use
+and corrections made before acceptance. The README introduction, ordinary engine,
+owner batch inputs and stable GUI bundle remain intact.
+
+Next is **Phase 4E.7: managed network selection**, with reversible choices and
+preserved compatibility/provenance records. Broader training hosts, GPU execution,
+held-out dataset validation, competitive training and release/strength acceptance
+remain open. This checkpoint did not launch a long campaign or release v0.1.
+
+## Previous checkpoint: Phase 4E.5 network inspection and qualification
 
 The [network tools](NETWORKS.md) now inspect full file identities, distinguish
 recognized headers from complete arithmetic verification, and create digest-bound
@@ -577,7 +600,7 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | 4E.5 complete: automatic Python/build setup, pinned toolchains, network inspection and independent candidate qualification; all six targets have prior build evidence | 4E.6: reproducible training/export tooling, then managed selection; native Windows acceptance and further Linux provisioning stay open |
+| 4E: broader runtime support and network tooling | 4E.6 complete: automatic build/tool setup, network inspection/qualification, native CPU training/fine-tuning/export; all six engine targets have prior build evidence | 4E.7: managed network selection; training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning stay open |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
