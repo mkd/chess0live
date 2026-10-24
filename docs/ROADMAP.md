@@ -5,7 +5,29 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.2 move-ordering efficiency
+## Current checkpoint: Phase 4F.3 combined search qualification
+
+The [predeclared protocol](experiments/phase4f3.md) compares all eight search
+options enabled together against current defaults on the same frozen `ccb66a4`
+executable and NNUE. Both retain the accepted conservative LMR. This directly
+tests interactions; individual component wins are not prerequisites.
+
+Preparation covers a matched eight-thread, 39-position tactical comparison and
+a separate 512-game, four-worker, single-thread blitz campaign with fresh roots.
+Preparation passed 128 tool checks, real-engine readiness and all 78 short
+puzzle searches. The full puzzle audit and strength campaign remain pending.
+The [current report](reports/2026-10-24-phase4f3.md) records completed checks and
+remaining runs. Keep the full tactical and held-out match results distinct from
+the short operational smoke. Search defaults remain unchanged until acceptance;
+depth, fewer nodes and one-position speedups cannot substitute for match evidence.
+
+The next checkpoint is the full tactical audit, followed by the fixed match if
+no blocking regression is found. Then make one explicit package accept/park/
+reject decision before choosing the next implementation candidate. No automatic
+schedule, inherited daytime exception, v0.1 release or rating is implied.
+The broader platform/training/release backlog below remains open.
+
+## Previous checkpoint: Phase 4F.2 move-ordering efficiency
 
 Move ordering now computes each score once per call and reuses worker-local
 temporary storage. It retains the former priorities, helper root tie order,

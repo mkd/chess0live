@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "protocol_id": "phase4f3-combined-512-v1",
+  "input_sha256": {
+    "tests/data/phase4f3-exclusions.json": "edd165f5f10973d24b3a2377d3b003a84634dc59dff434c001345d2d7ee466fe",
+    "tests/data/phase4f3-generation.json": "baf0cd9c1c5e213695a58f2776a1c3025b1f0e1ea15b956c5d81bb79329f0bdc",
+    "tools/generate_phase4f3_openings.py": "5a48f6cc18b493972e143898fadc60dd76b75ad7966ab032dd2b9deb9083465f",
+    "build/experiments/phase4f3/manifest.json": "c41c9260162cef8d99e782d014e4a3d1c7b8b954f43d9015f35028b6e0c64492",
+    "tests/data/phase4f3-puzzles.json": "a49062bd0aa5b8d3af66842b266b4f8a8f7871cf64392a96861ea2faa2f5d035",
+    "tests/data/phase4f3-01.json": "e4b47f206dfe7a5d5a37ad843fcf6955182462c1542333c76e0df688e359d481",
+    "tests/data/phase4f3-02.json": "27afcd03666eec9a3ccf6a56fa69449808fa1f86a4fa5f152ad5477fea0dcadb",
+    "tests/data/phase4f3-03.json": "b6f44085e1e1ae8e74a4ea8cc2376d4443934439a06a879aa7cefabd5c43311b",
+    "tests/data/phase4f3-04.json": "f7cd82eb7a1760b53276e262549db493014407e492adbb97faadd72395993f2f"
+  }
+}

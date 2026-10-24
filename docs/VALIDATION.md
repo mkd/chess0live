@@ -1,5 +1,30 @@
 # Validation and experiment protocol
 
+## Phase 4F.3 combined-policy preparation — October 24, 2026
+
+The [protocol](experiments/phase4f3.md) freezes the same current executable and
+network for the complete all-on package and current-default control. Both keep
+LMR enabled. The [report](reports/2026-10-24-phase4f3.md) records fresh opening
+generation, successful real-engine search-free readiness and its independent
+audit, plus a completed eight-thread tactical smoke.
+
+The combined tool suite passed 128 checks covering inputs, protocol/clock evidence,
+supervision/cleanup, both DST transitions and permission/resource boundaries.
+
+The smoke passed all 39 positions/78 searches. Raw replay checked 453 iteration
+records, 2,588 PV moves, final moves and explicit options. Best moves matched at
+38 positions; 11 final scores differed, and neither configuration reported mate
+within one second. Position 22's different moves are retained without declaring
+either a gain or regression. No errors, illegal moves, timing overruns or detected
+sleep were observed. This is operational evidence, not the full 60-second audit.
+
+The full 39×60-second comparison and separate 512-game paired match are pending.
+Each needs its permitted window or fresh explicit authorization. The full puzzle
+tool's daytime flag is an explicit caller assertion requiring owner permission;
+it does not grant permission or change resource limits. Source snapshots preserve
+the completed smoke before that permission-only extension. No playing default
+changes, strength claims or release follow from these checks.
+
 ## Phase 4F.2 move-ordering efficiency — October 24, 2026
 
 The [report](reports/2026-10-24-phase4f2.md) records 120 exact current-default

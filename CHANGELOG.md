@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a reproducible combined-versus-default search comparison: saved puzzle
+  analysis, explicit matched settings and a fresh paired-opening match protocol.
+  Checks reject changed inputs, invalid moves, clock/resource failures and sleep
+  interruptions. Search defaults remain unchanged pending strength evidence.
+
 - Added a bounded comparison of two engine builds using current playing defaults,
   with exact search-result checks, independent move validation, fresh/reused
   caches and saved file identities. Optional Python dependencies prepare automatically.

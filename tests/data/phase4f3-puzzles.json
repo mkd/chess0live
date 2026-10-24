@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "owner_source": "tools/batch_positions.py",
+  "owner_source_sha256": "9fe64dc972744c8589bdfde1ac4b29f1c9bc44931922aafe5b88dc9e9d140c1c",
+  "provenance": "Owner-supplied spreadsheet positions, preserved in their original order. Extracted from the literal FENS AST and same-line mate comments without importing or executing the owner script. Mate distances are supplied annotations, not independently proved solutions.",
+  "positions": [
+    {
+      "id": "puzzle-01",
+      "fen": "q3rk2/4r3/1p1p1n1b/5Q2/3P3p/P3R2P/1B3P1N/1K2R3 w - - 2 36",
+      "supplied_mate": 7,
+      "spreadsheet_row": 4
+    },
+    {
+      "id": "puzzle-02",
+      "fen": "1qB1b1rk/1p6/1P3n1p/p1P5/P1N2pp1/B7/6K1/bQ6 b - - 1 60",
+      "supplied_mate": 7,
+      "spreadsheet_row": 5
+    },
+    {
+      "id": "puzzle-03",
+      "fen": "1k2r2r/pbb2p2/2qn2p1/8/PP6/2P2N2/1Q2NPB1/R4RK1 b - - 0 1",
+      "supplied_mate": 7,
+      "spreadsheet_row": 6
+    },
+    {
+      "id": "puzzle-04",
+      "fen": "R1b4k/6pp/2pP4/1rn2rq1/N1Q2P1b/4PN2/1P5P/2B2K1R w - - 1 24",
+      "supplied_mate": 8,
+      "spreadsheet_row": 9
+    },
+    {
+      "id": "puzzle-05",
+      "fen": "4r1rk/p6q/bp2pP1Q/3pP3/P2Nn3/1Pbn1N1P/5PBK/2R3R1 b - - 0 30",
+      "supplied_mate": 8,
+      "spreadsheet_row": 10
+    },
+    {
+      "id": "puzzle-06",
+      "fen": "4r1rk/p3q3/b1N4p/p2pPp2/4n2Q/1P1n1N1P/5P1K/5RRB w - - 2 35",
+      "supplied_mate": 8,
+      "spreadsheet_row": 11
+    },
+    {
+      "id": "puzzle-07",
+      "fen": "2rqN1nk/bp6/7p/pP2p1pb/P1P5/BQ6/2B3K1/1R6 b - - 5 44",
+      "supplied_mate": 8,
+      "spreadsheet_row": 12
+    },
+    {
+      "id": "puzzle-08",
+      "fen": "2r5/1pB2Rbk/6pn/4n1q1/P3B3/1P5P/6P1/2Q1R2K w - - 1 34",
+      "supplied_mate": 9,
+      "spreadsheet_row": 15
+    },
+    {
+      "id": "puzzle-09",
+      "fen": "2b2rk1/q5pp/2p5/3p1p2/1rP2P2/B2nP1NB/3N3P/Q4K1R b - - 4 24",
+      "supplied_mate": 9,
+      "spreadsheet_row": 16
+    },
+    {
+      "id": "puzzle-10",
+      "fen": "r4k2/2r3b1/1p1p1nQ1/q6p/P2P1p1P/4P2R/1B1N1P2/1KR5 w - - 5 35",
+      "supplied_mate": 9,
+      "spreadsheet_row": 17
+    },
+    {
+      "id": "puzzle-11",
+      "fen": "4rk2/4r1b1/1p1p4/1q1P3p/4n3/P1R4P/1BQN1P2/1K3R2 b - - 2 37",
+      "supplied_mate": 9,
+      "spreadsheet_row": 18
+    },
+    {
+      "id": "puzzle-12",
+      "fen": "3q3k/3R1r2/5b2/pN2np2/1P5p/P4pP1/5B1P/2Q1RK2 w - - 1 46",
+      "supplied_mate": 9,
+      "spreadsheet_row": 19
+    },
+    {
+      "id": "puzzle-13",
+      "fen": "2N3k1/2b1qb2/2n1r3/8/1PP3Pp/P4Q2/8/2R1R2K b - - 2 42",
+      "supplied_mate": 9,
+      "spreadsheet_row": 20
+    },
+    {
+      "id": "puzzle-14",
+      "fen": "r6k/4r1bN/P1b3p1/8/2p1P1BP/2q5/2Q3K1/R4R2 b - - 1 49",
+      "supplied_mate": 9,
+      "spreadsheet_row": 21
+    },
+    {
+      "id": "puzzle-15",
+      "fen": "4k3/1p1Qqbr1/6r1/2P1b3/pP2N2p/P4B1P/8/1R3R1K b - - 0 35",
+      "supplied_mate": 9,
+      "spreadsheet_row": 22
+    },
+    {
+      "id": "puzzle-16",
+      "fen": "4r1k1/1q3r1p/3PNb2/1pB5/p1n5/P5p1/5RbP/3QR1K1 b - - 1 34",
+      "supplied_mate": 9,
+      "spreadsheet_row": 23
+    },
+    {
+      "id": "puzzle-17",
+      "fen": "1n2k1r1/1pb1q3/r7/7b/p1P1N2p/P4B1P/1P1Q4/4RR1K w - - 3 33",
+      "supplied_mate": 9,
+      "spreadsheet_row": 24
+    },
+    {
+      "id": "puzzle-18",
+      "fen": "8/1pB1rnbk/6pn/7q/P3B2P/1P6/6P1/2Q1R2K b - - 0 34",
+      "supplied_mate": 10,
+      "spreadsheet_row": 27
+    },
+    {
+      "id": "puzzle-19",
+      "fen": "rn3rk1/p7/bp2p2p/1q1pPp1Q/P2Nn3/1Pb2NPP/5PB1/3RR1K1 w - - 2 23",
+      "supplied_mate": 10,
+      "spreadsheet_row": 28
+    },
+    {
+      "id": "puzzle-20",
+      "fen": "1rb4k/6pp/2pq4/2n2r2/2Q1pP1b/R3P2B/NP5P/2B2KNR b - - 1 25",
+      "supplied_mate": 10,
+      "spreadsheet_row": 29
+    },
+    {
+      "id": "puzzle-21",
+      "fen": "5q1k/8/N1p1bb2/2n2B1p/4pP2/1r2P3/1P5P/2BQ1KNR w - - 0 32",
+      "supplied_mate": 10,
+      "spreadsheet_row": 30
+    },
+    {
+      "id": "puzzle-22",
+      "fen": "R4r1k/1q1bb3/nrp4p/5p2/2B1pP2/4P2N/1P5P/2BQ1K1R w - - 4 32",
+      "supplied_mate": 10,
+      "spreadsheet_row": 31
+    },
+    {
+      "id": "puzzle-23",
+      "fen": "1r2k1nr/pp1b4/1q5p/1P1Pp1pP/6Pn/1R2Q1N1/P1P1B3/5R1K w - - 1 29",
+      "supplied_mate": 10,
+      "spreadsheet_row": 32
+    },
+    {
+      "id": "puzzle-24",
+      "fen": "2r1qk2/1p1b4/p2P1n1p/1P2pPBP/2PbN3/7Q/P3B3/1R5K w - - 1 37",
+      "supplied_mate": 10,
+      "spreadsheet_row": 33
+    },
+    {
+      "id": "puzzle-25",
+      "fen": "2rq2k1/1p6/p2N3p/1P1np1pP/PBPb2b1/3B4/6Q1/1R5K w - - 2 40",
+      "supplied_mate": 10,
+      "spreadsheet_row": 34
+    },
+    {
+      "id": "puzzle-26",
+      "fen": "r1bqkbnr/p5p1/n1pp3p/1p1Pp1B1/7P/P1N5/1PP2PB1/R2QK2R w KQkq - 0 11",
+      "supplied_mate": 10,
+      "spreadsheet_row": 35
+    },
+    {
+      "id": "puzzle-27",
+      "fen": "1n2k1r1/1p2qb2/2rb4/8/pPP1N1Bp/P6P/3Q4/2R1R2K w - - 5 35",
+      "supplied_mate": 10,
+      "spreadsheet_row": 36
+    },
+    {
+      "id": "puzzle-28",
+      "fen": "rn2qrk1/p4p2/1p2p2Q/3pP3/PbbNn3/5NP1/1P3PBP/R3R1K1 w - - 1 19",
+      "supplied_mate": 11,
+      "spreadsheet_row": 39
+    },
+    {
+      "id": "puzzle-29",
+      "fen": "r1bqkbnr/pppp2p1/n3p2p/4Np2/1P1P4/P3P3/2P2PPP/RNBQKB1R w KQkq - 1 7",
+      "supplied_mate": 11,
+      "spreadsheet_row": 40
+    },
+    {
+      "id": "puzzle-30",
+      "fen": "r3k2r/1p3b2/2n5/3p1pq1/pb5p/N2P1B1P/PP2PN1K/R2Q1R2 b kq - 5 27",
+      "supplied_mate": 11,
+      "spreadsheet_row": 41
+    },
+    {
+      "id": "puzzle-31",
+      "fen": "3qk1b1/1p6/Qn2r3/2P1b3/p3N2p/P4BrP/8/1R3R1K b - - 3 39",
+      "supplied_mate": 11,
+      "spreadsheet_row": 42
+    },
+    {
+      "id": "puzzle-32",
+      "fen": "4nqrk/1p6/1P1N3p/p1P1p3/Pb4B1/5b2/2Q1R3/2B3K1 b - - 0 72",
+      "supplied_mate": 11,
+      "spreadsheet_row": 43
+    },
+    {
+      "id": "puzzle-33",
+      "fen": "R4r1k/6pp/2pq4/2n2b2/2Q1pP1b/1r2P2B/NP5P/2B2KNR b - - 1 24",
+      "supplied_mate": 12,
+      "spreadsheet_row": 46
+    },
+    {
+      "id": "puzzle-34",
+      "fen": "r2qk2r/pb1nb1pp/1p1pN3/2p5/3pp2P/6PB/PPP2P2/1RBQ1RK1 w kq - 6 16",
+      "supplied_mate": 12,
+      "spreadsheet_row": 47
+    },
+    {
+      "id": "puzzle-35",
+      "fen": "2rq2k1/3b3n/1p1N3p/1P2p1pP/PB1bB1P1/7Q/8/1R5K w - - 2 41",
+      "supplied_mate": 12,
+      "spreadsheet_row": 48
+    },
+    {
+      "id": "puzzle-36",
+      "fen": "3b4/p3P1q1/P1n2pr1/4p3/2B1n1Pk/1P1R4/P1p3KN/1N6 w - - 0 1",
+      "supplied_mate": 15,
+      "spreadsheet_row": 51
+    },
+    {
+      "id": "puzzle-37",
+      "fen": "7r/8/pB1p1R2/4k2q/1p6/1Pr5/P5Q1/6K1 w - - 0 1",
+      "supplied_mate": 15,
+      "spreadsheet_row": 52
+    },
+    {
+      "id": "puzzle-38",
+      "fen": "kb4Q1/P7/1PP5/K6q/8/8/8/4n3 w - - 0 1",
+      "supplied_mate": 17,
+      "spreadsheet_row": 53
+    },
+    {
+      "id": "puzzle-39",
+      "fen": "3r1r1k/1b4pp/ppn1p3/4Pp1R/Pn5P/3P4/4QP2/1qB1NKR1 w - - 0 1",
+      "supplied_mate": 18,
+      "spreadsheet_row": 54
+    }
+  ]
+}

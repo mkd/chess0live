@@ -122,6 +122,22 @@ No spreadsheet file is needed at runtime. Check the script with
 For development comparisons, follow the [puzzle progress checks](docs/VALIDATION.md#use-for-development-progress)
 to keep settings consistent and record both new solves and regressions.
 
+For a reproducible comparison of the current frozen defaults and all search
+experiments enabled together, use the prepared comparison tool:
+
+```sh
+python3 tools/check_phase4f3_puzzles.py --mode smoke --output results/combined-smoke-new
+```
+
+This checks all 39 positions for one second per configuration, with eight threads
+and fresh engine processes. It saves raw analysis, legal-move checks and a report;
+it does not overwrite an existing output directory. `--mode full` uses 60 seconds
+per position/configuration and follows the overnight resource policy. These tools
+require the frozen local experiment bundle described in the
+[comparison protocol](docs/experiments/phase4f3.md); they do not change GUI settings
+or the editable batch runner. `make test-phase4f3` checks their supervision and
+audit logic without starting a long experiment.
+
 ### Automatic Python tool setup
 
 Run tools/tests that need Python packages through the shared launcher:

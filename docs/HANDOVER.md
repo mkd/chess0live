@@ -28,7 +28,35 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.2
+## Current checkpoint: Phase 4F.3
+
+Read the [combined-policy protocol](experiments/phase4f3.md) and
+[current report](reports/2026-10-24-phase4f3.md). The frozen engine comes from
+`ccb66a4`; no engine source or playing default changes in this phase. Candidate
+and opponent share the executable/network and retain LMR=true. Candidate enables
+the complete eight-option package; opponent uses the current defaults. All
+other settings are explicit. Do not reuse a historical LMR=false baseline.
+
+The new tools use existing per-game clocks/referee/raw audits and automatic
+Python setup. The dated older tools and results remain frozen. New opening
+exclusions include October 22's games and current exposed profiling roots.
+Current option validation must allow the actual LMR=true default and the bounded
+time-policy choice without enabling bounded timing in this comparison.
+
+Full puzzles use eight threads, serial fresh processes, 39 positions × two
+policies × 60 seconds. The strength match uses four active one-thread searches,
+512 games/256 pairs and at least 6 GiB reserved memory. Never overlap full runs
+or development compute. Check both UTC and monotonic monitoring gaps for sleep;
+derive the next07:00 cutoff through UTC across Helsinki's DST transition.
+
+Finish and commit preparation before held-out play. Earlier daytime exceptions
+do not authorize this phase; no automatic schedule exists. Record failed or
+incomplete attempts without replacing cases. Full tactical results precede match
+launch and the independent final match audit precedes any default review.
+Keep owner `tools/batch_positions.py`, README intro and stable GUI
+`0.1-dev-4b8b35d` unchanged; the owner handles GitHub pushes.
+
+## Previous checkpoint: Phase 4F.2
 
 Read the [move-ordering report](reports/2026-10-24-phase4f2.md). Each SearchWorker
 owns reusable `ranked_moves` storage. Every `order()` call clears/repopulates it,
