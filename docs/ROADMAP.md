@@ -5,7 +5,27 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.2 target coverage complete within local runtime limits
+## Current checkpoint: Phase 4E.3 automatic Python tool setup
+
+The shared launcher now configures and reuses isolated, hash-pinned Python
+packages for tools/tests, including automatic direct `batch_positions.py` setup
+and optional Make targets. Editable batch settings and all 39 FENs are preserved.
+First use, offline reconstruction, concurrent launch and damaged-environment
+repair were exercised locally. macOS ARM64 and Linux ARM64 VM checks cover real
+setup/run behavior; native Windows setup/process-tree cancellation remains
+unverified. See the [tool guide](TOOLS.md) and [report](reports/2026-10-24-phase4e3.md).
+
+This is external tooling work. Engine sources, search defaults, native executable,
+README introduction and stable GUI bundles remain unchanged. No strength claim,
+release, long puzzle/match run or schedule follows from this checkpoint.
+
+Next is **Phase 4E.4: simpler host/target toolchain setup**: a common command
+that identifies the target, diagnoses prerequisites, provisions/cache-reuses
+supported toolchains where practical, and makes unavoidable SDK/OS restrictions
+clear. Then scope network creation/training/export/selection with recorded
+provenance. Native Windows acceptance and additional CPU backends remain open.
+
+## Previous checkpoint: Phase 4E.2 target coverage complete within local runtime limits
 
 All six required targets now compile. New Linux RISC-V64 builds passed all eight
 runtime checks through QEMU, and the Windows x86-64 build passed them through
@@ -53,7 +73,7 @@ architecture. Phase 4E and release acceptance are not yet complete.
 ## Tooling usability backlog — accepted October 24, 2026
 
 The owner's feedback calls for a consistent **one-command workflow**, implemented
-outside the engine. This does not expand the current 4E.2 runtime checkpoint.
+outside the engine. Phase 4E.3 delivers the first Python setup checkpoint.
 Before broader training integration, scope these user-facing deliverables:
 
 - **Tools/tests/benchmarks:** discover dependencies, create/reuse an isolated
@@ -510,7 +530,7 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | 4E.2 complete within local limits: all six targets build; five have bounded execution evidence, including QEMU RISC-V and Wine x86-64; Windows ARM64 remains build-only | 4E.3: one-command isolated tooling setup, then toolchain provisioning and network qualification/export/training; native Windows acceptance stays open |
+| 4E: broader runtime support and network tooling | 4E.3 complete: automatic isolated Python setup; all six engine targets build and five have bounded execution evidence; Windows ARM64 remains build-only | 4E.4: host/target toolchain setup, then network qualification/export/training; native Windows acceptance stays open |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

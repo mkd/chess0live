@@ -1,5 +1,24 @@
 # Validation and experiment protocol
 
+## Phase 4E.3 automatic Python setup — October 24, 2026
+
+The [tooling report](reports/2026-10-24-phase4e3.md) records 197 passing native
+checks: 32 new dependency/cache/process tests, seven batch tests and 158 existing
+match/profiler/runtime-verifier/Make checks. Real macOS first use, concurrent
+offline setup and offline repair of a damaged environment passed. Linux ARM64
+VM setup passed with Python 3.13.17; the final run rebuilt from cached archives
+with networking disabled and passed all 32 setup plus seven batch checks.
+Its initial test-harness `runpy` mock failure is preserved and fixed. No real
+engine puzzle/match campaign was run. Native Windows setup/process-tree
+cancellation remains unverified.
+
+All 24 engine/Fathom source pins and 61 of 62 protected assets match. The one
+intentional file change adds batch bootstrap; the editable settings/FEN block
+matches byte-for-byte. Native engine, README intro and GUI snapshots are intact.
+The shared launcher leaves frozen qualification scripts and their dependency
+requirement unchanged. Raw logs/pins are in `results/phase4e3-20261024/`. This is
+tooling evidence, not a strength gain or release acceptance.
+
 ## Phase 4E.2 target coverage — October 24, 2026
 
 The [target coverage report](reports/2026-10-24-phase4e2.md) adds Linux RISC-V64

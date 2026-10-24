@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Python tools and optional Make tests now prepare and reuse their own pinned
+  dependencies automatically. Direct batch-puzzle runs need no manual package
+  installation or environment activation; editable settings are preserved.
+- Added checksum-verified downloads, offline cache reuse, concurrent-setup
+  protection and recovery from incomplete installs, plus a shared tool launcher.
+
 - Added and documented working C++26 build routes for Linux RISC-V64 and
   Windows ARM64. RISC-V passed runtime/Syzygy checks under QEMU; Windows
   ARM64 remains build-only pending a working runtime.

@@ -2,13 +2,11 @@
 
 The match runner is an independent development tool, separate from the shipped
 engine. It uses the GPL-licensed [python-chess project](https://github.com/niklasf/python-chess)
-for rules, UCI communication, and PGN output. Install its pinned importable
-package in a local virtual environment:
+for rules, UCI communication, and PGN output. The optional Make tests and
+[tool launcher](TOOLS.md) automatically configure its pinned package locally:
 
 ```sh
-python3 -m venv .local/match-venv
-.local/match-venv/bin/python -m pip install -r requirements-match.txt
-make PYTHON=.local/match-venv/bin/python test-match verify-moves
+make test-match verify-moves
 ```
 
 Do not run an experiment while compiling or benchmarking on the same machine.
@@ -29,7 +27,7 @@ labels. Those labels are not automatically verified against a binary; preserve
 build records as well as the automatically calculated file hashes.
 
 ```sh
-.local/match-venv/bin/python tools/match.py \
+python3 tools/run.py tools/match.py \
   --candidate build/macos-arm64-generic-release/chess0live \
   --opponent /absolute/path/to/opponent \
   --candidate-network networks/nn-1a298aa575a0.nnue \
@@ -43,7 +41,7 @@ The example is a configuration, not a recorded strength result. Run long
 experiments overnight (23:00–07:00 Europe/Helsinki). Short tool checks can use
 `--smoke --pairs 1 --initial 1 --increment 0.01 --max-plies 80`; this deliberately
 small run tests the runner and never establishes playing strength. Consult
-`python3 tools/match.py --help` for all options.
+`python3 tools/run.py tools/match.py --help` for all options.
 
 Both engines receive equal thread and hash settings, explicit network paths,
 and no pondering. Only one game runs at a time. The resource policy is read

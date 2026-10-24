@@ -2,7 +2,7 @@
 """Run the embedded puzzle positions through a UCI engine, one at a time.
 
 Usage: python3 batch_positions.py /path/to/engine
-Requires chess==1.11.2: python3 -m pip install chess==1.11.2
+The pinned chess dependency is configured automatically on first use.
 API: https://python-chess.readthedocs.io/en/latest/engine.html
 
 Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
@@ -12,6 +12,10 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 from pathlib import Path
 import sys
 from threading import Timer
+
+if __name__ == "__main__":
+    from tooling import direct_entry
+    direct_entry(__file__)
 
 import chess
 import chess.engine

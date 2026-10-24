@@ -90,21 +90,39 @@ puzzles in spreadsheet order. Set `ENGINE`, `THREADS`, `HASH_MB`, and `MOVETIME_
 at the top, then run it. An engine path argument overrides `ENGINE`:
 
 ```sh
-python3 -m pip install chess==1.11.2  # Once, if python-chess is not installed.
 python3 tools/batch_positions.py "/path/to/engine"
 ```
 
-Defaults are one thread, 128 MB hash, and 60 seconds per position. Stay within
-the [local resource budget](#local-resource-policy). Each FEN gets a fresh engine
+The script preserves your editable settings and automatically prepares its pinned
+Python dependency on first use. No environment activation or manual package
+installation is needed. Stay within the [local resource budget](#local-resource-policy). Each FEN gets a fresh engine
 running from its binary directory. The script prints the last exact main-line
 score and best move, for example `01/39  M7  bestmove=f5f6`. `-M7` means the side
 to move is being mated; ordinary scores are signed pawn values such as `+1.25`.
 Errors and missing scores are explicit. To save the printed results, append
 `> results.txt` to the command. Edit or slice `FENS` for a shorter run.
 No spreadsheet file is needed at runtime. Check the script with
-`python3 tests/batch_positions_test.py`.
+`python3 tools/run.py tests/batch_positions_test.py`.
 For development comparisons, follow the [puzzle progress checks](docs/VALIDATION.md#use-for-development-progress)
 to keep settings consistent and record both new solves and regressions.
+
+### Automatic Python tool setup
+
+Run tools/tests that need Python packages through the shared launcher:
+
+```sh
+python3 tools/run.py tools/match.py --help
+python3 tools/run.py tests/batch_positions_test.py
+make test-match
+```
+
+The launcher and optional Make tests install pinned packages into an isolated
+local environment, then reuse it. `batch_positions.py` also supports direct use
+as shown above. `make tooling` optionally prepares everything in advance.
+Python 3.10+ with its `venv` component is required; on Windows, use `py -3`
+in place of `python3`. Ordinary engine builds and core tests need no third-party
+Python packages. See [tool setup](docs/TOOLS.md) for offline use, cache location,
+repair, package provenance and Windows commands.
 
 ## Evaluation and search
 
@@ -170,12 +188,12 @@ are excluded from Git and are never downloaded by a normal build. UCI `tbhits`
 reports successful probes. DTZ is not mate distance; `score mate` still requires
 an actual mating line. See [tablebase setup and testing](docs/SYZYGY.md).
 
-For repeatable parallel measurements, install `requirements-match.txt`, then run
+For repeatable parallel measurements, run
 `make test-smp test-profile-smp`. The bounded profiler accepts `--threads 1,2,4`,
 `--mode movetime|depth|both`, and a new output filename:
 
 ```sh
-python3 tools/profile_smp.py --engine build/macos-arm64-generic-release/chess0live \
+python3 tools/run.py tools/profile_smp.py --engine build/macos-arm64-generic-release/chess0live \
   --network networks/nn-1a298aa575a0.nnue --output results/smp-check.json \
   --threads 1,2,4 --mode both --movetime-ms 1000 --depth 6
 ```
@@ -235,7 +253,7 @@ policy clears cached search state. With `Search Diagnostics=true`, a final
 `nullmove v1` record reports probes, fail-highs, verifications, accepted cutoffs,
 and rejected verifications, summed across workers. Check state and protocol
 behavior with `make test-null-state test-null-search test-null-move`
-after installing `requirements-match.txt`. `make test-profile-null-move` checks
+with automatic dependency setup. `make test-profile-null-move` checks
 the bounded development profiler without starting engine searches.
 
 `Reverse Futility Pruning` (default `false`) is an experimental shallow static
@@ -245,7 +263,7 @@ sparse endings and draw-sensitive positions. Its fixed margins do not prove
 playing-strength preservation; leave it off for baseline comparisons. Changing
 the option clears reusable search state. With `Search Diagnostics=true`, a final
 `reversefutility v1` record reports eligible evaluations and cutoffs across all
-workers. After installing `requirements-match.txt`, run
+workers. Run
 `make test-reverse-futility-search test-reverse-futility` for correctness checks,
 or `make test-profile-reverse-futility` for engine-free profiler checks.
 
@@ -256,8 +274,7 @@ checks, promotions, en passant, small endings and draw-sensitive positions.
 These estimates cannot prove that a sacrifice is unsound; leave the option off
 for baseline comparisons. Changing it clears reusable search state. With
 `Search Diagnostics=true`, the final `qsearchsee v1` record reports exchange
-evaluations and skipped captures across joined workers. After installing
-`requirements-match.txt`, use `make test-qsearch-see-search test-qsearch-see`
+evaluations and skipped captures across joined workers. Use `make test-qsearch-see-search test-qsearch-see`
 for correctness checks, or `make test-profile-qsearch-see` for engine-free
 profiler checks.
 
@@ -280,11 +297,11 @@ its mixed development results do not establish a performance or strength gain.
 With `Search Diagnostics=true`,
 the final `countermove v1` record reports lookups, legal matches, and updates
 summed across workers. Check it with `make test-countermove test-profile-countermove`
-after installing `requirements-match.txt`. The bounded, independently replayed
+with automatic dependency setup. The bounded, independently replayed
 profiler records cold and warm searches separately:
 
 ```sh
-python3 tools/profile_countermove.py --engine build/macos-arm64-generic-release/chess0live \
+python3 tools/run.py tools/profile_countermove.py --engine build/macos-arm64-generic-release/chess0live \
   --network networks/nn-1a298aa575a0.nnue --output results/countermove-check.json
 ```
 
@@ -329,7 +346,7 @@ and compares scalar/native features, accumulators, layers, and outputs. It
 downloads upstream source into the ignored build directory; it is not part of
 the shipped executable.
 
-For paired-opening matches, install `requirements-match.txt` and follow
+For paired-opening matches, follow
 [the match guide](docs/MATCHES.md). It records full games, clocks, failures,
 binary/network hashes, and uncertainty at the opening-pair level. Separate
 development and validation opening fixtures are included. `make test-match`
@@ -362,7 +379,7 @@ the separate live check, required frozen inputs, resource budget and commands.
 For developer timing investigations, `make CLOCK_TRACE=1` creates a separate
 build whose directory ends in `-clock-trace`. It adds a versioned timing record
 after each `bestmove` and a `clockping N` calibration command. Ordinary builds
-omit this instrumentation. After installing `requirements-match.txt`, use
+omit this instrumentation. Use
 `make CLOCK_TRACE=1 test-clock-trace` for live protocol checks and
 `make test-clock-boundaries` for engine-free diagnostic checks. The
 [saved-case workflow](docs/experiments/clock-boundary-20261020.md) additionally
@@ -378,11 +395,11 @@ The [experiment log](docs/EXPERIMENTS.md) records decisions, including candidate
 that were not retained.
 `make test-profile` checks the bounded clock-policy profiler; `make test` also
 includes deterministic time-policy and iteration-accounting tests.
-For cache diagnostics, install `requirements-match.txt`, then run:
+For cache diagnostics, run:
 
 ```sh
 make test-profile-cache
-python3 tools/profile_cache.py --engine build/macos-arm64-generic-release/chess0live --depth 5 --hash-mb 64 --output results/cache-new.json
+python3 tools/run.py tools/profile_cache.py --engine build/macos-arm64-generic-release/chess0live --depth 5 --hash-mb 64 --output results/cache-new.json
 ```
 
 Choose a new output filename. The profiler runs three development positions with

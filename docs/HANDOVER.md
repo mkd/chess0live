@@ -30,6 +30,32 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.3 adds automatic isolated Python setup through `tools/run.py`, optional
+Make test targets and direct batch-puzzle invocation. Read [TOOLS](TOOLS.md) and
+[the report](reports/2026-10-24-phase4e3.md). The manifest pins chess 1.11.2 plus
+setuptools/wheel build inputs; the historical `requirements-match.txt` is intact.
+Use the launcher for unchanged historical scripts. Cache/venv files stay under
+ignored `.local/tooling/` by default, with an optional external local cache path.
+Preserve owner batch settings/FENs: only its docstring/bootstrap changed. The old
+whole-file pin therefore changes intentionally; all other protected assets,
+engine sources, native binary, README intro and GUI bundle `0.1-dev-4b8b35d` are
+preserved. The synthetic batch test now passes interpreter/script as arguments,
+so paths with spaces work.
+
+Setup verifies archive hashes, installs with indexes/build isolation disabled,
+checks runtime imports/versions, and repairs owned incomplete environments.
+POSIX CLI handoff preserves the tool PID; installer cancellation/timeout kills
+its process group and inherited locks prevent overlapping installers. Windows
+native setup/process-tree cancellation remains unverified. Real setup succeeded
+on macOS ARM64 and in a Linux ARM64 VM; the report records scoped test evidence.
+
+Next is **Phase 4E.4 host/target toolchain setup**, followed by network tooling
+and honest training provenance. No new long test, strength claim, default change
+or release. Keep compiler/SDK prerequisites explicit and preserve frozen experiment
+manifests rather than silently rewriting their historical dependency pins.
+
+## Previous checkpoint: Phase 4E.2
+
 Phase 4E.2 is complete within available runtime limits. The
 [report](reports/2026-10-24-phase4e2.md) records new C++26 generic builds for
 Linux RISC-V64 (Debian GCC 14.2.0, RV64GC/LP64D) and Windows ARM64

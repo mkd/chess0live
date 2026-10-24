@@ -24,6 +24,8 @@ MODE ?= release
 SIMD ?= auto
 CLOCK_TRACE ?= 0
 PYTHON ?= python3
+# Managed packages for optional tools only; ordinary builds/tests stay stdlib-only.
+TOOL_PYTHON = $(PYTHON) tools/run.py
 ifeq ($(origin CXX),default)
   CXX := c++
 endif
@@ -188,16 +190,16 @@ test-deep-quiet-search: $(BUILD)/deep-quiet-search-test$(EXE)
 	"$(BUILD)/deep-quiet-search-test$(EXE)" "$(NET)"
 
 test-deep-quiet-uci: $(ENGINE)
-	$(PYTHON) tests/deep_quiet_uci_test.py "$(ENGINE)" --network "$(NET)"
+	$(TOOL_PYTHON) tests/deep_quiet_uci_test.py "$(ENGINE)" --network "$(NET)"
 
 test-bounded-time: $(BUILD)/bounded-time-test$(EXE)
 	"$(BUILD)/bounded-time-test$(EXE)" "$(NET)"
 
 test-bounded-time-uci: $(ENGINE)
-	$(PYTHON) tests/bounded_time_uci_test.py "$(ENGINE)" --network "$(NET)"
+	$(TOOL_PYTHON) tests/bounded_time_uci_test.py "$(ENGINE)" --network "$(NET)"
 
 test-profile-deep-quiet:
-	$(PYTHON) tests/profile_deep_quiet_test.py
+	$(TOOL_PYTHON) tests/profile_deep_quiet_test.py
 
 # The direct probe regression includes search.cpp to inspect speculative state;
 # do not also link search.o. Production builds expose only the ordinary API.
@@ -209,10 +211,10 @@ test-probcut-search: $(BUILD)/probcut-search-test$(EXE)
 	"$(BUILD)/probcut-search-test$(EXE)" "$(NET)"
 
 test-probcut-uci: $(ENGINE)
-	$(PYTHON) tests/probcut_uci_test.py "$(ENGINE)" --network "$(NET)"
+	$(TOOL_PYTHON) tests/probcut_uci_test.py "$(ENGINE)" --network "$(NET)"
 
 test-profile-probcut:
-	$(PYTHON) tests/profile_probcut_test.py
+	$(TOOL_PYTHON) tests/profile_probcut_test.py
 
 # Experimental null-search state and lifecycle checks; no strength claims.
 NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
@@ -230,10 +232,10 @@ test-null-search: $(BUILD)/null-search-test$(EXE)
 	"$(BUILD)/null-search-test$(EXE)" "$(NET)"
 
 test-null-move: $(ENGINE)
-	$(PYTHON) tests/null_move_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(NULL_MOVE_ACTIVATION_TIMEOUT)
+	$(TOOL_PYTHON) tests/null_move_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(NULL_MOVE_ACTIVATION_TIMEOUT)
 
 test-profile-null-move:
-	$(PYTHON) tests/profile_null_move_test.py
+	$(TOOL_PYTHON) tests/profile_null_move_test.py
 
 # Experimental shallow static cutoffs; optional UCI tests use the referee.
 REVERSE_FUTILITY_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
@@ -245,10 +247,10 @@ test-reverse-futility-search: $(BUILD)/reverse-futility-search-test$(EXE)
 	"$(BUILD)/reverse-futility-search-test$(EXE)" "$(NET)"
 
 test-reverse-futility: $(ENGINE)
-	$(PYTHON) tests/reverse_futility_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(REVERSE_FUTILITY_ACTIVATION_TIMEOUT)
+	$(TOOL_PYTHON) tests/reverse_futility_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(REVERSE_FUTILITY_ACTIVATION_TIMEOUT)
 
 test-profile-reverse-futility:
-	$(PYTHON) tests/profile_reverse_futility_test.py
+	$(TOOL_PYTHON) tests/profile_reverse_futility_test.py
 
 # Experimental losing-capture filter; off by default and independently checked.
 QSEARCH_SEE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
@@ -260,18 +262,18 @@ test-qsearch-see-search: $(BUILD)/qsearch-see-search-test$(EXE)
 	"$(BUILD)/qsearch-see-search-test$(EXE)" "$(NET)"
 
 test-qsearch-see: $(ENGINE)
-	$(PYTHON) tests/qsearch_see_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(QSEARCH_SEE_ACTIVATION_TIMEOUT)
+	$(TOOL_PYTHON) tests/qsearch_see_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(QSEARCH_SEE_ACTIVATION_TIMEOUT)
 
 test-profile-qsearch-see:
-	$(PYTHON) tests/profile_qsearch_see_test.py
+	$(TOOL_PYTHON) tests/profile_qsearch_see_test.py
 
 # Optional independent-referee checks for the isolated quiet-reply experiment.
 .PHONY: test-countermove test-profile-countermove
 test-countermove: $(ENGINE)
-	$(PYTHON) tests/countermove_uci_test.py "$(ENGINE)" --network "$(NET)"
+	$(TOOL_PYTHON) tests/countermove_uci_test.py "$(ENGINE)" --network "$(NET)"
 
 test-profile-countermove:
-	$(PYTHON) tests/profile_countermove_test.py
+	$(TOOL_PYTHON) tests/profile_countermove_test.py
 
 test-time: $(BUILD)/time-management-test$(EXE)
 	"$(BUILD)/time-management-test$(EXE)"
@@ -309,13 +311,13 @@ test-syzygy: $(ENGINE) $(BUILD)/tablebase-test$(EXE) $(BUILD)/syzygy-search-test
 	$(PYTHON) tools/fetch_syzygy_test_tables.py --directory "$(SYZYGY_TEST_DIR)" --verify-only
 	"$(BUILD)/tablebase-test$(EXE)" "$(SYZYGY_TEST_DIR)"
 	"$(BUILD)/syzygy-search-test$(EXE)" "$(NET)" "$(SYZYGY_TEST_DIR)"
-	$(PYTHON) tests/syzygy_uci_test.py "$(ENGINE)" --network "$(NET)" --tables "$(SYZYGY_TEST_DIR)"
+	$(TOOL_PYTHON) tests/syzygy_uci_test.py "$(ENGINE)" --network "$(NET)" --tables "$(SYZYGY_TEST_DIR)"
 
-# Optional independent referee checks: install requirements-match.txt first.
+# Optional independent referee checks configure their pinned dependency automatically.
 # Keep the engine's ordinary correctness suite free of third-party Python deps.
 test-match:
 	$(PYTHON) tests/match_statistics_test.py
-	$(PYTHON) tests/match_test.py
+	$(TOOL_PYTHON) tests/match_test.py
 
 test-bench:
 	$(PYTHON) tests/compare_bench_test.py
@@ -323,76 +325,76 @@ test-bench:
 test-profile:
 	$(PYTHON) tests/profile_search_test.py
 
-# Optional saved-position clock diagnostics; requires requirements-match.txt.
+# Optional saved-position clock diagnostics use the managed Python environment.
 test-clock-probes:
-	$(PYTHON) tests/probe_clocks_test.py
-	$(PYTHON) tests/probe_receipt_test.py
+	$(TOOL_PYTHON) tests/probe_clocks_test.py
+	$(TOOL_PYTHON) tests/probe_receipt_test.py
 
 .PHONY: test-clock-boundaries test-clock-trace
 test-clock-boundaries:
-	$(PYTHON) tests/probe_clock_boundaries_test.py
+	$(TOOL_PYTHON) tests/probe_clock_boundaries_test.py
 
 # Use CLOCK_TRACE=1; this checks the diagnostic binary, not a timing threshold.
 test-clock-trace: $(ENGINE)
-	$(PYTHON) tests/clock_boundary_uci.py "$(ENGINE)" "$(NET)"
+	$(TOOL_PYTHON) tests/clock_boundary_uci.py "$(ENGINE)" "$(NET)"
 
 .PHONY: test-match-readiness
 test-match-readiness:
-	$(PYTHON) tests/check_match_readiness_test.py
-	$(PYTHON) tests/audit_match_readiness_test.py
+	$(TOOL_PYTHON) tests/check_match_readiness_test.py
+	$(TOOL_PYTHON) tests/audit_match_readiness_test.py
 
 .PHONY: test-lmr-qualification
 test-lmr-qualification:
-	$(PYTHON) tests/lmr_20261022_openings_test.py
-	$(PYTHON) tests/qualify_lmr_20261022_test.py
-	$(PYTHON) tests/audit_lmr_20261022_test.py
+	$(TOOL_PYTHON) tests/lmr_20261022_openings_test.py
+	$(TOOL_PYTHON) tests/qualify_lmr_20261022_test.py
+	$(TOOL_PYTHON) tests/audit_lmr_20261022_test.py
 
 test-profile-lmr:
-	$(PYTHON) tests/profile_lmr_test.py
+	$(TOOL_PYTHON) tests/profile_lmr_test.py
 
 test-profile-ordering: test-profile-lmr
 
 # Optional macOS CPU recorder; these mock tests need no process inspection.
 test-profile-cpu:
-	$(PYTHON) tests/profile_cpu_test.py
+	$(TOOL_PYTHON) tests/profile_cpu_test.py
 
 test-profile-cache:
-	$(PYTHON) tests/profile_cache_test.py
+	$(TOOL_PYTHON) tests/profile_cache_test.py
 
 # Lazy SMP protocol/PV checks use the optional independent python-chess referee.
 .PHONY: test-smp test-profile-smp
 test-smp: $(ENGINE)
-	$(PYTHON) tests/smp_uci_test.py "$(ENGINE)" --network "$(NET)"
+	$(TOOL_PYTHON) tests/smp_uci_test.py "$(ENGINE)" --network "$(NET)"
 
 test-profile-smp:
-	$(PYTHON) tests/profile_smp_test.py
+	$(TOOL_PYTHON) tests/profile_smp_test.py
 
 # Optional frozen Phase 2D workflow, including independent evidence auditing.
 test-qualification: test-phase3g test-phase3l test-phase4d2
-	$(PYTHON) tests/qualify_time_policy_test.py
-	$(PYTHON) tests/audit_time_policy_test.py
-	$(PYTHON) tests/qualify_lmr_test.py
-	$(PYTHON) tests/audit_lmr_test.py
+	$(TOOL_PYTHON) tests/qualify_time_policy_test.py
+	$(TOOL_PYTHON) tests/audit_time_policy_test.py
+	$(TOOL_PYTHON) tests/qualify_lmr_test.py
+	$(TOOL_PYTHON) tests/audit_lmr_test.py
 
 test-phase3g:
-	$(PYTHON) tests/phase3g_openings_test.py
-	$(PYTHON) tests/qualify_phase3g_test.py
-	$(PYTHON) tests/audit_phase3g_test.py
+	$(TOOL_PYTHON) tests/phase3g_openings_test.py
+	$(TOOL_PYTHON) tests/qualify_phase3g_test.py
+	$(TOOL_PYTHON) tests/audit_phase3g_test.py
 
 test-phase3l:
-	$(PYTHON) tests/phase3l_openings_test.py
-	$(PYTHON) tests/qualify_phase3l_test.py
-	$(PYTHON) tests/audit_phase3l_test.py
+	$(TOOL_PYTHON) tests/phase3l_openings_test.py
+	$(TOOL_PYTHON) tests/qualify_phase3l_test.py
+	$(TOOL_PYTHON) tests/audit_phase3l_test.py
 
 .PHONY: test-phase4d2
 test-phase4d2:
-	$(PYTHON) tests/phase4d2_openings_test.py
-	$(PYTHON) tests/phase4d2_load_test.py
-	$(PYTHON) tests/qualify_phase4d2_test.py
-	$(PYTHON) tests/audit_phase4d2_test.py
+	$(TOOL_PYTHON) tests/phase4d2_openings_test.py
+	$(TOOL_PYTHON) tests/phase4d2_load_test.py
+	$(TOOL_PYTHON) tests/qualify_phase4d2_test.py
+	$(TOOL_PYTHON) tests/audit_phase4d2_test.py
 
 verify-moves: $(ENGINE)
-	$(PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
+	$(TOOL_PYTHON) tools/verify_moves.py "$(ENGINE)" --positions 64 --depth 2 --output results/move-verification.json
 
 bench: $(ENGINE)
 	$(PYTHON) tools/bench.py "$(ENGINE)"
@@ -401,6 +403,8 @@ resources:
 	$(PYTHON) tools/resources.py show
 
 help:
+	@echo 'make tooling           Prepare pinned Python tools (also automatic on use)'
+	@echo 'make test-tooling      Check dependency setup and the batch puzzle runner'
 	@echo 'make                  Build native portable-CPU executable (one job by default)'
 	@echo 'make net              Fetch and verify the pinned official SF19 network'
 	@echo 'make test             Run correctness checks; make net first'
@@ -408,13 +412,13 @@ help:
 	@echo 'make MODE=thread-sanitize test-search test-smp   Shared-state race checks'
 	@echo 'make fetch-syzygy-test Download the pinned small tablebase test corpus'
 	@echo 'make test-syzygy       Test local Syzygy data, probing and UCI lifecycle'
-	@echo 'make test-smp          Parallel UCI/PV checks (requirements-match.txt)'
+	@echo 'make test-smp          Parallel UCI/PV checks (automatic Python setup)'
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make test-countermove test-profile-countermove  Check experimental quiet reply ordering'
 	@echo 'make test-null-state test-null-search test-null-move  Check experimental verified null pruning'
 	@echo 'make test-reverse-futility-search test-reverse-futility  Check experimental static pruning'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
-	@echo 'make test-match        Test optional match tools (requirements-match.txt)'
+	@echo 'make test-match        Test optional match tools (automatic Python setup)'
 	@echo 'make test-match-readiness Test bounded match supervisor and raw auditor'
 	@echo 'make test-lmr-qualification Test fresh fixed LMR qualification workflow'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'
@@ -425,7 +429,7 @@ help:
 	@echo 'make test-profile      Test clock-policy profiling and diagnostic validation'
 	@echo 'make test-profile-cache Test cache profiling, counter validation, and failure evidence'
 	@echo 'make test-clock-probes Test saved-position clock diagnostic validation'
-	@echo 'make test-profile-lmr  Test selective-search profiles (requirements-match.txt)'
+	@echo 'make test-profile-lmr  Test selective-search profiles (automatic Python setup)'
 	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'
 	@echo 'make test-profile-cpu  Test bounded CPU-profile recording and cleanup'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
@@ -442,3 +446,12 @@ clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
 -include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d
+
+# Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
+.PHONY: tooling test-tooling
+tooling:
+	$(PYTHON) tools/run.py --setup
+
+test-tooling:
+	$(PYTHON) tests/tooling_test.py
+	$(TOOL_PYTHON) tests/batch_positions_test.py

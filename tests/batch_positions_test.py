@@ -102,7 +102,7 @@ class BatchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             engine, journal = root / "synthetic engine", root / "starts.txt"
-            engine.write_text(f"#!{sys.executable}\nimport os, sys\n"
+            engine.write_text("import os, sys\n"
                 f"with open({str(journal)!r}, 'a') as f: f.write(str(os.getpid()) + '\\n')\n"
                 "for command in sys.stdin:\n"
                 " if command.strip() == 'uci':\n"
@@ -114,8 +114,13 @@ class BatchTests(unittest.TestCase):
                 "  print('info depth 2 score mate 7 pv a1a2')\n"
                 "  print('bestmove a1a2', flush=True)\n"
                 " elif command.strip() == 'quit': break\n", encoding="utf-8")
-            engine.chmod(0o755)
-            with mock.patch.object(batch, "MOVETIME_MS", 1):
+            # Explicit interpreter arguments work on Windows and with spaces
+            # in the managed environment path; shebangs cannot represent that.
+            popen = chess.engine.SimpleEngine.popen_uci
+            with mock.patch.object(batch, "MOVETIME_MS", 1), \
+                    mock.patch.object(chess.engine.SimpleEngine, "popen_uci",
+                        side_effect=lambda path, **kwargs: popen(
+                            [sys.executable, path], **kwargs)):
                 self.assertEqual(batch.analyze(engine, FEN), ("M7", "a1a2"))
                 self.assertEqual(batch.analyze(engine, FEN), ("M7", "a1a2"))
             starts = journal.read_text().splitlines()
