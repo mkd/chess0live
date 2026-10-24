@@ -5,7 +5,38 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.1 quiescence efficiency
+## Current checkpoint: Phase 4F.2 move-ordering efficiency
+
+Move ordering now computes each score once per call and reuses worker-local
+temporary storage. It retains the former priorities, helper root tie order,
+SEE classification/counters and complete ordering before child searches.
+Current-default parent/candidate comparisons matched all 120 searches exactly;
+observed speed ratios were 1.055 fresh and 1.037 reused. These are bounded native
+macOS implementation measurements, not a playing-strength claim. Read the
+[report](reports/2026-10-24-phase4f2.md) for validation and limitations.
+
+The owner also supplied a starting-position depth-10 comparison: all search
+experiments enabled together used 21.4% fewer nodes and 21.4% less reported time,
+with the same final score/move/PV. Intermediate lines differ. This observation
+supports testing the combination; it does not establish strength or isolate
+this phase's implementation change. The manual guide now contains a pasteable
+[combined configuration](MANUAL_TESTING.md#testing-combined-search-optimizations).
+
+Next is **Phase 4F.3: combined search optimizations versus current defaults**.
+Freeze both complete configurations on the same executable/network, check their
+tactical behavior, and prepare a matched-resource paired-opening strength test.
+Judge the combination as a package: it may qualify even if its components did
+not win individually. Component removal can investigate a failed package later;
+individual wins are not prerequisites for accepting a winning combination.
+Keep defaults unchanged until the package has sufficient evidence. Long tests
+use the existing overnight/resource rules or a specific owner exception; no
+automatic schedule or campaign is started by this checkpoint.
+
+The build/network workflow and Phase 4F.1 remain available. Native Windows
+acceptance, broader training hosts/GPU, held-out training data and release gates
+remain open. Stable GUI `0.1-dev-4b8b35d` is preserved; no v0.1 or Elo is claimed.
+
+## Previous checkpoint: Phase 4F.1 quiescence efficiency
 
 Search development has resumed with a result-preserving optimization. Outside
 check, quiescence now generates legal captures/promotions and checks quiet moves

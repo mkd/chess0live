@@ -28,7 +28,40 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.1
+## Current checkpoint: Phase 4F.2
+
+Read the [move-ordering report](reports/2026-10-24-phase4f2.md). Each SearchWorker
+owns reusable `ranked_moves` storage. Every `order()` call clears/repopulates it,
+computes each existing ordering score once, applies the same SEE adjustment,
+sorts with unchanged `tie_before()`, then copies the entire move list back.
+Nothing refers to scratch after return, so descendants can safely reuse it.
+Scores must not survive into a later call: history and killers can change.
+There is no fixed move-count bound or per-ply scratch array.
+
+Do not add a singleton early return in SEE mode: every eligible ordinary
+non-TT capture still contributes its original SEE counters. Do not replace
+the full sort with lazy rescoring after child searches without a separate
+semantic review: history changes, ProbCut's pre-pass and LMR move numbers depend
+on the original order. The direct ordering regression privately includes
+search.cpp and compares against the frozen former comparator without an NNUE
+file. It covers helper workers, flags/special moves and scratch reuse.
+
+The existing 15-root current-default profiler is unchanged. The native candidate
+is `build/phase4f2-native/chess0live`; evidence is in
+`results/phase4f2-20261024/`. Default and all-enabled fixed-node regressions are
+separate from the speed comparison. No policy default changed. The owner's
+ordinary binary was rebuilt externally during manual testing; agent builds
+use separate directories. Stable GUI `0.1-dev-4b8b35d` remains untouched.
+
+Next is **Phase 4F.3 combined-versus-default strength qualification**. The owner
+explicitly wants interactions tested, not just isolated component results.
+Use the eight-option recipe in MANUAL_TESTING, keeping all other conditions
+identical. A winning package need not consist of individually winning features.
+The single reported depth-10 speed result motivates this test, not promotion.
+Prepare concrete evidence/configurations before requesting any long-test
+daytime exception; do not launch or schedule one implicitly.
+
+## Previous checkpoint: Phase 4F.1
 
 Read the [quiescence efficiency report](reports/2026-10-24-phase4f1.md).
 `Position::legal_tactical_moves()` returns all legal captures/promotions in

@@ -73,6 +73,46 @@ that side is getting mated. The distance is in moves, not plies. Ordinary
 `score cp X` remains the output when the search has not found mate. A 60-second
 search is a budget, not a guarantee of finding the supplied mate distance.
 
+## Testing combined search optimizations
+
+There is no single UCI "all on" switch. Paste this block into a current console
+session, or save these values in a separate Cute Chess engine profile:
+
+```text
+setoption name Late Move Reductions value true
+setoption name Deep Quiet Reductions value true
+setoption name Capture Ordering value see
+setoption name Countermove Ordering value true
+setoption name Null Move Pruning value true
+setoption name Reverse Futility Pruning value true
+setoption name QSearch SEE Pruning value true
+setoption name ProbCut value true
+isready
+```
+
+Wait for `readyok`, then enter `position ...` and `go ...` as usual. This enables
+all currently selectable search experiments together. Automatic implementation
+optimizations, PVS, aspiration windows, quiescence and the transposition table
+are already active; they need no extra switch. `Threads` and `Hash` remain
+independent settings, and Syzygy needs your external table directory. Time Policy
+is a choice between alternatives, not a collection of cumulative switches.
+Pondering must be coordinated with the GUI and opponent; leave it off for an
+isolated comparison. Search Diagnostics prints measurements and is not a
+playing-strength optimization.
+
+Individual tests cannot establish the strength of a combination: the features
+may reinforce each other or introduce harmful interactions. This profile is an
+experiment, not an established strongest setting. Compare it against a second
+profile with the same executable, network, Threads, Hash, clock policy, tablebase
+settings and time control. Change only the eight settings above, use paired
+openings with swapped colors, and retain PGNs plus exact settings. A combination
+can qualify as a package without each component independently winning a match.
+
+To restore current search defaults in the console, keep LMR `true`, change
+Capture Ordering to `mvv-lva`, and set the other six listed boolean experiments
+to `false`. Neither `ucinewgame` nor Clear Hash resets options. A fresh process
+uses defaults, but Cute Chess may immediately reapply its saved profile.
+
 ## Stable local test copy
 
 The October 13, 2026 baseline is `0.1-dev-4b8b35d`, at:

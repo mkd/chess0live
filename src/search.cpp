@@ -193,6 +193,11 @@ struct SearchWorker {
     const std::size_t id;
     std::array<std::array<std::array<int, 64>, 64>, 2> history_score{};
     std::array<std::array<Move, 2>, max_ply> killers{};
+    struct RankedMove { Move move; int score; };
+    // Scratch belongs to one worker, not one ply. order() copies the entire
+    // result back before any child search can reuse this storage. Retain capacity
+    // across nodes, but recompute scores from the current history on every call.
+    std::vector<RankedMove> ranked_moves;
     // Six piece types per color, then the previous move's destination. The
     // original piece is used even for a promotion; no game-history move is
     // inferred at the root. Context travels by value through re-searches.
@@ -445,40 +450,33 @@ struct SearchWorker {
 
     void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply,
                Move reply = {}) {
-        if (limits.capture_ordering == CaptureOrdering::see) {
-            struct RankedMove { Move move; int score; };
-            std::vector<RankedMove> ranked;
-            ranked.reserve(moves.size());
-            // Compute each exchange once, never in the sort comparator. Only
-            // losing ordinary captures change rank: they follow every quiet
-            // history score, while TT moves and all promotions retain priority.
-            for (const auto move : moves) {
-                auto score = ordering_score(position, move, tt_move, ply, reply);
-                if (move != tt_move && move.is_capture() && move.promotion == PieceType::none) {
-                    ++ordering.see_calls;
-                    if (static_exchange(position, move) < 0) {
-                        ++ordering.losing_captures;
-                        score -= 2000000;
-                    }
+        ranked_moves.clear();
+        ranked_moves.reserve(moves.size());
+        const bool use_see = limits.capture_ordering == CaptureOrdering::see;
+        // Freeze the same ranking as the former comparator, whose inputs were
+        // immutable during sorting. Scoring once avoids repeated board/history
+        // reads; delaying score computation into child search would change order.
+        for (const auto move : moves) {
+            auto score = ordering_score(position, move, tt_move, ply, reply);
+            // SEE still visits every eligible capture, including singleton lists.
+            // Losing ordinary captures follow quiet history; TT and promotions
+            // retain priority. Neither ordering mode prunes any moves.
+            if (use_see && move != tt_move && move.is_capture()
+                && move.promotion == PieceType::none) {
+                ++ordering.see_calls;
+                if (static_exchange(position, move) < 0) {
+                    ++ordering.losing_captures;
+                    score -= 2000000;
                 }
-                ranked.push_back({move, score});
             }
-            std::sort(ranked.begin(), ranked.end(), [&](const RankedMove& left, const RankedMove& right) {
-                if (left.score != right.score) return left.score > right.score;
-                return tie_before(left.move, right.move, ply);
-            });
-            std::transform(ranked.begin(), ranked.end(), moves.begin(),
-                           [](const RankedMove& ranked_move) { return ranked_move.move; });
-            return;
+            ranked_moves.push_back({move, score});
         }
-        // Preserve the baseline's ordering and ties exactly when SEE is off.
-        std::sort(moves.begin(), moves.end(), [&](Move left, Move right) {
-            const auto left_score = ordering_score(position, left, tt_move, ply, reply);
-            const auto right_score = ordering_score(position, right, tt_move, ply, reply);
-            // Tie-breaking makes benchmark searches reproducible across libraries.
-            if (left_score != right_score) return left_score > right_score;
-            return tie_before(left, right, ply);
+        std::sort(ranked_moves.begin(), ranked_moves.end(), [&](const RankedMove& left, const RankedMove& right) {
+            if (left.score != right.score) return left.score > right.score;
+            return tie_before(left.move, right.move, ply);
         });
+        std::transform(ranked_moves.begin(), ranked_moves.end(), moves.begin(),
+                       [](const RankedMove& ranked) { return ranked.move; });
     }
 
     void update_history(Color side, Move move, int bonus) {

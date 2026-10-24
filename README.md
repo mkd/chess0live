@@ -375,6 +375,9 @@ settings, resource limits, and interpretation. Use a new output filename each ru
 
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
+For a current build, the guide also includes a pasteable
+[combined search configuration](docs/MANUAL_TESTING.md#testing-combined-search-optimizations)
+and instructions for restoring defaults and comparing engine profiles.
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
 replay and additional NNUE parity checks; they identify clock allocation and
 search efficiency as priorities without establishing an Elo rating. The
@@ -421,6 +424,8 @@ Use a new output directory each time. This checks implementation equivalence
 and local speed, not playing strength. `make test-profile-search-baseline`
 checks the comparison tool; `make test-tactical-moves` checks capture/promotion
 generation and terminal-position detection against the full legal move list.
+`make test-ordering-search` checks exact move priorities, helper-thread ties,
+SEE accounting and scratch-storage reuse without loading a network.
 
 Pass `--positions /path/to/positions.txt` to benchmark your own positions/openings,
 one `startpos moves ...` or `fen ...` entry per line. Comments start with `#`.

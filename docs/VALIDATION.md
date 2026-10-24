@@ -1,5 +1,35 @@
 # Validation and experiment protocol
 
+## Phase 4F.2 move-ordering efficiency — October 24, 2026
+
+The [report](reports/2026-10-24-phase4f2.md) records 120 exact current-default
+parent/candidate searches: 720 iteration records and 3,104 independently legal
+PV moves, with unchanged nodes, scores, depths, final moves and hash occupancy.
+Aggregate speed ratios were 1.055 fresh and 1.037 reused; warm opening-02 was
+7.14% slower across both repetitions. All 35 recorded input identities matched
+before/after. This is limited native ARM64 performance evidence, not Elo.
+
+The direct ordering check passed 2,264 comparisons against the frozen former
+comparator: priorities, helper root/interior ties, both policies, both colors,
+special moves/flags, SEE counter deltas and scratch reuse after history changes.
+Native and ASan/UBSan core/search suites passed; the full sanitizer run includes
+the new ordering check. Forced-scalar Search API and ordering checks also passed.
+Native null-move, ProbCut, quiescence-SEE, deep-reduction
+and 57 countermove UCI checks passed. The SMP suite passed 43 cases.
+
+Both default and all-eight-options-enabled configurations matched their own
+parent results on all 39 supplied FENs at 20,000 nodes per search: 156 searches,
+528 iteration records and 3,120,000 nodes total. Legal PV/best/ponder replay
+passed. This checks implementation equivalence within each configuration;
+it does not prove package strength or activation of every selective branch.
+The owner's separate depth-10 all-on observation is retained as development
+feedback, not folded into the implementation speed result.
+
+Evidence: `results/phase4f2-20261024/`. No policy default changed and no long
+campaign was run. Stable GUI `0.1-dev-4b8b35d` remains intact. The ordinary
+binary was rebuilt externally during the owner's manual testing and matches
+the tested candidate; agent builds stayed in separate directories.
+
 ## Phase 4F.1 quiescence efficiency — October 24, 2026
 
 The [report](reports/2026-10-24-phase4f1.md) records exact parent/candidate parity

@@ -75,6 +75,13 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Cached each move's ordering score once per sort and reused temporary storage
+  within each search worker. Exact ordering and search results are preserved;
+  the local comparison measured about 4–6% higher aggregate throughput, with
+  some slower individual positions. Added a console
+  recipe for testing all experimental search options together and restoring
+  defaults. See the [validation report](docs/reports/2026-10-24-phase4f2.md).
+
 - Reduced unnecessary quiet-move legality checks in quiescence search while
   preserving all legal captures, promotions, check evasions and stalemate
   detection. The local comparison completed the same search work about 11–12%

@@ -252,6 +252,15 @@ $(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/
 $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
+# Direct ordering checks include search.cpp to compare worker-private behavior;
+# link the other engine objects but not search.o. No NNUE file is needed.
+$(BUILD)/ordering-search-test$(EXE): tests/ordering_search_test.cpp src/search.cpp include/chess0live/search.hpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-ordering-search
+test-ordering-search: $(BUILD)/ordering-search-test$(EXE)
+	"$(BUILD)/ordering-search-test$(EXE)"
+
 $(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
@@ -272,8 +281,9 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 	"$(BUILD)/nnue-updates-test$(EXE)"
 	"$(BUILD)/nnue-dense-test$(EXE)"
 
-test-search: $(BUILD)/search-test$(EXE)
+test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
+	"$(BUILD)/ordering-search-test$(EXE)"
 
 # Isolated deeper-reduction and clock policies; both remain opt-in.
 $(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
@@ -516,6 +526,7 @@ help:
 	@echo 'make network-revert   Restore the previous managed network selection'
 	@echo 'make test-managed-networks Check catalog integrity and explicit engine selection'
 	@echo 'make test-tactical-moves Check tactical generation and legal mobility witnesses'
+	@echo 'make test-ordering-search Check move priorities, SEE counters and worker tie order'
 	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
 	@echo 'make training-plan    Show local training requirements without setup'
 	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
