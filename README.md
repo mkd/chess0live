@@ -6,7 +6,7 @@ Author: **Claudio M. Camacho <claudiomkd@gmail.com>**.
 
 ## Build and run
 
-Install a recent C++ compiler with C++26 mode, GNU Make, and Python 3.9 or newer
+Install a recent C++ compiler with C++26 mode, GNU Make, and Python 3.10 or newer
 (tooling only). The engine has no Python runtime dependency. From this directory:
 
 ```sh
@@ -22,6 +22,22 @@ The executable path changes with the target; for example Linux x86-64 uses
 Choose parallel jobs within the current [resource budget](#local-resource-policy).
 The network is about 98.5 MB; `make net` downloads the pinned official file and
 verifies its full SHA-256. Large networks and build outputs are excluded from Git.
+
+For automatic compiler selection and supported local toolchain downloads:
+
+```sh
+make portable                              # This computer's target
+make portable TARGET=windows-arm64         # Cross-build
+make toolchain-plan TARGET=linux-riscv64    # Check available routes without setup
+```
+
+These builds go into `build/portable/<target>-generic-release/`, keeping ordinary
+GUI builds separate. Windows cross-compilers can be downloaded and verified
+automatically; Linux cross-compilers and Apple's SDK have explicit prerequisites.
+Use `OFFLINE=1` to reuse cached toolchains without downloads. On Windows, the
+same workflow starts with `py -3 tools/build.py --target windows-arm64`.
+See [automatic target setup](docs/PORTABILITY.md#automatic-target-setup) for all
+six targets, compiler overrides, cache/recovery and current verification limits.
 
 Configure a UCI-compatible chess GUI to launch the executable, or use stdin:
 

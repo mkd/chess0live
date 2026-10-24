@@ -47,8 +47,9 @@ With GNU Make installed, `make PYTHON="py -3" test-match` uses the same setup.
 Paths containing spaces are supported through argument lists. Native Windows
 execution of this new setup workflow remains unverified; macOS ARM64 and a
 Linux ARM64 VM have real setup/run evidence. Python itself, GNU Make/compiler
-installation and SDK provisioning remain prerequisites, not automatically
-installed by this Python-only checkpoint. See [build instructions](PORTABILITY.md).
+installation and SDK provisioning have separate requirements. The
+[automatic build frontend](PORTABILITY.md#automatic-target-setup) can now provision
+pinned Windows toolchains; Linux/system SDK prerequisites remain explicit.
 
 ## Cache, offline use and recovery
 
@@ -111,5 +112,6 @@ and versions together, preserve the runtime pin in `requirements-match.txt`,
 and rerun first-use, offline, recovery and tool tests. Old frozen experiment
 manifests retain their historical dependency versions; do not reinterpret old
 results as runs with the new setup. The engine, NNUE and tablebase data remain
-independent of this Python environment. Automatic cross-toolchain provisioning
-and custom-network training/experience reports are separate future workflows.
+independent of this Python environment. The [build frontend](PORTABILITY.md#automatic-target-setup) handles installed
+compiler discovery and supported pinned Windows toolchains separately.
+Custom-network training/experience reports remain a future workflow.

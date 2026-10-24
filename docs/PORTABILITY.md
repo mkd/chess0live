@@ -6,6 +6,115 @@ The versions below are observed working toolchains, not claims about the oldest
 supported compiler. Run `make doctor` to check the selected target and required
 facilities before relying on a different toolchain or standard library.
 
+## Automatic target setup
+
+The new frontend keeps GNU Make as the build engine and chooses a complete
+compiler for the requested target. From the checkout:
+
+```sh
+make portable
+make portable TARGET=linux-arm64
+make portable TARGET=windows-arm64
+make toolchain-plan TARGET=linux-riscv64
+make toolchain-check TARGET=windows-arm64
+```
+
+The equivalent direct command is `python3 tools/build.py --target <target>`;
+on Windows use `py -3 tools/build.py --target <target>`. Supported targets are
+`macos-arm64`, `linux-x86_64`, `linux-arm64`, `linux-riscv64`, `windows-x86_64`
+and `windows-arm64`. Omit the target to let Python detect the host, including
+native Windows hosts without Unix `uname`.
+
+`--plan` is read-only: it reports candidates without compiler execution or
+downloads. `--check` may prepare a toolchain, compiles and links a small C++26
+probe, and checks its binary architecture; it never executes that probe.
+The ordinary build command then compiles through Make and records the engine's
+hash/header and actual build configuration. Execution correctness is a separate
+step using the [runtime verifier](#run-the-portable-checks).
+
+| Route | Automatic behavior | Remaining prerequisite |
+| --- | --- | --- |
+| Native macOS ARM64 | Discover/check the installed compiler | macOS, Apple SDK/Command Line Tools, C++26 compiler and GNU Make |
+| Native or cross-target Linux | Discover/check installed native or target-prefixed GCC/Clang, including versioned GCC 14–17 | Complete target libc/C++ libraries and GNU Make; install a suitable compiler if absent |
+| Windows x86-64 or ARM64 | Try installed compilers, then provision pinned LLVM-MinGW when needed | Supported host runtime; see host coverage below |
+| Linux/Windows to macOS | Reject with a clear SDK/host explanation | The supported macOS route requires macOS and Apple's SDK |
+
+The pinned LLVM-MinGW bundle has macOS ARM64, Linux ARM64/x86-64, and Windows
+ARM64/x86-64 host packages, each capable of both Windows targets. There is no
+pinned RISC-V-host bundle. Linux packages were built for Ubuntu 22.04; host C
+library compatibility is still required. Native Windows packages include GNU
+Make and a BusyBox shell; the frontend selects them together when it provisions
+the bundle. Their native Windows execution remains unverified. The fresh real
+setup checks cover macOS ARM64 and a Linux ARM64 VM; metadata/synthetic ZIP
+checks are not native Windows evidence. See [the report](reports/2026-10-24-phase4e4.md).
+
+Python 3.10+ is required for this frontend, with no third-party Python packages.
+It never installs system packages, changes global compiler settings, obtains an
+Apple SDK, launches a foreign executable, or downloads a network/tablebase.
+Linux prerequisite examples below remain explicit package-manager steps. On
+Debian trixie, a cross-target compiler can be installed with GNU Make and the
+corresponding target C library development package, for example:
+
+```sh
+apt-get install make g++-14-aarch64-linux-gnu libc6-dev-arm64-cross
+apt-get install make g++-14-x86-64-linux-gnu libc6-dev-amd64-cross
+apt-get install make g++-14-riscv64-linux-gnu libc6-dev-riscv64-cross
+```
+
+These are administrator operations **inside that Debian environment**, not
+commands run automatically on the user's host. Other distributions/package
+managers differ. Package names are documented by Debian for
+[ARM64 GCC](https://packages.debian.org/trixie/g%2B%2B-14-aarch64-linux-gnu),
+[x86-64 GCC](https://packages.debian.org/trixie/g%2B%2B-14-x86-64-linux-gnu),
+[ARM64 libc](https://packages.debian.org/trixie/libc6-dev-arm64-cross) and
+[x86-64 libc](https://packages.debian.org/trixie/libc6-dev-amd64-cross).
+Once installed, `make portable TARGET=...` discovers them.
+
+### Output, overrides and cache
+
+Outputs use `build/portable/<target>-generic-<release|debug>/`; ordinary build
+and frozen GUI directories are preserved. `--runtime-binaries` also builds the
+seven portable correctness executables. `MODE=debug`/`--mode debug` changes mode.
+The default job count is at most two and respects the local resource policy;
+`BUILD_JOBS=N`/`--jobs N` requests another permitted count. Without IANA timezone
+data, the frontend conservatively limits builds to one worker. Other workloads
+still count toward the aggregate resource budget.
+
+Use `TOOLCHAIN=installed`/`--toolchain installed` to forbid automatic provisioning,
+or `TOOLCHAIN=llvm-mingw`/`--toolchain llvm-mingw` to select the pinned Windows
+bundle explicitly. `OFFLINE=1`/`--offline` forbids downloads while permitting a
+verified cached archive to be extracted. `--compiler /path/to/compiler` selects
+one literal executable; `CXX_EXECUTABLE` is its environment/Make equivalent.
+Paths with spaces are passed as arguments, and target-prefixed symlink names
+are preserved. Legacy `CXX='wrapper compiler flags'` remains available through
+the ordinary Make interface; the automatic frontend deliberately uses the
+literal executable interface. `--make /path/to/make` selects GNU Make explicitly.
+
+The setup probe checks a complete toolchain with the standard C++26/thread/static
+Windows flags. It does not validate arbitrary custom `SYSROOT`/compiler flag
+combinations. Use ordinary `make doctor`/`make` with explicit flags for those;
+actual builds still record their effective configuration in `toolchain.ok`.
+
+Toolchains live under ignored `.local/toolchains/` by default. Set
+`CHESS0LIVE_TOOLCHAIN_CACHE` to another local directory to keep them outside
+cloud synchronization or a read-only checkout. The committed
+[manifest](../tools/toolchains.json) pins official release URLs, archive sizes,
+SHA-256 hashes and provenance. Cached archives are verified before extraction;
+the previous `build/toolchains/` archive can be reused after verification.
+Upstream notices are retained. Extraction rejects escaping paths/links and
+special files, preserves required internal aliases, and publishes a complete
+staged installation atomically. Incomplete setup can be retried; unowned folders
+are preserved. Do not remove/change cached toolchains during a build.
+
+Each invocation saves fresh logs, probe attempts and a JSON result under
+`build/portable/reports/`. Failure is recorded instead of relabeling an old
+binary as a successful new build. Cached installation checks verify ownership
+and required compiler wrappers; they are not a full integrity scan of every
+installed file. A broken/modified compiler can therefore require moving its
+cache aside and re-extracting from the pinned archive. Native Windows process-tree
+cancellation remains unverified. `make test-build-setup` runs the small synthetic
+setup/recipe tests without downloading toolchains or building real engines.
+
 ## Current evidence — October 24, 2026
 
 The [Phase 4E.1 report](reports/2026-10-24-phase4e1.md) and
@@ -121,10 +230,11 @@ is not evidence of native engine performance.
 
 ## RISC-V64 and Windows ARM64 prerequisites
 
-The commands below are the current explicit setup route. Automatic dependency
-and toolchain setup is [planned](ROADMAP.md#tooling-usability-backlog--accepted-october-24-2026),
-not implemented by these commands yet. Nothing changes system Python or the
-engine's runtime dependencies.
+The commands below document the explicit toolchains used for earlier validation.
+The [automatic frontend](#automatic-target-setup) can now select installed Linux
+compilers and provision the pinned Windows bundle; Linux package installation
+remains an explicit prerequisite. Nothing changes system Python or the engine's
+runtime dependencies.
 
 ### Linux RISC-V64
 

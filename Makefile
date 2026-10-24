@@ -29,6 +29,18 @@ TOOL_PYTHON = $(PYTHON) tools/run.py
 ifeq ($(origin CXX),default)
   CXX := c++
 endif
+# Optional literal-path mode for managed toolchains, including paths with spaces.
+# Export the path rather than expanding it into shell command text. CXX retains
+# its existing shell-style command/wrapper interface when this mode is absent.
+override CXX_EXECUTABLE := $(value CXX_EXECUTABLE)
+export CXX_EXECUTABLE
+ifneq ($(strip $(CXX_EXECUTABLE)),)
+  COMPILER_COMMAND = $(PYTHON) tools/invoke_compiler.py
+  COMPILER_PROBE = --compiler-env CXX_EXECUTABLE
+else
+  COMPILER_COMMAND = $(CXX)
+  COMPILER_PROBE = --compiler "$(CXX)"
+endif
 
 VALID_TARGETS := macos-arm64 linux-x86_64 linux-arm64 linux-riscv64 windows-x86_64 windows-arm64
 ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
@@ -99,6 +111,31 @@ NET := networks/nn-1a298aa575a0.nnue
 .PHONY: all help doctor net test test-core test-nnue test-exchange test-search test-search-policy test-time test-clock-probes test-match test-bench test-profile test-profile-lmr test-profile-ordering test-profile-cpu test-profile-cache test-qualification test-phase3g test-phase3l verify-moves bench resources clean FORCE
 all: $(ENGINE)
 
+# One-command target setup/build. Outputs live separately from ordinary GUI
+# builds. Python detects compilers and provisions supported local bundles.
+TOOLCHAIN ?= auto
+BUILD_JOBS ?=
+OFFLINE ?= 0
+# Python's host detection also works without Unix uname on native Windows.
+ifneq ($(filter file default undefined,$(origin TARGET)),)
+  PORTABLE_TARGET =
+else
+  PORTABLE_TARGET = --target "$(TARGET)"
+endif
+.PHONY: portable toolchain-plan toolchain-check test-build-setup
+portable:
+	$(PYTHON) tools/build.py $(PORTABLE_TARGET) --mode "$(MODE)" --toolchain "$(TOOLCHAIN)" $(if $(BUILD_JOBS),--jobs $(BUILD_JOBS),) $(if $(filter 1,$(OFFLINE)),--offline,)
+
+toolchain-plan:
+	$(PYTHON) tools/build.py $(PORTABLE_TARGET) --mode "$(MODE)" --toolchain "$(TOOLCHAIN)" --plan $(if $(filter 1,$(OFFLINE)),--offline,)
+
+toolchain-check:
+	$(PYTHON) tools/build.py $(PORTABLE_TARGET) --mode "$(MODE)" --toolchain "$(TOOLCHAIN)" --check $(if $(filter 1,$(OFFLINE)),--offline,)
+
+test-build-setup: test-compiler-path
+	$(PYTHON) tests/toolchain_cache_test.py
+	$(PYTHON) tests/build_setup_test.py
+
 $(BUILD):
 	mkdir -p "$@"
 
@@ -106,18 +143,18 @@ $(BUILD):
 # a host compiler accidentally used to produce a mislabeled cross-target binary.
 FORCE:
 
-$(BUILD)/toolchain.ok: FORCE tools/check_toolchain.py Makefile | $(BUILD)
-	@$(PYTHON) tools/check_toolchain.py --target $(TARGET) --compiler "$(CXX)" --flags '$(CPPFLAGS) $(CXXFLAGS)' --link-flags '$(LDFLAGS) $(LDLIBS)' --output "$(BUILD)/toolchain-probe.o" --stamp "$@"
+$(BUILD)/toolchain.ok: FORCE tools/check_toolchain.py tools/invoke_compiler.py Makefile | $(BUILD)
+	@$(PYTHON) tools/check_toolchain.py --target $(TARGET) $(COMPILER_PROBE) --flags '$(CPPFLAGS) $(CXXFLAGS)' --link-flags '$(LDFLAGS) $(LDLIBS)' --output "$(BUILD)/toolchain-probe.o" --stamp "$@"
 
 $(BUILD)/%.o: src/%.cpp $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c "$<" -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c "$<" -o "$@"
 
 # The external reader is isolated from engine code and compiled in C++26 mode.
 $(BUILD)/fathom.o: third_party/fathom/src/tbprobe.c $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wno-deprecated-declarations -Wno-sign-compare -x c++ -MMD -MP -c "$<" -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(CXXFLAGS) -Wno-deprecated-declarations -Wno-sign-compare -x c++ -MMD -MP -c "$<" -o "$@"
 
 $(ENGINE): $(OBJECTS)
-	$(CXX) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 # Build the portable correctness executables without trying to run a foreign
 # binary on the build host. Copy the checkout/build directory to its target,
@@ -134,36 +171,36 @@ test-runtime-tools:
 	$(PYTHON) tests/runtime_build_test.py
 
 doctor: | $(BUILD)
-	$(PYTHON) tools/check_toolchain.py --target $(TARGET) --compiler "$(CXX)" --flags '$(CPPFLAGS) $(CXXFLAGS)' --output "$(BUILD)/toolchain-probe.o"
+	$(PYTHON) tools/check_toolchain.py --target $(TARGET) $(COMPILER_PROBE) --flags '$(CPPFLAGS) $(CXXFLAGS)' --output "$(BUILD)/toolchain-probe.o"
 
 net:
 	$(PYTHON) tools/fetch_network.py
 
 $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 # Arithmetic oracles include NNUE internals for testing only; do not also
 # link nnue.o. Dependency files track its included source and header changes.
 $(BUILD)/nnue-updates-test$(EXE): tests/nnue_updates_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/chess0live/time_management.hpp $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/search-policy-test$(EXE): tests/search_policy_test.cpp include/chess0live/search_policy.hpp include/chess0live/types.hpp $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
 
 test-core: $(ENGINE) $(BUILD)/position-test$(EXE)
 	"$(BUILD)/position-test$(EXE)"
@@ -180,10 +217,10 @@ test-search: $(BUILD)/search-test$(EXE)
 
 # Isolated deeper-reduction and clock policies; both remain opt-in.
 $(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/bounded-time-test$(EXE): tests/bounded_time_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-deep-quiet-search test-deep-quiet-uci test-bounded-time test-bounded-time-uci test-profile-deep-quiet
 test-deep-quiet-search: $(BUILD)/deep-quiet-search-test$(EXE)
@@ -204,7 +241,7 @@ test-profile-deep-quiet:
 # The direct probe regression includes search.cpp to inspect speculative state;
 # do not also link search.o. Production builds expose only the ordinary API.
 $(BUILD)/probcut-search-test$(EXE): tests/probcut_search_test.cpp src/search.cpp include/chess0live/search.hpp include/chess0live/search_policy.hpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-probcut-search test-probcut-uci test-profile-probcut
 test-probcut-search: $(BUILD)/probcut-search-test$(EXE)
@@ -219,10 +256,10 @@ test-profile-probcut:
 # Experimental null-search state and lifecycle checks; no strength claims.
 NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/null-state-test$(EXE): tests/null_state_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/null-search-test$(EXE): tests/null_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-null-state test-null-search test-null-move test-profile-null-move
 test-null-state: $(BUILD)/null-state-test$(EXE)
@@ -240,7 +277,7 @@ test-profile-null-move:
 # Experimental shallow static cutoffs; optional UCI tests use the referee.
 REVERSE_FUTILITY_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/reverse-futility-search-test$(EXE): tests/reverse_futility_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-reverse-futility-search test-reverse-futility test-profile-reverse-futility
 test-reverse-futility-search: $(BUILD)/reverse-futility-search-test$(EXE)
@@ -255,7 +292,7 @@ test-profile-reverse-futility:
 # Experimental losing-capture filter; off by default and independently checked.
 QSEARCH_SEE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/qsearch-see-search-test$(EXE): tests/qsearch_see_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-qsearch-see-search test-qsearch-see test-profile-qsearch-see
 test-qsearch-see-search: $(BUILD)/qsearch-see-search-test$(EXE)
@@ -297,10 +334,10 @@ test-fetch-syzygy:
 	$(PYTHON) tests/fetch_syzygy_test_tables_test.py
 
 $(BUILD)/tablebase-test$(EXE): tests/tablebase_test.cpp tests/data/syzygy_cases.hpp $(BUILD)/position.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/syzygy-search-test$(EXE): tests/syzygy_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-syzygy-search
 test-syzygy-search: $(BUILD)/syzygy-search-test$(EXE)
@@ -403,6 +440,10 @@ resources:
 	$(PYTHON) tools/resources.py show
 
 help:
+	@echo 'make portable TARGET=...  Select/prepare a compiler and build in build/portable/'
+	@echo 'make toolchain-plan       Show routes without downloads or compiler execution'
+	@echo 'make toolchain-check      Prepare and compile/link-check the target toolchain'
+	@echo 'make test-build-setup     Check compiler routing and local toolchain provisioning'
 	@echo 'make tooling           Prepare pinned Python tools (also automatic on use)'
 	@echo 'make test-tooling      Check dependency setup and the batch puzzle runner'
 	@echo 'make                  Build native portable-CPU executable (one job by default)'
@@ -455,3 +496,7 @@ tooling:
 test-tooling:
 	$(PYTHON) tests/tooling_test.py
 	$(TOOL_PYTHON) tests/batch_positions_test.py
+
+.PHONY: test-compiler-path
+test-compiler-path:
+	$(PYTHON) tests/compiler_path_test.py

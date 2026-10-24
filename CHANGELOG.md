@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added one-command target builds with compiler discovery, compile/link checks,
+  pinned local Windows toolchain downloads, offline cache reuse and saved logs.
+  New builds use a separate output directory; SDK/system compiler prerequisites
+  remain explicit. Compiler paths containing spaces now work through a literal
+  path option without changing the existing Make compiler-command interface.
+
 - Python tools and optional Make tests now prepare and reuse their own pinned
   dependencies automatically. Direct batch-puzzle runs need no manual package
   installation or environment activation; editable settings are preserved.

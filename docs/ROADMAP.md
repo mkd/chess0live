@@ -5,7 +5,31 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.3 automatic Python tool setup
+## Current checkpoint: Phase 4E.4 target setup and local provisioning
+
+`make portable` now detects the host/compiler, checks a complete C++26
+compile/link route, and builds into a separate directory. All six targets have
+installed-compiler discovery; Windows targets can automatically provision a
+hash-pinned LLVM-MinGW bundle for five supported hosts. Compiler paths with
+spaces and target-selecting symlinks are preserved. Offline cache reuse, safe
+extraction, failure logs and bounded jobs are covered. See the
+[guide](PORTABILITY.md#automatic-target-setup) and [report](reports/2026-10-24-phase4e4.md).
+
+Fresh native macOS, Linux ARM64 and Windows ARM64 builds passed; the native build
+passed all eight runtime checks and is byte-identical to the unchanged ordinary
+GUI build. A clean Linux ARM64 VM also downloaded/prepared its Windows toolchain
+and passed an ARM64 compile/link probe. Windows native setup/execution remains
+unverified. Linux compiler/system-library installation and Apple's SDK remain
+explicit prerequisites; the missing local RISC-V route reports that limitation
+rather than substituting the host compiler.
+
+Next is **Phase 4E.5: network inspection and qualification tooling**: identify
+architecture/provenance and verify candidate files before selection, then build
+the export/training workflow and recorded experience metadata. Further Linux
+provisioning and native Windows acceptance remain bounded portability work.
+No engine search/default change, strength gain, release or long match follows.
+
+## Previous checkpoint: Phase 4E.3 automatic Python tool setup
 
 The shared launcher now configures and reuses isolated, hash-pinned Python
 packages for tools/tests, including automatic direct `batch_positions.py` setup
@@ -530,7 +554,7 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | 4E.3 complete: automatic isolated Python setup; all six engine targets build and five have bounded execution evidence; Windows ARM64 remains build-only | 4E.4: host/target toolchain setup, then network qualification/export/training; native Windows acceptance stays open |
+| 4E: broader runtime support and network tooling | 4E.4 complete: automatic Python setup, compiler discovery and pinned Windows toolchain provisioning; all six targets have prior build evidence | 4E.5: network inspection/qualification, then export/training/selection; native Windows acceptance and further Linux provisioning stay open |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

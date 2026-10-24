@@ -13,6 +13,8 @@ import shutil
 import subprocess
 import sys
 
+from invoke_compiler import compiler_from_environment
+
 TARGET_CHECKS = {
     "macos-arm64": "defined(__APPLE__) && defined(__aarch64__)",
     "linux-arm64": "defined(__linux__) && defined(__aarch64__)",
@@ -26,13 +28,18 @@ TARGET_CHECKS = {
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", choices=TARGET_CHECKS, required=True)
-    parser.add_argument("--compiler", required=True)
+    compiler_source = parser.add_mutually_exclusive_group(required=True)
+    compiler_source.add_argument("--compiler", help="legacy shell-style compiler command")
+    compiler_source.add_argument("--compiler-env", help="environment variable holding one literal executable path")
     parser.add_argument("--flags", default="-std=c++2c")
     parser.add_argument("--output", required=True)
     parser.add_argument("--stamp")
     parser.add_argument("--link-flags", default="")
     args = parser.parse_args()
-    compiler = shlex.split(args.compiler)
+    compiler = (compiler_from_environment(args.compiler_env) if args.compiler_env
+                else shlex.split(args.compiler))
+    if not compiler:
+        raise ValueError("Compiler command must not be empty.")
     flags = shlex.split(args.flags)
     resolved = shutil.which(compiler[0])
     if not resolved:
@@ -42,6 +49,7 @@ def main():
         "compiler_path": str(Path(resolved).resolve()), "compiler_mtime": metadata.st_mtime_ns,
         "compiler_size": metadata.st_size, "flags": flags, "link_flags": args.link_flags,
         "script_mtime": Path(__file__).stat().st_mtime_ns,
+        "invoker_mtime": Path(__file__).with_name("invoke_compiler.py").stat().st_mtime_ns,
         "makefile_mtime": Path("Makefile").stat().st_mtime_ns,
         "environment": {name: os.environ.get(name) for name in
             ("CPATH", "CPLUS_INCLUDE_PATH", "LIBRARY_PATH", "SDKROOT", "MACOSX_DEPLOYMENT_TARGET")}},
@@ -77,6 +85,6 @@ int main() { std::filesystem::path p{"."}; std::jthread t([]{}); return p.empty(
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"Toolchain check failed: {error}", file=sys.stderr)
         sys.exit(1)

@@ -30,6 +30,37 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.4 adds `tools/build.py` and `make portable`/`toolchain-plan`/
+`toolchain-check`. Read the [guide](PORTABILITY.md#automatic-target-setup) and
+[report](reports/2026-10-24-phase4e4.md). Installed-compiler discovery covers all
+six targets; pinned LLVM-MinGW provisioning covers Windows targets from five
+host architectures. Linux compiler/target-library installation and Apple's SDK
+are explicit prerequisites. Fresh native macOS/Linux ARM64/Windows ARM64 builds
+passed; native macOS passed all eight runtime checks. A Linux ARM64 VM fetched
+and checked its Windows toolchain. Native Windows remains unverified.
+
+The literal `CXX_EXECUTABLE` path is exported to the argv adapter, including
+spaces/shell characters; preserve the invoked compiler symlink basename.
+Legacy `CXX` shell commands remain available in ordinary Make. Automatic builds
+use `build/portable/`, leaving normal/GUI builds intact, and save fresh reports.
+The native new engine is byte-identical to the ordinary one. No engine source,
+search defaults, owner batch settings/FENs or README introduction changed.
+The stable GUI bundle `0.1-dev-4b8b35d` and previous protected assets are preserved.
+
+Toolchain archives/installations stay ignored under `.local/toolchains/` (or the
+cache override); preserve upstream notices and full archive pins. Extraction is
+staged/atomic and validates paths/internal links. Cache reuse checks ownership
+and compiler wrappers; it is not a full scan of installed libraries. The setup
+probe checks standard complete-toolchain flags, not arbitrary custom sysroots.
+Use the ordinary Make path for advanced compiler-wrapper/custom-flag workflows.
+
+Next: **Phase 4E.5 network inspection/qualification**, followed by export,
+training and selection with recorded data/experience provenance. Keep native
+Windows execution and further Linux provisioning as explicit gaps. No long
+puzzle/match campaign, scheduler, strength claim or release was added.
+
+## Previous checkpoint: Phase 4E.3
+
 Phase 4E.3 adds automatic isolated Python setup through `tools/run.py`, optional
 Make test targets and direct batch-puzzle invocation. Read [TOOLS](TOOLS.md) and
 [the report](reports/2026-10-24-phase4e3.md). The manifest pins chess 1.11.2 plus

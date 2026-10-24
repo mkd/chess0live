@@ -1,5 +1,25 @@
 # Validation and experiment protocol
 
+## Phase 4E.4 target setup/provisioning — October 24, 2026
+
+The [setup report](reports/2026-10-24-phase4e4.md) records 87 passing checks:
+seven compiler-path, 20 cache/extraction, 24 routing/Make integration, and 36
+existing runtime-verifier/Make tests. Fresh automatic builds passed for native
+macOS, Linux ARM64 and Windows ARM64. The native engine plus seven test binaries
+passed all eight runtime checks. Native and Linux ARM64 engine hashes match
+their earlier artifacts. Linux/Windows x86-64 compile/link/header probes passed;
+missing local RISC-V prerequisites produce the expected clear failure. A clean
+Linux ARM64 VM downloaded/prepared the pinned Windows toolchain and passed its
+ARM64 compile/link probe. No foreign executable was run in this checkpoint.
+
+All engine/Fathom sources, owner batch settings/FENs, README introduction and
+protected GUI assets remain unchanged. Compiler setup, logs, hashes and limits
+are in `results/phase4e4-20261024/` and `build/portable/reports/`. Native Windows
+execution/cancellation, Linux system compiler provisioning and Apple SDK
+installation remain explicit gaps. An intermediate mocked report fixture failure
+is retained and fixed; all final checks passed. This is build/tooling evidence,
+not a strength gain or release acceptance.
+
 ## Phase 4E.3 automatic Python setup — October 24, 2026
 
 The [tooling report](reports/2026-10-24-phase4e3.md) records 197 passing native
