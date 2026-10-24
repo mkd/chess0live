@@ -1,5 +1,23 @@
 # Validation and experiment protocol
 
+## Phase 4E.5 network tooling — October 24, 2026
+
+The [network report](reports/2026-10-24-phase4e5.md) records 66 native tool checks
+and 65 passes/one missing-Make skip in a Linux ARM64 VM. Two complete native
+oracle comparisons passed 2,057 positions each: the manifest-pinned file and a
+synthetic final-bias modification. The latter changes 403 output records while
+retaining exact native/scalar/reference agreement. Independent audit verified
+network, corpus, outputs, all five executables, local/reference source hashes
+and reference HEAD. Eight real negative checks reject malformed/trailing files,
+unsafe wrapped output and misuse of the strict pinned route.
+
+This establishes finite SFNNv16 arithmetic compatibility and tooling behavior,
+not training provenance or playing strength. Unknown counts stay null; metadata
+declarations remain unverified. Normal engine, batch settings/FENs, README intro
+and stable GUI bundle are preserved. Native Windows, Linux oracle execution
+for these new commands, first-use source download and gameplay/long campaigns
+were not rerun. Raw evidence is in `results/phase4e5-20261024/`.
+
 ## Phase 4E.4 target setup/provisioning — October 24, 2026
 
 The [setup report](reports/2026-10-24-phase4e4.md) records 87 passing checks:

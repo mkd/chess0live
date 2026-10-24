@@ -114,4 +114,8 @@ manifests retain their historical dependency versions; do not reinterpret old
 results as runs with the new setup. The engine, NNUE and tablebase data remain
 independent of this Python environment. The [build frontend](PORTABILITY.md#automatic-target-setup) handles installed
 compiler discovery and supported pinned Windows toolchains separately.
-Custom-network training/experience reports remain a future workflow.
+The [network tools](NETWORKS.md) inspect artifacts, compare SFNNv16 evaluation
+against the pinned oracle and attach digest-bound training provenance. Unknown
+experience counts remain unknown; supplied claims are labeled unverified.
+Those tools need no third-party Python packages. Network export and actual
+training integration remain subsequent work.

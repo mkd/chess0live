@@ -156,19 +156,36 @@ make test-nnue
 python3 tools/verify_nnue.py --jobs 2
 ```
 
-The harness requires Git, Make, Python 3.9+, and a Clang/GCC driver accepting
-`-std=c++2c`. `--compiler '/absolute/path/to/clang++'` selects the actual compiler
-for both local and upstream adapters. The report records its resolved command
+For a simple interface that also accepts alternative SFNNv16 weights, use
+`make network-qualify` or `python3 tools/network.py qualify /path/to/candidate.nnue`.
+See [network inspection and qualification](NETWORKS.md). The original
+`--network` option remains restricted to the pinned artifact; the explicit
+`--candidate-network` route compares candidate outputs against the same pinned
+reference without imposing the default network's twelve golden scores.
+
+The harness requires Git, Make, Python 3.10+, and a Clang/GCC driver accepting
+`-std=c++2c`. `--compiler-executable '/absolute/path/to/clang++'` selects a literal
+compiler path for both local and upstream adapters. The legacy `--compiler`
+option still accepts a shell-style command. The report records its invoked command
 and version. The upstream build uses at most two compiler jobs, reduced by the
 current local resource allowance; local adapter builds run serially.
 
-The default workspace is `build/nnue-oracle/`. The harness clones `sf_19`, checks
-the exact commit, and opens one private access label in that isolated header for
+The default workspace is `build/nnue-oracle/`. The harness caches `sf_19`, checks
+the exact commit, and builds a fresh local clone of its committed tree for each
+run. Dirty cache files and stale objects never enter that build. It opens one
+private access label in that isolated header for
 test inspection. It preserves upstream notices and builds a separate executable
 from the independent [reference adapter](../tools/oracle/reference_main.cpp).
 Production sources never depend on that checkout. The local
 [stage adapter](../tools/oracle/chess0live_stages.cpp) includes the local evaluator
 only to inspect its private implementation in a test executable.
+
+`--reference-dir` selects another pinned cache; `--offline` prohibits its download.
+Work/cache locks serialize reuse, each child command has a bounded timeout, and
+failure replaces stale success. Reports bind the network, corpus, local/reference
+sources and all five test executables by full SHA-256, checked again at the end.
+The user-facing network command additionally requires a new output directory,
+preserving earlier reports. Native Windows setup/cancellation remains unverified.
 
 The reference defaults to `apple-silicon` on Apple Silicon, otherwise
 `general-64`. Those paths have canonical accumulator ordering; the harness

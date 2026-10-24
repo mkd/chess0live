@@ -140,6 +140,23 @@ in place of `python3`. Ordinary engine builds and core tests need no third-party
 Python packages. See [tool setup](docs/TOOLS.md) for offline use, cache location,
 repair, package provenance and Windows commands.
 
+### Inspect and qualify networks
+
+```sh
+make network-inspect
+make network-qualify
+python3 tools/network.py qualify /path/to/candidate.nnue
+```
+
+Inspection reports the full file identity, architecture header and known
+provenance. Qualification builds separate test programs and compares scalar and
+native evaluation with the pinned SF19 reference, saving a new report. It needs
+Git, GNU Make and a native C++26 compiler; no Python packages are needed. It
+does not change the engine's selected network. Compatibility is separate from
+playing strength, and unknown training counts stay unknown. See the
+[network guide](docs/NETWORKS.md) for provenance templates, offline use,
+compiler selection and how to choose a qualified file through `EvalFile`.
+
 ## Evaluation and search
 
 - Versioned SF19/SFNNv16 file reader and independently implemented feature math.

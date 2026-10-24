@@ -176,6 +176,19 @@ doctor: | $(BUILD)
 net:
 	$(PYTHON) tools/fetch_network.py
 
+# Network inspection needs only Python's standard library. Qualification builds
+# separate oracle adapters; it never replaces an engine or selected network.
+.PHONY: network-inspect network-qualify test-network-tools
+network-inspect:
+	$(PYTHON) tools/network.py inspect
+
+network-qualify:
+	$(PYTHON) tools/network.py qualify $(if $(filter 1,$(OFFLINE)),--offline,)
+
+test-network-tools:
+	$(PYTHON) tests/network_tool_test.py
+	$(PYTHON) tests/verify_nnue_candidate_test.py
+
 $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
@@ -446,6 +459,9 @@ help:
 	@echo 'make test-build-setup     Check compiler routing and local toolchain provisioning'
 	@echo 'make tooling           Prepare pinned Python tools (also automatic on use)'
 	@echo 'make test-tooling      Check dependency setup and the batch puzzle runner'
+	@echo 'make network-inspect   Identify the default network and known provenance'
+	@echo 'make network-qualify   Compare its arithmetic with the pinned SF19 oracle'
+	@echo 'make test-network-tools Check network inspection and qualification tooling'
 	@echo 'make                  Build native portable-CPU executable (one job by default)'
 	@echo 'make net              Fetch and verify the pinned official SF19 network'
 	@echo 'make test             Run correctness checks; make net first'

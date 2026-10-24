@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added one-command network inspection and SFNNv16 compatibility checks against
+  the separate pinned reference, with saved source/file identities and exact
+  scalar/native evaluation comparisons. Alternative weights can be checked
+  without changing the engine's network. Added digest-bound provenance templates;
+  unknown training counts stay unknown and supplied claims remain unverified.
+
 - Added one-command target builds with compiler discovery, compile/link checks,
   pinned local Windows toolchain downloads, offline cache reuse and saved logs.
   New builds use a separate output directory; SDK/system compiler prerequisites

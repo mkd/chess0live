@@ -30,6 +30,37 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.5 adds `tools/network.py` and `make network-inspect`/`network-qualify`.
+Read the [network guide](NETWORKS.md) and [report](reports/2026-10-24-phase4e5.md).
+The wrapper needs only Python's standard library; qualification also needs a
+native C++26 compiler, Git and Make. It does not select/install a network.
+
+Inspection hashes the full payload and labels header recognition separately
+from compatibility. Metadata schema 1 binds declarations to that exact SHA-256;
+unknown training counts remain null and supplied claims remain unverified.
+The extended oracle preserves strict `--network`, adding explicit
+`--candidate-network`, offline/reference-cache selection, literal compiler paths,
+bounded child cleanup and current-run failure reports. Candidate checks use
+their own weights and skip pinned goldens only for non-pinned artifacts. Each
+run compiles a fresh committed reference tree and records/rechecks inputs,
+sources, corpus, output and executable identities. Reuse never imports dirty
+reference files or stale objects. Native Windows remains unverified.
+
+Both pinned and synthetic changed-weight files passed 2,057 exact position
+comparisons, independently audited. The fixture changes 403 outputs; it is not
+a trained network. Native tool checks: 66 passed. Linux ARM64 VM: 65 passed,
+one Make-boundary test skipped because that image lacks Make. Eight real
+negative checks passed. All 88 preservation hashes and the README introduction
+match; stable GUI bundle `0.1-dev-4b8b35d` and normal engine remain unchanged.
+Evidence is under `results/phase4e5-20261024/`; no new long campaign or release.
+
+Next: **Phase 4E.6 reproducible training/export tooling**, using a pinned
+compatible trainer and honest data/experience records. Qualify exports before
+selection; compatibility alone is not strength or proof of training provenance.
+Keep broad platform/release acceptance and competitive training separate.
+
+## Previous checkpoint: Phase 4E.4
+
 Phase 4E.4 adds `tools/build.py` and `make portable`/`toolchain-plan`/
 `toolchain-check`. Read the [guide](PORTABILITY.md#automatic-target-setup) and
 [report](reports/2026-10-24-phase4e4.md). Installed-compiler discovery covers all

@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.4 target setup and local provisioning
+## Current checkpoint: Phase 4E.5 network inspection and qualification
+
+The [network tools](NETWORKS.md) now inspect full file identities, distinguish
+recognized headers from complete arithmetic verification, and create digest-bound
+provenance records. One command compares alternative SFNNv16 weights against the
+separate pinned SF19 reference using scalar/native implementations and fresh
+reference builds. Unknown training counts stay unknown; declared counts are
+explicitly unverified. No engine network or playing default changes.
+
+Both the pinned file and a changed-weight fixture passed all 2,057 positions;
+the fixture changed 403 results and still matched the reference exactly.
+An independent audit confirmed source/binary/output identities. Sixty-six native
+tool checks passed; Linux ARM64 passed 65 with one missing-Make skip. Eight real
+negative checks rejected invalid payloads/unsafe weights. See the
+[report](reports/2026-10-24-phase4e5.md). The owner's README introduction,
+batch settings, native engine and stable GUI bundle remain intact.
+
+Next is **Phase 4E.6: reproducible training and export tooling**: pin a compatible
+trainer, prepare local configurations and record data/experience provenance,
+then qualify its exports. This does not promise a competitively trained network.
+Managed selection, further Linux provisioning, native Windows execution and
+release/strength acceptance remain open.
+
+## Previous checkpoint: Phase 4E.4 target setup and local provisioning
 
 `make portable` now detects the host/compiler, checks a complete C++26
 compile/link route, and builds into a separate directory. All six targets have
@@ -554,7 +577,7 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | 4E.4 complete: automatic Python setup, compiler discovery and pinned Windows toolchain provisioning; all six targets have prior build evidence | 4E.5: network inspection/qualification, then export/training/selection; native Windows acceptance and further Linux provisioning stay open |
+| 4E: broader runtime support and network tooling | 4E.5 complete: automatic Python/build setup, pinned toolchains, network inspection and independent candidate qualification; all six targets have prior build evidence | 4E.6: reproducible training/export tooling, then managed selection; native Windows acceptance and further Linux provisioning stay open |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
