@@ -420,6 +420,28 @@ std::vector<Move> Position::legal_moves() {
     return moves;
 }
 
+TacticalMoveList Position::legal_tactical_moves() {
+    TacticalMoveList result{pseudo_legal_moves(), false};
+    const Color mover = side_;
+    std::size_t count = 0;
+    for (const Move move : result.moves) {
+        const bool tactical = move.is_capture() || move.promotion != PieceType::none;
+        // One legal move proves that this is not a terminal position. Further
+        // quiet legality checks cannot affect the tactical result, but every
+        // remaining capture/promotion still needs its ordinary king-safety check.
+        if (!tactical && result.has_legal_move) continue;
+        const Undo undo = make_move(move);
+        const bool legal = !in_check(mover);
+        unmake_move(move, undo);
+        if (legal) {
+            result.has_legal_move = true;
+            if (tactical) result.moves[count++] = move;
+        }
+    }
+    result.moves.resize(count);
+    return result;
+}
+
 Undo Position::save() const {
     return Undo{0, 0, castling_, ep_square_, halfmove_, fullmove_, key_};
 }

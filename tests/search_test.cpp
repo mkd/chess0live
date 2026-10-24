@@ -253,6 +253,53 @@ void quiescence_terminals_and_evasions(Fixture& fixture) {
     position.make_move(result.best);
     require(position.legal_moves().empty() && !position.in_check(position.turn()),
             "Horizon stalemate fixture must really be stalemate");
+
+    // An empty tactical list can also mean ordinary quiet play. Use a material
+    // imbalance so incorrectly returning a stalemate score cannot pass by
+    // coincidence; a fresh evaluator supplies the independent stand-pat value.
+    position = fen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1");
+    limits.searchmoves = {move(position, "d1a1")};
+    auto child = position;
+    child.make_move(limits.searchmoves.front());
+    const auto quiet_replies = child.legal_moves();
+    require(!child.in_check(child.turn()) && !quiet_replies.empty()
+            && std::all_of(quiet_replies.begin(), quiet_replies.end(), [](Move reply) {
+                return !reply.is_capture() && reply.promotion == PieceType::none;
+            }), "Quiet-only horizon fixture must have legal mobility without tacticals");
+    nnue::Evaluator evaluator(fixture.network);
+    const int expected = -evaluator.evaluate(child);
+    require(expected != 0, "Quiet-only horizon fixture must have a nonzero stand-pat value");
+    fixture.search.clear();
+    result = fixture.run(position, limits);
+    require(result.best == limits.searchmoves.front() && result.score == expected,
+            "Quiet-only horizon mobility must preserve stand-pat rather than score stalemate");
+
+    // At depth one the checked root's forced king move reaches an unchecked
+    // quiescence leaf. A non-capturing promotion then gives mate. Both colors
+    // must retain that promotion even though ordinary quiet moves are omitted.
+    struct PromotionMate { std::string_view fen; std::string_view root; std::string_view mate; };
+    constexpr PromotionMate promotion_mates[] = {
+        {"7k/5KP1/8/6P1/8/8/8/8 b - - 0 1", "h8h7", "g7g8q"},
+        {"8/8/8/8/6p1/8/5kp1/7K w - - 0 1", "h1h2", "g2g1q"},
+    };
+    for (const auto& item : promotion_mates) {
+        position = fen(item.fen);
+        limits.searchmoves = {move(position, item.root)};
+        child = position;
+        child.make_move(limits.searchmoves.front());
+        const auto promotion = move(child, item.mate);
+        require(!child.in_check(child.turn()) && !promotion.is_capture()
+                && promotion.promotion == PieceType::queen,
+                "Promotion-mate fixture must reach an unchecked leaf with a quiet promotion");
+        child.make_move(promotion);
+        require(child.in_check(child.turn()) && child.legal_moves().empty(),
+                "Quiet promotion fixture must really give checkmate");
+        fixture.search.clear();
+        result = fixture.run(position, limits);
+        require(result.best == limits.searchmoves.front() && result.ponder == promotion
+                && result.score == -Search::mate_score + 2,
+                "Quiescence must search a quiet promotion mate with the correct ply distance");
+    }
 }
 
 void repetition_history(Fixture& fixture) {

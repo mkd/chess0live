@@ -28,6 +28,15 @@ struct Undo {
     std::uint64_t key = 0;
 };
 
+/** Legal captures/promotions plus a witness for any legal move, including quiet
+ * moves. An empty tactical list alone does not distinguish quiet play from
+ * stalemate. The list is not a complete set of check evasions.
+ */
+struct TacticalMoveList {
+    std::vector<Move> moves;
+    bool has_legal_move = false;
+};
+
 /**
  * Standard-chess position, with a1 = bit 0 and white pieces positive.
  * The square array, piece bitboards, occupancy, and incremental key agree after
@@ -56,6 +65,12 @@ public:
     bool attacked(int square, Color by) const;
     /** Generate fully legal moves, including all four promotion choices. */
     std::vector<Move> legal_moves();
+    /** Return legal captures and all promotions in legal_moves() order, while
+     * preserving enough quiet-move legality work to detect terminal positions.
+     * This also works in check, but search must use legal_moves() there because
+     * quiet evasions are deliberately omitted. The complete position is restored.
+     */
+    TacticalMoveList legal_tactical_moves();
     Undo make_move(Move move);
     void unmake_move(Move move, const Undo& undo);
     /** Key includes an EP file only when a legal en-passant capture exists. */

@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a bounded comparison of two engine builds using current playing defaults,
+  with exact search-result checks, independent move validation, fresh/reused
+  caches and saved file identities. Optional Python dependencies prepare automatically.
+
 - Added reversible local network selection, retained compatibility/provenance
   records, and one-command managed launching. The engine accepts `--eval-file`
   and advertises the chosen launch default to GUIs. Failed checks preserve the
@@ -70,6 +74,12 @@ release numbers; detailed measurements live in the linked experiment records.
   checks. Ordinary builds and playing settings are unchanged.
 
 ### Playing and analysis
+
+- Reduced unnecessary quiet-move legality checks in quiescence search while
+  preserving all legal captures, promotions, check evasions and stalemate
+  detection. The local comparison completed the same search work about 11–12%
+  faster; playing-strength gains have not been measured. See the
+  [validation report](docs/reports/2026-10-24-phase4f1.md).
 
 - Added optional `ProbCut` tactical probes with draw/endgame safeguards,
   reduced searches that include quiet defenses, and diagnostic counters.

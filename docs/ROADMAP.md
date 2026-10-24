@@ -5,7 +5,35 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4E.7 managed network selection
+## Current checkpoint: Phase 4F.1 quiescence efficiency
+
+Search development has resumed with a result-preserving optimization. Outside
+check, quiescence now generates legal captures/promotions and checks quiet moves
+only until it establishes a legal-move witness. This avoids discarding a fully
+validated quiet list while preserving stalemate detection and all check evasions.
+No pruning threshold, NNUE arithmetic or playing option default changed.
+
+The current-default comparison passed all 120 searches with exact iteration
+and final-result agreement. Observed aggregate speed ratios were 1.109 with
+fresh caches and 1.121 with reused caches; these are finite native macOS
+measurements, not Elo evidence. Native, scalar and sanitizer correctness checks
+cover the new generator and search integration. Read the
+[report](reports/2026-10-24-phase4f1.md) for scope and limitations.
+
+Next is **Phase 4F.2: move-ordering efficiency**. Cache ordering scores and/or
+stage move selection while preserving priority and deterministic tie order,
+then compare against this checkpoint before accepting a change. Keep each
+candidate isolated. Follow with current-baseline strength testing of promising
+search options; SEE capture ordering and SEE pruning already exist, but their
+historical screens do not justify default promotion with the current LMR baseline.
+Do not assume that Stockfish's use of SEE makes our thresholds strength-neutral.
+
+The first local build/network workflow is usable. Further host provisioning,
+native Windows acceptance, broader training/GPU support, held-out training data
+and release acceptance remain open. No long campaign was launched by this phase;
+no v0.1 release or rating is claimed. Stable GUI `0.1-dev-4b8b35d` is preserved.
+
+## Previous checkpoint: Phase 4E.7 managed network selection
 
 [Managed selection](NETWORKS.md#managed-selection) now registers copied NNUE
 files only after a fresh full oracle comparison, retains declared provenance and

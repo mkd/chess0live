@@ -504,15 +504,23 @@ struct SearchWorker {
     }
 
     /** Captures and promotions stabilize a leaf. In check, every legal evasion
-     * is searched and stand-pat is forbidden. Legal moves are generated before
-     * stand-pat/draw handling so neither stalemate nor a rule-50 checkmate can
-     * accidentally receive an ordinary neural evaluation or draw score.
+     * is searched and stand-pat is forbidden. Outside check, quiet moves only
+     * need to supply a legal-move witness, not a complete list. Establish legal
+     * mobility before stand-pat/draw handling so neither stalemate nor a rule-50
+     * checkmate can receive an ordinary neural evaluation or draw score.
      */
     int quiescence(Position& position, int alpha, int beta, int ply, Mode mode = Mode::ordinary) {
         if (!visit(ply)) return 0;
-        auto moves = position.legal_moves();
         const bool checked = position.in_check(position.turn());
-        if (moves.empty()) return checked ? -mate_score + ply : 0;
+        TacticalMoveList candidates;
+        if (checked) {
+            candidates.moves = position.legal_moves();
+            candidates.has_legal_move = !candidates.moves.empty();
+        } else {
+            candidates = position.legal_tactical_moves();
+        }
+        auto& moves = candidates.moves;
+        if (!candidates.has_legal_move) return checked ? -mate_score + ply : 0;
         if (draw(position, mode)) return 0;
         if (ply >= max_ply - 1) return evaluate(position);
 
@@ -521,9 +529,6 @@ struct SearchWorker {
             const int stand_pat = evaluate(position);
             if (stand_pat >= beta) return stand_pat;
             alpha = std::max(alpha, stand_pat);
-            std::erase_if(moves, [](Move move) {
-                return !move.is_capture() && move.promotion == PieceType::none;
-            });
         }
         // Use the entry window: stand-pat must not turn a wide/PV window
         // into an eligible scout. Inspect material/history only after surviving

@@ -404,6 +404,24 @@ positions, search output, and resource policy. NPS and solved positions are not
 Elo estimates. [Validation](docs/VALIDATION.md) defines the required evidence for
 future match results and releases.
 
+For result-preserving search changes, compare two separately built executables
+with current playing defaults and automatic referee setup:
+
+```sh
+python3 tools/run.py tools/profile_search_baseline.py \
+  --baseline /path/to/previous/chess0live --candidate /path/to/new/chess0live \
+  --output results/search-comparison-01 --quiet-host
+```
+
+Stop other heavy workloads before using `--quiet-host`. The bounded comparison
+checks every completed iteration, legal analysis lines and final moves on 15
+development positions, with fresh and reused caches. It records file identities,
+settings and elapsed times; it fails if deterministic search results differ.
+Use a new output directory each time. This checks implementation equivalence
+and local speed, not playing strength. `make test-profile-search-baseline`
+checks the comparison tool; `make test-tactical-moves` checks capture/promotion
+generation and terminal-position detection against the full legal move list.
+
 Pass `--positions /path/to/positions.txt` to benchmark your own positions/openings,
 one `startpos moves ...` or `fen ...` entry per line. Comments start with `#`.
 `python3 tools/verify_nnue.py` builds a separate pinned Stockfish test reference

@@ -228,6 +228,16 @@ test-training:
 $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
+$(BUILD)/tactical-moves-test$(EXE): tests/tactical_moves_test.cpp $(BUILD)/position.o
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-tactical-moves test-profile-search-baseline
+test-tactical-moves: $(BUILD)/tactical-moves-test$(EXE)
+	"$(BUILD)/tactical-moves-test$(EXE)"
+
+test-profile-search-baseline:
+	$(TOOL_PYTHON) tests/profile_search_baseline_test.py
+
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
@@ -251,8 +261,9 @@ $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/ches
 $(BUILD)/search-policy-test$(EXE): tests/search_policy_test.cpp include/chess0live/search_policy.hpp include/chess0live/types.hpp $(BUILD)/toolchain.ok
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
 
-test-core: $(ENGINE) $(BUILD)/position-test$(EXE)
+test-core: $(ENGINE) $(BUILD)/position-test$(EXE) $(BUILD)/tactical-moves-test$(EXE)
 	"$(BUILD)/position-test$(EXE)"
+	"$(BUILD)/tactical-moves-test$(EXE)"
 	$(PYTHON) tests/uci_test.py "$(ENGINE)"
 	$(PYTHON) tests/resources_test.py
 
@@ -504,6 +515,8 @@ help:
 	@echo 'make network-default  Select the original pinned network for managed launches'
 	@echo 'make network-revert   Restore the previous managed network selection'
 	@echo 'make test-managed-networks Check catalog integrity and explicit engine selection'
+	@echo 'make test-tactical-moves Check tactical generation and legal mobility witnesses'
+	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
 	@echo 'make training-plan    Show local training requirements without setup'
 	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
 	@echo 'make test-training    Check training setup, recipes and provenance tooling'

@@ -28,7 +28,38 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4E.7
+## Current checkpoint: Phase 4F.1
+
+Read the [quiescence efficiency report](reports/2026-10-24-phase4f1.md).
+`Position::legal_tactical_moves()` returns all legal captures/promotions in
+the full generator's order plus `has_legal_move`. The latter is essential:
+an empty tactical list can be a quiet playable position, not stalemate.
+After finding any legal move, the generator skips further quiet legality checks
+but still examines every capture and every promotion. Canonical make/unmake
+restores position state. Checked quiescence continues to use `legal_moves()`;
+the tactical list alone is not a complete set of check evasions.
+
+The search keeps terminal detection before draw/stand-pat handling. Fixed-depth
+parent/candidate comparisons match every completed iteration and final decision;
+the optimization removes implementation work without reducing search nodes.
+No timing policy, evaluation or selective-search default changed. LMR is on;
+SEE ordering and SEE pruning remain optional and unqualified for default use.
+
+Use `tools/run.py tools/profile_search_baseline.py` for the current 15-root
+result-preserving comparison. It explicitly sets LMR on and unrelated
+experiments off, checks cold/warm results, independently replays all PVs, and
+retains source/binary/network identities. Historical experiment tools may pin
+LMR off; do not describe those runs as current-default evidence. All implementation
+inputs must remain unchanged during the comparison. Use separate build directories
+and a new output directory; the tool rejects overwrites and retains failures.
+
+Evidence: `results/phase4f1-20261024/`; candidate:
+`build/phase4f1-native/chess0live`. Normal binaries and stable GUI snapshot
+`0.1-dev-4b8b35d` were preserved. The owner can rebuild or point a separate GUI
+entry at the tested candidate. Next: **Phase 4F.2 move-ordering efficiency**,
+followed by strength-gated search candidates. This is not a release or Elo claim.
+
+## Previous checkpoint: Phase 4E.7
 
 Read [managed selection](NETWORKS.md#managed-selection) and the
 [report](reports/2026-10-24-phase4e7.md). `tools/managed_network.py` owns the

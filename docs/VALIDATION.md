@@ -1,5 +1,33 @@
 # Validation and experiment protocol
 
+## Phase 4F.1 quiescence efficiency — October 24, 2026
+
+The [report](reports/2026-10-24-phase4f1.md) records exact parent/candidate parity
+across 120 current-default searches: 15 exposed roots, two repetitions and
+fresh/reused caches. Every iteration's nodes, score, PV and selective depth,
+plus final best/ponder moves, agreed. Observed aggregate speed ratios were
+1.109 fresh and 1.121 reused; a single 1.3-ms warm sample was slower. These short
+native macOS ARM64 observations are not universal performance or Elo evidence.
+
+The full native and ASan/UBSan suites passed. Forced-scalar move-generation and
+Search API checks passed. The new generator matched the full legal generator
+on 8,018 positions including pins, en passant, all promotions, quiet-only
+mobility, terminal states, check evasions, null-search states and full unwinds.
+Search regressions exercise quiet stand-pat and promotion mates in both colors.
+Native optional null-move, ProbCut and SEE-pruning branch checks passed, as did
+43 SMP lifecycle cases and 21 comparison-tool integrity tests.
+
+A separate 20,000-node comparison on all 39 owner-supplied FENs also passed:
+78 searches and 260 iteration records matched exactly, including final nodes,
+best/ponder moves and independently legal PVs. This is bounded correctness
+evidence, not the full 60-second puzzle audit or a playing-strength result.
+
+The implementation skips redundant quiet legality checks only after a legal
+witness exists; it never omits a capture/promotion legality check. Complete
+evasions remain mandatory in check. Search policy and evaluation are unchanged.
+Evidence is under `results/phase4f1-20261024/`. No long campaign or new foreign
+execution was performed; existing GUI snapshots and ordinary binaries are intact.
+
 ## Phase 4E.7 managed network selection — October 24, 2026
 
 The [report](reports/2026-10-24-phase4e7.md) records a fresh 2,057-position
