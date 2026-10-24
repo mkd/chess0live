@@ -28,31 +28,44 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.3
+## Current checkpoint: Phase 4F.3 completed tactical audit
 
-Read the [combined-policy protocol](experiments/phase4f3.md) and
-[current report](reports/2026-10-24-phase4f3.md). The frozen engine comes from
-`ccb66a4`; no engine source or playing default changes in this phase. Candidate
-and opponent share the executable/network and retain LMR=true. Candidate enables
-the complete eight-option package; opponent uses the current defaults. All
-other settings are explicit. Do not reuse a historical LMR=false baseline.
+Read the [unchanged protocol](experiments/phase4f3.md) and
+[full report](reports/2026-10-24-phase4f3.md). Preparation was committed as
+`7444f21`; the engine is frozen from `ccb66a4`. No engine source, playing default,
+normal binary or stable GUI bundle changed during this audit.
 
-The new tools use existing per-game clocks/referee/raw audits and automatic
-Python setup. The dated older tools and results remain frozen. New opening
-exclusions include October 22's games and current exposed profiling roots.
-Current option validation must allow the actual LMR=true default and the bounded
-time-policy choice without enabling bounded timing in this comparison.
+The authorized full run completed October 24, 21:49–23:07 Helsinki: 39 positions,
+78 serial fresh-process searches, eight threads, Hash 64, 60 seconds each.
+Defaults reported three positive mates versus two for all-on; best moves agreed
+39/39. Raw independent replay passed 741 iterations / 6,280 PV plies and all
+option, clock, monitoring and input checks. No detected sleep or operational
+failure invalidated the comparison. The specific daytime exception is consumed;
+it does not authorize a daytime match or later long tests.
 
-Full puzzles use eight threads, serial fresh processes, 39 positions × two
-policies × 60 seconds. The strength match uses four active one-thread searches,
-512 games/256 pairs and at least 6 GiB reserved memory. Never overlap full runs
-or development compute. Check both UTC and monotonic monitoring gaps for sleep;
-derive the next07:00 cutoff through UTC across Helsinki's DST transition.
+A separate overnight post-hoc diagnostic repeated position 15 twice per role.
+Defaults reported M9 at depth 11 twice; all-on reported +15.99 at depth 10 twice.
+Every run chose `e7d7`. The independent repeat audit passed all four sessions,
+42 iterations / 310 PV plies and original-evidence immutability. Do not pool
+these observations into the original 39-position result or rerun to replace it.
+Legal mate-ending PVs do not prove forced mate; score/depth differences are not Elo.
 
-Finish and commit preparation before held-out play. Earlier daytime exceptions
-do not authorize this phase; no automatic schedule exists. Record failed or
-incomplete attempts without replacing cases. Full tactical results precede match
-launch and the independent final match audit precedes any default review.
+**Decision: retain defaults; park the all-on package and unstarted 512-game
+campaign.** This is conservative progression after a repeatable mate-report
+loss, not a proven worse move or statistical strength rejection. No held-out
+opening was searched. Preserve the frozen protocol, inputs and all raw evidence
+under `results/phase4f3-20261024/`, including both independent audit files.
+The report records hashes and limitations: main-loop receipts, unrecorded process
+IDs/exit codes, configured rather than measured CPU/memory use and SMP variability.
+
+Next is **Phase 4F.4**, a bounded diagnosis on the existing exposed 15-root
+profiling corpus with matched one/eight-thread conditions. Identify added
+per-node cost versus tree changes or SMP interaction before selecting one
+implementation candidate. Do not tune thresholds on the 39 puzzles or profile
+held-out roots. Component removal is a diagnostic, not a requirement that every
+component win alone. A changed candidate requires a predeclared match comparison.
+Long tests retain the overnight/resource rules; no automatic schedule exists.
+
 Keep owner `tools/batch_positions.py`, README intro and stable GUI
 `0.1-dev-4b8b35d` unchanged; the owner handles GitHub pushes.
 

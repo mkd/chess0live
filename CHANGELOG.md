@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed the 39-position, eight-thread comparison of default and combined
+  search settings. A repeatable loss of one mate report keeps the combined
+  package under investigation; playing defaults remain unchanged. Detailed
+  results and limitations are in the [audit report](docs/reports/2026-10-24-phase4f3.md).
+
 - Added a reproducible combined-versus-default search comparison: saved puzzle
   analysis, explicit matched settings and a fresh paired-opening match protocol.
   Checks reject changed inputs, invalid moves, clock/resource failures and sleep

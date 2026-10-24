@@ -5,27 +5,37 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.3 combined search qualification
+## Current checkpoint: Phase 4F.3 tactical audit complete; package parked
 
-The [predeclared protocol](experiments/phase4f3.md) compares all eight search
-options enabled together against current defaults on the same frozen `ccb66a4`
-executable and NNUE. Both retain the accepted conservative LMR. This directly
-tests interactions; individual component wins are not prerequisites.
+The [combined-policy audit](reports/2026-10-24-phase4f3.md) completed all 39
+positions / 78 searches at 60 seconds, eight threads and Hash 64. Both roles used
+the same frozen `ccb66a4` executable/network. Defaults reported three positive
+mates; all-on reported two. All 39 best moves agreed. Independent raw legality,
+options, timing, monitoring and source checks passed.
 
-Preparation covers a matched eight-thread, 39-position tactical comparison and
-a separate 512-game, four-worker, single-thread blitz campaign with fresh roots.
-Preparation passed 128 tool checks, real-engine readiness and all 78 short
-puzzle searches. The full puzzle audit and strength campaign remain pending.
-The [current report](reports/2026-10-24-phase4f3.md) records completed checks and
-remaining runs. Keep the full tactical and held-out match results distinct from
-the short operational smoke. Search defaults remain unchanged until acceptance;
-depth, fewer nodes and one-position speedups cannot substitute for match evidence.
+Separate post-hoc repeats reproduced position 15: defaults reported M9 twice;
+all-on reported +15.99 twice, with the same `e7d7` move. These four searches are
+not pooled into the original comparison. Higher scores and deeper nominal
+iterations are not strength proof, and the mate reports are not independent
+forced-mate proofs.
 
-The next checkpoint is the full tactical audit, followed by the fixed match if
-no blocking regression is found. Then make one explicit package accept/park/
-reject decision before choosing the next implementation candidate. No automatic
-schedule, inherited daytime exception, v0.1 release or rating is implied.
-The broader platform/training/release backlog below remains open.
+**Keep defaults and park the unstarted 512-game campaign** while investigating
+this repeatable mate-resolution deficit. No Elo verdict or default promotion is
+justified. The [predeclared match protocol](experiments/phase4f3.md) and unplayed
+held-out roots remain frozen. Preparation's 128 tool checks, readiness and short
+smoke remain separate from the completed full tactical evidence.
+
+Next is **Phase 4F.4: diagnose combined-package cost and SMP interactions** on
+the existing exposed 15-root benchmark with matched one/eight-thread profiles.
+Distinguish per-node overhead, search-tree changes and worker interactions; then
+select one concrete implementation candidate. Do not tune against the 39 puzzles
+or search held-out match roots for diagnosis. Package testing remains valid even
+without individual component wins. Any policy promotion still needs strength
+evidence; a changed candidate needs a predeclared comparison before match play.
+
+No engine source/default changed, automatic schedule exists, or v0.1/rating is
+claimed. The specific daytime exception covered the completed puzzle comparison
+only. Broader platform/training/release work remains open.
 
 ## Previous checkpoint: Phase 4F.2 move-ordering efficiency
 
@@ -711,7 +721,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Existing independent search, optional pruning experiments and qualified conservative LMR | 4F.1: compact current baseline and an isolated next candidate, with correctness and strength gates |
+| 4F: strength-focused search development | Result-preserving quiescence/ordering improvements; completed combined-policy tactical audit; defaults retained | 4F.4: diagnose combined-package cost and SMP interactions; the 512-game package campaign is parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

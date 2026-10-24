@@ -1,6 +1,6 @@
 # Validation and experiment protocol
 
-## Phase 4F.3 combined-policy preparation — October 24, 2026
+## Phase 4F.3 combined-policy tactical audit — October 24, 2026
 
 The [protocol](experiments/phase4f3.md) freezes the same current executable and
 network for the complete all-on package and current-default control. Both keep
@@ -18,12 +18,37 @@ within one second. Position 22's different moves are retained without declaring
 either a gain or regression. No errors, illegal moves, timing overruns or detected
 sleep were observed. This is operational evidence, not the full 60-second audit.
 
-The full 39×60-second comparison and separate 512-game paired match are pending.
-Each needs its permitted window or fresh explicit authorization. The full puzzle
-tool's daytime flag is an explicit caller assertion requiring owner permission;
-it does not grant permission or change resource limits. Source snapshots preserve
-the completed smoke before that permission-only extension. No playing default
-changes, strength claims or release follow from these checks.
+The full comparison completed all 39 positions / 78 searches at 60 seconds,
+eight threads and Hash 64. Independent raw replay passed 741 iterations / 6,280
+legal PV plies, final best/ponder moves, exact options and source identities.
+All 2,572 monitoring observations passed: maximum gap 2.252246 seconds, maximum
+wall/monotonic discrepancy 21.704 ms; monotonic bestmove receipts ranged from
+59.980226 to 59.983569 seconds. No detected sleep, receipt overrun, illegal move
+or operational failure occurred. The owner authorized this run's daytime start;
+that exception does not cover the separate match or later long tests.
+
+Defaults reported three positive mates versus two for all-on. All 39 best moves
+agreed. Position 1 was M7/default versus M9/all-on; position 15 was M9/default
+versus +15.99/all-on. A separate post-hoc overnight diagnostic repeated position
+15 twice per role and reproduced M9 versus +15.99, always with `e7d7`. Its raw
+audit passed four sessions, 42 iterations / 310 legal PV plies, timing, 132
+monitor observations, source identities and original-evidence immutability.
+These repeats do not replace or enlarge the original sample.
+
+The [full report](reports/2026-10-24-phase4f3.md) records all 39 results and hashes.
+Mate-ending legal PVs do not prove forced mate against all defenses; supplied
+mate annotations, centipawn scores, nominal depth and common best moves do not
+prove strength. Raw logs verify fresh-session commands, but do not include PIDs
+or exit codes. Timing uses main-loop receipts, and configured threads/reservations
+are not measured OS utilization. SMP is nondeterministic.
+
+**Defaults remain unchanged; the unstarted 512-game campaign is parked** pending
+Phase 4F.4 diagnosis of combined-package cost/SMP interaction on exposed benchmark
+roots. No held-out root was searched and no statistical match gate was applied.
+This is a repeatable tactical diagnostic concern, not an Elo verdict. The frozen
+protocol/tools/corpus and completed smoke snapshots remain unchanged. This
+results checkpoint changes documentation only; no additional engine rerun is
+needed to validate a code change.
 
 ## Phase 4F.2 move-ordering efficiency — October 24, 2026
 
