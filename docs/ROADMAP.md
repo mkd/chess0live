@@ -5,7 +5,31 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4D.7 attempt concluded; ProbCut remains off
+## Current checkpoint: Phase 4E.1 portable runtime checks complete
+
+The first bounded Phase 4E milestone adds `make runtime-binaries`,
+`make verify-runtime` and saved target-specific evidence. Test links now honor
+`LDLIBS`, and the verifier rejects wrong executable architectures, mismatched
+networks, skipped checks, failures, timeouts and changed inputs. Its 30 workflow
+and Make checks passed. All eight runtime checks passed on macOS ARM64,
+ARM64 Linux in a local VM and x86-64 Linux through emulation. Both Linux targets
+also passed the separate Syzygy oracle/search suites. Windows x86-64 rebuilt,
+but was not run. See the [report](reports/2026-10-24-phase4e1.md).
+
+Engine sources and the native engine binary are unchanged; conservative LMR
+stays on, ProbCut and other experimental pruning stay off. This checkpoint
+adds platform correctness evidence, not a playing-strength or throughput gain.
+The protected GUI bundles and owner batch settings are intact. No long test,
+match or recurring job was launched.
+
+Next is **Phase 4E.2: remaining target build/runtime coverage**, starting with
+Linux RISC-V64 and Windows ARM64 toolchain gaps, plus Windows execution when a
+suitable runtime is available. Then scope the reproducible network
+qualification/export pathway. CPU backends require separate arithmetic and
+performance evidence; trainer integration must preserve the complete pinned
+architecture. Phase 4E and release acceptance are not yet complete.
+
+## Previous checkpoint: Phase 4D.7 attempt concluded; ProbCut remains off
 
 Phase 4D.7 is an isolated, default-off ProbCut candidate under its
 [fixed scope](experiments/phase4d7-probcut.md). It tests a bounded set of legal
@@ -441,7 +465,7 @@ it does not indefinitely block unrelated engine development.
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
-| 4E: broader runtime support and network tooling | Portable C++26 build interfaces and pinned NNUE arithmetic; some foreign binaries only cross-built | Retained after the first bounded 4D checkpoint: close target execution gaps, add justified CPU backends, then reproducible trainer/export integration |
+| 4E: broader runtime support and network tooling | 4E.1 complete: repeatable runtime checks pass native macOS ARM64, VM Linux ARM64 and emulated Linux x86-64; current Windows x86-64 cross-build | 4E.2: remaining target toolchain/execution gaps, then separately scoped CPU backends and reproducible network qualification/export/training |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

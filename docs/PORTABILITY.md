@@ -6,6 +6,28 @@ The versions below are observed working toolchains, not claims about the oldest
 supported compiler. Run `make doctor` to check the selected target and required
 facilities before relying on a different toolchain or standard library.
 
+## Current evidence — October 24, 2026
+
+The [Phase 4E.1 report](reports/2026-10-24-phase4e1.md) refreshes the current
+engine and adds foreign execution. These labels cover the bounded checks in
+that report, not an entire platform's release acceptance.
+
+| Target | Compiler used | Current evidence |
+| --- | --- | --- |
+| macOS ARM64 | Apple Clang 21.0.0 | `native-tested`: eight portable runtime checks |
+| Linux ARM64 | GCC 15.2.0 cross-compiler | `VM-tested`: eight checks in ARM64 Docker Linux VM; separate Syzygy suites passed |
+| Linux x86-64 | GCC 15.2.0 cross-compiler | `emulator-tested`: eight checks through Docker x86-64 emulation on ARM64; separate Syzygy suites passed |
+| Windows x86-64 | MinGW GCC 16.2.0 | `cross-build-only`: current engine and seven test binaries linked; PE imports inspected |
+| Linux RISC-V64 | None configured locally | `unavailable`: not built or run |
+| Windows ARM64 | None configured locally | `unavailable`: not built or run |
+
+Linux execution used Docker Engine 29.8.2 / LinuxKit 7.0.14, a pinned
+`python:3.13-slim-trixie` image, Python 3.13.17 and Debian glibc 2.41. Each test
+container was limited to two CPUs and 2 GiB. Image digests, exact commands,
+compiler flags and artifact hashes are in the report and local evidence.
+Different distributions/standard libraries and native x86-64 hardware remain
+separate validation targets. No native-speed comparison was made.
+
 ## Evidence recorded on 2026-10-13
 
 The cross-build host was macOS ARM64. All three available foreign-target builds
@@ -95,6 +117,66 @@ Provide a generic CPU baseline before optimized variants. Native optimization
 flags describe the build machine and must never be silently used for portable
 release binaries or cross-builds. Emulation is useful for correctness; its speed
 is not evidence of native engine performance.
+
+## Run the portable checks
+
+Build the engine and seven standalone correctness executables without executing
+anything on the build host:
+
+```sh
+make -j2 runtime-binaries
+make -j2 TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++ runtime-binaries
+```
+
+For a cross-build, copy the checkout and that target's build directory to the
+target machine, retaining `toolchain.ok`. Supply the separately downloaded
+network. Python 3.9+ is required by the verifier; the engine itself does not need
+Python. No compiler or third-party Python package is needed to run the checks.
+On the matching native target, `make verify-runtime` builds and runs them. To
+run an existing build directly inside an ARM64 Linux VM, for example:
+
+```sh
+python3 tools/verify_runtime.py \
+  --build build/linux-arm64-generic-release --target linux-arm64 \
+  --network networks/nn-1a298aa575a0.nnue --execution VM \
+  --output results/linux-arm64-runtime
+```
+
+Use a **new** output directory. The verifier checks the pinned network digest,
+compiler configuration and executable architecture, then runs the existing
+position, NNUE, update-arithmetic, dense-arithmetic, search, selective-policy,
+and time-management suites sequentially. A final UCI session checks startup,
+network loading, start-position perft, a bounded depth search, two-worker
+activity/accounting, readiness while searching, stop, and clean exit. It uses
+Hash 16 MiB and two search workers. Its default limit is 180 seconds per suite
+or complete UCI session; `--timeout` changes that limit. This timeout is a
+failure guard, not a performance benchmark. There is no automatic repeat,
+download, schedule, or match.
+
+The report records binary/network hashes, raw compiler configuration, host,
+actual argument lists, completed checks and failure details. It does not treat
+a configuration stamp as proof of a source revision. Keep the source commit,
+build logs and runtime/SDK versions with a distributed build. The seven C++
+suites retain assertions even in release builds. Test links honor `LDLIBS`,
+like the engine link, for target-specific runtime libraries.
+
+Choose `--execution native`, `VM`, or `emulator` honestly: the latter two labels
+are operator declarations. Native and VM checks require the verifier's host OS
+and architecture to match the target. For a synchronous emulator/launcher, use
+`--execution emulator --runner-json '["qemu-riscv64", "-L", "/target/sysroot"]'`
+with the corresponding RISC-V build. This example requires an installed emulator
+and suitable Linux host/sysroot; it does not imply they are available on macOS.
+The prefix is an argument array, never a shell command; all binary and network
+paths must also be accessible to the runner. The runner must propagate exit
+codes, stay attached, and clean up its children when stopped. Remote detached
+jobs are not supported. VM/emulation speed says nothing about native throughput.
+
+These checks include twelve pinned NNUE raw/wrapped golden positions and
+incremental/full-refresh agreement. They **do not rerun** the full external
+Stockfish integer-stage oracle, validate all Syzygy table sizes, replace the
+complete SMP/sanitizer suites, or satisfy every release gate. Missing test
+binaries, a wrong target/network, nonzero exit, missing completion marker,
+explicit skipped checks, timeouts, or changed inputs produce failure evidence.
 
 ## Primary references
 

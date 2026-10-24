@@ -30,6 +30,33 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## Current checkpoint
 
+Phase 4E.1 is complete; see the [runtime report](reports/2026-10-24-phase4e1.md).
+`make runtime-binaries` cross-builds the engine plus seven correctness binaries
+without executing them. `make verify-runtime` checks native execution; the
+standalone verifier accepts explicit VM/emulator routes and records architecture,
+network, compiler configuration, commands, logs and failure evidence. All C++
+test links now receive `LDLIBS`. Thirty verifier/build checks passed; eight
+runtime checks passed each on native macOS ARM64, ARM64 Linux VM and emulated
+x86-64 Linux. Both Linux builds also passed the existing 140-case Syzygy oracle
+and one/four-thread search gates. Current Windows x86-64 compiled/linked only.
+
+Evidence is under `results/phase4e1-20261024/`. Docker test containers were
+limited to two CPUs/2 GiB, removed after use, and explicitly cleaned on failure;
+ordinary process-group cleanup alone cannot stop daemon-owned containers. Do
+not stop unrelated Docker containers. No engine sources changed, and the native
+binary remains byte-identical to the Phase 4D.7 candidate. Existing source and
+protected-asset pins passed. No fresh full external NNUE stage-oracle,
+sanitizer/race campaign, match, puzzle comparison or strength result is claimed.
+
+Next: Phase 4E.2 remaining RISC-V64/Windows ARM64 toolchain and target-execution
+gaps, before the separately scoped network qualification/export/trainer work.
+Keep conservative LMR on and all other experimental pruning off. Preserve
+`0.1-dev-4b8b35d`, other GUI snapshots, the README introduction, and editable
+`tools/batch_positions.py`. No long run or schedule is authorized by this
+checkpoint. The consumed Phase 4D.7 daytime exception grants no repeat.
+
+## Previous checkpoint: Phase 4D.7
+
 Phase 4D.7 implements the isolated, default-off `ProbCut` hypothesis under its
 [fixed protocol](experiments/phase4d7-probcut.md), committed before candidate
 searches as `563c040`. Native/scalar/ASan+UBSan/TSan direct and UCI checks passed,

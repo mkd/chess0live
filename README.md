@@ -416,6 +416,25 @@ require a supported macOS host and Apple SDK. Windows builds statically link the
 compiler runtimes. [Portability](docs/PORTABILITY.md) records tested versus
 intended targets and host restrictions; producing a binary is not runtime testing.
 
+### Verify a target runtime
+
+```sh
+make runtime-binaries    # Build engine and correctness executables only
+make verify-runtime      # Run them on this native host; make net first
+make test-runtime-tools  # Check the verifier without running chess searches
+```
+
+`runtime-binaries` also accepts the cross-compilation settings above. On the
+actual target, run `tools/verify_runtime.py` against that build directory and the
+pinned network; no compiler is needed for execution. It checks board rules,
+NNUE arithmetic and incremental state, search, time policies, and a two-thread
+UCI session. Each run writes a new JSON report and individual logs. A failed,
+skipped, or timed-out check prevents a passing report.
+
+Use the explicit VM/emulator options and prerequisites in
+[Portability](docs/PORTABILITY.md#run-the-portable-checks). These correctness
+checks do not measure playing strength or certify every platform capability.
+
 ## Local resource policy
 
 Local compute only: **50% daytime**, **80% 23:00–07:00 Europe/Helsinki**. Override
@@ -429,9 +448,9 @@ python3 tools/resources.py clear
 
 The helper calculates aggregate worker and memory budgets; it is **not an OS
 utilization limiter**. Benchmarks re-read it between positions and matches
-between games. Current
-search uses one worker. It does not resize arbitrary running programs or change
-an explicitly supplied `make -j` value. Long matches/training belong overnight;
+between games. The engine defaults to one search worker; the UCI `Threads`
+option controls parallel search. The helper does not resize arbitrary running
+programs or change an explicitly supplied `make -j` value. Long matches/training belong overnight;
 no recurring job has been scheduled. On systems without IANA timezone data,
 install the Python `tzdata` package for these resource tools.
 

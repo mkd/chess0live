@@ -7,6 +7,14 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added portable runtime verification with saved reports, target/network checks,
+  NNUE correctness and a two-thread UCI lifecycle. Current builds passed on
+  macOS ARM64, Linux ARM64 in a VM, and emulated Linux x86-64; the Linux builds
+  also passed Syzygy checks. Windows x86-64 remains build-only.
+- Fixed cross-platform test links to honor the same extra runtime libraries as
+  the engine. Added `make runtime-binaries` for building tests without trying to
+  execute foreign binaries on the build host.
+
 - Completed a 39-position, 60-second-per-position comparison of deeper quiet
   reductions against the accepted baseline. All 78 final moves were legal;
   best moves and reported mates matched. Deeper reductions remain experimental

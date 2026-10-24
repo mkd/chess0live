@@ -1,5 +1,36 @@
 # Validation and experiment protocol
 
+## Phase 4E.1 runtime verification — October 24, 2026
+
+The [portable runtime checkpoint](reports/2026-10-24-phase4e1.md) passed 28
+engine-free verifier tests and two Make recipe tests. Failure paths include
+architecture mismatch (all six target header formats), skipped/missing suites,
+wrong network, bad compiler metadata, subprocess/UCI timeouts, illegal replies,
+inactive worker accounting, changed artifacts and existing-report preservation.
+All C++ test link recipes now receive `LDLIBS`; `runtime-binaries` builds but
+does not execute foreign binaries.
+
+All eight checks passed on native macOS ARM64, Linux ARM64 in a local Docker
+VM, and Linux x86-64 through Docker emulation. Each ran the existing position,
+NNUE, independent update/dense arithmetic, search, selective-policy and time
+suites, plus a bounded two-worker UCI lifecycle. NNUE checks include twelve
+pinned raw/wrapped goldens, 537 incremental/full-refresh positions, 360 update
+transitions, and 1,515 dense cases / 84,126 repeated output comparisons per
+runtime. Two-worker activity was observed, not merely requested. Both Linux
+targets additionally passed 140 exact Syzygy WDL oracle cases with DTZ
+outcome/legality and concurrent probing, plus six search scenarios each at
+Threads 1 and 4. The pinned 72-file table corpus remained external to Git.
+
+Windows x86-64 engine/test binaries linked and their PE imports were inspected;
+no Windows runtime execution is claimed. Linux RISC-V64 and Windows ARM64
+remain unbuilt/unrun locally. These are bounded correctness results, not full
+platform certification or native performance evidence. Engine source hashes and
+the native binary are unchanged. The full external SF19 stage oracle,
+sanitizer/race checks and strength/puzzle campaigns were not rerun. Reports,
+logs, commands, compiler configuration and binary/network hashes live under
+`results/phase4e1-20261024/`; existing evidence is preserved. No release or
+search-default promotion follows.
+
 ## Phase 4D.7 implementation — October 23, 2026
 
 The [frozen ProbCut protocol](experiments/phase4d7-probcut.md) isolates one

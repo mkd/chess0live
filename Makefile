@@ -117,6 +117,20 @@ $(BUILD)/fathom.o: third_party/fathom/src/tbprobe.c $(BUILD)/toolchain.ok
 $(ENGINE): $(OBJECTS)
 	$(CXX) $(OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
+# Build the portable correctness executables without trying to run a foreign
+# binary on the build host. Copy the checkout/build directory to its target,
+# or use an explicit emulator with tools/verify_runtime.py.
+RUNTIME_TESTS := position-test nnue-test nnue-updates-test nnue-dense-test search-test search-policy-test time-management-test
+.PHONY: runtime-binaries verify-runtime test-runtime-tools
+runtime-binaries: $(ENGINE) $(addprefix $(BUILD)/,$(addsuffix $(EXE),$(RUNTIME_TESTS)))
+
+verify-runtime: runtime-binaries
+	$(PYTHON) tools/verify_runtime.py --build "$(BUILD)" --target "$(TARGET)" --network "$(NET)" --execution native
+
+test-runtime-tools:
+	$(PYTHON) tests/verify_runtime_test.py
+	$(PYTHON) tests/runtime_build_test.py
+
 doctor: | $(BUILD)
 	$(PYTHON) tools/check_toolchain.py --target $(TARGET) --compiler "$(CXX)" --flags '$(CPPFLAGS) $(CXXFLAGS)' --output "$(BUILD)/toolchain-probe.o"
 
@@ -124,30 +138,30 @@ net:
 	$(PYTHON) tools/fetch_network.py
 
 $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 # Arithmetic oracles include NNUE internals for testing only; do not also
 # link nnue.o. Dependency files track its included source and header changes.
 $(BUILD)/nnue-updates-test$(EXE): tests/nnue_updates_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/chess0live/time_management.hpp $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/search-policy-test$(EXE): tests/search_policy_test.cpp include/chess0live/search_policy.hpp include/chess0live/types.hpp $(BUILD)/toolchain.ok
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
 
 test-core: $(ENGINE) $(BUILD)/position-test$(EXE)
 	"$(BUILD)/position-test$(EXE)"
@@ -164,10 +178,10 @@ test-search: $(BUILD)/search-test$(EXE)
 
 # Isolated deeper-reduction and clock policies; both remain opt-in.
 $(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/bounded-time-test$(EXE): tests/bounded_time_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-deep-quiet-search test-deep-quiet-uci test-bounded-time test-bounded-time-uci test-profile-deep-quiet
 test-deep-quiet-search: $(BUILD)/deep-quiet-search-test$(EXE)
@@ -188,7 +202,7 @@ test-profile-deep-quiet:
 # The direct probe regression includes search.cpp to inspect speculative state;
 # do not also link search.o. Production builds expose only the ordinary API.
 $(BUILD)/probcut-search-test$(EXE): tests/probcut_search_test.cpp src/search.cpp include/chess0live/search.hpp include/chess0live/search_policy.hpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-probcut-search test-probcut-uci test-profile-probcut
 test-probcut-search: $(BUILD)/probcut-search-test$(EXE)
@@ -203,10 +217,10 @@ test-profile-probcut:
 # Experimental null-search state and lifecycle checks; no strength claims.
 NULL_MOVE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/null-state-test$(EXE): tests/null_state_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/null-search-test$(EXE): tests/null_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-null-state test-null-search test-null-move test-profile-null-move
 test-null-state: $(BUILD)/null-state-test$(EXE)
@@ -224,7 +238,7 @@ test-profile-null-move:
 # Experimental shallow static cutoffs; optional UCI tests use the referee.
 REVERSE_FUTILITY_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/reverse-futility-search-test$(EXE): tests/reverse_futility_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-reverse-futility-search test-reverse-futility test-profile-reverse-futility
 test-reverse-futility-search: $(BUILD)/reverse-futility-search-test$(EXE)
@@ -239,7 +253,7 @@ test-profile-reverse-futility:
 # Experimental losing-capture filter; off by default and independently checked.
 QSEARCH_SEE_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
 $(BUILD)/qsearch-see-search-test$(EXE): tests/qsearch_see_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-qsearch-see-search test-qsearch-see test-profile-qsearch-see
 test-qsearch-see-search: $(BUILD)/qsearch-see-search-test$(EXE)
@@ -281,10 +295,10 @@ test-fetch-syzygy:
 	$(PYTHON) tests/fetch_syzygy_test_tables_test.py
 
 $(BUILD)/tablebase-test$(EXE): tests/tablebase_test.cpp tests/data/syzygy_cases.hpp $(BUILD)/position.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/syzygy-search-test$(EXE): tests/syzygy_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
-	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) -o "$@"
+	$(CXX) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
 .PHONY: test-syzygy-search
 test-syzygy-search: $(BUILD)/syzygy-search-test$(EXE)
@@ -415,6 +429,9 @@ help:
 	@echo 'make test-profile-ordering  Test isolated capture-ordering profiles'
 	@echo 'make test-profile-cpu  Test bounded CPU-profile recording and cleanup'
 	@echo 'make verify-moves      Compare legal moves/perft with the optional referee'
+	@echo 'make runtime-binaries Build engine and portable tests without executing them'
+	@echo 'make verify-runtime   Run bounded native checks and save an evidence report'
+	@echo 'make test-runtime-tools Test the runtime verifier and portable link recipes'
 	@echo 'make doctor           Verify selected compiler, standard library, target macros'
 	@echo 'make TARGET=linux-arm64 CXX=aarch64-linux-gnu-g++'
 	@echo 'make TARGET=windows-arm64 CXX=aarch64-w64-mingw32-clang++'
