@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- The exact-result comparison tool now accepts default, SEE-ordering and all-on
+  presets for both builds, records process exits and checks readiness after
+  every search. The engine's saved GUI settings are unaffected.
+
 - Added a short default/all-on diagnostic with one/eight-thread accounting,
   saved analysis, automatic dependency setup and resource/time checks. The
   [diagnostic report](docs/reports/2026-10-25-phase4f4.md) separates worker
@@ -89,6 +93,11 @@ release numbers; detailed measurements live in the linked experiment records.
   checks. Ordinary builds and playing settings are unchanged.
 
 ### Playing and analysis
+
+- Removed a temporary quiet-move history list from each regular search node.
+  Cutoff learning uses the already searched move-list prefix in the same order;
+  bounded comparisons preserve search results. Defaults and pruning rules are
+  unchanged. Speed qualification is separate from correctness checks.
 
 - Replaced SEE's repeated slider ray walks with precomputed bitboard lookups,
   preserving exchange rules and legal attackers. Independent reference and

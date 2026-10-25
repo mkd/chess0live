@@ -1,5 +1,27 @@
 # Validation and experiment protocol
 
+## Phase 4F.5 quiet-history checks — October 25, 2026
+
+The [report](reports/2026-10-25-phase4f5.md) records 1,408 exact cutoff-learning
+comparisons against the former collected-list implementation. Native and
+ASan/UBSan search/ordering, null-move, ProbCut, quiescence-SEE and deep-quiet
+checks passed. Native core/NNUE/policy/time checks, 57 countermove UCI cases and
+43 SMP lifecycle cases also passed. The updated profiler passed 28 synthetic
+checks, including explicit presets, stray-output rejection and failed exits.
+
+Independent raw audit of the correctness-only comparison passed 120 searches /
+60 exact pairs at depth 6, one worker, defaults/all-on and fresh/reused caches.
+It replayed 720 iterations / 3,108 PV plies and 240 best/ponder plies, checked all
+500 recorded commands and readiness barriers, zero exits and 27 unchanged pins.
+Time/NPS are excluded; LM Studio may have been active. This is bounded native
+single-worker equivalence, not timing, strength or exact SMP scheduling proof.
+
+The predeclared three-comparison timing window is prepared but has not started.
+Only a new explicit quiet-host confirmation permits those speed observations.
+No default change, full puzzle rerun, match, foreign-runtime requalification or
+release follows from these correctness checks. Evidence is retained under
+`results/phase4f5-20261025/`.
+
 ## Phase 4F.4 diagnostic and SEE checks — October 25, 2026
 
 The [report](reports/2026-10-25-phase4f4.md) separates the completed baseline

@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.4 diagnosis and SEE implementation
+## Current checkpoint: Phase 4F.5 quiet-history bookkeeping
+
+The [implementation report](reports/2026-10-25-phase4f5.md) records removal of
+alpha-beta's per-node temporary quiet-move list. Cutoff learning uses the same
+already searched move prefix, preserving update order and speculative isolation.
+The 1,408-case reference test, native/sanitizer checks and 120 exact parent versus
+candidate searches pass. Defaults and all-on each match their own parent; no
+pruning rule or strength assumption changed.
+
+The next step in this phase is one owner-coordinated quiet window, up to five
+minutes: finish the earlier SEE implementation timing under two explicit presets,
+then compare this phase's default search. Three complete exposed-root comparisons
+are prepared under a fixed combined cap. LM Studio can run during other work;
+its inference must be explicitly paused only for the agreed measurement window.
+No long puzzle run or match is started by this checkpoint.
+
+Next is **Phase 4F.6: history-independent TT move hints** as an opt-in search
+candidate. Keep draw/history-sensitive score validity and score-table capacity
+intact; investigate a separate position-key move hint within the existing Hash
+reservation. A legal ordering suggestion must never become a bound or cutoff.
+This is a concrete research direction, not an accepted strength improvement.
+The all-on match remains parked; wider platform/training/release gates stay open.
+
+## Previous checkpoint: Phase 4F.4 diagnosis and SEE implementation
 
 The [bounded diagnostic](reports/2026-10-25-phase4f4.md) completed all 120
 searches on the existing 15 exposed roots. Every eight-thread search used all
@@ -752,7 +775,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and bounded worker diagnosis; exact SEE ray lookup; defaults retained | Finish quiet-host SEE performance qualification, then 4F.5 isolated search-efficiency candidate; the 512-game all-on campaign stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations | Finish the prepared timing window, then 4F.6 opt-in TT move hints with unchanged score validity/capacity; the all-on campaign stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

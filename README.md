@@ -436,12 +436,17 @@ Stop other heavy workloads before using `--quiet-host`. The bounded comparison
 checks every completed iteration, legal analysis lines and final moves on 15
 development positions, with fresh and reused caches. It records file identities,
 settings and elapsed times; it fails if deterministic search results differ.
-Use a new output directory each time. This checks implementation equivalence
+Use a new output directory each time. Add `--preset see-ordering` to use SEE
+capture ordering in both builds, or `--preset all-on` to enable the existing
+combined search recipe in both. Omitting it uses `--preset default`; presets
+never change the engine's saved GUI settings. This checks implementation equivalence
 and local speed, not playing strength. `make test-profile-search-baseline`
 checks the comparison tool; `make test-tactical-moves` checks capture/promotion
 generation and terminal-position detection against the full legal move list.
 `make test-ordering-search` checks exact move priorities, helper-thread ties,
 SEE accounting and scratch-storage reuse without loading a network.
+`make test-history-prefix-search` checks cutoff history updates against the
+former collected-list calculation, including speculative-search isolation.
 `make test-exchange` checks exchange scores and compares attack lookups against
 an independent square-by-square reference.
 

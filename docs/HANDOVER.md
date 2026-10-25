@@ -28,7 +28,48 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.4 diagnosis and SEE implementation
+## Current checkpoint: Phase 4F.5 quiet-history bookkeeping
+
+Read the [protocol](experiments/phase4f5.md) and
+[report](reports/2026-10-25-phase4f5.md). `learn_quiet_cutoff` replaces the
+collected `searched_quiets` vector with the current node's ordered move prefix.
+`move_number` increments only after a completed child/re-search and restoration;
+therefore `move_number - 1` is the cutoff index, excluded from the penalty list.
+Keep the ordinary-mode/quiet guard, countermove/killer updates, winner reward,
+then prior quiet penalties in that exact order. Read history after descendants.
+If future pruning skips entries, this prefix no longer equals the searched set:
+track the searched subset rather than silently penalizing unsearched moves.
+
+The private reference test includes search.cpp and links other objects only,
+with its generated dependency file loaded by Make. `make test-search` includes
+it; `make test-history-prefix-search` runs it alone. All 1,408 cases pass, along
+with native and focused sanitizer search suites. Independent replay of the
+120-search default/all-on correctness comparison verified 60 exact pairs,
+720 iterations / 3,108 legal PV plies, commands, barriers, exits and 27 pins.
+Timing from that check is unqualified because LM Studio may have been active.
+
+The existing exact-result profiler now takes immutable per-call presets:
+`default`, `see-ordering`, `all-on`. Both builds receive the same selected preset.
+No global settings are mutated. Reports retain PIDs, exit codes, consumed
+transcripts and strict post-search readiness barriers. All 28 synthetic checks
+pass. Do not apply this exact-result comparator to a changed search policy and
+interpret a signature mismatch as merely slower search.
+
+Builds: `build/phase4f5-native/` and `build/phase4f5-asan/`. Evidence and the
+prepared bounded three-comparison window are under `results/phase4f5-20261025/`.
+The owner must confirm a new LM Studio pause before timing; no pause is needed
+for other work. The earlier SEE source/binary and this new candidate are compared
+separately, so the effects are not conflated. The combined cap is 300 seconds;
+no automatic repeat, long campaign or schedule is authorized.
+
+Next: Phase 4F.6 may investigate a separate position-key TT move-hint cache inside
+the current Hash reservation, leaving full context keys and score-entry capacity
+unchanged. It is an opt-in ordering experiment until strength evidence supports
+it. Do not reuse hints as scores, violate speculative isolation, or alter stored
+move flags without legal-list matching. Preserve the parked all-on campaign,
+owner batch settings, exact README intro and stable GUI `0.1-dev-4b8b35d`.
+
+## Previous checkpoint: Phase 4F.4 diagnosis and SEE implementation
 
 Read the [declared diagnostic protocol](experiments/phase4f4.md) and
 [report](reports/2026-10-25-phase4f4.md). The initial screen used the frozen

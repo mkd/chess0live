@@ -260,6 +260,14 @@ $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/n
 $(BUILD)/ordering-search-test$(EXE): tests/ordering_search_test.cpp src/search.cpp include/chess0live/search.hpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
+# Compare prefix-based history learning with the former collected-list path.
+$(BUILD)/history-prefix-search-test$(EXE): tests/history_prefix_search_test.cpp src/search.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-history-prefix-search
+test-history-prefix-search: $(BUILD)/history-prefix-search-test$(EXE)
+	"$(BUILD)/history-prefix-search-test$(EXE)"
+
 .PHONY: test-ordering-search
 test-ordering-search: $(BUILD)/ordering-search-test$(EXE)
 	"$(BUILD)/ordering-search-test$(EXE)"
@@ -289,9 +297,10 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 	"$(BUILD)/nnue-updates-test$(EXE)"
 	"$(BUILD)/nnue-dense-test$(EXE)"
 
-test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE)
+test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 	"$(BUILD)/ordering-search-test$(EXE)"
+	"$(BUILD)/history-prefix-search-test$(EXE)"
 
 # Isolated deeper-reduction and clock policies; both remain opt-in.
 $(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
@@ -543,6 +552,7 @@ help:
 	@echo 'make test-managed-networks Check catalog integrity and explicit engine selection'
 	@echo 'make test-tactical-moves Check tactical generation and legal mobility witnesses'
 	@echo 'make test-ordering-search Check move priorities, SEE counters and worker tie order'
+	@echo 'make test-history-prefix-search Check exact quiet-cutoff learning and speculative isolation'
 	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
 	@echo 'make test-profile-search-package Check the bounded search-package diagnostic tool'
 	@echo 'make training-plan    Show local training requirements without setup'
@@ -590,7 +600,7 @@ clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
 -include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d \
-         $(BUILD)/exchange-attacks-test.d
+         $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d
 
 # Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
 .PHONY: tooling test-tooling

@@ -4,12 +4,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # GNU GPL version 3 or later; WITHOUT ANY WARRANTY. See LICENSE.
 """Exercise bounded comparison integrity with explicitly synthetic UCI results."""
-from contextlib import ExitStack
+from contextlib import ExitStack, redirect_stdout
 import copy
+import io
 import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -26,6 +28,9 @@ class FakeEngine:
     instances = []
     fail_candidate = False
     mutate_candidate = False
+    bad_exit = False
+    stray_after_search = False
+    partial_timeout = False
 
     def __init__(self, path):
         self.path = path
@@ -33,6 +38,9 @@ class FakeEngine:
         self.commands = []
         self.closed = False
         self.depth = 2
+        self.after_search = False
+        self.process = SimpleNamespace(pid=1000 + len(self.instances), poll=lambda:
+            (7 if self.bad_exit and self.path.name == 'candidate' else 0) if self.closed else None)
         self.instances.append(self)
 
     def __enter__(self): return self
@@ -44,11 +52,17 @@ class FakeEngine:
     def until(self, prefix, timeout=30):
         if prefix == 'uciok':
             result = ['option name ' + name + ' type ' + p.OPTION_TYPES[name] + ' default test' for name in (*p.OPTIONS, 'EvalFile')] + ['uciok']
-        elif prefix == 'readyok': result = ['readyok']
+        elif prefix == 'readyok':
+            result = (['bestmove g1h3', 'readyok'] if self.after_search and self.stray_after_search else ['readyok'])
+            self.after_search = False
         else:
             result = reply(self.depth, 21 if self.fail_candidate and self.path.name == 'candidate' else 20)
+            if self.partial_timeout and self.path.name == 'candidate':
+                self.transcript.extend(result[:1])
+                raise TimeoutError('synthetic partial search timeout')
             if self.mutate_candidate and self.path.name == 'candidate':
                 self.path.write_bytes(b'changed')
+            self.after_search = True
         self.transcript.extend(result)
         return result
 
@@ -63,15 +77,16 @@ class BaselineTests(unittest.TestCase):
         self.positions = [dict(id='opening-01', position='startpos')]
         FakeEngine.instances = []
         FakeEngine.fail_candidate = FakeEngine.mutate_candidate = False
+        FakeEngine.bad_exit = FakeEngine.stray_after_search = FakeEngine.partial_timeout = False
 
-    def run_profile(self, **kwargs):
+    def run_profile(self, output_name='output', **kwargs):
         with ExitStack() as stack:
             for name, value in [('Engine', FakeEngine), ('load_positions', lambda: self.positions),
                                 ('source_paths', lambda: {}), ('CORPUS', self.network),
                                 ('NETWORK_SHA256', p.digest(self.network)),
                                 ('resource_check', lambda *a: dict(active_search_workers=1, resident_engines=2))]:
                 stack.enter_context(patch.object(p, name, value))
-            return p.profile(self.baseline, self.candidate, self.root/'output', network=self.network,
+            return p.profile(self.baseline, self.candidate, self.root/output_name, network=self.network,
                              depth=2, repetitions=1, quiet_host=True, **kwargs)
 
     def sample(self, role, temperature, repetition=0):
@@ -97,6 +112,43 @@ class BaselineTests(unittest.TestCase):
         for name in ('ProbCut','Null Move Pruning','Deep Quiet Reductions','Countermove Ordering','Reverse Futility Pruning','QSearch SEE Pruning','Ponder','Search Diagnostics'):
             self.assertEqual(p.OPTIONS[name],'false')
         self.assertEqual(p.OPTIONS['Threads'],'1');self.assertEqual(p.OPTIONS['SyzygyProbeLimit'],'0')
+
+    def test_presets_are_exact_and_independent(self):
+        original = dict(p.OPTIONS)
+        self.assertEqual(p.options_for(), original)
+        self.assertEqual(p.options_for('see-ordering'), dict(original, **{'Capture Ordering':'see'}))
+        changes = {'Capture Ordering':'see', **{name:'true' for name in (
+            'Deep Quiet Reductions','Countermove Ordering','Null Move Pruning',
+            'Reverse Futility Pruning','QSearch SEE Pruning','ProbCut')}}
+        self.assertEqual(p.options_for('all-on'), dict(original, **changes))
+        for preset in p.PRESETS:
+            changed = p.options_for(preset)
+            changed['Threads'] = '99'
+        self.assertEqual(p.OPTIONS, original)
+        self.assertEqual(p.options_for(), original)
+
+    def test_unknown_preset_rejected_before_launch(self):
+        with self.assertRaisesRegex(ValueError, 'Unknown search preset'):
+            self.run_profile(preset='some-options')
+        self.assertEqual(FakeEngine.instances, [])
+        self.assertFalse((self.root/'output').exists())
+
+    def test_each_preset_applied_to_both_builds_without_leaking(self):
+        for preset in ('see-ordering','all-on','default'):
+            FakeEngine.instances = []
+            report = self.run_profile(output_name=preset, preset=preset)
+            options = dict(p.options_for(preset), EvalFile=str(self.network.resolve()))
+            self.assertEqual(report['settings']['preset'], preset)
+            self.assertEqual(report['settings']['options'], options)
+            commands = ['setoption name '+name+' value '+value for name,value in options.items()]
+            for engine in FakeEngine.instances:
+                self.assertEqual([c for c in engine.commands if c.startswith('setoption ')], commands)
+
+    def test_cli_forwards_explicit_preset(self):
+        with patch.object(p,'profile',return_value={'summary':{}}) as call, redirect_stdout(io.StringIO()):
+            self.assertEqual(p.main(['--baseline',str(self.baseline),'--candidate',str(self.candidate),
+                                    '--output',str(self.root/'output'),'--quiet-host','--preset','all-on']),0)
+        self.assertEqual(call.call_args.kwargs['preset'],'all-on')
 
     def test_exact_iterations_and_legal_pvs(self):
         value=p.validate_result(reply(),p.board_for('startpos'),2)
@@ -150,10 +202,49 @@ class BaselineTests(unittest.TestCase):
     def test_real_orchestration_success_with_synthetic_engines(self):
         result=self.run_profile();self.assertEqual(result['status'],'passed');self.assertEqual(len(result['samples']),4)
         self.assertTrue(all(engine.closed for engine in FakeEngine.instances))
+        self.assertEqual(result['exit_codes'],{'baseline':0,'candidate':0})
+        self.assertEqual(len(set(result['pids'].values())),2)
+        self.assertEqual(result['received_transcripts'],dict(zip(('baseline','candidate'),[e.transcript for e in FakeEngine.instances])))
+        for sample in result['samples']:
+            self.assertEqual(sample['post_search_commands'],['isready'])
+            self.assertEqual(sample['post_search_output'],['readyok'])
+            self.assertEqual(sample['received_transcript'],sample['output']+['readyok'])
         for engine in FakeEngine.instances:
             self.assertEqual(engine.commands.count('ucinewgame'),1)
             self.assertEqual(engine.commands.count('go depth 2'),2)
             self.assertIn('setoption name Late Move Reductions value true',engine.commands)
+
+    def test_nonzero_exit_retained_as_failure(self):
+        FakeEngine.bad_exit = True
+        with self.assertRaisesRegex(ValueError,'exit successfully'):self.run_profile()
+        report=json.loads((self.root/'output/report.json').read_text())
+        self.assertEqual(report['status'],'failed')
+        self.assertEqual(report['exit_codes'],{'baseline':0,'candidate':7})
+        self.assertEqual(len(report['samples']),4)
+        self.assertTrue(all(e.closed for e in FakeEngine.instances))
+
+    def test_post_search_stray_output_retained_as_failure(self):
+        FakeEngine.stray_after_search = True
+        with self.assertRaisesRegex(ValueError,'after completed search'):self.run_profile()
+        report=json.loads((self.root/'output/report.json').read_text())
+        self.assertEqual(report['status'],'failed')
+        sample=report['samples'][0]
+        self.assertNotEqual(sample['status'],'complete')
+        self.assertEqual(sample['post_search_output'],['bestmove g1h3','readyok'])
+        self.assertEqual(sample['received_transcript'],sample['output']+sample['post_search_output'])
+        self.assertTrue(all(e.closed for e in FakeEngine.instances))
+
+    def test_partial_search_timeout_retains_evidence_and_exits(self):
+        FakeEngine.partial_timeout = True
+        with self.assertRaisesRegex(TimeoutError,'partial search'):self.run_profile()
+        report=json.loads((self.root/'output/report.json').read_text())
+        self.assertEqual(report['status'],'failed')
+        sample=report['samples'][-1]
+        self.assertEqual(sample['role'],'candidate')
+        self.assertEqual(sample['output'],reply()[:1])
+        self.assertEqual(sample['received_transcript'],reply()[:1])
+        self.assertEqual(report['exit_codes'],{'baseline':0,'candidate':0})
+        self.assertTrue(all(e.closed for e in FakeEngine.instances))
 
     def test_failed_parity_preserves_raw_report_and_cleans_children(self):
         FakeEngine.fail_candidate=True

@@ -485,6 +485,36 @@ struct SearchWorker {
         value += bonus - value * std::abs(bonus) / history_limit;
     }
 
+    /** Learn from an ordinary quiet cutoff using the caller's completed prefix.
+     * Its ordered move list survives child searches and re-searches unchanged;
+     * the prefix before cutoff_index is exactly the former collected quiet list
+     * after filtering. Read history now, after the children have finished, and
+     * retain winner-first / prior-moves-in-order updates, including duplicates.
+     * If future pruning skips moves in this loop, preserve the actual searched
+     * subset instead of assuming that every earlier list entry was searched.
+     */
+    void learn_quiet_cutoff(Color side, const std::vector<Move>& moves,
+                            std::size_t cutoff_index, int depth, int ply,
+                            std::size_t previous_move, Mode mode) {
+        assert(cutoff_index < moves.size());
+        const auto move = moves[cutoff_index];
+        if (mode != Mode::ordinary || move.is_capture() || move.promotion != PieceType::none)
+            return;
+        if (limits.countermove_ordering && previous_move != no_previous_move) {
+            countermoves[previous_move] = move;
+            if (limits.diagnostics) ++countermove.updates;
+        }
+        auto& pair = killers[static_cast<std::size_t>(ply)];
+        if (move != pair[0]) { pair[1] = pair[0]; pair[0] = move; }
+        const int bonus = std::min(2048, depth * depth * 24);
+        update_history(side, move, bonus);
+        for (std::size_t index = 0; index < cutoff_index; ++index) {
+            const auto quiet_move = moves[index];
+            if (!quiet_move.is_capture() && quiet_move.promotion == PieceType::none)
+                update_history(side, quiet_move, -bonus);
+        }
+    }
+
     void update_pv(int ply, Move move) {
         const auto here = static_cast<std::size_t>(ply);
         const auto child = here + 1;
@@ -833,8 +863,6 @@ struct SearchWorker {
 
         int best_score = -infinity;
         Move best_move;
-        std::vector<Move> searched_quiets;
-        searched_quiets.reserve(moves.size());
         std::size_t move_number = 0;
         for (const auto move : moves) {
             const auto undo = position.make_move(move);
@@ -912,22 +940,10 @@ struct SearchWorker {
                 update_pv(ply, move);
             }
             if (score >= beta) {
-                if (mode == Mode::ordinary && !move.is_capture() && move.promotion == PieceType::none) {
-                    if (limits.countermove_ordering && previous_move != no_previous_move) {
-                        countermoves[previous_move] = move;
-                        if (limits.diagnostics) ++countermove.updates;
-                    }
-                    auto& pair = killers[static_cast<std::size_t>(ply)];
-                    if (move != pair[0]) { pair[1] = pair[0]; pair[0] = move; }
-                    const int bonus = std::min(2048, depth * depth * 24);
-                    update_history(position.turn(), move, bonus);
-                    for (const auto quiet_move : searched_quiets)
-                        update_history(position.turn(), quiet_move, -bonus);
-                }
+                learn_quiet_cutoff(position.turn(), moves, move_number - 1,
+                                   depth, ply, previous_move, mode);
                 break;
             }
-            if (!move.is_capture() && move.promotion == PieceType::none)
-                searched_quiets.push_back(move);
         }
         const auto bound = best_score >= beta ? Bound::lower
             : best_score > original_alpha ? Bound::exact : Bound::upper;

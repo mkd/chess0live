@@ -3,7 +3,7 @@
 # Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 # GNU GPL version 3 or later; WITHOUT ANY WARRANTY. See LICENSE.
-"""Compare exact current-policy search work on exposed cold/warm roots.
+"""Compare exact search work under one explicit preset on exposed cold/warm roots.
 
 Use tools/run.py to prepare the pinned chess referee automatically. This small
 screen is for result-preserving implementation changes: every completed
@@ -40,6 +40,7 @@ OPTIONS = {
     'ProbCut': 'false', 'SyzygyPath': '<empty>', 'SyzygyProbeLimit': '0',
     'Search Diagnostics': 'false',
 }
+PRESETS = ('default', 'see-ordering', 'all-on')
 OPTION_TYPES = {name: ('spin' if name in ('Threads', 'Hash', 'Move Overhead', 'SyzygyProbeLimit')
                       else 'combo' if name in ('Time Policy', 'Capture Ordering')
                       else 'string' if name == 'SyzygyPath' else 'check') for name in OPTIONS}
@@ -90,11 +91,25 @@ def source_paths():
     return paths
 
 
-def prepare(engine, network, deadline):
+def options_for(preset='default'):
+    """Return independent per-run settings; never mutate the accepted defaults."""
+    if preset not in PRESETS:
+        raise ValueError('Unknown search preset: ' + str(preset))
+    options = dict(OPTIONS)
+    if preset in ('see-ordering', 'all-on'):
+        options['Capture Ordering'] = 'see'
+    if preset == 'all-on':
+        for name in ('Deep Quiet Reductions', 'Countermove Ordering', 'Null Move Pruning',
+                     'Reverse Futility Pruning', 'QSearch SEE Pruning', 'ProbCut'):
+            options[name] = 'true'
+    return options
+
+
+def prepare(engine, network, deadline, preset='default'):
+    options = dict(options_for(preset), EvalFile=str(network))
     engine.send('uci')
     identity = engine.until('uciok', timeout=remaining(deadline, 20))
     reject_errors(identity)
-    options = dict(OPTIONS, EvalFile=str(network))
     for name in options:
         declarations = [line for line in identity if line.startswith('option name ' + name + ' type ')]
         if (len(declarations) != 1
@@ -195,9 +210,10 @@ def summarize(samples, positions, repetitions):
 
 
 def profile(baseline, candidate, output, *, network=NETWORK, depth=6, repetitions=2,
-            search_timeout=10., total_timeout=240., quiet_host=False):
+            search_timeout=10., total_timeout=240., quiet_host=False, preset='default'):
     if not quiet_host:
         raise ValueError('Declare --quiet-host after stopping other compute/build workloads')
+    options = options_for(preset)
     if type(depth) is not int or not 1 <= depth <= 8 or type(repetitions) is not int or not 1 <= repetitions <= 3:
         raise ValueError('Use depth1..8 and repetitions1..3')
     for value, maximum in ((search_timeout, 30), (total_timeout, 300)):
@@ -219,20 +235,22 @@ def profile(baseline, candidate, output, *, network=NETWORK, depth=6, repetition
                   assets=frozen, positions=positions, platform=platform.platform(), machine=platform.machine(),
                   git_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                   git_status=subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True),
-                  settings=dict(options=dict(OPTIONS, EvalFile=str(network)), depth=depth, repetitions=repetitions,
+                  settings=dict(preset=preset, options=dict(options, EvalFile=str(network)), depth=depth, repetitions=repetitions,
                                 search_timeout_seconds=search_timeout, total_timeout_seconds=total_timeout),
                   quiet_host_declared=True, initial_resource_policy=initial_policy,
-                  setup={}, samples=[], timing='One active worker, two resident engines; cold/warm pair then alternate AB/BA; no extra warmup; readiness outside measurement')
+                  setup={}, pids={}, samples=[], timing='One active worker, two resident engines; cold/warm pair then alternate AB/BA; no extra warmup; readiness outside measurement')
     output.mkdir(parents=True, exist_ok=False)
     target = output / 'report.json'
     publish(target, report)
     deadline = time.monotonic() + total_timeout
+    engines = {}
     try:
         with ExitStack() as stack:
-            engines = {role: stack.enter_context(Engine(path)) for role, path in
-                       (('baseline', baseline), ('candidate', candidate))}
+            for role, path in (('baseline', baseline), ('candidate', candidate)):
+                engines[role] = stack.enter_context(Engine(path))
+                report['pids'][role] = engines[role].process.pid
             for role, engine in engines.items():
-                report['setup'][role] = prepare(engine, network, deadline)
+                report['setup'][role] = prepare(engine, network, deadline, preset)
             for repetition in range(repetitions):
                 for index, (position, board) in enumerate(zip(positions, boards)):
                     for role in run_order(repetition, index):
@@ -262,11 +280,22 @@ def profile(baseline, candidate, output, *, network=NETWORK, depth=6, repetition
                                 if abs(wall_elapsed - elapsed) > .5:
                                     raise ValueError('Host suspension or wall-clock discontinuity invalidated timing')
                                 sample['result'] = validate_result(lines, board, depth)
+                                # Readiness is outside timing. Fence every result,
+                                # including the final one, against stray output.
+                                sample['post_search_commands'] = ['isready']
+                                engine.send('isready')
+                                sample['post_search_output'] = engine.until('readyok', timeout=remaining(deadline, 15))
+                                if sample['post_search_output'] != ['readyok']:
+                                    raise ValueError('Unexpected output after completed search')
                                 sample['status'] = 'complete'
                             finally:
                                 sample.setdefault('output', engine.transcript[begin:])
+                                sample['received_transcript'] = engine.transcript[begin:]
                                 publish(target, report)
             report['summary'] = summarize(report['samples'], positions, repetitions)
+        report['exit_codes'] = {role: engine.process.poll() for role, engine in engines.items()}
+        if any(code != 0 for code in report['exit_codes'].values()):
+            raise ValueError('An engine did not exit successfully')
         report['after_sha256'] = {name: digest(path) for name, path in assets.items()}
         if any(report['after_sha256'][name] != frozen[name]['sha256'] for name in assets):
             raise ValueError('A binary, input or implementation changed during the comparison')
@@ -275,6 +304,8 @@ def profile(baseline, candidate, output, *, network=NETWORK, depth=6, repetition
         report.update(status='failed', error=type(error).__name__ + ': ' + str(error))
         raise
     finally:
+        report['exit_codes'] = {role: engine.process.poll() for role, engine in engines.items()}
+        report['received_transcripts'] = {role: list(engine.transcript) for role, engine in engines.items()}
         if 'after_sha256' not in report:
             report['after_sha256'] = {}
             for name, path in assets.items():
@@ -298,11 +329,13 @@ def main(argv=None):
     parser.add_argument('--search-timeout', type=float, default=10)
     parser.add_argument('--total-timeout', type=float, default=240)
     parser.add_argument('--quiet-host', action='store_true')
+    parser.add_argument('--preset', choices=PRESETS, default='default',
+                        help='Identical explicit search settings for both builds; default preserves accepted settings')
     args = parser.parse_args(argv)
     try:
         report = profile(args.baseline, args.candidate, args.output, network=args.network, depth=args.depth,
                          repetitions=args.repetitions, search_timeout=args.search_timeout,
-                         total_timeout=args.total_timeout, quiet_host=args.quiet_host)
+                         total_timeout=args.total_timeout, quiet_host=args.quiet_host, preset=args.preset)
         print(json.dumps(report['summary'], indent=2))
         return 0
     except (OSError, ValueError, RuntimeError, TimeoutError) as error:
