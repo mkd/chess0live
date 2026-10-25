@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added one-command readable puzzle reports and spreadsheet CSV exports from
+  completed comparisons. Saved evidence is audited again before export; every
+  position and adverse difference is retained, with smoke/full results labeled.
+
 - Added a frozen TT Move Hints on/off puzzle comparison with automatic tool
   setup and an independent raw-log auditor. It checks legal analysis, matched
   settings, process exits, input changes and timing interruptions. Full tactical

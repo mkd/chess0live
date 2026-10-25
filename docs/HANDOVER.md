@@ -66,6 +66,30 @@ the actual reply/run state before starting. A full pass does not promote hints;
 prepare a fresh strength protocol only after reviewing adverse tactical cases.
 Preserve the parked all-on campaign and stable GUI `0.1-dev-4b8b35d`.
 
+### Parallel work while the quiet window is pending
+
+On October 25 the owner asked to let LM Studio finish its current task and said
+they would confirm when inference is paused. The full comparison has not been
+authorized to start yet. Continue modest independent work, but do not launch
+the full run or change its 40 pinned assets, including Makefile and engine code.
+No timer or automatic follow-up is scheduled. The requested quiet/timing window
+remains a prerequisite; respond to the owner's next confirmation in context.
+
+A separate `tools/puzzle_report.py` frontend exports saved Phase 4F.7 evidence
+through its existing independent auditor. It only reads completed reports and
+raw logs, and writes a new directory with Markdown, CSV and a fresh certificate.
+It must never run an engine or reinterpret smoke results as the full audit.
+The new test file and practical docs are outside the frozen input map; Makefile
+and old runners remain unchanged. See [tool use](TOOLS.md#read-saved-puzzle-comparisons).
+
+All 24 synthetic exporter checks passed. Real readiness/smoke exports passed
+fresh independent audits, with zero/78 CSV rows and all 39 smoke positions,
+including all three score/depth differences. Logs and examples are under
+`results/puzzle-report-20261025/`; all 728 protected files and the README intro
+matched the initial snapshot. This lightweight tooling checkpoint is complete;
+it adds no searches, engine changes or strength evidence. The full comparison
+still waits for the owner's quiet-window/timing confirmation.
+
 ## Previous checkpoint: Phase 4F.6 position-key move hints
 
 Read the [frozen protocol](experiments/phase4f6.md) and

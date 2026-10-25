@@ -34,6 +34,49 @@ To prepare packages without running a tool, use `make tooling` or
 `python3 tools/run.py --setup`. This prints the managed Python path. To check
 the setup code and batch runner, use `make test-tooling`.
 
+## Read saved puzzle comparisons
+
+Export a completed TT Move Hints comparison with one command:
+
+```sh
+python3 tools/puzzle_report.py results/phase4f7-20261025/smoke/report.json --output results/puzzle-summary
+```
+
+Python dependencies prepare automatically through the same isolated setup.
+This command reads the saved evidence; it does not launch an engine, compile,
+train or repeat a timed search. It currently supports the frozen Phase 4F.7
+readiness, smoke and full report formats explicitly. Other historical report
+formats are not silently reinterpreted.
+
+Keep the original raw session logs and pinned inputs available and unchanged.
+The independent auditor checks them again before publication; missing, altered,
+incomplete or failed evidence is rejected. An earlier certificate alone is not
+enough. Choose a new output directory; existing files/directories are preserved.
+Its parent directory must already exist. CSV uses UTF-8 with a byte-order mark
+for spreadsheet import; numeric scores remain numeric and formula-like text
+cells are escaped as text.
+The export contains:
+
+- `comparison.md`: settings, audit scope and all 39 position comparisons, including
+  different scores, moves, depths and mate reports.
+- `positions.csv`: one row per position/configuration, suitable for a spreadsheet.
+- `audit.json`: the fresh independent audit, bound to the saved report's digest.
+
+Readiness has no searches and produces a CSV header without position rows.
+Smoke and full results are labeled separately. Supplied mate distances, reported
+mates and legal lines ending in checkmate remain different claims; no Elo or
+forced-mate proof follows from this presentation. A larger centipawn score is
+not a distance-to-mate measure. These exports are summaries, not replacements
+for the original evidence. Test the exporter without engine searches using:
+
+```sh
+python3 tools/run.py tests/puzzle_report_test.py
+```
+
+On Windows, replace `python3` with `py -3`. The implementation uses portable
+Python path/CSV handling; native Windows execution of this exporter is not yet
+verified. Its first real integration uses the existing macOS ARM64 smoke data.
+
 ## Windows
 
 Use the Python launcher rather than a shell-specific environment activation:

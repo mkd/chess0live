@@ -1,5 +1,26 @@
 # Validation and experiment protocol
 
+## Saved puzzle report exporter — October 25, 2026
+
+While Phase 4F.7 awaits the owner's quiet window, the separate
+`tools/puzzle_report.py` frontend passed 24 synthetic checks. Coverage includes
+all-position ordering, signed centipawn/mate formatting, readiness/smoke/full
+labels, fresh-audit and input-drift rejection, Markdown/CSV escaping, existing
+output preservation, and handled publication failures. Only the audit boundary
+is mocked in these tests; no engine is launched.
+
+Native macOS integration exported the existing readiness and smoke reports
+through the real independent auditor. Readiness produced headings-only CSV;
+smoke produced all 78 search rows and a 39-position comparison retaining the
+three score/depth differences. Both certificates bind the original report
+hashes. Evidence and logs are in `results/puzzle-report-20261025/`.
+
+All 728 protected files, including the 40 frozen comparison assets and original
+engine provenance, and the README introduction were unchanged. No search,
+build, full comparison, schedule, strength claim or default change follows.
+The exporter is documented separately from Makefile to preserve the pending
+campaign's pins. Native Windows/Linux execution remains unverified.
+
 ## Phase 4F.7 tactical preparation checks — October 25, 2026
 
 The [protocol](experiments/phase4f7.md) freezes the current engine with hints

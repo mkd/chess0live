@@ -29,6 +29,14 @@ TT Move Hints remains off by default. The older all-on campaign remains parked;
 broader platform/training/release gates remain open. Normal builds, stable GUI
 `0.1-dev-4b8b35d`, the owner's batch file and README introduction are preserved.
 
+The owner is finishing an LM Studio task and will confirm when inference is
+paused. Until then, advance independent lightweight tooling. A new saved-puzzle
+export command addresses the simple-tooling backlog with readable Markdown and
+CSV, using existing evidence only. This does not advance or replace the pending
+tactical/strength gate, and the frozen comparison inputs remain unchanged.
+The exporter checkpoint is complete: 24 synthetic tests and fresh audits of
+the existing readiness/smoke exports passed. See [practical instructions](TOOLS.md#read-saved-puzzle-comparisons).
+
 ## Previous checkpoint: Phase 4F.6 move hints — implemented, default off
 
 The [report](reports/2026-10-25-phase4f6.md) records the new optional

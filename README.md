@@ -164,6 +164,18 @@ separate full run. Dependencies prepare automatically through `tools/run.py`.
 The saved comparison records process exits, legal analysis, input identities
 and timing interruptions; it does not change your GUI or engine defaults.
 
+Turn a completed move-hint comparison into a readable report and spreadsheet
+CSV, without running another engine search:
+
+```sh
+python3 tools/puzzle_report.py results/phase4f7-20261025/smoke/report.json --output results/puzzle-summary
+```
+
+This rechecks the saved evidence, then creates `comparison.md`, `positions.csv`
+and a fresh `audit.json` in a new directory. It includes every position and
+distinguishes short smoke checks from full comparisons. See
+[saved puzzle reports](docs/TOOLS.md#read-saved-puzzle-comparisons) for requirements.
+
 ### Inspect and qualify networks
 
 ```sh
