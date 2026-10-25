@@ -496,6 +496,11 @@ test-phase4f3:
 	$(TOOL_PYTHON) tests/audit_phase4f3_test.py
 	$(TOOL_PYTHON) tests/phase4f3_puzzles_test.py
 
+.PHONY: test-phase4f7
+test-phase4f7:
+	$(TOOL_PYTHON) tests/phase4f7_puzzles_test.py
+	$(TOOL_PYTHON) tests/audit_phase4f7_puzzles_test.py
+
 test-profile-lmr:
 	$(TOOL_PYTHON) tests/profile_lmr_test.py
 
@@ -592,6 +597,7 @@ help:
 	@echo 'make test-match-readiness Test bounded match supervisor and raw auditor'
 	@echo 'make test-lmr-qualification Test fresh fixed LMR qualification workflow'
 	@echo 'make test-phase4f3     Check combined-policy puzzle/match tools without launching games'
+	@echo 'make test-phase4f7     Check move-hint puzzle runner and independent raw auditor'
 	@echo 'make test-qualification Test fixed qualification launchers and evidence audits'
 	@echo 'make test-phase3g      Test fresh openings, coordinated launcher, and aggregate audit'
 	@echo 'make test-phase3l      Test fresh qualification inputs, readiness, supervision, and audit'

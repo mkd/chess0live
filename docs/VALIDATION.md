@@ -1,5 +1,31 @@
 # Validation and experiment protocol
 
+## Phase 4F.7 tactical preparation checks — October 25, 2026
+
+The [protocol](experiments/phase4f7.md) freezes the current engine with hints
+off/on and otherwise identical current-default settings. The
+[report](reports/2026-10-25-phase4f7.md) records **54 passing synthetic checks**
+(33 runner, 21 independent auditor), two passing search-free readiness sessions
+and the complete 39-position/78-search one-second smoke. No engine code changed.
+
+Independent raw replay passed 40 prepared identities, 78 distinct recorded
+PIDs/zero exits, 431 iterations, 2,375 legal PV plies, 156 best/ponder plies,
+2,106 commands, 2,693 consumed output lines, 234 readiness barriers and 313
+resource observations. Both roles requested eight workers and Hash 64, with
+one engine resident/searching at a time. Maximum reconstructed clock gap was
+0.832775 seconds and discrepancy 0.679 ms; bestmove receipts were within the
+fixed tolerance. Clean EOF and joined readers were verified for every session.
+
+All 39 final best moves agreed, with no positive mate report in one second.
+Scores/depths differed at positions 1, 15 and 35; retain all three. The smoke
+uses nondeterministic SMP and no quiet-host attestation, so neither duration,
+centipawns nor depth establishes speed, tactical superiority or playing strength.
+It is separate from the full 60-second comparison, which has not started.
+That run needs a fresh quiet window and any required timing exception; the
+later match needs a fresh protocol. Hints remain off and 4F.7 remains pending.
+Original artifacts, normal/stable GUI builds, batch settings and README intro
+are preserved; no schedule or new platform/release qualification was created.
+
 ## Phase 4F.6 move-hint checks — October 25, 2026
 
 The [protocol](experiments/phase4f6.md) precedes implementation and all candidate

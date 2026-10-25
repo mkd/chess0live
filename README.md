@@ -156,6 +156,14 @@ in place of `python3`. Ordinary engine builds and core tests need no third-party
 Python packages. See [tool setup](docs/TOOLS.md) for offline use, cache location,
 repair, package provenance and Windows commands.
 
+For the frozen move-hint puzzle comparison, `make test-phase4f7` checks its
+runner and independent raw-log auditor with synthetic engines; it does not
+start a long benchmark. The [comparison guide](docs/experiments/phase4f7.md)
+describes the pinned local build, settings, short readiness/smoke checks and
+separate full run. Dependencies prepare automatically through `tools/run.py`.
+The saved comparison records process exits, legal analysis, input identities
+and timing interruptions; it does not change your GUI or engine defaults.
+
 ### Inspect and qualify networks
 
 ```sh

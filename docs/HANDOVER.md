@@ -28,7 +28,45 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.6 position-key move hints
+## Current checkpoint: Phase 4F.7 tactical comparison prepared
+
+Read the [frozen protocol](experiments/phase4f7.md) and
+[report](reports/2026-10-25-phase4f7.md). Engine source is still `a1b2331`;
+`build/experiments/phase4f7/chess0live` is a byte copy of the prior native binary,
+SHA-256 `6dd685119d80145e2c6956c8d27c20a2d67e006bdf6556ceef5b779585baff9f`.
+Only TT Move Hints differs between roles. Both use eight threads, Hash 64,
+LMR=true, classic timing, other experiments/diagnostics/ponder/Syzygy off.
+`tests/data/phase4f7-pins.json` freezes 39 other asset identities; the run pins
+that file too, for 40 total. Do not edit pinned helpers/tests/protocol or refreeze
+them silently after readiness/smoke. Docs outside the manifest may be updated.
+
+`tools/check_phase4f7_puzzles.py` has search-free check, all-39 one-second smoke
+and full sixty-second modes. A fresh serial process per role/position records
+raw commands/output, PID, barriers, reader drain, EOF and zero exit; complete
+status is set only after clean teardown. `tools/audit_phase4f7_puzzles.py`
+independently reconstructs raw evidence without runner validators/summaries.
+Historical tools remain untouched; see the report for exact commands.
+
+`make test-phase4f7` passed 33 runner and 21 auditor synthetic tests. Readiness
+passed both roles. The 78-search smoke passed independent replay of 431
+iterations, 2,375 legal PV plies, 156 best/ponder plies, 78 clean exits, 234
+barriers and 313 resource observations. All 39 best moves agreed; no mate was
+reported in one second. Scores/depths differed at positions 1, 15 and 35.
+LM Studio was open and quiet_host=false; timing is operational evidence only.
+
+Evidence: `results/phase4f7-20261025/{readiness,smoke}/`, their reports/raw logs/
+independent audits, initial/prepared identities and tool-test log. No full run,
+match or schedule has started. Phase 4F.7 remains pending its full tactical gate.
+After this preparation is committed, request a fresh agreed quiet window and
+any daytime exception for 39 × 2 × 60 seconds (~78 minutes plus setup).
+Keep AC/Automatic unchanged, pause competing inference, use the same pins and
+fresh output path, and audit before interpreting results. Early permission from
+older phases does not apply. Do not treat flags as proof of approval. Record
+the actual reply/run state before starting. A full pass does not promote hints;
+prepare a fresh strength protocol only after reviewing adverse tactical cases.
+Preserve the parked all-on campaign and stable GUI `0.1-dev-4b8b35d`.
+
+## Previous checkpoint: Phase 4F.6 position-key move hints
 
 Read the [frozen protocol](experiments/phase4f6.md) and
 [report](reports/2026-10-25-phase4f6.md). `SearchLimits::tt_move_hints` and UCI

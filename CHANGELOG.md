@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a frozen TT Move Hints on/off puzzle comparison with automatic tool
+  setup and an independent raw-log auditor. It checks legal analysis, matched
+  settings, process exits, input changes and timing interruptions. Full tactical
+  and playing-strength qualification remain separate from its short smoke test.
+
 - The exact-result comparison tool now accepts default, SEE-ordering and all-on
   presets for both builds, records process exits and checks readiness after
   every search. The engine's saved GUI settings are unaffected.
