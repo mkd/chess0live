@@ -59,6 +59,9 @@ struct SearchLimits {
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Experimental quiet reply ordering; changes neither depth nor pruning. */
     bool countermove_ordering = false;
+    /** Experimental position-key move ordering; never supplies a score/bound
+     * or the contextual TT exemption used by late-move reductions. */
+    bool tt_move_hints = false;
     /** Experimental reduced null probe followed by a legal-move verification. */
     bool null_move_pruning = false;
     /** Experimental shallow static cutoff at quiet interior scout nodes. */
@@ -132,6 +135,23 @@ struct CacheStatistics {
     std::uint64_t replacements = 0;
 };
 
+/** Optional position-key ordering-cache measurements. Geometry counts shared
+ * storage once; events are summed over workers after joining. Probes are
+ * fallback lookups only when no legal contextual TT move exists. Hits require
+ * a full key and valid move; legal_matches additionally match the complete Move
+ * in the current legal list. Stores count completed ordinary-node writes.
+ * None of these hints can supply a score, cutoff, bound or LMR exemption.
+ */
+struct MoveHintStatistics {
+    bool enabled = false;
+    std::size_t slots = 0;
+    std::size_t allocated_bytes = 0;
+    std::uint64_t probes = 0;
+    std::uint64_t hits = 0;
+    std::uint64_t legal_matches = 0;
+    std::uint64_t stores = 0;
+};
+
 struct SearchDiagnostics {
     TimePolicy policy = TimePolicy::classic;
     bool forecast_active = false;
@@ -143,6 +163,7 @@ struct SearchDiagnostics {
     double predicted_next_ms = 0;
     std::vector<IterationDiagnostics> iterations;
     CacheStatistics cache;
+    MoveHintStatistics move_hints;
 };
 
 /** Counts for the optional selective-search hypothesis. Reductions and

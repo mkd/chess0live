@@ -1,5 +1,42 @@
 # Validation and experiment protocol
 
+## Phase 4F.6 move-hint checks — October 25, 2026
+
+The [protocol](experiments/phase4f6.md) precedes implementation and all candidate
+searches; the [report](reports/2026-10-25-phase4f6.md) records the default-off
+ordering experiment. Native core/perft/UCI, NNUE, exchange, search, ordering,
+history, optional-policy and time checks passed. New direct tests passed 23
+bounded groups and three injected allocation failures; new UCI checks passed
+36 cases. Existing countermove/SMP checks passed 57/43 cases. ASan/UBSan passed
+search, ordering/history, direct hint/UCI and optional-pruning checks. TSan passed
+the direct hint, 36 UCI and 43 SMP lifecycle checks. No sanitizer finding occurred.
+The two independent implementation/test reviews found no material blocker.
+
+The new profiler passed 21 synthetic tests. Its one real screen completed all
+180 searches in 90 serial fresh sessions: all 15 exposed roots, depth 6, one
+worker, Hash 64, two repetitions, cold/warm, frozen parent/candidate-off/on.
+Diagnostics were enabled throughout. The independently parsed audit verified
+1,080 iterations, 4,656 legal PV plies and 360 best/ponder plies; all 60 parent/off
+pairs match nodes, scores, depths, PVs, occupancy and old diagnostic work exactly.
+It also verified 44 current/before/after assets, 90 raw logs/PIDs/zero exits,
+2,760 commands, 5,880 consumed lines, 450 readiness barriers and 452 resource
+observations. Its reconstructed maximum clock gap was 1.13635 s, drift 0.235 ms,
+and longest search 1.78074 s, within the fixed limits.
+
+Cold total nodes changed from 3,701,668 to 3,491,730; warm from 790,712 to 745,882,
+about 5.67% less work in both groups. Hints produced 53,436 accepted legal matches
+from 347,776 fallback probes, and 567,514 stores. All 60 on/off final moves and
+scores match, but work increased in seven root/cache cases (14/60 repeated pairs),
+including warm `gamephases-eg-04` at +33.79%. Forty-two pairs used fewer nodes;
+four were equal. Every case remains in the report; no tuning or omission occurred.
+
+LM Studio could be active. These instrumented fixed-depth observations do not
+establish timing, strength, exact SMP-tree equivalence or foreign-runtime support.
+Hints remain off; no full puzzle run, match, schedule, default promotion or release
+was launched. Original frozen evidence, ordinary builds, stable GUI, owner batch
+settings and README introduction are preserved. Evidence is under
+`results/phase4f6-20261025/`; next is a separately prepared tactical/strength gate.
+
 ## Phase 4F.5 quiet-history checks — October 25, 2026
 
 The [report](reports/2026-10-25-phase4f5.md) records 1,408 exact cutoff-learning

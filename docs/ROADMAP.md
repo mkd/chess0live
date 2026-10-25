@@ -5,7 +5,32 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.5 quiet-history bookkeeping
+## Current checkpoint: Phase 4F.6 move hints — implemented, default off
+
+The [report](reports/2026-10-25-phase4f6.md) records the new optional
+`TT Move Hints` cache. It uses full-position-key legal move suggestions when no
+legal contextual TT move is available; scores retain their existing draw-sensitive
+keys and capacity. It shares the Hash reservation and existing locks, with no
+hint allocation when disabled. No score cutoff or LMR exemption comes from a hint.
+
+Native, ASan/UBSan and focused TSan checks passed, including 23 direct test groups,
+three injected allocation failures and 36 new UCI cases. The independently audited
+180-search screen matched all 60 parent/off pairs exactly. Enabling hints used
+5.67% fewer aggregate nodes at depth 6 in both cold and warm samples; all 60 final
+moves and scores matched. Seven position/cache cases used more nodes, including
+one warm endgame with 33.79% more work. These are exposed, instrumented work
+observations, not speed or playing-strength evidence; LM Studio could be active.
+
+**This finite implementation checkpoint is complete; hints remain off.** Next is
+**Phase 4F.7: tactical and strength qualification** for this isolated candidate.
+Prepare a frozen 39-position/eight-thread, 60-second-per-position comparison
+(about 78 minutes plus setup), then a fresh paired match if no reproducible serious
+regression blocks it. Agree a quiet window and any required daytime exception
+only after concrete preparation. No long test or schedule was started here.
+The older all-on campaign remains parked; wider platform/training/release gates
+remain open. Normal builds and stable GUI `0.1-dev-4b8b35d` are preserved.
+
+## Previous checkpoint: Phase 4F.5 quiet-history bookkeeping
 
 The [implementation report](reports/2026-10-25-phase4f5.md) records removal of
 alpha-beta's per-node temporary quiet-move list. Cutoff learning uses the same
@@ -777,7 +802,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations | 4F.5 finite correctness/timing checkpoint complete; next 4F.6 opt-in TT move hints with unchanged score validity/capacity; the all-on campaign stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.6 default-off TT move hints passed bounded checks; next 4F.7 tactical/strength qualification; the all-on campaign stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

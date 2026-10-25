@@ -264,6 +264,20 @@ $(BUILD)/ordering-search-test$(EXE): tests/ordering_search_test.cpp src/search.c
 $(BUILD)/history-prefix-search-test$(EXE): tests/history_prefix_search_test.cpp src/search.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
+# Private cache/worker invariants: this test includes search.cpp, not search.o.
+$(BUILD)/tt-move-hints-search-test$(EXE): tests/tt_move_hints_search_test.cpp src/search.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-tt-move-hints-search test-tt-move-hints test-profile-tt-move-hints
+test-tt-move-hints-search: $(BUILD)/tt-move-hints-search-test$(EXE)
+	"$(BUILD)/tt-move-hints-search-test$(EXE)" "$(NET)"
+
+test-tt-move-hints: $(ENGINE)
+	$(TOOL_PYTHON) tests/tt_move_hints_test.py "$(ENGINE)" --network "$(NET)"
+
+test-profile-tt-move-hints:
+	$(TOOL_PYTHON) tests/profile_tt_move_hints_test.py
+
 .PHONY: test-history-prefix-search
 test-history-prefix-search: $(BUILD)/history-prefix-search-test$(EXE)
 	"$(BUILD)/history-prefix-search-test$(EXE)"
@@ -297,10 +311,11 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 	"$(BUILD)/nnue-updates-test$(EXE)"
 	"$(BUILD)/nnue-dense-test$(EXE)"
 
-test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE)
+test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE) $(BUILD)/tt-move-hints-search-test$(EXE)
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 	"$(BUILD)/ordering-search-test$(EXE)"
 	"$(BUILD)/history-prefix-search-test$(EXE)"
+	"$(BUILD)/tt-move-hints-search-test$(EXE)" "$(NET)"
 
 # Isolated deeper-reduction and clock policies; both remain opt-in.
 $(BUILD)/deep-quiet-search-test$(EXE): tests/deep_quiet_search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
@@ -553,6 +568,8 @@ help:
 	@echo 'make test-tactical-moves Check tactical generation and legal mobility witnesses'
 	@echo 'make test-ordering-search Check move priorities, SEE counters and worker tie order'
 	@echo 'make test-history-prefix-search Check exact quiet-cutoff learning and speculative isolation'
+	@echo 'make test-tt-move-hints-search test-tt-move-hints Check optional move-cache search and UCI behavior'
+	@echo 'make test-profile-tt-move-hints Check the bounded move-hint work comparison tool'
 	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
 	@echo 'make test-profile-search-package Check the bounded search-package diagnostic tool'
 	@echo 'make training-plan    Show local training requirements without setup'
@@ -600,7 +617,8 @@ clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
 -include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d \
-         $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d
+         $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d \
+         $(BUILD)/tt-move-hints-search-test.d
 
 # Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
 .PHONY: tooling test-tooling

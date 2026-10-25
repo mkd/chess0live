@@ -28,7 +28,62 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.5 quiet-history bookkeeping
+## Current checkpoint: Phase 4F.6 position-key move hints
+
+Read the [frozen protocol](experiments/phase4f6.md) and
+[report](reports/2026-10-25-phase4f6.md). `SearchLimits::tt_move_hints` and UCI
+`TT Move Hints` default to false. A separate 16-byte `MoveHintEntry` per existing
+score bucket holds only a full position key and complete Move. Invalid Move marks
+empty, including key zero. Prefer a legal contextual TT move; only otherwise
+look up and legal-list-match a hint. Keep `tt_move` for LMR separate from the
+ordering suggestion. Score keys, replacement, entry count/mask and `hashfull`
+are unchanged. Hints can still alter selective search through ordering.
+
+Hints use the existing stripes with independent non-nested lock scopes; no
+entry reference escapes. Only completed ordinary positive-depth nodes store.
+Quiescence, null/verification/ProbCut subtrees, interrupted nodes and restricted
+roots are excluded. Ordinary descendants of restricted roots remain eligible.
+`set_move_hints` allocates before policy changes; resize prepares both replacement
+vectors before either swap. Failures propagate, preserving prior state. Policy
+changes/new game/clears/thread changes clear hints while workers are idle.
+Disabling releases the vector when the next search applies the option. Hash 64
+retains 32 MiB score storage plus optional 8 MiB hints; transient resize and other
+engine memory are additional. Diagnostics sum hint events after helpers join and
+report shared geometry once, only emitting `move-hints v1` when enabled.
+
+Use `make test-tt-move-hints-search test-tt-move-hints`; `test-search` includes
+the direct test. Its private search.cpp inclusion must not also link search.o;
+Make loads its generated dependency file. Native, ASan/UBSan and TSan passed
+23 bounded groups with three injected allocation failures and 36 new UCI cases.
+The test-only allocation fault is one-shot/thread-local and targets a small hint
+vector; it must never be replaced by host-memory exhaustion. Existing core,
+NNUE/search/policy regressions and focused SMP checks passed. The new profiler's
+21 synthetic tests passed; it bootstraps the independent referee automatically.
+
+The one completed screen used all 15 exposed roots, depth 6, Threads 1, Hash 64,
+two repetitions and cold/warm searches under frozen parent/off/on roles. All
+180 searches passed independent raw audit: 60 exact parent/off pairs, 1,080
+iterations, 4,656 legal PV plies, 360 best/ponder plies, 90 clean exits and 44
+input identities. Hints on used 5.67% fewer aggregate nodes but increased work
+in seven root/cache cases; all final moves/scores matched. LM Studio could be
+active, so elapsed times are watchdogs only. Do not claim speed or strength.
+
+Evidence: `results/phase4f6-20261025/`, especially `prepared-inputs.json` and
+`work-screen/report.json`, its 90 raw logs and `independent-audit.json`.
+Candidate `build/phase4f6-native/chess0live` SHA-256:
+`6dd685119d80145e2c6956c8d27c20a2d67e006bdf6556ceef5b779585baff9f`.
+The parent is the preserved `build/phase4f5-native/chess0live` from `af2abdb`.
+Sanitizer builds use `build/phase4f6-asan/` and `build/phase4f6-tsan/`.
+
+Phase 4F.6 is complete and hints remain off. Next, 4F.7 prepares a separately
+frozen eight-worker 39-position tactical comparison and, if appropriate, fresh
+paired strength qualification. No long run or schedule is active; prepare and
+validate its concrete protocol before requesting a quiet window or timing
+exception. Older all-on tools/recipes still mean their original eight-option
+package and do not silently enable hints. Preserve its parked campaign, normal
+builds, stable GUI `0.1-dev-4b8b35d`, owner batch file and exact README intro.
+
+## Previous checkpoint: Phase 4F.5 quiet-history bookkeeping
 
 Read the [protocol](experiments/phase4f5.md) and
 [report](reports/2026-10-25-phase4f5.md). `learn_quiet_cutoff` replaces the

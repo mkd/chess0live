@@ -94,6 +94,13 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added optional `TT Move Hints` to reuse legal cached moves across different
+  repetition histories without reusing their scores. It shares the Hash budget,
+  preserves score-table capacity and includes diagnostics and lifecycle tests.
+  Disabled by default pending playing-strength qualification; the bounded
+  [development comparison](docs/reports/2026-10-25-phase4f6.md) used about 5.7%
+  fewer aggregate nodes, with some positions requiring more work.
+
 - Removed a temporary quiet-move history list from each regular search node.
   Cutoff learning uses the already searched move-list prefix in the same order;
   bounded comparisons preserve search results. Defaults and pruning rules are

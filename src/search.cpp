@@ -8,6 +8,7 @@
  */
 #include "chess0live/search.hpp"
 
+#include "chess0live/detail/move_hint_entry.hpp"
 #include "chess0live/detail/transposition_entry.hpp"
 #include "chess0live/exchange.hpp"
 #include "chess0live/nnue.hpp"
@@ -90,6 +91,9 @@ bool dead_material(const Position& position) {
 using detail::transposition::Bound;
 using detail::transposition::Entry;
 using detail::transposition::Bucket;
+using detail::transposition::MoveHintEntry;
+static_assert(sizeof(Bucket) + sizeof(MoveHintEntry)
+              <= detail::transposition::bucket_budget_bytes);
 // A child decrements depth before its at-most-one check extension, so no stored
 // interior depth can exceed the capped root depth. Keep this proof explicit if
 // the search's maximum or extension policy changes in the future.
@@ -154,6 +158,11 @@ struct SharedSearch {
     static constexpr std::size_t stripe_count = 1024;
     struct alignas(64) PublishedNodes { std::atomic<std::uint64_t> value{0}; };
     std::vector<Bucket> table;
+    // Empty when disabled; otherwise exactly one direct-mapped hint per score
+    // bucket. The score bucket count/mask and its 96-byte reservation stay fixed.
+    // The 80-byte physical total describes retained entry storage; transactional
+    // resizing temporarily keeps both old and replacement allocations alive.
+    std::vector<MoveHintEntry> move_hints;
     std::array<std::mutex, stripe_count> stripes;
     std::array<PublishedNodes, Search::max_threads> published;
     std::atomic<bool> stopped{false};
@@ -172,7 +181,22 @@ struct SharedSearch {
         const auto count = std::bit_floor(megabytes * 1024 * 1024
                                          / detail::transposition::bucket_budget_bytes);
         std::vector<Bucket> replacement(count);
+        std::vector<MoveHintEntry> hint_replacement;
+        if (!move_hints.empty()) hint_replacement.resize(count);
+        // Both allocations finish before either old cache is changed. A failed
+        // resize propagates normally and retains the prior tables and geometry.
         table.swap(replacement);
+        move_hints.swap(hint_replacement);
+    }
+
+    /** Change optional storage before policy state or cached bounds are cleared.
+     * Allocation failure must leave the previous configuration intact rather
+     * than silently claim that an enabled ordering experiment actually ran.
+     */
+    void set_move_hints(bool enabled) {
+        if (enabled == !move_hints.empty()) return;
+        std::vector<MoveHintEntry> replacement(enabled ? table.size() : 0);
+        move_hints.swap(replacement);
     }
 
     std::unique_lock<std::mutex> lock_bucket(std::size_t bucket) {
@@ -222,6 +246,7 @@ struct SearchWorker {
     QSearchSeeStatistics qsearch_see;
     ProbCutStatistics probcut;
     CacheStatistics cache;
+    MoveHintStatistics move_hints;
     int completed_depth = 0;
 
     // Propagate by value through every descendant: neither a fictitious pass
@@ -412,6 +437,60 @@ struct SearchWorker {
             ++cache.replacements;
         *victim = {key, move, static_cast<std::int16_t>(score_to_table(score, ply)),
                    static_cast<std::uint8_t>(depth), bound, shared.generation};
+    }
+
+    // Only positive-depth alphabeta calls use this gate. Quiescence has no hint
+    // lookup/store path; a restricted root's descendants remain unrestricted.
+    bool move_hints_allowed(int ply, Mode mode) const {
+        return limits.tt_move_hints && !shared.move_hints.empty() && mode == Mode::ordinary
+            && (ply != 0 || limits.searchmoves.empty());
+    }
+
+    /** Raw hint lookup; callers must first enforce the main-search mode/root
+     * guard. Copy under the existing stripe lock; no entry reference escapes.
+     */
+    std::optional<Move> probe_move_hint(std::uint64_t key) {
+        if (!limits.tt_move_hints || shared.move_hints.empty()) return std::nullopt;
+        assert(shared.move_hints.size() == shared.table.size());
+        if (limits.diagnostics) ++move_hints.probes;
+        const auto bucket_index = static_cast<std::size_t>(key) & (shared.table.size() - 1);
+        const auto guard = shared.lock_bucket(bucket_index);
+        const auto& entry = shared.move_hints[bucket_index];
+        if (entry.key != key || !entry.move.valid()) return std::nullopt;
+        if (limits.diagnostics) ++move_hints.hits;
+        return entry.move;
+    }
+
+    /** A context-qualified legal TT move always wins. The fallback only changes
+     * ordering of an already legal list; retain contextual_tt separately for
+     * score handling and LMR eligibility even when this returns a different move.
+     * Move equality includes flags and promotion, not just the two coordinates.
+     */
+    Move ordering_move(std::uint64_t key, const std::vector<Move>& legal,
+                       Move contextual_tt, int ply, Mode mode) {
+        if (!move_hints_allowed(ply, mode)) return contextual_tt;
+        if (std::find(legal.begin(), legal.end(), contextual_tt) != legal.end())
+            return contextual_tt;
+        if (const auto hint = probe_move_hint(key))
+            if (std::find(legal.begin(), legal.end(), *hint) != legal.end()) {
+                if (limits.diagnostics) ++move_hints.legal_matches;
+                return *hint;
+            }
+        return contextual_tt;
+    }
+
+    /** The caller supplies the legal best move of a completed ordinary node.
+     * Never store from an interrupted, restricted-root or speculative result.
+     * Last-completed direct replacement is deliberately independent of score
+     * depth, age and bound replacement, with a separate non-nested lock scope.
+     */
+    void store_move_hint(std::uint64_t key, Move move, int ply, Mode mode) {
+        if (!move_hints_allowed(ply, mode) || !move.valid()) return;
+        assert(shared.move_hints.size() == shared.table.size());
+        const auto bucket_index = static_cast<std::size_t>(key) & (shared.table.size() - 1);
+        const auto guard = shared.lock_bucket(bucket_index);
+        shared.move_hints[bucket_index] = {key, move};
+        if (limits.diagnostics) ++move_hints.stores;
     }
 
     int ordering_score(const Position& position, Move move, Move tt_move, int ply,
@@ -780,7 +859,8 @@ struct SearchWorker {
         }
         // Only an exact legal-list match receives a rank. Stale suggestions
         // are never inserted, and quiescence retains its original ordering.
-        order(position, moves, tt_move, ply, reply);
+        const auto move_hint = ordering_move(position.key(), moves, tt_move, ply, mode);
+        order(position, moves, move_hint, ply, reply);
 
         // A tactical reduced search is only a prediction of a full-depth
         // fail-high. Keep each subtree isolated from ordinary TT bounds,
@@ -949,8 +1029,10 @@ struct SearchWorker {
             : best_score > original_alpha ? Bound::exact : Bound::upper;
         // A restricted root proves bounds only over its requested subset. Never
         // publish those bounds for a later unrestricted search of this position.
-        if (mode == Mode::ordinary && (ply != 0 || limits.searchmoves.empty()))
+        if (mode == Mode::ordinary && (ply != 0 || limits.searchmoves.empty())) {
             save(key, best_move, best_score, depth, ply, bound);
+            store_move_hint(position.key(), best_move, ply, mode);
+        }
         return best_score;
     }
 
@@ -993,12 +1075,16 @@ struct SearchWorker {
         probcut = {};
         probcut.enabled = limits.probcut;
         cache = {};
+        move_hints = {};
+        move_hints.enabled = limits.tt_move_hints && !shared.move_hints.empty();
         if (limits.diagnostics) {
             cache.entry_bytes = sizeof(Entry);
             cache.bucket_bytes = sizeof(Bucket);
             cache.buckets = shared.table.size();
             cache.capacity = shared.table.size() * std::size_t{4};
             cache.allocated_bytes = shared.table.capacity() * sizeof(Bucket);
+            move_hints.slots = shared.move_hints.size();
+            move_hints.allocated_bytes = shared.move_hints.capacity() * sizeof(MoveHintEntry);
         }
         evaluator.reset();
         for (auto& side : history_score)
@@ -1048,6 +1134,7 @@ struct SearchWorker {
                 diagnostics.target_ms = target_ms;
                 diagnostics.predicted_next_ms = forecast.predicted_next_ms();
                 diagnostics.cache = cache;
+                diagnostics.move_hints = move_hints;
             }
             return std::move(result);
         };
@@ -1160,6 +1247,7 @@ struct Search::Impl {
     bool previous_deep_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
     bool previous_countermove = false;
+    bool previous_tt_move_hints = false;
     bool previous_nullmove = false;
     bool previous_reverse_futility = false;
     bool previous_qsearch_see = false;
@@ -1171,6 +1259,7 @@ struct Search::Impl {
 
     void clear() {
         std::fill(shared.table.begin(), shared.table.end(), Bucket{});
+        std::fill(shared.move_hints.begin(), shared.move_hints.end(), MoveHintEntry{});
         shared.generation = 0;
         for (auto& worker : workers) worker->clear();
         cache_policy_valid = false;
@@ -1197,12 +1286,16 @@ struct Search::Impl {
         request.received_at = std::min(request.received_at.value_or(entered_at), entered_at);
         request.syzygy_probe_limit = std::clamp(request.syzygy_probe_limit, 0, 7);
         request.syzygy_probe_depth = std::clamp(request.syzygy_probe_depth, 1, Search::max_ply);
+        // Finish optional allocation before mutating shared policy or clearing
+        // any current cache. Failure propagates with the previous state intact.
+        shared.set_move_hints(request.tt_move_hints);
         shared.tablebase_limit = std::min(request.syzygy_probe_limit,
                                          int(shared.tablebases.largest()));
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
             || request.deep_quiet_reductions != previous_deep_lmr
             || request.capture_ordering != previous_ordering
             || request.countermove_ordering != previous_countermove
+            || request.tt_move_hints != previous_tt_move_hints
             || request.null_move_pruning != previous_nullmove
             || request.reverse_futility_pruning != previous_reverse_futility
             || request.qsearch_see_pruning != previous_qsearch_see
@@ -1213,6 +1306,7 @@ struct Search::Impl {
         previous_deep_lmr = request.deep_quiet_reductions;
         previous_ordering = request.capture_ordering;
         previous_countermove = request.countermove_ordering;
+        previous_tt_move_hints = request.tt_move_hints;
         previous_nullmove = request.null_move_pruning;
         previous_reverse_futility = request.reverse_futility_pruning;
         previous_qsearch_see = request.qsearch_see_pruning;
@@ -1358,6 +1452,11 @@ struct Search::Impl {
                 cache.cutoffs += worker.cache.cutoffs;
                 cache.stores += worker.cache.stores;
                 cache.replacements += worker.cache.replacements;
+                auto& hints = result.diagnostics->move_hints;
+                hints.probes += worker.move_hints.probes;
+                hints.hits += worker.move_hints.hits;
+                hints.legal_matches += worker.move_hints.legal_matches;
+                hints.stores += worker.move_hints.stores;
             }
         }
         const auto started = std::chrono::duration_cast<std::chrono::nanoseconds>(

@@ -369,6 +369,32 @@ record with probe attempts, cutoffs and rejected reduced searches, summed across
 joined workers. Use `make test-probcut-search test-probcut-uci` for correctness
 checks and `make test-profile-probcut` for engine-free profiler checks.
 
+`TT Move Hints` defaults to `false`. Enable the experimental move-ordering cache
+with `setoption name TT Move Hints value true`. It can reuse a legal move from the
+same board position even when repetition history or the halfmove counter differs;
+scores still require the original full draw context. It never substitutes a hint
+for a searched score. The next search applies this option, clears reusable search
+state after a policy change, and allocates or releases hint storage.
+At `Hash=64`, enabled hints add 8 MiB to the existing 32 MiB score table, within
+the configured budget; disabling releases the hint allocation. `hashfull` still
+reports score-entry occupancy only. With `Search Diagnostics=true`, enabled hints
+add a `move-hints v1` record with allocation, probes, full-key hits, legal matches
+and stores across all workers. Leave the option off for the accepted baseline;
+playing-strength qualification is separate from correctness checks.
+
+```text
+setoption name TT Move Hints value true
+setoption name Search Diagnostics value true
+isready
+position startpos
+go depth 6
+```
+
+Wait for `readyok` before the position/search commands. Use
+`make test-tt-move-hints-search test-tt-move-hints` for cache, search and UCI checks;
+`make test-search` includes the direct cache/search checks. Optional Python test
+dependencies are prepared automatically.
+
 `Countermove Ordering` (default `false`) is a separate experimental ordering
 option. It remembers successful quiet replies to the preceding move and tries
 them before ordinary quiet-history moves, without reducing depth or pruning.
@@ -438,7 +464,8 @@ development positions, with fresh and reused caches. It records file identities,
 settings and elapsed times; it fails if deterministic search results differ.
 Use a new output directory each time. Add `--preset see-ordering` to use SEE
 capture ordering in both builds, or `--preset all-on` to enable the existing
-combined search recipe in both. Omitting it uses `--preset default`; presets
+combined search recipe in both (TT Move Hints remains off). Omitting it uses
+`--preset default`; presets
 never change the engine's saved GUI settings. This checks implementation equivalence
 and local speed, not playing strength. `make test-profile-search-baseline`
 checks the comparison tool; `make test-tactical-moves` checks capture/promotion
@@ -450,7 +477,8 @@ former collected-list calculation, including speculative-search isolation.
 `make test-exchange` checks exchange scores and compares attack lookups against
 an independent square-by-square reference.
 
-To inspect how default and all-enabled search settings use one or eight workers:
+To inspect how defaults and the existing eight-option search package use one or
+eight workers (TT Move Hints stays off):
 
 ```sh
 python3 tools/profile_search_package.py \

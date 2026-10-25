@@ -202,6 +202,7 @@ private:
     bool reverse_futility_pruning_ = false;
     bool qsearch_see_pruning_ = false;
     bool probcut_ = false;
+    bool tt_move_hints_ = false;
     int syzygy_probe_limit_ = 7;
     int syzygy_probe_depth_ = 1;
     std::thread worker_;
@@ -284,6 +285,7 @@ private:
         output("option name Reverse Futility Pruning type check default false");
         output("option name QSearch SEE Pruning type check default false");
         output("option name ProbCut type check default false");
+        output("option name TT Move Hints type check default false");
         output("uciok");
     }
 
@@ -410,6 +412,12 @@ private:
             else output("info string error: Reverse Futility Pruning expects true or false");
             return; // Isolate cached bounds when the static pruning policy changes.
         }
+        if (name == "TT Move Hints") {
+            if (value == "true") tt_move_hints_ = true;
+            else if (value == "false") tt_move_hints_ = false;
+            else output("info string error: TT Move Hints expects true or false");
+            return; // Search isolates policy state for UCI and direct API callers.
+        }
         if (name == "ProbCut") {
             if (value == "true") probcut_ = true;
             else if (value == "false") probcut_ = false;
@@ -527,6 +535,15 @@ private:
     void report_diagnostics(const SearchResult& result) {
         if (!result.diagnostics) return;
         const auto& diagnostics = *result.diagnostics;
+        if (diagnostics.move_hints.enabled) {
+            const auto& hints = diagnostics.move_hints;
+            std::ostringstream line;
+            line << "info string move-hints v1 enabled true slots " << hints.slots
+                 << " allocated_bytes " << hints.allocated_bytes
+                 << " probes " << hints.probes << " hits " << hints.hits
+                 << " legal_matches " << hints.legal_matches << " stores " << hints.stores;
+            output(line.str());
+        }
         if (result.probcut.enabled) {
             std::ostringstream line;
             line << "info string probcut v1 enabled true eligible_nodes "
@@ -669,6 +686,7 @@ private:
         limits.reverse_futility_pruning = reverse_futility_pruning_;
         limits.qsearch_see_pruning = qsearch_see_pruning_;
         limits.probcut = probcut_;
+        limits.tt_move_hints = tt_move_hints_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
         limits.syzygy_probe_depth = syzygy_probe_depth_;
         const std::vector<std::string> keywords{"searchmoves", "ponder", "wtime", "btime", "winc", "binc", "movestogo", "depth", "nodes", "mate", "movetime", "infinite"};
