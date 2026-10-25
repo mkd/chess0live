@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a short default/all-on diagnostic with one/eight-thread accounting,
+  saved analysis, automatic dependency setup and resource/time checks. The
+  [diagnostic report](docs/reports/2026-10-25-phase4f4.md) separates worker
+  activity and search work from speed or playing-strength claims.
+
 - Completed the 39-position, eight-thread comparison of default and combined
   search settings. A repeatable loss of one mate report keeps the combined
   package under investigation; playing defaults remain unchanged. Detailed
@@ -84,6 +89,11 @@ release numbers; detailed measurements live in the linked experiment records.
   checks. Ordinary builds and playing settings are unchanged.
 
 ### Playing and analysis
+
+- Replaced SEE's repeated slider ray walks with precomputed bitboard lookups,
+  preserving exchange rules and legal attackers. Independent reference and
+  sanitizer checks passed. Playing defaults remain unchanged; performance
+  qualification is pending a quiet-host comparison.
 
 - Cached each move's ordering score once per sort and reused temporary storage
   within each search worker. Exact ordering and search results are preserved;

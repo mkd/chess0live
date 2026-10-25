@@ -5,7 +5,38 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.3 tactical audit complete; package parked
+## Current checkpoint: Phase 4F.4 diagnosis and SEE implementation
+
+The [bounded diagnostic](reports/2026-10-25-phase4f4.md) completed all 120
+searches on the existing 15 exposed roots. Every eight-thread search used all
+eight workers. Aggregate instrumented throughput scaled about 6.14 times from
+one to eight threads under both default and all-on settings; this screen found
+no package-specific aggregate scaling collapse. All-on evaluated SEE about
+once per 2–3 nodes. Counters identify frequent work, not its CPU cost or the
+cause of the earlier mate-report deficit.
+
+The selected implementation replaces SEE's repeated slider ray walks with
+precomputed bitboard rays and nearest-blocker lookup. Exchange rules, legality,
+move order, search policies and defaults are unchanged. Native and sanitizer
+checks pass, including 145,024 independent attack-mask comparisons. Both default
+and all-on settings also match their parent exactly in 120 fixed-depth searches
+with fresh/reused caches. This is an implementation checkpoint; **its speed benefit is not yet measured**. The owner
+was told LM Studio could resume, so later checks are correctness-only.
+The default search does not use these optional SEE paths; do not promise a
+current-default speed or strength gain from this change.
+
+The next checkpoint is one bounded, uninstrumented parent/candidate comparison
+when the owner has another quiet-host window. Do not require LM Studio to remain
+paused or rerun the completed diagnostic/puzzle audit. Then **Phase 4F.5** returns
+to an isolated search-efficiency candidate on the accepted LMR baseline with a
+fresh comparison protocol. Keep the unstarted 512-game all-on campaign parked;
+no pruning promotion or resolution of its tactical concern is established here.
+
+Broader platform/training/release work remains open. No long campaign or schedule
+was started, and no v0.1 or Elo claim is made. Stable GUI `0.1-dev-4b8b35d`, owner
+batch inputs, README introduction and ordinary build are preserved.
+
+## Previous checkpoint: Phase 4F.3 tactical audit complete; package parked
 
 The [combined-policy audit](reports/2026-10-24-phase4f3.md) completed all 39
 positions / 78 searches at 60 seconds, eight threads and Hash 64. Both roles used
@@ -721,7 +752,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Result-preserving quiescence/ordering improvements; completed combined-policy tactical audit; defaults retained | 4F.4: diagnose combined-package cost and SMP interactions; the 512-game package campaign is parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and bounded worker diagnosis; exact SEE ray lookup; defaults retained | Finish quiet-host SEE performance qualification, then 4F.5 isolated search-efficiency candidate; the 512-game all-on campaign stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

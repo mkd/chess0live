@@ -28,7 +28,65 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.3 completed tactical audit
+## Current checkpoint: Phase 4F.4 diagnosis and SEE implementation
+
+Read the [declared diagnostic protocol](experiments/phase4f4.md) and
+[report](reports/2026-10-25-phase4f4.md). The initial screen used the frozen
+`ccb66a4` engine under both configurations, not the subsequent implementation
+candidate. All 120 searches completed; all eight workers contributed in all
+60 eight-thread searches, with about 6.14x aggregate scaling under both policies.
+This is instrumented exposed-root evidence, not a pure component-cost or strength
+measurement. The Phase 4F.3 mate-report concern remains unresolved and its
+unstarted 512-game campaign remains parked.
+
+`ExchangeBoard::attackers` now uses a constexpr 64-by-8 ray table (4 KiB).
+Intersect a ray with the current occupancy, then select its first blocker with
+`countr_zero` for increasing square numbers or `63 - countl_zero` for decreasing
+numbers. The nonzero guard is mandatory. All colors and piece types block rays;
+only a correctly aligned friendly slider contributes an attacker. Pinned
+pseudo-defenders must remain visible to king-safety checks. Capture selection,
+x-rays, promotion arithmetic, king legality and LVA ties are unchanged.
+
+`make test-exchange` now includes an independent square-walking mask oracle with
+145,024 comparisons in addition to the existing legal-generator score reference.
+The private test includes exchange.cpp directly and links Position only; do not
+also link exchange.o. Its generated dependency file is loaded by Make. Native
+core/selective-search/SMP and focused ASan/UBSan checks passed. Agent builds use
+`build/phase4f4-native/` and `build/phase4f4-asan/`; normal and frozen binaries stay
+untouched.
+
+`tools/profile_search_package.py` automatically prepares its Python dependencies.
+It fixes all 15 exposed roots, two repetitions, default/all-on and one/eight
+workers, serial fresh processes, Hash 64, one second and explicit diagnostics.
+It records raw I/O, PID/exit code, both clocks, all applied options, input hashes,
+branch counters and worker accounting; partial failures remain visible. Never
+compare leader-only iteration deltas directly with aggregate worker totals.
+A 300-second whole-run cap, five-second watchdog, independent 250-ms receipt
+tolerance and resource checks bound this diagnostic. Its 25 synthetic tests do
+not launch engine searches. Input hashes record inspected local sources; they
+do not prove arbitrary supplied-binary provenance.
+
+A separate depth-6 comparison passed all 120 searches / 60 exact parent-candidate
+pairs on the 15 exposed roots: defaults/all-on, one worker, fresh/reused caches.
+Nodes, scores, depths, PVs, best/ponder moves and hash occupancy agree. The
+comparison disables diagnostics and deliberately excludes time/NPS from parity.
+Independent raw replay also passed all 720 iterations / 3,108 legal PV plies,
+500 commands, readiness barriers, both exits and 27 input hashes.
+
+The owner was told LM Studio could resume after the initial screen. **Do not run
+further speed comparisons without a new quiet-host window.** Correctness-only
+checks may continue; their times are not performance evidence. This SEE change
+is provisional for performance: the default search does not use the optional
+SEE paths, and no speed/default/strength gain is claimed. Next finish one bounded
+uninstrumented comparison, then Phase 4F.5 can select an isolated search candidate
+on the accepted LMR baseline. Do not silently restart the parked package match.
+
+Keep evidence under `results/phase4f4-20261025/`, including the exact archived
+pre-candidate Makefile/source snapshot and independent initial-screen audit.
+Preserve owner `tools/batch_positions.py`, the README introduction and stable GUI
+`0.1-dev-4b8b35d`. The owner handles GitHub pushes.
+
+## Previous checkpoint: Phase 4F.3 completed tactical audit
 
 Read the [unchanged protocol](experiments/phase4f3.md) and
 [full report](reports/2026-10-24-phase4f3.md). Preparation was committed as

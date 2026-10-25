@@ -43,6 +43,29 @@ constexpr auto leaper_masks(bool knight) {
 constexpr auto knight_masks = leaper_masks(true);
 constexpr auto king_masks = leaper_masks(false);
 
+struct RayDirection { int file_step, rank_step; };
+constexpr std::array<RayDirection, 8> ray_directions{{
+    {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+    {0, 1}, {1, -1}, {1, 0}, {1, 1},
+}};
+
+/** These rays exclude their target square. Every occupied square blocks a ray
+ * regardless of color or piece type; only the nearest blocker can attack back.
+ * Build the 4 KiB geometry table once, without doing a ray walk during SEE.
+ */
+constexpr auto slider_ray_masks() {
+    std::array<std::array<Bitboard, 8>, 64> masks{};
+    for (int square = 0; square < 64; ++square)
+        for (std::size_t direction = 0; direction < ray_directions.size(); ++direction) {
+            const auto [df, dr] = ray_directions[direction];
+            for (int file = square % 8 + df, rank = square / 8 + dr;
+                 on_board(file, rank); file += df, rank += dr)
+                masks[static_cast<unsigned>(square)][direction] |= square_bit(rank * 8 + file);
+        }
+    return masks;
+}
+constexpr auto slider_rays = slider_ray_masks();
+
 /** An exchange needs neither clocks/castling rights nor a mutable Position.
  * Each legal-capture probe copies only these small bitboards and king squares.
  */
@@ -83,20 +106,19 @@ struct ExchangeBoard {
             if (on_board(target_file + df, pawn_rank))
                 result |= square_bit(pawn_rank * 8 + target_file + df) & own[index(PieceType::pawn)];
 
-        for (int df = -1; df <= 1; ++df)
-            for (int dr = -1; dr <= 1; ++dr) {
-                if (!(df || dr)) continue;
-                const auto sliders = own[index(PieceType::queen)]
-                    | own[index(df && dr ? PieceType::bishop : PieceType::rook)];
-                for (int file = target_file + df, rank = target_rank + dr;
-                     on_board(file, rank); file += df, rank += dr) {
-                    const auto square = square_bit(rank * 8 + file);
-                    if (square & occupied) {
-                        result |= square & sliders;
-                        break;
-                    }
-                }
-            }
+        const auto diagonal = own[index(PieceType::queen)] | own[index(PieceType::bishop)];
+        const auto orthogonal = own[index(PieceType::queen)] | own[index(PieceType::rook)];
+        const auto& rays = slider_rays[static_cast<unsigned>(target)];
+        for (std::size_t direction = 0; direction < ray_directions.size(); ++direction) {
+            const auto blockers = rays[direction] & occupied;
+            if (!blockers) continue;
+            const auto [df, dr] = ray_directions[direction];
+            // Square numbers are monotonic along each ray. The nonzero guard
+            // keeps both bit scans and the resulting square_bit within bounds.
+            const int nearest = df + 8 * dr > 0 ? std::countr_zero(blockers)
+                                               : 63 - std::countl_zero(blockers);
+            result |= square_bit(nearest) & (df && dr ? diagonal : orthogonal);
+        }
         return result;
     }
 

@@ -1,5 +1,42 @@
 # Validation and experiment protocol
 
+## Phase 4F.4 diagnostic and SEE checks — October 25, 2026
+
+The [report](reports/2026-10-25-phase4f4.md) separates the completed baseline
+diagnostic from the subsequent SEE implementation. The screen passed all 120
+searches, 989 completed iterations and 5,776 legal PV plies. Independent raw
+replay verified all configurations, counters, worker accounting, applied options,
+120 distinct recorded PIDs/zero exits, timing and 37 input identities. The
+pre-candidate Makefile changed after the run; archived bytes match both original
+pins and the independent audit records this explicitly. There were no detected
+clock gaps, illegal outputs or operational failures. All 60 eight-thread searches
+had all eight workers active. These are instrumented diagnostics, not Elo or
+causal per-function cost measurements.
+
+The new diagnostic tool passed 25 synthetic checks. The candidate passed the
+native core/search suite, optional ProbCut, quiescence SEE, null-move and deep
+quiet checks plus 43 bounded SMP lifecycle cases. Native and ASan/UBSan exchange
+checks passed 4,117 generated score comparisons and 145,024 independent attack
+mask comparisons. Search, 2,264 ordering comparisons, quiescence SEE and ProbCut
+also passed under ASan/UBSan. No architecture-specific intrinsic was added;
+foreign execution has not been requalified in this phase.
+
+A separate uninstrumented depth-6 comparison passed 120 searches / 60 exact
+parent-candidate pairs under defaults/all-on, one worker and fresh/reused caches.
+Independent replay verified 720 completed iterations, 3,108 legal PV plies,
+240 bestmove/ponder plies, all 500 recorded commands, 180 readiness barriers,
+27 unchanged input identities and both zero exit codes. No bound score,
+protocol error, unexpected metadata or tablebase hit was present. Nodes,
+scores, depths, PVs, moves and hash occupancy match; time/NPS are excluded.
+This establishes bounded single-worker equivalence, not exact SMP behavior.
+
+The owner was told LM Studio could resume after the initial diagnostic. Subsequent
+checks assume inference may be active and are correctness-only; no candidate speed result is available yet. The
+normal playing defaults stay unchanged, and the default policy does not use the
+optional SEE paths. The earlier all-on tactical concern and parked 512-game
+campaign are unchanged. No new full puzzle run, match, schedule or strength
+promotion occurred. Evidence is in `results/phase4f4-20261025/`.
+
 ## Phase 4F.3 combined-policy tactical audit — October 24, 2026
 
 The [protocol](experiments/phase4f3.md) freezes the same current executable and

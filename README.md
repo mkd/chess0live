@@ -442,9 +442,30 @@ checks the comparison tool; `make test-tactical-moves` checks capture/promotion
 generation and terminal-position detection against the full legal move list.
 `make test-ordering-search` checks exact move priorities, helper-thread ties,
 SEE accounting and scratch-storage reuse without loading a network.
+`make test-exchange` checks exchange scores and compares attack lookups against
+an independent square-by-square reference.
 
-Pass `--positions /path/to/positions.txt` to benchmark your own positions/openings,
-one `startpos moves ...` or `fen ...` entry per line. Comments start with `#`.
+To inspect how default and all-enabled search settings use one or eight workers:
+
+```sh
+python3 tools/profile_search_package.py \
+  --engine build/macos-arm64-generic-release/chess0live \
+  --output results/search-package-01 --quiet-host
+```
+
+This short diagnostic uses all 15 development positions, saves raw analysis and
+worker/branch counters, and validates legal moves and accounting. Dependencies
+prepare automatically. The machine must have enough capacity within its resource
+budget for eight workers; searches run one at a time. Keep the power mode and
+power source consistent, and pause heavy CPU/GPU workloads, including local model
+inference. On Apple silicon, GPU activity shares memory bandwidth with the CPU.
+The enabled counters and differing search trees make this a diagnostic, not an
+Elo test or a pure speed benchmark. `make test-profile-search-package` checks
+the tool without starting real engine searches.
+
+Pass `--positions /path/to/positions.txt` to `tools/bench.py` to benchmark your own
+positions/openings, one `startpos moves ...` or `fen ...` entry per line. Comments
+start with `#`.
 `python3 tools/verify_nnue.py` builds a separate pinned Stockfish test reference
 and compares scalar/native features, accumulators, layers, and outputs. It
 downloads upstream source into the ignored build directory; it is not part of

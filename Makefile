@@ -231,12 +231,15 @@ $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 $(BUILD)/tactical-moves-test$(EXE): tests/tactical_moves_test.cpp $(BUILD)/position.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
-.PHONY: test-tactical-moves test-profile-search-baseline
+.PHONY: test-tactical-moves test-profile-search-baseline test-profile-search-package
 test-tactical-moves: $(BUILD)/tactical-moves-test$(EXE)
 	"$(BUILD)/tactical-moves-test$(EXE)"
 
 test-profile-search-baseline:
 	$(TOOL_PYTHON) tests/profile_search_baseline_test.py
+
+test-profile-search-package:
+	$(TOOL_PYTHON) tests/profile_search_package_test.py
 
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
@@ -263,6 +266,11 @@ test-ordering-search: $(BUILD)/ordering-search-test$(EXE)
 
 $(BUILD)/exchange-test$(EXE): tests/exchange_test.cpp include/chess0live/exchange.hpp $(BUILD)/position.o $(BUILD)/exchange.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/exchange.o $(LDFLAGS) $(LDLIBS) -o "$@"
+
+# Includes exchange.cpp to compare private attack masks with an independent
+# ray-walking reference. Do not also link exchange.o into this executable.
+$(BUILD)/exchange-attacks-test$(EXE): tests/exchange_attacks_test.cpp src/exchange.cpp $(BUILD)/position.o
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
 $(BUILD)/time-management-test$(EXE): tests/time_management_test.cpp include/chess0live/time_management.hpp $(BUILD)/toolchain.ok
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
@@ -388,8 +396,9 @@ test-time: $(BUILD)/time-management-test$(EXE)
 test-search-policy: $(BUILD)/search-policy-test$(EXE)
 	"$(BUILD)/search-policy-test$(EXE)"
 
-test-exchange: $(BUILD)/exchange-test$(EXE)
+test-exchange: $(BUILD)/exchange-test$(EXE) $(BUILD)/exchange-attacks-test$(EXE)
 	"$(BUILD)/exchange-test$(EXE)"
+	"$(BUILD)/exchange-attacks-test$(EXE)"
 
 test: test-core test-nnue test-exchange test-search test-search-policy test-time
 
@@ -535,6 +544,7 @@ help:
 	@echo 'make test-tactical-moves Check tactical generation and legal mobility witnesses'
 	@echo 'make test-ordering-search Check move priorities, SEE counters and worker tie order'
 	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
+	@echo 'make test-profile-search-package Check the bounded search-package diagnostic tool'
 	@echo 'make training-plan    Show local training requirements without setup'
 	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
 	@echo 'make test-training    Check training setup, recipes and provenance tooling'
@@ -579,7 +589,8 @@ help:
 clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
--include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d
+-include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d \
+         $(BUILD)/exchange-attacks-test.d
 
 # Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
 .PHONY: tooling test-tooling
