@@ -55,12 +55,24 @@ transcripts and strict post-search readiness barriers. All 28 synthetic checks
 pass. Do not apply this exact-result comparator to a changed search policy and
 interpret a signature mismatch as merely slower search.
 
-Builds: `build/phase4f5-native/` and `build/phase4f5-asan/`. Evidence and the
-prepared bounded three-comparison window are under `results/phase4f5-20261025/`.
-The owner must confirm a new LM Studio pause before timing; no pause is needed
-for other work. The earlier SEE source/binary and this new candidate are compared
-separately, so the effects are not conflated. The combined cap is 300 seconds;
-no automatic repeat, long campaign or schedule is authorized.
+Implementation `af2abdb`; builds: `build/phase4f5-native/` and
+`build/phase4f5-asan/`. The three-comparison window completed October 25,
+12:56:25–12:57:30 Helsinki in 65.02 seconds, with owner-confirmed inference pause,
+Automatic mode and AC power. Independent audit passed all 360 searches / 180
+exact pairs, 2,160 iterations, 9,320 legal PV plies and 720 best/ponder plies;
+41 prepared assets, commands/barriers, clocks and six zero-exit processes passed.
+Cold/warm aggregate speed ratios: SEE ordering 1.0151/1.0080, SEE all-on
+1.0128/1.0069, history/default 1.0052/1.0176. Keep individual regressions and
+short-duration limits in the linked report; these are not significance or Elo.
+
+Evidence is under `results/phase4f5-20261025/`: `quiet-window.json`, the three
+`speed-*/report.json` records and `quiet-window-independent-audit.json`.
+The protocol and completed raw evidence remain frozen. Phase 4F.5 is complete.
+The owner was told inference could resume immediately. They subsequently offered
+a longer quiet window; another microbenchmark was not selected because the next
+search candidate has higher priority. No continuing pause, repeat, long campaign
+or schedule is assumed. Arrange a new concrete comparison before requesting
+another quiet window.
 
 Next: Phase 4F.6 may investigate a separate position-key TT move-hint cache inside
 the current Hash reservation, leaving full context keys and score-entry capacity
@@ -114,13 +126,12 @@ comparison disables diagnostics and deliberately excludes time/NPS from parity.
 Independent raw replay also passed all 720 iterations / 3,108 legal PV plies,
 500 commands, readiness barriers, both exits and 27 input hashes.
 
-The owner was told LM Studio could resume after the initial screen. **Do not run
-further speed comparisons without a new quiet-host window.** Correctness-only
-checks may continue; their times are not performance evidence. This SEE change
-is provisional for performance: the default search does not use the optional
-SEE paths, and no speed/default/strength gain is claimed. Next finish one bounded
-uninstrumented comparison, then Phase 4F.5 can select an isolated search candidate
-on the accepted LMR baseline. Do not silently restart the parked package match.
+At this earlier checkpoint, SEE timing was pending and LM Studio could resume.
+The subsequent owner-confirmed Phase 4F.5 window above completed the bounded
+uninstrumented comparison under SEE-ordering and all-on presets. It observes
+small local timing differences with individual regressions, not a default-policy
+or strength gain. Do not rerun the completed diagnostic or silently restart the
+parked package match; its tactical concern remains unresolved.
 
 Keep evidence under `results/phase4f4-20261025/`, including the exact archived
 pre-candidate Makefile/source snapshot and independent initial-screen audit.

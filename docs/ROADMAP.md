@@ -14,12 +14,19 @@ The 1,408-case reference test, native/sanitizer checks and 120 exact parent vers
 candidate searches pass. Defaults and all-on each match their own parent; no
 pruning rule or strength assumption changed.
 
-The next step in this phase is one owner-coordinated quiet window, up to five
-minutes: finish the earlier SEE implementation timing under two explicit presets,
-then compare this phase's default search. Three complete exposed-root comparisons
-are prepared under a fixed combined cap. LM Studio can run during other work;
-its inference must be explicitly paused only for the agreed measurement window.
-No long puzzle run or match is started by this checkpoint.
+The owner-confirmed quiet window completed in 65.02 seconds, with all 360 searches /
+180 parent-candidate pairs exact and independently audited. Cold/warm aggregate
+speed ratios were 1.0151/1.0080 for SEE ordering, 1.0128/1.0069 for SEE under
+all-on, and 1.0052/1.0176 for default quiet-history bookkeeping. These small,
+short-run observations include slower individual positions and establish neither
+statistical significance nor playing strength. Automatic mode and AC power stayed
+unchanged. The owner was told inference could resume immediately afterward.
+
+**Phase 4F.5's finite checkpoint is complete**, implementation `af2abdb`.
+The owner's offer of a longer quiet window does not require another benchmark:
+prioritize the next search candidate over repeated microbenchmarks. LM Studio can
+remain active during development/correctness work. Arrange a concrete comparison
+and a new quiet window when that candidate is ready; no long campaign is active.
 
 Next is **Phase 4F.6: history-independent TT move hints** as an opt-in search
 candidate. Keep draw/history-sensitive score validity and score-table capacity
@@ -43,17 +50,12 @@ precomputed bitboard rays and nearest-blocker lookup. Exchange rules, legality,
 move order, search policies and defaults are unchanged. Native and sanitizer
 checks pass, including 145,024 independent attack-mask comparisons. Both default
 and all-on settings also match their parent exactly in 120 fixed-depth searches
-with fresh/reused caches. This is an implementation checkpoint; **its speed benefit is not yet measured**. The owner
-was told LM Studio could resume, so later checks are correctness-only.
-The default search does not use these optional SEE paths; do not promise a
-current-default speed or strength gain from this change.
-
-The next checkpoint is one bounded, uninstrumented parent/candidate comparison
-when the owner has another quiet-host window. Do not require LM Studio to remain
-paused or rerun the completed diagnostic/puzzle audit. Then **Phase 4F.5** returns
-to an isolated search-efficiency candidate on the accepted LMR baseline with a
-fresh comparison protocol. Keep the unstarted 512-game all-on campaign parked;
-no pruning promotion or resolution of its tactical concern is established here.
+with fresh/reused caches. The subsequent Phase 4F.5 window completed the bounded,
+uninstrumented SEE timing comparison under two explicit presets; its small local
+ratios and regressions are recorded above. The default search does not use these
+optional SEE paths, so this is not a current-default or strength gain.
+Keep the unstarted 512-game all-on campaign parked: no pruning promotion or
+resolution of its tactical concern is established by exact implementation changes.
 
 Broader platform/training/release work remains open. No long campaign or schedule
 was started, and no v0.1 or Elo claim is made. Stable GUI `0.1-dev-4b8b35d`, owner
@@ -775,7 +777,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations | Finish the prepared timing window, then 4F.6 opt-in TT move hints with unchanged score validity/capacity; the all-on campaign stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations | 4F.5 finite correctness/timing checkpoint complete; next 4F.6 opt-in TT move hints with unchanged score validity/capacity; the all-on campaign stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

@@ -16,11 +16,38 @@ It replayed 720 iterations / 3,108 PV plies and 240 best/ponder plies, checked a
 Time/NPS are excluded; LM Studio may have been active. This is bounded native
 single-worker equivalence, not timing, strength or exact SMP scheduling proof.
 
-The predeclared three-comparison timing window is prepared but has not started.
-Only a new explicit quiet-host confirmation permits those speed observations.
-No default change, full puzzle rerun, match, foreign-runtime requalification or
-release follows from these correctness checks. Evidence is retained under
-`results/phase4f5-20261025/`.
+The separately authorized quiet window completed in 65.022700 seconds after the
+owner paused LM Studio inference; AC power and Automatic mode were recorded.
+The owner was told inference could resume immediately afterward. Three
+comparisons used all 15 exposed roots, depth 6, one worker, Hash 64, two
+repetitions, alternating build order and fresh/reused caches, with diagnostics,
+ponder and tablebases off. The combined cap was 300 seconds and each search had
+a ten-second watchdog. The candidate source is `af2abdb`; executable identities
+and exact settings are retained in the [report](reports/2026-10-25-phase4f5.md).
+
+Independent replay passed 360 searches / 180 exact pairs, 2,160 iterations,
+9,320 legal PV plies and 720 best/ponder plies. Raw nodes, scores, depths, PVs,
+moves and hash occupancy matched. All command sequences, 726 readiness barriers,
+six recorded process identities/zero exits and full consumed transcripts passed.
+The 41 prepared identities and 35 before/after/current input identities per
+profile matched. Maximum per-search wall/monotonic discrepancy was 10.417
+microseconds; receipts ranged from 1.054 ms to 1.27334 seconds overall.
+
+Aggregate baseline/candidate receipt-time ratios (fresh/reused) were
+**1.01506/1.00803** for the SEE implementation with SEE ordering,
+**1.01278/1.00687** with all-on, and **1.00518/1.01763** for quiet-history
+bookkeeping with defaults. The respective slower pooled root/cache counts were
+6/30, 11/30 and 6/30; every slower pair remains in the audit. Examples slower in
+both repetitions include SEE ordering's warm `gamephases-mg-05` (0.95519),
+all-on's cold/warm `opening-01` (0.99087/0.98322), and the history change's cold
+`opening-02` (0.99060). These small, short-sample differences do not establish
+statistical significance, universal speed gains or playing strength. Receipt
+timing and owner/harness observations are not continuous host telemetry.
+
+The original correctness-only evidence remains separate and unchanged. No
+default change, full puzzle rerun, match, foreign-runtime requalification or
+release follows. The all-on tactical concern and parked 512-game campaign remain
+unchanged. Evidence is retained under `results/phase4f5-20261025/`.
 
 ## Phase 4F.4 diagnostic and SEE checks — October 25, 2026
 
@@ -52,12 +79,14 @@ protocol error, unexpected metadata or tablebase hit was present. Nodes,
 scores, depths, PVs, moves and hash occupancy match; time/NPS are excluded.
 This establishes bounded single-worker equivalence, not exact SMP behavior.
 
-The owner was told LM Studio could resume after the initial diagnostic. Subsequent
-checks assume inference may be active and are correctness-only; no candidate speed result is available yet. The
-normal playing defaults stay unchanged, and the default policy does not use the
-optional SEE paths. The earlier all-on tactical concern and parked 512-game
-campaign are unchanged. No new full puzzle run, match, schedule or strength
-promotion occurred. Evidence is in `results/phase4f4-20261025/`.
+The owner was told LM Studio could resume after the initial diagnostic, so this
+phase's subsequent checks remain correctness-only. The previously pending SEE
+timing checkpoint was later completed in the separately authorized Phase 4F.5
+window above; its limited observations do not retroactively qualify these
+earlier durations. Normal defaults stay unchanged and do not use the optional
+SEE paths. The all-on tactical concern and parked 512-game campaign are
+unchanged. No new full puzzle run, match, schedule or strength promotion occurred.
+This phase's evidence remains in `results/phase4f4-20261025/`.
 
 ## Phase 4F.3 combined-policy tactical audit — October 24, 2026
 

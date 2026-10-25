@@ -97,12 +97,14 @@ release numbers; detailed measurements live in the linked experiment records.
 - Removed a temporary quiet-move history list from each regular search node.
   Cutoff learning uses the already searched move-list prefix in the same order;
   bounded comparisons preserve search results. Defaults and pruning rules are
-  unchanged. Speed qualification is separate from correctness checks.
+  unchanged. A short local comparison observed about 0.5–1.8% higher aggregate
+  throughput, with some slower positions; this is not a strength result.
 
 - Replaced SEE's repeated slider ray walks with precomputed bitboard lookups,
   preserving exchange rules and legal attackers. Independent reference and
-  sanitizer checks passed. Playing defaults remain unchanged; performance
-  qualification is pending a quiet-host comparison.
+  sanitizer checks passed. Short local comparisons observed about 0.7–1.5%
+  higher aggregate throughput when SEE was enabled, with some slower positions.
+  Playing defaults remain unchanged. See the bounded [comparison report](docs/reports/2026-10-25-phase4f5.md).
 
 - Cached each move's ordering score once per sort and reused temporary storage
   within each search worker. Exact ordering and search results are preserved;
