@@ -28,67 +28,69 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.7 tactical comparison prepared
+## Current checkpoint: Phase 4F.7 tactical comparison complete
 
-Read the [frozen protocol](experiments/phase4f7.md) and
-[report](reports/2026-10-25-phase4f7.md). Engine source is still `a1b2331`;
-`build/experiments/phase4f7/chess0live` is a byte copy of the prior native binary,
-SHA-256 `6dd685119d80145e2c6956c8d27c20a2d67e006bdf6556ceef5b779585baff9f`.
-Only TT Move Hints differs between roles. Both use eight threads, Hash 64,
-LMR=true, classic timing, other experiments/diagnostics/ponder/Syzygy off.
-`tests/data/phase4f7-pins.json` freezes 39 other asset identities; the run pins
-that file too, for 40 total. Do not edit pinned helpers/tests/protocol or refreeze
-them silently after readiness/smoke. Docs outside the manifest may be updated.
+Read the [full report](reports/2026-10-26-phase4f7-results.md),
+[frozen protocol](experiments/phase4f7.md) and
+[preparation record](reports/2026-10-25-phase4f7.md). The owner authorized the
+October 26 run after pausing LM Studio and setting Automatic mode. AC and
+Automatic were confirmed; the pre-23:00 start is covered by the current reply.
+The run completed 22:13:40–23:31:55 Helsinki and the owner was told inference
+could resume. No process, match or schedule remains running from this phase.
 
-`tools/check_phase4f7_puzzles.py` has search-free check, all-39 one-second smoke
-and full sixty-second modes. A fresh serial process per role/position records
-raw commands/output, PID, barriers, reader drain, EOF and zero exit; complete
-status is set only after clean teardown. `tools/audit_phase4f7_puzzles.py`
-independently reconstructs raw evidence without runner validators/summaries.
-Historical tools remain untouched; see the report for exact commands.
+Both roles used the same frozen `a1b2331` native binary, SHA-256
+`6dd685119d80145e2c6956c8d27c20a2d67e006bdf6556ceef5b779585baff9f`.
+Only TT Move Hints differs. Both requested eight workers, Hash 64, LMR=true,
+classic timing and 20-ms overhead; other experiments/diagnostics/ponder/Syzygy
+off. All 40 prepared assets and 25 build-source provenance files match.
+Do not edit/refreeze historical inputs or replace evidence silently.
 
-`make test-phase4f7` passed 33 runner and 21 auditor synthetic tests. Readiness
-passed both roles. The 78-search smoke passed independent replay of 431
-iterations, 2,375 legal PV plies, 156 best/ponder plies, 78 clean exits, 234
-barriers and 313 resource observations. All 39 best moves agreed; no mate was
-reported in one second. Scores/depths differed at positions 1, 15 and 35.
-LM Studio was open and quiet_host=false; timing is operational evidence only.
+Independent audit passed 78 searches/clean sessions, 822 iterations, 7,566 legal
+PV plies, 156 best/ponder plies and 2,565 resource observations. All 39 best
+moves agree. Both report M7 at positions 1/2 and M9 at 15; all three supplied
+distances match and the final PVs end legally in mate. All score/depth differences
+(2/10/25/27/29/38) and final-PV differences (1/10/25/27/29/38) remain in the report
+and raw evidence. No serious tactical blocker was observed, but this exposed
+SMP sample does not establish Elo, forced-mate proof or universal nonregression.
+TT Move Hints remains off pending separate strength/default review.
 
-Evidence: `results/phase4f7-20261025/{readiness,smoke}/`, their reports/raw logs/
-independent audits, initial/prepared identities and tool-test log. No full run,
-match or schedule has started. Phase 4F.7 remains pending its full tactical gate.
-After this preparation is committed, request a fresh agreed quiet window and
-any daytime exception for 39 × 2 × 60 seconds (~78 minutes plus setup).
-Keep AC/Automatic unchanged, pause competing inference, use the same pins and
-fresh output path, and audit before interpreting results. Early permission from
-older phases does not apply. Do not treat flags as proof of approval. Record
-the actual reply/run state before starting. A full pass does not promote hints;
-prepare a fresh strength protocol only after reviewing adverse tactical cases.
-Preserve the parked all-on campaign and stable GUI `0.1-dev-4b8b35d`.
+Evidence: `results/phase4f7-20261026/` contains launch-context, power snapshots,
+full raw/report/independent audit, readable export and final preservation record.
+The standalone audit binds report SHA-256
+`0162c22ef12c5c5016e28224f065f0ddbe0c75311e4980021523a442e34bad47`.
+All 740 files protected at launch and the README introduction remained unchanged.
+The ordinary release binary had already changed since the prior tooling turn;
+it now matches the frozen candidate. This pre-existing difference is recorded,
+not attributed to a new build. Stable GUI `0.1-dev-4b8b35d` is preserved.
 
-### Parallel work while the quiet window is pending
+### Next checkpoint: fresh strength-campaign preparation
 
-On October 25 the owner asked to let LM Studio finish its current task and said
-they would confirm when inference is paused. The full comparison has not been
-authorized to start yet. Continue modest independent work, but do not launch
-the full run or change its 40 pinned assets, including Makefile and engine code.
-No timer or automatic follow-up is scheduled. The requested quiet/timing window
-remains a prerequisite; respond to the owner's next confirmation in context.
+Prepare new experiment-specific launcher, independent auditor, opening generator
+and tests around the unchanged `tools/match.py` and `tools/qualification.py`.
+Use the prior paired-campaign structure without modifying or running the parked
+combined-policy campaign. A bounded proposal is 512 games / 256 reversed-color
+pairs, 60+0.6, Threads=1, Hash=64, four shards/four active workers and at least
+6 GiB reserved across eight resident engines. Only TT Move Hints differs; retain
+current defaults in both roles. Generate fresh seeds/root provenance/exclusions,
+including now-exposed puzzle and historical match roots. Declare decisions and
+clock-health gates before play; a small gain may remain inconclusive.
 
-A separate `tools/puzzle_report.py` frontend exports saved Phase 4F.7 evidence
-through its existing independent auditor. It only reads completed reports and
-raw logs, and writes a new directory with Markdown, CSV and a fresh certificate.
-It must never run an engine or reinterpret smoke results as the full audit.
-The new test file and practical docs are outside the frozen input map; Makefile
-and old runners remain unchanged. See [tool use](TOOLS.md#read-saved-puzzle-comparisons).
+This design is not yet prepared or validated. Test current option handling,
+synthetic failures and short readiness, freeze and commit the new preparation,
+then request a concrete separate run window. The completed puzzle permission
+does not authorize the match. Preserve the earlier higher-concurrency clock
+failures as unresolved; a single-thread blitz result will not qualify every SMP
+configuration. Do not claim this phase or release acceptance fully complete.
 
-All 24 synthetic exporter checks passed. Real readiness/smoke exports passed
-fresh independent audits, with zero/78 CSV rows and all 39 smoke positions,
-including all three score/depth differences. Logs and examples are under
-`results/puzzle-report-20261025/`; all 728 protected files and the README intro
-matched the initial snapshot. This lightweight tooling checkpoint is complete;
-it adds no searches, engine changes or strength evidence. The full comparison
-still waits for the owner's quiet-window/timing confirmation.
+### Saved-report tooling
+
+`tools/puzzle_report.py` reads completed Phase 4F.7 reports through the independent
+auditor and writes a new Markdown/CSV/certificate directory without engine work.
+Its prior 24 synthetic checks and real readiness/smoke exports passed. The full
+export now also passed: all 78 rows match source values and its fresh certificate
+matches the standalone audit. Existing 54 runner/auditor checks are preparation
+evidence. See [tool use](TOOLS.md#read-saved-puzzle-comparisons). Keep the new
+exporter outside historical pinned manifests; Makefile and runners are unchanged.
 
 ## Previous checkpoint: Phase 4F.6 position-key move hints
 

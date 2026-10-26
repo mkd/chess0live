@@ -1,5 +1,33 @@
 # Validation and experiment protocol
 
+## Phase 4F.7 full tactical comparison — October 26, 2026
+
+The [full report](reports/2026-10-26-phase4f7-results.md) records the completed
+quiet-window comparison: all 39 positions, 78 searches, eight requested workers,
+60 seconds per role, one engine at a time. Only TT Move Hints differs. The owner
+confirmed paused inference/Automatic mode and starting now; AC/power snapshots
+were captured at start/midpoint/end. Runtime was 78m15s, ending 23:31:55 Helsinki.
+
+Independent raw replay passed all 40 identities, 78 distinct PIDs/zero exits,
+822 iterations, 7,566 legal PV plies, 156 best/ponder plies, 2,106 commands,
+3,084 consumed lines, 234 barriers and 2,565 resource observations. Receipts
+were 59.980204–59.982928 seconds, maximum monitoring gap 2.080446 seconds and
+clock discrepancy 55.892 ms, within the frozen limits. No operational failure
+invalidated the attempt. Separate manual parsing confirmed all final raw results.
+
+Both roles report three mates (positions 1/2 M7, 15 M9), agree with supplied
+distances and end those final PVs legally in mate. All 39 best moves agree.
+Six score/depth and six final-PV differences are retained in the report/raw logs.
+No observed serious tactical concern blocks preparing a fresh strength campaign;
+no universal nonregression, forced-mate proof, Elo gain or default promotion is
+established. Hints remain off and the combined-policy campaign remains parked.
+
+The full readable export and 78 CSV rows passed source-value/certificate checks.
+All 740 protected files and the README intro remained unchanged. Existing
+54 runner/auditor and 24 exporter tests were not rerun because their code was
+unchanged. Evidence is in `results/phase4f7-20261026/`. No engine rebuild, new
+match, schedule, foreign execution or release acceptance follows.
+
 ## Saved puzzle report exporter — October 25, 2026
 
 While Phase 4F.7 awaits the owner's quiet window, the separate

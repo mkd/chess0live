@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed the audited 39-position, eight-thread TT Move Hints comparison.
+  Both settings found the same three mates and chose the same final moves;
+  hints remain optional pending separate playing-strength testing.
+
 - Added one-command readable puzzle reports and spreadsheet CSV exports from
   completed comparisons. Saved evidence is audited again before export; every
   position and adverse difference is retained, with smoke/full results labeled.

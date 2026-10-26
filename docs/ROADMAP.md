@@ -5,37 +5,41 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.7 tactical preparation — full comparison pending
+## Current checkpoint: Phase 4F.7 tactical comparison passed — strength preparation next
 
-The [protocol](experiments/phase4f7.md) and
-[preparation report](reports/2026-10-25-phase4f7.md) freeze the same `a1b2331`
-engine with TT Move Hints off/on; every other setting matches current defaults.
-The 39-position comparison requests eight threads, Hash 64 and fresh serial
-processes, with 60 seconds per configuration/position for the pending full run.
+The [full report](reports/2026-10-26-phase4f7-results.md) records all 39 positions /
+78 searches, eight threads, 60 seconds per role, under the unchanged
+[protocol](experiments/phase4f7.md). Only TT Move Hints differs between roles.
+The authorized quiet run completed on October 26 at 23:31:55 Helsinki; LM Studio
+can resume. No engine, network or playing-default change was made.
 
-All 54 synthetic runner/auditor tests passed. Search-free readiness and the
-complete one-second smoke passed independent raw replay: 78 searches, 431
-iterations, 2,375 legal PV plies, 78 clean exits and 40 unchanged prepared assets.
-All final best moves agreed; neither role reported mate. Three positions had
-different scores/depths, retained in the report. The short smoke checks operations
-and legality; it does not establish which configuration is stronger.
+The independent raw audit passed all 40 frozen identities, 78 clean sessions,
+822 iterations and 7,566 legal PV plies. Both configurations reported M7 at
+positions 1 and 2 and M9 at position 15, with matching supplied distances and
+legal final mating PVs. All 39 best moves agree. Six score/depth differences and
+six differing final PVs are retained. No observed material tactical regression
+blocks fresh strength preparation; this single exposed SMP sample establishes
+neither strength gain nor universal nonregression.
 
-**Next step within 4F.7:** agree a fresh quiet window and, if during the day,
-an explicit timing exception for the approximately 78-minute full comparison.
-The setup is concrete and validated; no full run or schedule is active. Keep
-Automatic mode and AC power, with competing inference paused for that run.
-Review its tactical evidence before preparing a fresh paired strength campaign.
-TT Move Hints remains off by default. The older all-on campaign remains parked;
-broader platform/training/release gates remain open. Normal builds, stable GUI
-`0.1-dev-4b8b35d`, the owner's batch file and README introduction are preserved.
+**Next step within 4F.7:** prepare and validate a new paired-opening blitz
+campaign for hints off/on. The bounded candidate design is 512 games / 256 pairs,
+four active single-thread searches, Hash 64 and 60+0.6, with fresh opening
+provenance/exclusions, current-option checks, independent audit and explicit
+clock/statistical gates. It is not prepared or launch-ready yet. Freeze its
+protocol and inputs, test the launcher/readiness, then agree a separate run
+window; the puzzle authorization does not authorize this later match. The
+historical higher-concurrency clock failures remain unresolved.
 
-The owner is finishing an LM Studio task and will confirm when inference is
-paused. Until then, advance independent lightweight tooling. A new saved-puzzle
-export command addresses the simple-tooling backlog with readable Markdown and
-CSV, using existing evidence only. This does not advance or replace the pending
-tactical/strength gate, and the frozen comparison inputs remain unchanged.
-The exporter checkpoint is complete: 24 synthetic tests and fresh audits of
-the existing readiness/smoke exports passed. See [practical instructions](TOOLS.md#read-saved-puzzle-comparisons).
+TT Move Hints stays off by default. The older all-on campaign remains parked;
+broader platform/training/release gates remain open. Stable GUI `0.1-dev-4b8b35d`,
+owner batch settings, previous evidence and the README introduction were
+preserved. The ordinary release binary was already rebuilt before this turn;
+its current identity was recorded and preserved. No schedule is active.
+
+The separate saved-puzzle exporter passed its actual full-report integration:
+all 78 CSV rows match the report, and the fresh audit certificate matches the
+standalone audit. The earlier 24 synthetic exporter checks and 54 runner/auditor
+checks remain preparation evidence. See [practical instructions](TOOLS.md#read-saved-puzzle-comparisons).
 
 ## Previous checkpoint: Phase 4F.6 move hints — implemented, default off
 
@@ -834,7 +838,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.7 frozen tactical preparation and 78-search smoke passed; full comparison awaits quiet window/timing authorization; hints remain off and all-on stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.7 full 78-search tactical comparison audited; fresh strength-campaign preparation next; hints remain off and all-on stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
