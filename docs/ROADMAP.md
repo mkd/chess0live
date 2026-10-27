@@ -5,7 +5,35 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.7 tactical comparison passed — strength preparation next
+## Current checkpoint: Phase 4F.7 strength test prepared — run window pending
+
+The [match preparation record](reports/2026-10-27-phase4f7-match-preparation.md)
+and [frozen protocol](experiments/phase4f7-match.md) define the next checkpoint:
+512 games / 256 color-reversed pairs, 60+0.6, four active single-thread searches,
+Hash 64 and a 6 GiB reservation across eight resident engines. Only TT Move Hints
+differs between roles. All 107 new preparation tests passed, alongside actual
+search-free readiness and a passing independent audit of its raw handshakes.
+
+There are 256 fresh legal roots, disjoint from the recorded 217,477-position
+exclusion set. Shared opening stems limit independence. The launcher, auditor,
+generator and tests are new files; historical tools, engine sources, Makefile,
+normal/stable binaries and the owner's README introduction are preserved.
+
+**Next step within 4F.7:** agree the long run window, then execute the frozen
+campaign and independently audit all results. The declared start window is
+23:00–23:30 Helsinki, with a 07:00 cutoff and an estimated 6–8 hours. No match
+or schedule is running, and puzzle permission does not authorize this match.
+A timing exception requires a separately documented and validated amendment.
+LM Studio can run during preparation; agree a quiet host for the actual match.
+
+Hints remain off. Complete valid evidence with zero forfeits and at least
+299.5/512 candidate points is required even to enter a separate default review;
+an inconclusive result ends this fixed attempt without quietly extending it.
+This single-thread blitz screen cannot qualify all SMP/time-control settings.
+Prior higher-concurrency clock failures remain unresolved. Phase 4F.7 strength
+qualification, broader platform/training gates and release acceptance remain open.
+
+## Previous checkpoint: Phase 4F.7 tactical comparison passed
 
 The [full report](reports/2026-10-26-phase4f7-results.md) records all 39 positions /
 78 searches, eight threads, 60 seconds per role, under the unchanged
@@ -21,7 +49,7 @@ six differing final PVs are retained. No observed material tactical regression
 blocks fresh strength preparation; this single exposed SMP sample establishes
 neither strength gain nor universal nonregression.
 
-**Next step within 4F.7:** prepare and validate a new paired-opening blitz
+**Next step at that checkpoint:** prepare and validate a new paired-opening blitz
 campaign for hints off/on. The bounded candidate design is 512 games / 256 pairs,
 four active single-thread searches, Hash 64 and 60+0.6, with fresh opening
 provenance/exclusions, current-option checks, independent audit and explicit

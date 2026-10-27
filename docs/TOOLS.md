@@ -34,6 +34,47 @@ To prepare packages without running a tool, use `make tooling` or
 `python3 tools/run.py --setup`. This prints the managed Python path. To check
 the setup code and batch runner, use `make test-tooling`.
 
+## Check the frozen move-hint match
+
+The prepared TT Move Hints comparison uses the specific local executable and
+assets described in its [protocol](experiments/phase4f7-match.md). It does not
+silently substitute a different build or older opening set. With those assets
+available, check readiness without searching any position:
+
+```sh
+python3 tools/run.py tools/qualify_phase4f7.py check
+```
+
+To retain and independently audit the result, use fresh filenames in an existing
+directory. The following paths are examples; do not overwrite previous evidence:
+
+```sh
+python3 tools/run.py tools/qualify_phase4f7.py check > results/my-hints-readiness.json
+python3 tools/run.py tools/audit_phase4f7.py --preflight results/my-hints-readiness.json --output results/my-hints-readiness-audit.json
+```
+
+Readiness validates source/artifact identities, all opening histories, exact UCI
+settings, handshake/quit and process exit status. It starts engines only to
+configure them; no `position` or `go` command is sent. Synthetic tool tests also
+run through the same automatic dependency launcher:
+
+```sh
+python3 tools/run.py tests/phase4f7_openings_test.py
+python3 tools/run.py tests/qualify_phase4f7_test.py
+python3 tools/run.py tests/audit_phase4f7_test.py
+python3 tools/run.py tools/generate_phase4f7_openings.py --check --verify-sources
+```
+
+These commands do not schedule or launch the 512-game match. Once preparation
+is committed and a separate run window is agreed, the `run` action accepts a
+new output directory and enforces the declared 23:00–23:30 Helsinki start window
+and next-07:00 cutoff. It reserves four active search workers and at least 6 GiB
+across eight resident engines. Earlier experiment permissions do not authorize
+this run. A complete campaign is audited with `--campaign` instead of
+`--preflight`; no automatic option promotion follows its result. Timing and
+statistical limits are in the protocol. Actual native readiness coverage is
+recorded in [validation](VALIDATION.md).
+
 ## Read saved puzzle comparisons
 
 Export a completed TT Move Hints comparison with one command:

@@ -28,7 +28,48 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.7 tactical comparison complete
+## Current checkpoint: Phase 4F.7 strength campaign prepared
+
+Read the [preparation record](reports/2026-10-27-phase4f7-match-preparation.md)
+and [new frozen protocol](experiments/phase4f7-match.md). The current checkpoint
+adds only new match tooling and practical documentation. All 107 preparation
+tests pass; two serial real-engine readiness sessions accepted the exact settings
+and exited with code zero. Independent raw readiness audit passed, including
+20 advertised options and original local saved-game exclusions. No held-out
+position was searched. Evidence is in
+`results/phase4f7-match-preparation-20261026/` (work began October 26 and readiness
+completed October 27). Preserve this evidence and all frozen preparation pins.
+
+The prepared comparison is 512 games / 256 pairs, 60+0.6, Threads=1, Hash=64,
+four shards/four active workers, eight resident engines and a minimum 6 GiB
+reservation. Both roles use the existing frozen `a1b2331` executable. Only
+TT Move Hints differs. The 256 legal, unique roots avoid 217,477 recorded roots;
+full exclusion replay requires the original local PGNs. See the protocol for
+the shared-stem statistical limitation and zero-forfeit decision gate.
+
+New entry points, with automatic dependency preparation:
+
+```sh
+python3 tools/run.py tools/qualify_phase4f7.py check
+python3 tools/run.py tools/audit_phase4f7.py --preflight NEW_READINESS.json --output NEW_AUDIT.json
+```
+
+There are 58 snapshotted sources and 57 pins in
+`tests/data/phase4f7-match-pins.json`; the pin document cannot hash itself.
+The unchanged build manifest additionally binds its complete 25-source inventory.
+Do not edit/refreeze these inputs silently. Normal Makefile targets and historical
+campaigns remain unchanged. Stable GUI `0.1-dev-4b8b35d` remains preserved.
+
+**Next:** agree a separate 6–8-hour quiet window with the owner. The fixed launcher
+accepts starts only 23:00–23:30 Helsinki and stops by next 07:00; no match,
+daytime exception or schedule is authorized by the completed puzzle run.
+Record AC/Automatic mode and paused competing inference before actual play;
+LM Studio can remain active during preparation. A timing change needs a new
+documented/tested one-run amendment before launch. Do not promote hints or claim
+strength from readiness. Clock failures at earlier higher concurrency remain
+unresolved. Keep all fixed-sample results, including inconclusive/failed attempts.
+
+## Previous checkpoint: Phase 4F.7 tactical comparison complete
 
 Read the [full report](reports/2026-10-26-phase4f7-results.md),
 [frozen protocol](experiments/phase4f7.md) and
@@ -63,7 +104,7 @@ The ordinary release binary had already changed since the prior tooling turn;
 it now matches the frozen candidate. This pre-existing difference is recorded,
 not attributed to a new build. Stable GUI `0.1-dev-4b8b35d` is preserved.
 
-### Next checkpoint: fresh strength-campaign preparation
+### Next checkpoint recorded then: fresh strength-campaign preparation
 
 Prepare new experiment-specific launcher, independent auditor, opening generator
 and tests around the unchanged `tools/match.py` and `tools/qualification.py`.
@@ -75,7 +116,7 @@ current defaults in both roles. Generate fresh seeds/root provenance/exclusions,
 including now-exposed puzzle and historical match roots. Declare decisions and
 clock-health gates before play; a small gain may remain inconclusive.
 
-This design is not yet prepared or validated. Test current option handling,
+At that checkpoint this design was not yet prepared or validated. Test current option handling,
 synthetic failures and short readiness, freeze and commit the new preparation,
 then request a concrete separate run window. The completed puzzle permission
 does not authorize the match. Preserve the earlier higher-concurrency clock

@@ -1,5 +1,33 @@
 # Validation and experiment protocol
 
+## Phase 4F.7 strength preparation — October 26–27, 2026
+
+The [preparation report](reports/2026-10-27-phase4f7-match-preparation.md) records
+107 passing tests: 17 opening-generation checks, 32 launcher checks and 58
+independent-auditor checks. These cover exact hint-only settings, current UCI
+types/defaults/ranges, source/build provenance, duplicate input keys, legal roots,
+raw game/clock evidence, timing/resource changes, cancellation, process cleanup,
+fixed membership and statistical gates. Tests use synthetic evidence/processes;
+they do not establish playing strength or long-run stability.
+
+Full source replay validated 256 unique legal roots against 217,477 known roots
+from 152 source records, including 2,284 saved games. Shared stems and unknown
+internal search positions limit independence/exposure claims. The compact public
+catalog does not redistribute saved PGNs; full replay needs those local inputs.
+
+Actual native readiness checked two serial engine configurations, with no
+`position`/`go` commands, 20 exact advertised UCI options and clean exits.
+The independent auditor passed that saved evidence against all 58 source
+snapshots, 57 preparation pins and the existing 25-file build provenance.
+The interpreter logged the engine's benign Syzygy-disabled informational line;
+raw output and stderr are retained. No tablebase assistance was enabled.
+
+Evidence: `results/phase4f7-match-preparation-20261026/`. No held-out game,
+engine rebuild, default promotion, schedule or platform/release qualification
+was performed. The actual 512-game campaign needs a separately agreed window.
+All 1,022 protected existing files, 57 new preparation pins and the README
+introduction matched the saved identities at completion.
+
 ## Phase 4F.7 full tactical comparison — October 26, 2026
 
 The [full report](reports/2026-10-26-phase4f7-results.md) records the completed

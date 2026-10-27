@@ -7,6 +7,10 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a reproducible 512-game TT Move Hints comparison with fresh paired
+  openings, automatic tool setup, search-free readiness and an independent
+  results audit. Preparation checks passed; playing-strength results are pending.
+
 - Completed the audited 39-position, eight-thread TT Move Hints comparison.
   Both settings found the same three mates and chose the same final moves;
   hints remain optional pending separate playing-strength testing.
