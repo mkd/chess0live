@@ -13,10 +13,14 @@ an explicit 16:00–19:00 Helsinki start that day, with the original next-07:00
 cutoff and resource limits. Its 100 launcher/auditor checks and real independent
 readiness audit passed. Everything in the engine comparison remains fixed.
 
-**Current step:** commit the tested amendment, launch 512 games and monitor the
-four streams. Live evidence belongs in `results/phase4f7-match-20261027/`;
+**Current step:** the amendment was committed as `984f059` and the 512-game
+campaign started **October 27 at 16:57:44 Helsinki**. All four game streams were
+active at the launch check. Live evidence is in `results/phase4f7-match-20261027/`;
 completion/strength claims await the final independent audit. Hints remain off.
 No additional experiment, retry or default promotion is authorized by progress.
+An owner-requested progress heartbeat checks this existing run every 15 minutes;
+it does not launch games and ends after the terminal audit/report. Keep the
+Mac on AC with Automatic mode and competing inference paused during play.
 
 ## Previous checkpoint: Phase 4F.7 strength test prepared — run window pending
 

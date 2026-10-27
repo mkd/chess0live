@@ -42,11 +42,22 @@ as a JSON value to the original readiness configuration.
 New pins cover 59 source snapshots / 58 pinned inputs. The original 58 sources
 and pin document were archived from `2059850` before edits; old evidence remains
 intact. New evidence is in `results/phase4f7-match-20261027-preparation/`.
-Planned campaign output: `results/phase4f7-match-20261027/`. Consult its
+The amended preparation is committed as `984f059`. The campaign started
+**October 27 at 16:57:44 Helsinki**, with all four streams active and eight
+resident engine processes at the launch check. Output:
+`results/phase4f7-match-20261027/`. Consult its
 `campaign.json`, child manifests and finalized game journals for live state;
 preparation is not evidence that any game completed. Do not restart/resume or
 alter frozen sources during play. Report all complete games and provisional
 candidate wins/draws/losses, then independently audit the full campaign.
+
+Owner-requested progress heartbeat `chess0live-match-progress` checks every
+15 minutes in this chat. It monitors this single run and must stop after the
+terminal audit/report. It must never launch/retry a match or modify frozen
+inputs. Local helper: `results/phase4f7-match-20261027-preparation/progress.py`;
+metadata and the exec session identity are in `monitor-context.json`. The match
+is wrapped in a foreground idle-sleep inhibitor. Tell the owner inference can
+resume immediately after searches and cleanup end, then complete the audit.
 
 ## Previous checkpoint: Phase 4F.7 strength campaign prepared
 
