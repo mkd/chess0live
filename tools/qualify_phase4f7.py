@@ -8,7 +8,8 @@ The existing QualificationProfile/run implementation owns every game's clocks,
 process cleanup, raw evidence and child manifests. This facade adds only the
 aggregate resource/deadline supervisor. Frozen Phase 3L sources remain unchanged.
 No scheduling, resume, sample overrides or inherited daytime exceptions.
-No daytime exception is authorized by this protocol.
+The explicit October 27 amendment permits one bounded daytime launch without
+changing resource budgets, search settings, game clocks or the next 07:00 cutoff.
 """
 from __future__ import annotations
 
@@ -36,6 +37,10 @@ from qualify_phase3l import cooperative_signals, cancel_and_wait, append_resourc
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f7-hints-512-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/phase4f7-match.md"
+DAYTIME_DOCUMENT = "docs/experiments/phase4f7-match-daytime-20261027.md"
+DAYTIME_AUTHORIZATION = "phase4f7-daytime-20261027"
+DAYTIME_DATE = "2026-10-27"
+DAYTIME_WINDOW = "2026-10-27 16:00–19:00 Europe/Helsinki"
 CHESS_VERSION = "1.11.2"
 SHARDS, SHARD_PAIRS, PAIRS = 4, 64, 256
 SEEDS = tuple(range(202610264701, 202610264705))
@@ -124,7 +129,7 @@ SOURCES = ("tools/qualify_phase4f7.py", "tools/audit_phase4f7.py", GENERATOR,
            "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
            "tools/qualify_phase3l.py", "tools/audit_phase3l.py", "tools/qualification.py", "tools/match.py",
            "tools/audit_time_policy.py", "tools/match_statistics.py", "tools/resources.py",
-           "requirements-match.txt", PROTOCOL_DOCUMENT, EXCLUSIONS, GENERATION, BUILD_MANIFEST, PIN_FILE,
+           "requirements-match.txt", PROTOCOL_DOCUMENT, DAYTIME_DOCUMENT, EXCLUSIONS, GENERATION, BUILD_MANIFEST, PIN_FILE,
            "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
            "tools/run.py", "tools/tooling.py", "tools/python-packages.json",
            "tests/match_test.py", "tests/audit_time_policy_test.py",
@@ -212,16 +217,27 @@ def fingerprints():
 
 
 def launch_policy(now=None, *, allow_daytime=False, require_window=False):
-    """Only the ordinary Helsinki launch window; no inherited exceptions."""
-    if allow_daytime:
-        raise ValueError("Phase 4F.7 has no authorized daytime exception")
-    policy = shared.launch_policy(now or utc_now())
+    """Keep normal nights; explicitly bound the owner's single daytime grant.
+
+    The flag changes admission only. The shared policy still derives the next
+    Helsinki 07:00 cutoff, and resource_policy retains ordinary 50%/80% budgets.
+    Outside this dated window even flagged readiness is rejected, preventing an
+    expired grant from appearing usable for a later run.
+    """
+    if type(allow_daytime) is not bool:
+        raise ValueError("Daytime permission must be an explicit boolean")
+    policy = shared.launch_policy(now or utc_now(), allow_daytime=allow_daytime)
     local = datetime.fromisoformat(policy["local_time"])
-    permitted = local.hour == 23 and local.minute < 30
-    if require_window and not permitted:
-        raise ValueError("Phase 4F.7 may launch only 23:00–23:30 Europe/Helsinki")
-    policy.update(launch_window="23:00–23:30 Europe/Helsinki", launch_permitted=permitted,
-                  daytime_authorization=None)
+    if allow_daytime:
+        permitted = local.date().isoformat() == DAYTIME_DATE and 16 <= local.hour < 19
+        window, authorization = DAYTIME_WINDOW, DAYTIME_AUTHORIZATION
+    else:
+        permitted = local.hour == 23 and local.minute < 30
+        window, authorization = "23:00–23:30 Europe/Helsinki", None
+    if (require_window or allow_daytime) and not permitted:
+        raise ValueError("Phase 4F.7 may launch only " + window)
+    policy.update(launch_window=window, launch_permitted=permitted,
+                  daytime_authorization=authorization)
     return policy
 
 
@@ -303,7 +319,9 @@ def validate_options(protocol, configured, spec, settings):
             raise ValueError("Configured UCI option differs from frozen package: " + name)
 
 
-async def check():
+async def check(allow_daytime=False):
+    # Reject an expired explicit grant before starting even a readiness process.
+    launch_policy(allow_daytime=allow_daytime)
     if match.chess.__version__ != CHESS_VERSION:
         raise ValueError(f"Qualification requires chess=={CHESS_VERSION}")
     initial, details = snapshot(), opening_check()
@@ -335,7 +353,7 @@ async def check():
     return {"schema_version": 1, "protocol_id": PROTOCOL_ID, "status": "checked", "checked_utc": utc_now().isoformat(),
             "configuration": config, "configuration_sha256": shared.configuration_hash(config),
             "frozen": initial["assets"], "sources": initial["sources"], "artifacts_before": initial,
-            "launch_policy": launch_policy(), "preflight": {**details, "engines": engines, "resource_policy": budget}}
+            "launch_policy": launch_policy(allow_daytime=allow_daytime), "preflight": {**details, "engines": engines, "resource_policy": budget}}
 
 
 def child_report(master, index):
@@ -455,7 +473,7 @@ async def run(output, allow_daytime=False):
         try:
             if not await observe("initial"):
                 raise ValueError("Aggregate four-worker/eight-engine resource budget is insufficient")
-            checked = await check()
+            checked = await check(allow_daytime=allow_daytime)
             if checked["artifacts_before"] != initial or fingerprints() != metadata:
                 raise ValueError("Frozen campaign inputs changed during preflight")
             record.update(checked_utc=checked["checked_utc"], preflight=checked["preflight"])
@@ -531,6 +549,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "run"), nargs="?", default="check")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--allow-daytime", action="store_true",
+                        help="Use the one-run October 27 16:00–19:00 Helsinki authorization")
     args = parser.parse_args(argv)
     if args.action == "check" and args.output is not None:
         parser.error("check does not accept --output")
@@ -540,7 +560,8 @@ def main(argv=None):
         # All coordinated hashing uses one background worker, not four more
         # unbounded CPU jobs alongside the four active engine search workers.
         asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=1))
-        return await cooperative_signals(check() if args.action == "check" else run(args.output))
+        return await cooperative_signals(check(allow_daytime=args.allow_daytime) if args.action == "check"
+                                         else run(args.output, allow_daytime=args.allow_daytime))
     try:
         print(json.dumps(asyncio.run(execute()), indent=2, allow_nan=False))
         return 0

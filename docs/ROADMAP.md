@@ -5,7 +5,20 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.7 strength test prepared — run window pending
+## Current checkpoint: Phase 4F.7 strength run authorized
+
+The owner confirmed ready on October 27 and requested launch/progress updates.
+The [one-run amendment](experiments/phase4f7-match-daytime-20261027.md) admits
+an explicit 16:00–19:00 Helsinki start that day, with the original next-07:00
+cutoff and resource limits. Its 100 launcher/auditor checks and real independent
+readiness audit passed. Everything in the engine comparison remains fixed.
+
+**Current step:** commit the tested amendment, launch 512 games and monitor the
+four streams. Live evidence belongs in `results/phase4f7-match-20261027/`;
+completion/strength claims await the final independent audit. Hints remain off.
+No additional experiment, retry or default promotion is authorized by progress.
+
+## Previous checkpoint: Phase 4F.7 strength test prepared — run window pending
 
 The [match preparation record](reports/2026-10-27-phase4f7-match-preparation.md)
 and [frozen protocol](experiments/phase4f7-match.md) define the next checkpoint:

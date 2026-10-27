@@ -1,5 +1,29 @@
 # Validation and experiment protocol
 
+## Phase 4F.7 dated timing amendment — October 27, 2026
+
+The owner confirmed ready and instructed starting the prepared match. The
+[amendment](experiments/phase4f7-match-daytime-20261027.md) changes admission only:
+explicit flag, exact authorization, October 27 16:00–19:00 Helsinki and the
+unchanged October 28 07:00 cutoff. Existing daytime/nighttime budgets apply.
+
+All 37 launcher tests and 63 independent-auditor tests passed, including date
+boundaries, wrong/expired grants, ordinary overnight/DST behavior, preflight
+expiry, child propagation and cutoff-extension rejection. Opening generator
+tests were not repeated because generator/data bytes did not change.
+Actual two-session readiness at 16:55:09 Helsinki and its independent audit passed;
+both processes exited zero and no position/search command was sent. The full
+engine configuration exactly matches the original readiness configuration.
+The audit also replays the recorded local game exclusions and new 59-source /
+58-pin inventory. Old sources/pins are archived from `2059850`, and original
+readiness/report files are preserved.
+
+Evidence: `results/phase4f7-match-20261027-preparation/`. Readiness SHA-256
+`6b585d85aa13ed969834baa806a459553ae9b42c43216a13dd682b2ec713d90c`;
+audit SHA-256 `adb60b59e0d4b25e0eb5851abdda9a25e5b62aefd99bc0fdcb757755ce9cfd48`.
+This validates the launch change only, not game outcomes or strength. Full
+campaign evidence and audit must be recorded separately after play.
+
 ## Phase 4F.7 strength preparation — October 26–27, 2026
 
 The [preparation report](reports/2026-10-27-phase4f7-match-preparation.md) records

@@ -28,7 +28,27 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.7 strength campaign prepared
+## Current checkpoint: Phase 4F.7 owner-authorized match launch
+
+On October 27 the owner confirmed the quiet window and instructed starting the
+test with progress updates. The [dated timing amendment](experiments/phase4f7-match-daytime-20261027.md)
+allows one explicit `--allow-daytime` start that day at 16:00–19:00 Helsinki,
+retaining the original October 28 07:00 cutoff and ordinary 50%/80% budgets.
+No engine, opening, clock boundary, game count or qualification gate changed.
+The 37 launcher and 63 independent-auditor tests passed; actual amended readiness
+and its independent audit passed. The configuration is byte-for-byte identical
+as a JSON value to the original readiness configuration.
+
+New pins cover 59 source snapshots / 58 pinned inputs. The original 58 sources
+and pin document were archived from `2059850` before edits; old evidence remains
+intact. New evidence is in `results/phase4f7-match-20261027-preparation/`.
+Planned campaign output: `results/phase4f7-match-20261027/`. Consult its
+`campaign.json`, child manifests and finalized game journals for live state;
+preparation is not evidence that any game completed. Do not restart/resume or
+alter frozen sources during play. Report all complete games and provisional
+candidate wins/draws/losses, then independently audit the full campaign.
+
+## Previous checkpoint: Phase 4F.7 strength campaign prepared
 
 Read the [preparation record](reports/2026-10-27-phase4f7-match-preparation.md)
 and [new frozen protocol](experiments/phase4f7-match.md). The current checkpoint

@@ -35,6 +35,9 @@ from audit_phase3l import definitions, instant, root_key
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f7-hints-512-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/phase4f7-match.md"
+DAYTIME_AMENDMENT = "docs/experiments/phase4f7-match-daytime-20261027.md"
+DAYTIME_AUTHORIZATION = "phase4f7-daytime-20261027"
+DAYTIME_WINDOW = "2026-10-27 16:00–19:00 Europe/Helsinki"
 ENGINE_SHA256 = "6dd685119d80145e2c6956c8d27c20a2d67e006bdf6556ceef5b779585baff9f"
 NETWORK_SHA256 = "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2"
 PIN_FILE = "tests/data/phase4f7-match-pins.json"
@@ -136,7 +139,7 @@ REQUIRED_SOURCES = (
     "tools/match.py", "tools/match_statistics.py", "tools/resources.py", GENERATOR,
     "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
     "tests/phase4f7_openings_test.py", "tests/qualify_phase4f7_test.py", "tests/audit_phase4f7_test.py",
-    GENERATION_METADATA, EXCLUSIONS, BUILD_MANIFEST, "requirements-match.txt", PROTOCOL_DOCUMENT,
+    GENERATION_METADATA, EXCLUSIONS, BUILD_MANIFEST, "requirements-match.txt", PROTOCOL_DOCUMENT, DAYTIME_AMENDMENT,
     PIN_FILE, "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
     "tools/run.py", "tools/tooling.py", "tools/python-packages.json",
     "tests/data/phase4d2-exclusions.json", "tests/match_test.py", "tests/audit_time_policy_test.py",
@@ -212,7 +215,13 @@ def aggregate_reservation(network_bytes):
 
 
 def permitted_launch(local, allow_daytime):
-    """No previous experiment's daytime exception authorizes this protocol."""
+    """Recognize only the ordinary window or the owner's dated one-run exception.
+
+    The exception changes launch timing alone. The original resource policy,
+    complete sample, clock gates and next-morning cutoff remain in force.
+    """
+    if allow_daytime is True:
+        return local.date().isoformat() == "2026-10-27" and 16 <= local.hour < 19
     return allow_daytime is False and local.hour == 23 and local.minute < 30
 
 
@@ -434,9 +443,12 @@ class AggregateAudit:
         require(policy["timezone"] == "Europe/Helsinki" and type(policy["allow_daytime"]) is bool,
                 "Master launch timezone or permission type changed")
         require(permitted_launch(local, policy["allow_daytime"]), "Master launch is outside its authorized date/window")
-        expected_authorization = None
+        expected_authorization = DAYTIME_AUTHORIZATION if policy["allow_daytime"] else None
         require(policy["daytime_authorization"] == expected_authorization,
                 "Master launch lacks its exact owner authorization or inherits an exception")
+        if policy["allow_daytime"]:
+            require(policy["launch_window"] == DAYTIME_WINDOW and policy["launch_permitted"] is True,
+                    "Master daytime launch declaration differs from the dated amendment")
         require(policy["nighttime"] is (local.hour >= 23 or local.hour < 7),
                 "Master nighttime flag differs from Helsinki civil time")
         expected_cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
@@ -874,8 +886,23 @@ def audit_readiness(path):
                 and policy["memory_estimate_is_hard_cap"] is False
                 and checker.budget(policy, stamp, reservation), "Readiness aggregate budget insufficient")
         launch = report["launch_policy"]
-        require(launch["allow_daytime"] is False and launch["daytime_authorization"] is None,
-                "Readiness inherited a daytime exception")
+        require(type(launch["allow_daytime"]) is bool,
+                "Readiness daytime permission must be explicit boolean")
+        expected_authorization = DAYTIME_AUTHORIZATION if launch["allow_daytime"] else None
+        require(launch["daytime_authorization"] == expected_authorization,
+                "Readiness lacks its exact owner authorization or inherits an exception")
+        if launch["allow_daytime"]:
+            helsinki = ZoneInfo("Europe/Helsinki")
+            local = instant(launch["local_time"]).astimezone(helsinki)
+            checked_local = stamp.astimezone(helsinki)
+            require(launch["timezone"] == "Europe/Helsinki"
+                    and permitted_launch(local, True) and permitted_launch(checked_local, True)
+                    and launch["nighttime"] is False and launch["launch_window"] == DAYTIME_WINDOW
+                    and launch["launch_permitted"] is True,
+                    "Readiness is outside the dated daytime amendment")
+            cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=helsinki)
+            require(instant(launch["cutoff_utc"]) == cutoff == instant(launch["cutoff_local"]),
+                    "Readiness daytime cutoff changed")
     except FAILURES as error:
         errors.append(str(error))
     return {"schema_version": 1, "protocol_id": PROTOCOL_ID, "readiness_only": True,
