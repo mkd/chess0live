@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.9 tactical comparison complete
+## Current checkpoint: Phase 4F.10 prepared — match awaits a quiet window
+
+The [preparation report](reports/2026-10-28-phase4f10-preparation.md) records
+122 passing synthetic tests and independently audited, search-free native
+readiness. The [fixed protocol](experiments/phase4f10-match.md) compares only
+Continuation History on/off in 512 games / 256 color-reversed opening pairs at
+60+0.6, with Threads=1 and Hash=64. Four active searches and eight resident
+engines reserve at least 6 GiB. The tested `69215b4` executable is reused unchanged.
+
+All 256 fresh roots pass full legal-history/exclusion replay against 266,535
+known roots, including 2,796 saved games. One exposed tail was rejected and
+recorded. Both actual readiness processes validated all 21 UCI declarations,
+sent no search commands and exited zero; the independent audit passes. All
+1,955 protected files, owner settings and the README introduction are preserved.
+
+**Next checkpoint:** agree a quiet 6–8-hour window, then run and audit the one
+fixed attempt. The prepared start window is 23:00–23:30 Helsinki, cutoff next
+07:00; a daytime attempt needs a separate authorized/tested amendment. No match
+or schedule is active. Keep the Mac awake throughout; suspend/resume is not
+supported for qualification. LM Studio can run until the agreed match window.
+Continuation History remains off; the hints and combined-package promotions
+remain parked. Preparation alone establishes no strength or release claim.
+
+## Previous checkpoint: Phase 4F.9 tactical comparison complete
 
 The [audited full report](reports/2026-10-28-phase4f9-results.md) records all
 78 searches / 39 pairs, 60 seconds per role with eight threads. The authorized
@@ -975,7 +998,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.9 full tactical audit complete: 4 versus 3 mate reports, no lost mates, all moves match; still default-off. Next 4F.10 prepares isolated paired-game qualification. Hints and all-on promotion stay parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.9 tactical audit complete. 4F.10 paired-game preparation passes 122 synthetic checks and independent readiness; 512 games await a quiet window. Continuation History stays off; hints and all-on promotion stay parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

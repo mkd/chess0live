@@ -34,7 +34,60 @@ To prepare packages without running a tool, use `make tooling` or
 `python3 tools/run.py --setup`. This prints the managed Python path. To check
 the setup code and batch runner, use `make test-tooling`.
 
+## Check the frozen continuation-history match
+
+The isolated Continuation History match requires the frozen local executable,
+network and provenance listed in its [protocol](experiments/phase4f10-match.md).
+It compares the option on versus off while keeping all other settings identical.
+The following command prepares Python dependencies automatically and checks the
+bundle, openings, UCI settings and aggregate resource budget without searching:
+
+```sh
+python3 tools/run.py tools/qualify_phase4f10.py check
+```
+
+To save and independently audit readiness, choose fresh filenames in an existing
+directory. Do not overwrite previous evidence:
+
+```sh
+python3 tools/run.py tools/qualify_phase4f10.py check > results/my-continuation-readiness.json
+python3 tools/run.py tools/audit_phase4f10.py --preflight results/my-continuation-readiness.json --output results/my-continuation-readiness-audit.json
+```
+
+Readiness configures two engine processes serially and verifies their clean
+exits; it sends no `position` or `go` command. The native ARM64 experiment bundle
+is a local research asset, not a portable download or an automatic rebuild.
+Missing or changed frozen inputs fail with a diagnostic; the tool will not
+silently substitute your normal release binary. General match tooling remains
+available for testing your own engine builds.
+
+Check the generator, supervisor and independent auditor without playing games:
+
+```sh
+python3 tools/run.py tests/phase4f10_openings_test.py
+python3 tools/run.py tests/qualify_phase4f10_test.py
+python3 tools/run.py tests/audit_phase4f10_test.py
+python3 tools/run.py tools/generate_phase4f10_openings.py --check --verify-sources
+```
+
+Full source replay also needs the original local PGNs used for exclusions; they
+are not redistributed as opening assets. Preparation creates no scheduled job.
+After a separate quiet window is agreed, the `run` action takes a new output
+directory and enforces the declared 23:00–23:30 Helsinki start and next-07:00
+cutoff. The fixed 512 games use four active single-thread searches, eight
+resident engines and at least 6 GiB reserved memory. Expected duration is 6–8
+hours. An earlier puzzle permission does not authorize this match.
+
+Audit a completed campaign using `--campaign` instead of `--preflight`; this
+only reads saved evidence. No automatic default change, retries or extensions
+follow the outcome. See the protocol for the statistical and timing limits and
+[validation](VALIDATION.md) for checks actually completed on this host.
+
 ## Check the frozen move-hint match
+
+This is a historical comparison whose fixed attempt is complete. Preserve its
+evidence; do not resume or rerun it as fresh qualification. The commands below
+describe its original preparation and require its unchanged historical inputs.
 
 The prepared TT Move Hints comparison uses the specific local executable and
 assets described in its [protocol](experiments/phase4f7-match.md). It does not

@@ -28,7 +28,40 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.9 audited and complete
+## Current checkpoint: Phase 4F.10 preparation validated
+
+Read the [protocol](experiments/phase4f10-match.md) and
+[preparation report](reports/2026-10-28-phase4f10-preparation.md). New generator,
+qualifier and independent auditor prepare **512 games / 256 paired openings** at
+60+0.6, one thread per engine, Hash=64, four active searches/eight resident engines
+and at least 6 GiB reserved memory. Only Continuation History differs; TT Move
+Hints and other experiments remain off, LMR on. Defaults are unchanged.
+
+Reuse `build/experiments/phase4f9/chess0live`, source `69215b4`, and preserve
+all 27 frozen source/dependency files and origin provenance. There are 61 source
+snapshots and 60 pins in `tests/data/phase4f10-match-pins.json`. Do not edit these
+prepared inputs or rebuild the candidate. Historical helper implementations and
+all 1,955 protected existing files remain unchanged; the README intro is exact.
+
+All 122 final synthetic tests passed (17 generator, 38 launcher, 67 auditor).
+Full source replay validates 256 fresh legal roots against 266,535 known roots
+and all 2,796 recorded games. One exposed tail was rejected, without evaluation
+or result filtering. Actual readiness completed at 10:35:09 Helsinki October 28:
+two clean process exits, all 21 options validated, no search commands. Independent
+audit passed. Preserve `results/phase4f10-preparation-20261028/`, including the
+preliminary fixture-only failure log and final passing logs.
+
+**Next:** agree a fresh quiet window after committing preparation, then run the
+fixed campaign once and independently audit it. No match or schedule is running.
+The current launcher permits only 23:00–23:30 Helsinki starts and the next-07:00
+cutoff; no daytime flag or inherited grant exists. A daytime exception needs
+separate owner permission and a tested, recorded timing amendment. LM Studio can
+stay active until the run; actual play requires paused competing inference,
+AC/Automatic mode and an awake Mac. Suspend/resume invalidates clock continuity;
+do not resume, retry, extend or replace games. Any forfeit blocks promotion.
+Keep the stable GUI `0.1-dev-4b8b35d`, normal release and owner batch settings.
+
+## Previous checkpoint: Phase 4F.9 audited and complete
 
 Read the [full result](reports/2026-10-28-phase4f9-results.md). The owner authorized
 one daytime attempt with LM Studio inference paused, AC and Automatic mode.

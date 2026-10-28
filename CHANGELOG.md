@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a reproducible Continuation History match setup with fresh paired
+  openings, automatic dependency setup, search-free readiness and independent
+  auditing. All 122 preparation tests pass; the full match awaits a quiet window.
+  Engine defaults remain unchanged. See the
+  [preparation record](docs/reports/2026-10-28-phase4f10-preparation.md).
+
 - Completed the independently audited Continuation History puzzle comparison:
   four mate reports with it enabled versus three disabled, with all 39 final moves
   matching and no failed searches. The extra M9 is a tactical observation;

@@ -1,5 +1,38 @@
 # Validation and experiment protocol
 
+## Phase 4F.10 match preparation — October 28, 2026
+
+The [preparation report](reports/2026-10-28-phase4f10-preparation.md) records
+**122 passing synthetic checks**: 17 opening, 38 supervisor and 67 independent
+auditor tests. Raw fixtures exercise PGN/UCI replay, isolated Continuation History
+settings, disabled TT hints, exact provenance, malformed/duplicate declarations,
+resource/cutoff/cleanup failures, inherited-permission rejection and statistical
+thresholds. Earlier synthetic fixture inputs were incomplete; their failure log
+is retained and final corrected tests pass. No real games were played.
+
+Full generator source replay validates 256 balanced unique nonterminal roots
+with original histories against 266,535 known roots and 2,796 saved games.
+One exposed candidate was rejected deterministically and recorded; accepted
+roots have no recorded overlap. There are no malformed saved-game omissions.
+Shared stems and unknown internal/unsaved positions remain exposure limitations.
+
+Actual native readiness validated all 21 UCI options in two serial sessions,
+with 13 commands / 65 raw events, no `position` or `go`, and two zero exits.
+Independent saved-output audit passed with no errors and 2,805 recorded input
+identities. The 61 source snapshots / 60 pins include full frozen build provenance.
+No frozen source, engine, normal/stable GUI binary or owner batch setting changed;
+all 1,955 protected files and the README introduction match their saved identities.
+
+Evidence: `results/phase4f10-preparation-20261028/`. Readiness SHA-256
+`6b6eb20cdb8dcdf044d9af992bdb9d6b4ef0ec9eedbffe48d14db1d5c832c56e`;
+independent audit SHA-256
+`2191a3372a24107219aabdbc17693567a5578a08651dd7024e0b5ef9e8660b3f`.
+The prepared 512-game match has not started or been scheduled. It needs a fresh
+quiet window, an awake host and applicable timing authorization. Four active
+workers / 6 GiB fit the observed 18-CPU / 64-GiB host's ordinary budgets, but these
+are reservations, not measured OS utilization caps. No strength, SMP or default
+promotion claim follows from preparation.
+
 ## Phase 4F.9 full tactical comparison — October 28, 2026
 
 The [completed report](reports/2026-10-28-phase4f9-results.md) includes all

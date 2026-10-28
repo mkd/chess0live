@@ -573,14 +573,14 @@ openings as fresh validation. Prepare a new protocol before another campaign;
 the [match guide](docs/MATCHES.md) explains resource and evidence requirements.
 Preparing the tools creates no scheduled job.
 
-The frozen TT Move Hints match has a separate search-free readiness command:
+The frozen Continuation History match has a separate search-free readiness command:
 
 ```sh
-python3 tools/run.py tools/qualify_phase4f7.py check
+python3 tools/run.py tools/qualify_phase4f10.py check
 ```
 
 It checks the prepared local executable, opening histories, options and resource
-budget without playing games. See [match readiness and auditing](docs/TOOLS.md#check-the-frozen-move-hint-match)
+budget without playing games. See [match readiness and auditing](docs/TOOLS.md#check-the-frozen-continuation-history-match)
 for saving/auditing the check, synthetic tests, and the separately authorized
 overnight launch. Dependencies prepare automatically; existing GUI settings
 and engine defaults are unaffected.
