@@ -1,5 +1,21 @@
 # Validation and experiment protocol
 
+## Phase 4F.10 dated launch amendment — October 28, 2026
+
+The [launch record](reports/2026-10-28-phase4f10-launch.md) records the owner's
+fresh quiet-window confirmation and bounded 19:00–22:00 Helsinki permission.
+All **112 focused synthetic tests** pass (44 launcher, 68 independent auditor).
+Native search-free readiness at 19:27:57 and independent audit pass: two clean
+exits, all 21 UCI options, 13 commands / 65 events and 2,805 input identities.
+All 1,955 protected files, original preparation evidence and README intro remain
+unchanged. Archive the original 61 sources/pins; the amended set has 62 source
+snapshots / 61 pins. Pre-launch setup failures and their resolution are preserved
+in the report and evidence directory; no games were played during validation.
+Only the dated admission policy changes. No engine/default/sample change or
+strength conclusion follows. Commit before the one fixed attempt; independently
+audit its full outcome after cleanup. See the campaign manifest for live state.
+
+
 ## Phase 4F.10 match preparation — October 28, 2026
 
 The [preparation report](reports/2026-10-28-phase4f10-preparation.md) records

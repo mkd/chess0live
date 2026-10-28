@@ -7,7 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 The existing QualificationProfile/run implementation owns every game's clocks,
 process cleanup, raw evidence and child manifests. This facade adds only the
 aggregate resource/deadline supervisor. Frozen Phase 3L sources remain unchanged.
-No scheduling, resume, sample overrides or inherited daytime exceptions.
+No scheduling, resume or sample overrides. The separate dated authorization
+permits one explicit October 28 evening admission; no earlier grant is inherited.
 """
 from __future__ import annotations
 
@@ -36,6 +37,10 @@ from qualify_phase3l import cooperative_signals, cancel_and_wait, append_resourc
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f10-continuation-512-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/phase4f10-match.md"
+DAYTIME_DOCUMENT = "docs/experiments/phase4f10-match-daytime-20261028.md"
+DAYTIME_AUTHORIZATION = "phase4f10-daytime-20261028"
+DAYTIME_DATE = "2026-10-28"
+DAYTIME_WINDOW = "2026-10-28 19:00–22:00 Europe/Helsinki"
 CHESS_VERSION = "1.11.2"
 SHARDS, SHARD_PAIRS, PAIRS = 4, 64, 256
 SEEDS = tuple(range(202610284101, 202610284105))
@@ -129,7 +134,7 @@ SOURCES = ("tools/qualify_phase4f10.py", "tools/audit_phase4f10.py", GENERATOR,
            "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
            "tools/qualify_phase3l.py", "tools/audit_phase3l.py", "tools/qualification.py", "tools/match.py",
            "tools/audit_time_policy.py", "tools/match_statistics.py", "tools/resources.py",
-           "requirements-match.txt", PROTOCOL_DOCUMENT, EXCLUSIONS, GENERATION, BUILD_MANIFEST, ORIGIN_MANIFEST, PIN_FILE,
+           "requirements-match.txt", PROTOCOL_DOCUMENT, DAYTIME_DOCUMENT, EXCLUSIONS, GENERATION, BUILD_MANIFEST, ORIGIN_MANIFEST, PIN_FILE,
            "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
            "tools/run.py", "tools/tooling.py", "tools/python-packages.json",
            "tests/match_test.py", "tests/audit_time_policy_test.py",
@@ -234,24 +239,27 @@ def fingerprints():
 
 
 def launch_policy(now=None, *, allow_daytime=False, require_window=False):
-    """Limit this preparation to normal nights; never inherit another grant.
+    """Keep normal nights and explicitly bound the owner's dated evening grant.
 
-    Search-free readiness may run during daytime, but it records that launch is
-    unavailable. Actual games must begin 23:00–23:30 Helsinki and retain the
-    originally derived next-07:00 UTC cutoff through all child lifetimes.
+    Permission changes admission only: resource budgets and the original next
+    Helsinki 07:00 cutoff remain fixed. Flagged readiness must fit this exact
+    date/window too, so an expired grant cannot look usable on a later day.
+    Unflagged search-free readiness remains available without authorizing play.
     """
     if type(allow_daytime) is not bool:
         raise ValueError("Daytime permission must be an explicit boolean")
-    if allow_daytime:
-        raise ValueError("Phase 4F.10 has no daytime authorization")
-    policy = shared.launch_policy(now or utc_now(), allow_daytime=False)
+    policy = shared.launch_policy(now or utc_now(), allow_daytime=allow_daytime)
     local = datetime.fromisoformat(policy["local_time"])
-    permitted = local.hour == 23 and local.minute < 30
-    window = "23:00–23:30 Europe/Helsinki"
-    if require_window and not permitted:
+    if allow_daytime:
+        permitted = local.date().isoformat() == DAYTIME_DATE and 19 <= local.hour < 22
+        window, authorization = DAYTIME_WINDOW, DAYTIME_AUTHORIZATION
+    else:
+        permitted = local.hour == 23 and local.minute < 30
+        window, authorization = "23:00–23:30 Europe/Helsinki", None
+    if (require_window or allow_daytime) and not permitted:
         raise ValueError("Phase 4F.10 may launch only " + window)
     policy.update(launch_window=window, launch_permitted=permitted,
-                  daytime_authorization=None)
+                  daytime_authorization=authorization)
     return policy
 
 
@@ -482,7 +490,10 @@ async def run(output, allow_daytime=False):
             raise shared.WindowExpired("Helsinki 07:00 cutoff; fixed sample incomplete")
 
         def child_window(**_):
-            current = shared.launch_policy(utc_now(), allow_daytime=allow_daytime)
+            # Child readiness may cross the admission endpoint after the
+            # parent's check. Reject that launch, while preserving the parent's
+            # cutoff for every child that did begin within its allowed window.
+            current = launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             current.update(cutoff_utc=policy["cutoff_utc"], cutoff_local=policy["cutoff_local"],
                            remaining_seconds=(cutoff - utc_now()).total_seconds(),
                            daytime_authorization=policy["daytime_authorization"])
@@ -577,6 +588,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "run"), nargs="?", default="check")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--allow-daytime", action="store_true",
+                        help="Use the one-run October 28 19:00–22:00 Helsinki authorization")
     args = parser.parse_args(argv)
     if args.action == "check" and args.output is not None:
         parser.error("check does not accept --output")
@@ -586,8 +599,8 @@ def main(argv=None):
         # All coordinated hashing uses one background worker, not four more
         # unbounded CPU jobs alongside the four active engine search workers.
         asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=1))
-        return await cooperative_signals(check() if args.action == "check"
-                                         else run(args.output))
+        return await cooperative_signals(check(allow_daytime=args.allow_daytime) if args.action == "check"
+                                         else run(args.output, allow_daytime=args.allow_daytime))
     try:
         print(json.dumps(asyncio.run(execute()), indent=2, allow_nan=False))
         return 0

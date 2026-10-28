@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a tested, explicitly dated start-time exception for the prepared
+  Continuation History match, preserving its fixed cutoff and resource limits.
+  All 112 focused checks and fresh independent readiness audit pass;
+  [run details](docs/reports/2026-10-28-phase4f10-launch.md).
+
 - Added a reproducible Continuation History match setup with fresh paired
   openings, automatic dependency setup, search-free readiness and independent
   auditing. All 122 preparation tests pass; the full match awaits a quiet window.

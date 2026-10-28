@@ -1,6 +1,4 @@
 {
-  "schema_version": 1,
-  "protocol_id": "phase4f10-continuation-512-v1",
   "input_sha256": {
     "build/experiments/phase4f9/manifest.json": "d4fb35562e68be3a9f3febbfdb45cc70ceda8f7f3ac9132efda08a7817835b76",
     "build/experiments/phase4f9/origin-manifest.json": "77a995bc684dc87c8a7e4b8f7a8c220a64eb50b34299e1fc945ca312cbf3c0e0",
@@ -31,9 +29,10 @@
     "build/experiments/phase4f9/source/third_party/fathom/src/tbconfig.h": "69fe1821b471164bd759cf46c486d55b7fa727e348a5ee306b18d19537ac3a03",
     "build/experiments/phase4f9/source/third_party/fathom/src/tbprobe.c": "1904c051e687f276c8c740bb982bf28a11d6970e934d92f1ccfdf1c7eb42f7c0",
     "build/experiments/phase4f9/source/third_party/fathom/src/tbprobe.h": "dc7808dc58c2a1af921a612f94041b917dfac94d3215a76a2b2b0c53c94ea561",
+    "docs/experiments/phase4f10-match-daytime-20261028.md": "74f8c7763dcab4a05d6cddb90fe6c1b5e932b10d318a3be5c92e4c063182a858",
     "docs/experiments/phase4f10-match.md": "0dd8fd4de3ab297ca8525c024e79520c071c86ca9ab4ce8a3a380e2bb2cb629b",
     "requirements-match.txt": "e5c6580bc703549057893dd077182440e746c60dcc49f08b059004737d04fc7e",
-    "tests/audit_phase4f10_test.py": "4348449b54437a6939e6e285cb791e8ce582ee59ef25e2aa864361c397e96f05",
+    "tests/audit_phase4f10_test.py": "185543de89b362f073fb6d4a1d5b6944e27c9f405d5166cf9c41167560b838ad",
     "tests/audit_time_policy_test.py": "02e17d09ed6944eb2f8c9272d185345128560594d93e85ce01006e21711db9b0",
     "tests/data/phase4d2-exclusions.json": "94d17056e1b86ebeb4c8e9801c551df9edd8ee8a33cec4ac74a1db39a8de50ee",
     "tests/data/phase4f10-match-01.json": "52dfba21b602fbf7594acb8fb102aa5478b1188a9bbfba46374c9dd1c8b6648d",
@@ -45,9 +44,9 @@
     "tests/data/phase4f3-puzzles.json": "a49062bd0aa5b8d3af66842b266b4f8a8f7871cf64392a96861ea2faa2f5d035",
     "tests/match_test.py": "e87db2bfe2fb028ba8bb954086e6f7a0a4449f13b22b4ce9ea911c68bb2398de",
     "tests/phase4f10_openings_test.py": "3080fd680074d8d6b1c42ee8bc5ea5e486f8d93a2c667b726fde1eefcb059a4b",
-    "tests/qualify_phase4f10_test.py": "287bdddaafd39db3b4697c66d8110d8fbf5253ef263467a89e179ab3c8c6c322",
+    "tests/qualify_phase4f10_test.py": "3387c9d12c9e1fccb55e10e64dd8d881109fa1d60fec45832bb9acf5c758e130",
     "tools/audit_phase3l.py": "c25f544b5fd50107fe87dc5aa4008e2dce39d89c797bb04159612386e4a4d8e2",
-    "tools/audit_phase4f10.py": "ef638e481c8c8cefa2f30d0d4aff3247f055f3f4d29f6dde4b629aacc69b9a55",
+    "tools/audit_phase4f10.py": "1b5fda1f79dfec1ffbd44ee31604941edbf80517af8da4e10896784fb7e26f35",
     "tools/audit_time_policy.py": "ede8a58665fafc2b0293465589f2e34c88e3b27980ba2d2b23dee1da7e66a2e1",
     "tools/generate_lmr_20261022_openings.py": "d0552eab4716425a3cb250486a8555c7e9206886399e85d7a9e4faca008dbab9",
     "tools/generate_phase4d2_openings.py": "63c2feaec89182626316b1294ed33b58aa78d1b33e0dc32ce66cef8f8e29f7e2",
@@ -58,9 +57,11 @@
     "tools/python-packages.json": "2f5f5419f0787f75369402ac8fed12e6a5e2e0d32d48ea62fb05eda15d75b28e",
     "tools/qualification.py": "9de7b8b22e907d8da1f175ccb518bccc4ea50ada402239475546616b537580d2",
     "tools/qualify_phase3l.py": "56eedd1ef755045a6b90db2ee5b8a3861cafff23ff91b7d275f6da771d2b5b73",
-    "tools/qualify_phase4f10.py": "904df07b9203a73026df4161cdd65598d17893af01dad367e5825a71085b939c",
+    "tools/qualify_phase4f10.py": "06220672776822c4c6af7de03f36d2967f8f61109bd5da1cf167f4c9fbd2b925",
     "tools/resources.py": "78f806e288e413470c67a7081520cc9ece30197ad3dc69db833e9862c5d205f4",
     "tools/run.py": "3cfe88016dd515ea23eda92cfc802fa0aa0f7635748635af608a689d179f6267",
     "tools/tooling.py": "45a8eddf65be22c84430e5834a601e13d2e8451c00c5e7f66acf4ca4e4912cd2"
-  }
+  },
+  "protocol_id": "phase4f10-continuation-512-v1",
+  "schema_version": 1
 }

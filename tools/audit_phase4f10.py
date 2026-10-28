@@ -35,6 +35,10 @@ from audit_phase3l import definitions, instant, root_key
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f10-continuation-512-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/phase4f10-match.md"
+DAYTIME_DOCUMENT = "docs/experiments/phase4f10-match-daytime-20261028.md"
+DAYTIME_AUTHORIZATION = "phase4f10-daytime-20261028"
+DAYTIME_DATE = "2026-10-28"
+DAYTIME_WINDOW = "2026-10-28 19:00–22:00 Europe/Helsinki"
 ENGINE_SHA256 = "c117b828efe6c083520b4af6b45818879a70011a47c3acb96e53b112144dfd08"
 NETWORK_SHA256 = "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2"
 PIN_FILE = "tests/data/phase4f10-match-pins.json"
@@ -142,7 +146,7 @@ REQUIRED_SOURCES = (
     "tools/match.py", "tools/match_statistics.py", "tools/resources.py", GENERATOR,
     "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
     "tests/phase4f10_openings_test.py", "tests/qualify_phase4f10_test.py", "tests/audit_phase4f10_test.py",
-    GENERATION_METADATA, EXCLUSIONS, BUILD_MANIFEST, ORIGIN_MANIFEST, "requirements-match.txt", PROTOCOL_DOCUMENT,
+    GENERATION_METADATA, EXCLUSIONS, BUILD_MANIFEST, ORIGIN_MANIFEST, "requirements-match.txt", PROTOCOL_DOCUMENT, DAYTIME_DOCUMENT,
     PIN_FILE, "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
     "tools/run.py", "tools/tooling.py", "tools/python-packages.json",
     "tests/data/phase4d2-exclusions.json", "tests/match_test.py", "tests/audit_time_policy_test.py",
@@ -231,8 +235,42 @@ def aggregate_reservation(network_bytes):
 
 
 def permitted_launch(local, allow_daytime):
-    """Only the declared overnight window applies; past exceptions never transfer."""
+    """Distinguish ordinary nights from the exact, nontransferable owner grant."""
+    if allow_daytime is True:
+        return local.date().isoformat() == DAYTIME_DATE and 19 <= local.hour < 22
     return allow_daytime is False and local.hour == 23 and local.minute < 30
+
+
+def validate_launch_policy(policy, label, *, require_window=False, cutoff=None):
+    """Independently verify permission metadata and the original civil cutoff.
+
+    Search-free unflagged readiness is valid outside the launch window. Explicit
+    exception readiness is restricted to its one date/window, just like play.
+    Returning a valid policy never authorizes a second attempt or a later cutoff.
+    """
+    flag = policy["allow_daytime"]
+    require(policy["timezone"] == "Europe/Helsinki" and type(flag) is bool,
+            label + " launch timezone or permission type changed")
+    stamp = instant(policy["local_time"])
+    local = stamp.astimezone(ZoneInfo("Europe/Helsinki"))
+    permitted = permitted_launch(local, flag)
+    require(policy["daytime_authorization"] == (DAYTIME_AUTHORIZATION if flag else None),
+            label + " lacks its exact owner authorization or inherits an exception")
+    require(policy["launch_window"] == (DAYTIME_WINDOW if flag else "23:00–23:30 Europe/Helsinki")
+            and policy["launch_permitted"] is permitted,
+            label + " declared launch window changed")
+    require(policy["nighttime"] is (local.hour >= 23 or local.hour < 7),
+            label + " nighttime flag differs from Helsinki civil time")
+    require(not (require_window or flag) or permitted,
+            label + " launch is outside its authorized date/window")
+    expected_cutoff = datetime.combine(local.date()+timedelta(days=int(local.hour >= 7)),
+                                       time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
+    require(instant(policy["cutoff_utc"]) == expected_cutoff == instant(policy["cutoff_local"])
+            and (cutoff is None or cutoff == expected_cutoff), label + " original cutoff changed")
+    require(type(policy["remaining_seconds"]) in (int, float)
+            and math.isfinite(policy["remaining_seconds"]) and policy["remaining_seconds"] > 0,
+            label + " remaining-time declaration changed")
+    return stamp
 
 
 def child_protocol(index):
@@ -448,21 +486,8 @@ class AggregateAudit:
         require(hashlib.sha256(raw).hexdigest() == protocol["sha256"] == sources[PROTOCOL_DOCUMENT]["sha256"],
                 "Master protocol snapshot changed")
         started, finished, cutoff = (instant(m[key]) for key in ("started_utc", "finished_utc", "cutoff_utc"))
-        local = started.astimezone(ZoneInfo("Europe/Helsinki"))
-        policy = m["launch_policy"]
-        require(policy["timezone"] == "Europe/Helsinki" and type(policy["allow_daytime"]) is bool,
-                "Master launch timezone or permission type changed")
-        require(permitted_launch(local, policy["allow_daytime"]), "Master launch is outside its authorized date/window")
-        require(policy["daytime_authorization"] is None,
-                "Master launch inherits an exception from an earlier experiment")
-        require(policy["launch_window"] == "23:00–23:30 Europe/Helsinki"
-                and policy["launch_permitted"] is True, "Master declared launch window changed")
-        require(policy["nighttime"] is (local.hour >= 23 or local.hour < 7),
-                "Master nighttime flag differs from Helsinki civil time")
-        expected_cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
-        require(cutoff == expected_cutoff and started <= finished, "Master cutoff/timestamp ordering changed")
-        require(instant(policy["cutoff_utc"]) == cutoff == instant(policy["cutoff_local"]), "Master cutoff drift")
-        require(instant(policy["local_time"]) == started and policy["remaining_seconds"] > 0, "Master launch policy timestamp changed")
+        stamp = validate_launch_policy(m["launch_policy"], "Master", require_window=True, cutoff=cutoff)
+        require(stamp == started and started <= finished, "Master launch policy timestamp changed")
         if m["status"] == "finished":
             require(finished <= cutoff, "Finished master exceeded cutoff")
         require(m["preflight"]["opening_count"] == m["preflight"]["distinct_roots"] == PAIRS
@@ -707,9 +732,11 @@ class AggregateAudit:
         start, end = instant(launch["started_utc"]), instant(launch["finished_utc"])
         require(self.started <= start <= end <= self.finished, "Child window escapes master")
         child_policy, master_policy = launch["launch_policy"], m["launch_policy"]
-        require(instant(child_policy["cutoff_utc"]) == self.cutoff
+        child_stamp = validate_launch_policy(child_policy, "Child", require_window=True, cutoff=self.cutoff)
+        require(self.started <= child_stamp <= start
                 and child_policy["allow_daytime"] is master_policy["allow_daytime"]
-                and child_policy["daytime_authorization"] == master_policy["daytime_authorization"],
+                and child_policy["daytime_authorization"] == master_policy["daytime_authorization"]
+                and child_policy["launch_window"] == master_policy["launch_window"],
                 "Child cutoff/daytime authorization differs from master")
         if launch["status"] == "finished":
             require(end <= self.cutoff, "Completed child exceeded common cutoff")
@@ -894,14 +921,10 @@ def audit_readiness(path):
                 and policy["memory_estimate_is_hard_cap"] is False
                 and checker.budget(policy, stamp, reservation), "Readiness aggregate budget insufficient")
         launch = report["launch_policy"]
-        require(launch["allow_daytime"] is False and launch["daytime_authorization"] is None,
-                "Readiness cannot inherit daytime permission from an earlier experiment")
-        local = instant(launch["local_time"]).astimezone(ZoneInfo("Europe/Helsinki"))
-        require(launch["timezone"] == "Europe/Helsinki"
-                and launch["launch_window"] == "23:00–23:30 Europe/Helsinki"
-                and launch["launch_permitted"] is permitted_launch(local, False)
-                and launch["nighttime"] is (local.hour >= 23 or local.hour < 7),
-                "Readiness declared launch window differs from Helsinki civil time")
+        validate_launch_policy(launch, "Readiness")
+        if launch["allow_daytime"]:
+            require(permitted_launch(stamp.astimezone(ZoneInfo("Europe/Helsinki")), True),
+                    "Readiness preflight completed outside its authorized date/window")
     except FAILURES as error:
         errors.append(str(error))
     return {"schema_version": 1, "protocol_id": PROTOCOL_ID, "readiness_only": True,

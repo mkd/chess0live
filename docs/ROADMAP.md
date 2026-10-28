@@ -5,7 +5,21 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.10 prepared — match awaits a quiet window
+## Current checkpoint: Phase 4F.10 authorized and validated for launch
+
+The owner confirmed the quiet window on October 28. The dated
+[timing amendment](experiments/phase4f10-match-daytime-20261028.md) permits one
+explicit start from 19:00 to before 22:00 Helsinki, with an unchanged October 29
+07:00 cutoff. The 512-game sample, candidate, settings, openings, resource limits
+and decision criteria remain fixed. Engine defaults remain unchanged.
+
+All 112 focused checks and fresh native readiness/audit passed; see the
+[launch record](reports/2026-10-28-phase4f10-launch.md). Commit the tested amendment
+and start the single attempt, then independently audit its complete evidence.
+No game has started at this preparation checkpoint. Original preparation is
+preserved; the actual run must use a new directory and must never be retried.
+
+## Previous checkpoint: Phase 4F.10 prepared — match awaits a quiet window
 
 The [preparation report](reports/2026-10-28-phase4f10-preparation.md) records
 122 passing synthetic tests and independently audited, search-free native

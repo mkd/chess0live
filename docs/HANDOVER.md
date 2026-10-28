@@ -28,7 +28,26 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.10 preparation validated
+## Current checkpoint: Phase 4F.10 authorized and validated for launch
+
+The owner said “Ready, go ahead!” after leaving the prepared match pending.
+Read the [dated amendment](experiments/phase4f10-match-daytime-20261028.md).
+It permits one explicit October 28 19:00–22:00 Helsinki start, with the original
+October 29 07:00 cutoff and unchanged resource limits. Earlier grants are unused.
+The agreed quiet window requires paused LM Studio inference and an awake Mac
+on AC/Automatic power. Initial host inspection confirms AC and Low Power off.
+
+Original preparation commit `4a53054` and all 61 preparation sources/pins are
+archived unchanged under `results/phase4f10-match-20261028-preparation/`.
+Only the timing permission, its independent audit and tests receive new pins.
+All 112 focused tests and fresh readiness/independent audit passed; see the
+[launch record](reports/2026-10-28-phase4f10-launch.md). There are now 62 source
+snapshots / 61 pins. Commit locally before the single match attempt, then monitor
+the existing campaign and independently audit it after cleanup. No games have
+started at this preparation checkpoint. Preserve the normal release, stable
+GUI `0.1-dev-4b8b35d`, owner settings and README introduction.
+
+## Previous checkpoint: Phase 4F.10 preparation validated
 
 Read the [protocol](experiments/phase4f10-match.md) and
 [preparation report](reports/2026-10-28-phase4f10-preparation.md). New generator,
