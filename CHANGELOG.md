@@ -7,10 +7,16 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed the independently audited Continuation History puzzle comparison:
+  four mate reports with it enabled versus three disabled, with all 39 final moves
+  matching and no failed searches. The extra M9 is a tactical observation;
+  the option remains off pending game-based strength qualification. See the
+  [complete results](docs/reports/2026-10-28-phase4f9-results.md).
+
 - Added an isolated Continuation History puzzle comparison with automatic tool
   setup, frozen inputs and independent analysis/cleanup auditing. Readiness and
-  all 78 one-second smoke searches pass; full tactical and strength qualification
-  remain pending, and the option stays off by default.
+  all 78 one-second smoke searches pass; game-based strength qualification
+  remains pending, and the option stays off by default.
 
 - Added a reproducible 512-game TT Move Hints comparison with fresh paired
   openings, automatic tool setup, search-free readiness and an independent

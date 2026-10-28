@@ -28,7 +28,37 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.9 preparation validated
+## Current checkpoint: Phase 4F.9 audited and complete
+
+Read the [full result](reports/2026-10-28-phase4f9-results.md). The owner authorized
+one daytime attempt with LM Studio inference paused, AC and Automatic mode.
+All **78 searches / 39 pairs** completed October 28, **08:37:11–09:55:23 Helsinki**,
+using unchanged preparation `b337990` and the frozen `69215b4` executable.
+The launcher exited zero, cleanup was separately checked, and the owner was told
+LM Studio could resume. No run or schedule remains active; do not retry this one.
+
+Continuation History on reported **4 mates versus 3 off**, retaining positions
+1 and 2 (M7) and 15 (M9), and adding M9 on position 13 at 57.386 seconds.
+All 39 final moves match; scores match on 32/39. The report also retains four lower and two higher non-mate
+scores, two lower and four higher completed depths, and both earlier/later mate
+report times. No strength, repeatability, nonregression or forced-mate proof
+follows from this single exposed SMP observation. Expected-best-move labels
+remain unavailable. **Continuation History stays default false.**
+
+Independent audit `results/phase4f9-full-20261028-audit.json` passed: 52 fixed
+inputs, 78 clean sessions, 831 PVs / 7,707 legal plies, 156 best/ponder plies and 2,575
+resource observations. Raw evidence is `results/phase4f9-full-20261028/`;
+launch authorization, paired summary and protection/index records are in
+`results/phase4f9-full-20261028-launch/`. All 1,549 recorded protection entries
+(1,517 distinct files) and the README introduction match their starting bytes.
+
+**Next: Phase 4F.10 game-qualification preparation.** Freeze an isolated paired
+game protocol, inputs, failure/statistical criteria and independent audit, then
+obtain its own quiet run window before any games. This puzzle permission does
+not authorize a match. Keep TT Move Hints and the combined package parked, and
+preserve the normal release, stable GUI `0.1-dev-4b8b35d` and owner settings.
+
+## Previous checkpoint: Phase 4F.9 preparation validated
 
 Read the [protocol](experiments/phase4f9.md) and
 [preparation report](reports/2026-10-28-phase4f9-preparation.md). The new runner

@@ -1,5 +1,37 @@
 # Validation and experiment protocol
 
+## Phase 4F.9 full tactical comparison — October 28, 2026
+
+The [completed report](reports/2026-10-28-phase4f9-results.md) includes all
+39 positions × two roles × 60 seconds, eight threads and 64 MiB Hash. Only
+Continuation History differed. The owner granted one daytime exception and
+confirmed the quiet host. The unchanged frozen attempt completed at 09:55:23
+Helsinki after 78 minutes 12 seconds, with no failures, retries or exclusions.
+
+The independent auditor passed all 78 raw sessions and 52 input identities:
+831 PVs / 7,707 legal plies, 156 best/ponder plies, 2,184 commands, 234 readiness
+barriers and 2,575 resource observations. All processes exited zero with EOF;
+the launcher exited zero and a separate OS check found no remaining engines
+or sleep inhibitor. The owner can resume LM Studio inference. Maximum audited
+gap 2.043 seconds and clock drift 0.077 seconds remained inside the declared limits.
+
+On reported 4 mates versus 3 off, with one gained M9 on position 13 and no lost
+final mate reports. Shared distances match; all 39 best moves match. The extra
+M9 arrived at 57.386 seconds, and its 17-ply final PV legally reaches checkmate. This
+does not prove mate against all defenses or a repeatable gain. Scores match
+32/39; four lower/two higher non-mate scores and two lower/four higher completed
+depths are all retained in the report. Supplied-best-move accuracy is unavailable
+because those labels were absent before launch. No Elo or strength nonregression
+claim follows; keep the option off pending separate game qualification.
+
+Raw data: `results/phase4f9-full-20261028/`. Independent audit:
+`results/phase4f9-full-20261028-audit.json`, SHA-256
+`9f8ffa45c7d3b148d6b99312acc37b76d51e8178cbb4c733338aca7520e30164`.
+Launch/summary/index records: `results/phase4f9-full-20261028-launch/`.
+All 1,549 protected entries (1,517 distinct files), prepared pins and README
+introduction match. Engine/tooling bytes did not change; this documentation
+checkpoint uses the real full audit and does not rerun prior synthetic tests.
+
 ## Phase 4F.9 tactical preparation — October 28, 2026
 
 The [preparation report](reports/2026-10-28-phase4f9-preparation.md) records

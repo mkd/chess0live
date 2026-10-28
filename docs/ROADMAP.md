@@ -5,7 +5,29 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.9 prepared — full tactical run awaits a quiet window
+## Current checkpoint: Phase 4F.9 tactical comparison complete
+
+The [audited full report](reports/2026-10-28-phase4f9-results.md) records all
+78 searches / 39 pairs, 60 seconds per role with eight threads. The authorized
+attempt ran October 28 **08:37:11–09:55:23 Helsinki**, with no failures or
+exclusions. Independent replay verified all 52 inputs, legal analysis and clean
+exits; the owner can resume LM Studio inference. No experiment remains running.
+
+Continuation History on reported **four mates versus three off**, adding M9 on
+position 13 without losing the shared mate reports. All 39 best moves matched;
+scores matched on 32 positions. Four non-mate scores were lower with on, two
+higher; completed depth was higher on four positions and lower on two. All
+observations are retained. This single exposed SMP comparison is not a strength
+or repeatability result, and the option remains **off by default**.
+
+**Next checkpoint: Phase 4F.10**, prepare isolated Continuation History game
+qualification with a new declared paired-opening protocol and independent audit.
+Agree its quiet window before launch. Do not rerun, enlarge or tune against this
+completed puzzle attempt, and do not promote defaults without strength evidence.
+TT Move Hints and the older combined package stay parked; broader platform,
+SMP-strength and release acceptance gates remain open.
+
+## Previous checkpoint: Phase 4F.9 prepared — full tactical run awaits a quiet window
 
 The [preparation report](reports/2026-10-28-phase4f9-preparation.md) records
 71 passing synthetic checks, two search-free readiness sessions and all
@@ -953,7 +975,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.8 implementation complete, mixed node work and default-off. 4F.9 tactical runner/auditor and readiness/smoke validated; full run awaits a quiet window. Hints and all-on promotion stay parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.9 full tactical audit complete: 4 versus 3 mate reports, no lost mates, all moves match; still default-off. Next 4F.10 prepares isolated paired-game qualification. Hints and all-on promotion stay parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
