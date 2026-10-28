@@ -5,7 +5,29 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.8 implemented — continuation history remains optional
+## Current checkpoint: Phase 4F.9 prepared — full tactical run awaits a quiet window
+
+The [preparation report](reports/2026-10-28-phase4f9-preparation.md) records
+71 passing synthetic checks, two search-free readiness sessions and all
+78 one-second smoke searches. Independent raw audits passed, including 528
+legal analysis lines, process exits and 52 fixed input identities. Both roles
+selected the same final moves on all 39 smoke positions and reported no mates.
+This validates preparation, not playing strength or the full tactical gate.
+
+Only `Continuation History` differs, using the same frozen `69215b4` executable.
+TT Move Hints remains off in both roles. Source/dependency copies match the
+committed build; normal release, stable GUI `0.1-dev-4b8b35d` and owner settings
+are preserved. The frozen corpus has mate-distance labels but no expected
+best-move labels; supplied-best-move accuracy is unavailable.
+
+**Next step:** obtain a fresh quiet-window confirmation and timing exception if
+needed, then run the prepared 39 × 60-second × two-role comparison with eight
+workers, one resident engine and a 2 GiB reservation. Pause LM Studio inference
+for that run and retain AC/Automatic power. It is not running or scheduled.
+Independently audit all results before considering a separately declared paired
+game test. No default promotion or release follows from the short smoke result.
+
+## Previous checkpoint: Phase 4F.8 implemented — continuation history remains optional
 
 The [implementation report](reports/2026-10-28-phase4f8.md) records a new isolated
 `Continuation History` candidate, **off by default**. It ranks ordinary quiet
@@ -931,7 +953,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.8 implementation/correctness screen complete, mixed node work and default-off. 4F.9 tactical qualification preparation next; hints and all-on promotion stay parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.8 implementation complete, mixed node work and default-off. 4F.9 tactical runner/auditor and readiness/smoke validated; full run awaits a quiet window. Hints and all-on promotion stay parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

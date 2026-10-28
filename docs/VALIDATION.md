@@ -1,5 +1,34 @@
 # Validation and experiment protocol
 
+## Phase 4F.9 tactical preparation — October 28, 2026
+
+The [preparation report](reports/2026-10-28-phase4f9-preparation.md) records
+40 passing runner and 31 independent-auditor synthetic tests. Failure cases
+include wrong roles/settings, missing/duplicate Continuation History options,
+an unrelated TT hint toggle, altered inputs, incomplete frozen provenance,
+bad clocks, invalid chess output and incomplete process cleanup.
+
+Real readiness passed with two clean, search-free sessions. All 78 one-second
+smoke searches then passed; independent raw replay checked 528 analysis lines,
+3,412 PV plies, 156 best/ponder plies, 313 resource observations, clean exits/EOF
+and 52 input identities. Roles used the same frozen binary and identical
+settings except Continuation History. All 39 final moves match; neither role
+reported a positive mate. Do not treat smoke as the full tactical or strength
+gate, or its elapsed times as a speed benchmark.
+
+The corpus contains supplied mate distances, but no supplied best moves;
+supplied-best-move match accuracy requested in the protocol is unavailable.
+Record that limitation, never infer annotations or silently add data. A legal
+PV, mate report or centipawn difference is not a proof of mate or Elo.
+Full 39 × 60-second × two-role comparison is prepared, not run or scheduled;
+it requires a separate quiet window and applicable timing permission.
+
+Evidence: `results/phase4f9-preparation-20261028/`, with separate
+`readiness-audit.json` and `smoke-audit.json`. No engine code, normal build,
+stable GUI snapshot or historical campaign input changed. The short checks
+requested eight workers within the 18-CPU Mac's nine-worker daytime allowance,
+with 2 GiB reserved memory; admission estimates are not OS utilization caps.
+
 ## Phase 4F.8 continuation-history implementation — October 28, 2026
 
 The [protocol](experiments/phase4f8.md) and [report](reports/2026-10-28-phase4f8.md)

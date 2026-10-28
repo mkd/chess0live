@@ -138,6 +138,24 @@ require the frozen local experiment bundle described in the
 or the editable batch runner. `make test-phase4f3` checks their supervision and
 audit logic without starting a long experiment.
 
+For the isolated Continuation History comparison, use its frozen local build
+bundle and automatic tool setup:
+
+```sh
+python3 tools/check_phase4f9_puzzles.py --mode check --output results/continuation-ready-new
+python3 tools/check_phase4f9_puzzles.py --mode smoke --output results/continuation-smoke-new
+python3 tools/audit_phase4f9_puzzles.py results/continuation-smoke-new/report.json --output results/continuation-smoke-audit-new.json
+```
+
+Readiness starts no searches; smoke checks all 39 positions for one second with
+the option off and on. Both use eight threads and 64 MiB Hash; all other settings
+match. The [comparison instructions](docs/experiments/phase4f9.md) describe the
+required local bundle, saved evidence and separately authorized full run. These
+commands preserve GUI settings and the editable batch runner. The independent
+audit reads existing evidence without launching an engine. Its synthetic tests
+run with `python3 tools/run.py tests/phase4f9_puzzles_test.py` and
+`python3 tools/run.py tests/audit_phase4f9_puzzles_test.py`.
+
 ### Automatic Python tool setup
 
 Run tools/tests that need Python packages through the shared launcher:

@@ -7,6 +7,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added an isolated Continuation History puzzle comparison with automatic tool
+  setup, frozen inputs and independent analysis/cleanup auditing. Readiness and
+  all 78 one-second smoke searches pass; full tactical and strength qualification
+  remain pending, and the option stays off by default.
+
 - Added a reproducible 512-game TT Move Hints comparison with fresh paired
   openings, automatic tool setup, search-free readiness and an independent
   results audit. The completed match had no time forfeits; hints on scored

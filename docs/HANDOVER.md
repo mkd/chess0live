@@ -28,7 +28,43 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.8 implemented and checked
+## Current checkpoint: Phase 4F.9 preparation validated
+
+Read the [protocol](experiments/phase4f9.md) and
+[preparation report](reports/2026-10-28-phase4f9-preparation.md). The new runner
+`tools/check_phase4f9_puzzles.py` and independent
+`tools/audit_phase4f9_puzzles.py` compare only Continuation History off/on.
+Eight threads, Hash=64, LMR=true, TT Move Hints=false and all other experimental
+options off are fixed. The same tested `69215b4` binary was copied to
+`build/experiments/phase4f9/chess0live`; no rebuild or engine change occurred.
+Its new manifest includes all 27 preserved source/dependency files, verified
+against both the earlier build and that commit. Preserve all preparation pins.
+
+All 40 runner and 31 auditor synthetic tests pass. Actual readiness completed
+two sessions without search; actual smoke completed all 78 one-second searches.
+Independent audits pass with 52 assets, 80 clean process exits in total,
+528 legal search PVs / 3,412 plies, and all final/ponder moves legal. Both smoke
+roles chose the same move on every position and reported no mates. Evidence:
+`results/phase4f9-preparation-20261028/`, with external `readiness-audit.json`
+and `smoke-audit.json`. This is operational preparation, not strength evidence.
+
+The protocol mentions supplied-best-move comparisons, but the frozen data has
+no such labels. Mark that metric unavailable, without inventing answers or
+changing the corpus. Supplied mate distances and paired actual moves remain
+available. The report records this pre-full-run limitation explicitly.
+
+**Next:** obtain a fresh quiet-window confirmation before the ~78-minute full
+attempt. Use the existing runner with `--mode full --quiet-host`, a fresh output
+directory and, only with fresh daytime permission, `--allow-daytime`. Keep
+LM Studio inference paused, AC power and Automatic mode unchanged. Its eight
+workers/2 GiB reservation fit this Mac's daytime admission limit. Audit through
+`tools/run.py` into a fresh file outside the run directory, report all adverse
+differences, and close the finite tactical checkpoint before considering games.
+No full run, match, retry or schedule was launched by this preparation.
+The owner can use LM Studio until the next agreed quiet window. Defaults,
+normal release and stable GUI snapshot `0.1-dev-4b8b35d` remain unchanged.
+
+## Previous checkpoint: Phase 4F.8 implemented and checked
 
 Read the [implementation report](reports/2026-10-28-phase4f8.md) and
 [fixed protocol](experiments/phase4f8.md). `Continuation History` is a new
