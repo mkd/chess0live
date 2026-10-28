@@ -28,24 +28,35 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.10 authorized and validated for launch
+## Current checkpoint: Phase 4F.10 match running
 
-The owner said “Ready, go ahead!” after leaving the prepared match pending.
-Read the [dated amendment](experiments/phase4f10-match-daytime-20261028.md).
-It permits one explicit October 28 19:00–22:00 Helsinki start, with the original
-October 29 07:00 cutoff and unchanged resource limits. Earlier grants are unused.
-The agreed quiet window requires paused LM Studio inference and an awake Mac
-on AC/Automatic power. Initial host inspection confirms AC and Low Power off.
+The owner said “Ready, go ahead!”; the tested one-run timing amendment was
+committed as `b9430a6` before launch. The attempt started **October 28 at 19:56
+Helsinki** and all four workers are running. See the
+[launch record](reports/2026-10-28-phase4f10-launch.md) and
+[amendment](experiments/phase4f10-match-daytime-20261028.md). Fixed cutoff:
+October 29 07:00 Helsinki. Keep LM Studio inference paused, AC/Automatic power
+and the Mac awake. No competing builds or benchmarks during play.
 
-Original preparation commit `4a53054` and all 61 preparation sources/pins are
-archived unchanged under `results/phase4f10-match-20261028-preparation/`.
-Only the timing permission, its independent audit and tests receive new pins.
-All 112 focused tests and fresh readiness/independent audit passed; see the
-[launch record](reports/2026-10-28-phase4f10-launch.md). There are now 62 source
-snapshots / 61 pins. Commit locally before the single match attempt, then monitor
-the existing campaign and independently audit it after cleanup. No games have
-started at this preparation checkpoint. Preserve the normal release, stable
-GUI `0.1-dev-4b8b35d`, owner settings and README introduction.
+Read progress with `python3 results/phase4f10-match-20261028-preparation/progress.py
+results/phase4f10-match-20261028`. The five-minute progress heartbeat
+`chess0live-continuation-history-match-progress` is active in this chat and only
+monitors the existing attempt. Live W/D/L and remaining-time estimates are
+provisional. Do not retry, resume, extend, replace games or edit frozen inputs.
+
+On termination verify cleanup from the launch receipts and OS, immediately tell
+the owner LM Studio can resume, then use `tools/run.py --offline` with
+`tools/audit_phase4f10.py --campaign results/phase4f10-match-20261028 --output
+results/phase4f10-match-20261028-audit.json`. Do not duplicate a running audit or
+overwrite one. Preserve all evidence, document the complete audited outcome,
+commit tested documentation locally and stop the progress heartbeat. Never push
+or promote engine defaults automatically; any forfeit blocks promotion.
+
+Original preparation `4a53054` and all 61 sources/pins remain archived under
+`results/phase4f10-match-20261028-preparation/original-preparation/`; amended pins
+cover 62 sources. All 112 focused tests and fresh native readiness/audit passed.
+Preserve the normal release, stable GUI `0.1-dev-4b8b35d`, owner batch settings,
+README introduction, and all previous campaigns.
 
 ## Previous checkpoint: Phase 4F.10 preparation validated
 

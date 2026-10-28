@@ -1,4 +1,4 @@
-# Phase 4F.10 — authorized match launch preparation
+# Phase 4F.10 — authorized match launch
 
 The owner confirmed “Ready, go ahead!” after leaving the 512-game Continuation
 History comparison pending a quiet window. The
@@ -7,6 +7,17 @@ explicit October 28 **19:00–22:00 Helsinki** start and retains the fixed
 **October 29 07:00** cutoff. It changes admission only. The
 [original protocol](../experiments/phase4f10-match.md), sample, engine, network,
 openings, clocks, settings, resource budgets and decision criteria are unchanged.
+
+## Live checkpoint
+
+The single attempt started **October 28 at 19:56 Helsinki** after tested local
+commit `b9430a6bb63778ef99b5d4008529c040f2fe4d04`. All four workers started; the
+first live check showed no failures and resources within limits. No final result
+is available at this checkpoint. Raw evidence is
+`results/phase4f10-match-20261028/`; read `campaign.json` for current state.
+A five-minute progress heartbeat monitors this existing run and reports new games.
+The expected finish is roughly October 29 02:00–04:00 Helsinki, before the fixed
+07:00 cutoff, plus the independent audit. This is an estimate, not a guarantee.
 
 ## Validation before play
 
@@ -49,10 +60,9 @@ readiness/audit uses new filenames. No shared tool or engine change was needed.
 
 ## Run and interpretation
 
-Commit the tested amendment before starting exactly one fresh attempt at
-`results/phase4f10-match-20261028/`. At this preparation checkpoint no games have
-started. Launch/exit receipts in the preparation directory and the campaign
-manifest record the actual lifecycle. An idle-sleep inhibitor accompanies the
+The tested amendment was committed before the one fresh attempt at
+`results/phase4f10-match-20261028/`. Launch/exit receipts in the preparation
+directory and the campaign manifest record the actual lifecycle. An idle-sleep inhibitor accompanies the
 foreground launcher; suspend/resume remains unsupported.
 
 Expect roughly 6–8 hours. Progress reports show complete games, candidate

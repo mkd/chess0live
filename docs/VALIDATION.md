@@ -12,7 +12,8 @@ unchanged. Archive the original 61 sources/pins; the amended set has 62 source
 snapshots / 61 pins. Pre-launch setup failures and their resolution are preserved
 in the report and evidence directory; no games were played during validation.
 Only the dated admission policy changes. No engine/default/sample change or
-strength conclusion follows. Commit before the one fixed attempt; independently
+strength conclusion follows. The tested amendment was committed as `b9430a6`;
+the single attempt started at 19:56 Helsinki with all four workers. Independently
 audit its full outcome after cleanup. See the campaign manifest for live state.
 
 

@@ -5,19 +5,26 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.10 authorized and validated for launch
+## Current checkpoint: Phase 4F.10 match running
 
-The owner confirmed the quiet window on October 28. The dated
-[timing amendment](experiments/phase4f10-match-daytime-20261028.md) permits one
-explicit start from 19:00 to before 22:00 Helsinki, with an unchanged October 29
-07:00 cutoff. The 512-game sample, candidate, settings, openings, resource limits
-and decision criteria remain fixed. Engine defaults remain unchanged.
+The owner-confirmed attempt started **October 28 at 19:56 Helsinki**, after local
+commit `b9430a6`, 112 focused checks and fresh independent readiness audit.
+All four game workers started successfully. The [launch record](reports/2026-10-28-phase4f10-launch.md)
+and [dated amendment](experiments/phase4f10-match-daytime-20261028.md) preserve
+exact inputs and authorization. Live evidence is `results/phase4f10-match-20261028/`.
 
-All 112 focused checks and fresh native readiness/audit passed; see the
-[launch record](reports/2026-10-28-phase4f10-launch.md). Commit the tested amendment
-and start the single attempt, then independently audit its complete evidence.
-No game has started at this preparation checkpoint. Original preparation is
-preserved; the actual run must use a new directory and must never be retried.
+The fixed comparison is 512 games / 256 reversed-color opening pairs, 60+0.6,
+Threads=1 and Hash=64 per engine, four active searches/eight resident engines,
+and 6 GiB reserved. Only Continuation History differs. Defaults remain unchanged.
+Expected duration is 6–8 hours; the fixed cutoff is October 29 07:00 Helsinki.
+Keep LM Studio inference paused and the Mac awake on AC/Automatic power.
+
+**Next checkpoint:** monitor this existing attempt, verify cleanup, let the owner
+resume inference, then independently audit the complete evidence. A five-minute
+progress heartbeat reports newly finished games; it cannot launch or retry games.
+Do not rebuild, alter frozen inputs, resume or extend this run. Provisional scores
+are not strength evidence; any forfeit blocks promotion eligibility. Broader
+platform/SMP-strength/release gates remain open.
 
 ## Previous checkpoint: Phase 4F.10 prepared — match awaits a quiet window
 
