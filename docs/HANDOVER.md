@@ -28,7 +28,35 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.7 owner-authorized match launch
+## Current checkpoint: Phase 4F.7 audited and closed
+
+Read the [completed match report](reports/2026-10-27-phase4f7-match-results.md).
+All **512 games / 256 opening pairs** are included: hints on scored
+**162 W / 186 D / 164 L**, or **255/512 points (49.80%)**. The fresh independent
+audit completed October 28 with no errors, exclusions, changed frozen sources
+or time forfeits. Its decision is **inconclusive**: the conditional 95%
+pair-level score interval is **41.32%–58.29%**. This is neither demonstrated
+improvement nor proof of equivalence/nonregression. TT Move Hints stays off;
+its promotion is parked and this fixed attempt must not be extended or rerun.
+
+The campaign ran October 27, 16:57:44–23:20:01 Helsinki. The launcher exited zero;
+saved cleanup and a separate process check found no remaining match workers or
+sleep inhibitor. The owner has been told LM Studio inference can resume.
+The completed run's progress heartbeat has been deleted.
+Preserve `results/phase4f7-match-20261027/` and the external audit
+`results/phase4f7-match-20261027-audit.json`. The latter is read-only replay of
+saved evidence, not another engine test. All 1,031 protected files, the stable
+GUI bundle `0.1-dev-4b8b35d`, normal binaries, owner settings and README intro
+match their saved identities. No engine/default/build change was made.
+
+Next work is a new isolated Phase 4F search candidate, with scope and acceptance
+criteria chosen before new tests. No further hints match is pending. The older
+combined-policy attempt stays parked; previous higher-concurrency clock failures
+and broader SMP/platform/training/release gates are not cleared by this
+single-thread blitz result. The historical launch/preparation instructions below
+are evidence, not instructions to start this expired campaign again.
+
+## Previous checkpoint: Phase 4F.7 owner-authorized match launch
 
 On October 27 the owner confirmed the quiet window and instructed starting the
 test with progress updates. The [dated timing amendment](experiments/phase4f7-match-daytime-20261027.md)
@@ -91,7 +119,8 @@ The unchanged build manifest additionally binds its complete 25-source inventory
 Do not edit/refreeze these inputs silently. Normal Makefile targets and historical
 campaigns remain unchanged. Stable GUI `0.1-dev-4b8b35d` remains preserved.
 
-**Next:** agree a separate 6–8-hour quiet window with the owner. The fixed launcher
+**Next at that checkpoint:** agree a separate 6–8-hour quiet window with the owner.
+The fixed launcher
 accepts starts only 23:00–23:30 Helsinki and stops by next 07:00; no match,
 daytime exception or schedule is authorized by the completed puzzle run.
 Record AC/Automatic mode and paused competing inference before actual play;

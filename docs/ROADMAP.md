@@ -5,7 +5,32 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.7 strength run authorized
+## Current checkpoint: Phase 4F.7 complete — strength result inconclusive
+
+The [completed match report](reports/2026-10-27-phase4f7-match-results.md) records
+**512 games / 256 complete opening pairs**, independently audited on October 28.
+Hints on scored **162 wins, 186 draws, 164 losses: 255/512 points (49.80%)**.
+There were no time forfeits, excluded games or audit errors. The conditional
+95% pair-level interval is **41.32%–58.29%**; neither a gain nor equivalence is
+established. The predeclared promotion-review gate was not met.
+
+The run finished October 27 at **23:20:01 Helsinki**, after 6h22m17s. Cleanup is
+verified and the owner can resume LM Studio inference. All frozen inputs and
+1,031 protected files remain intact. The progress heartbeat has been deleted.
+The finite qualification attempt is closed:
+**TT Move Hints remains optional and off; its promotion is parked.** No repeat,
+sample extension, default change or release follows from this result.
+
+**Next checkpoint:** resume Phase 4F strength-focused search development with a
+new isolated candidate, using the existing search diagnostics to choose its
+scope. Freeze correctness/tactical and match acceptance criteria before testing
+it. Do not tune against this completed campaign or let its inconclusive result
+block unrelated work. The older combined-policy campaign stays parked; broader
+SMP strength, native platform/training and release acceptance gates remain open.
+
+## Previous checkpoint: Phase 4F.7 strength run authorized
+
+Historical launch record; completion and decision are recorded above.
 
 The owner confirmed ready on October 27 and requested launch/progress updates.
 The [one-run amendment](experiments/phase4f7-match-daytime-20261027.md) admits
@@ -36,7 +61,7 @@ exclusion set. Shared opening stems limit independence. The launcher, auditor,
 generator and tests are new files; historical tools, engine sources, Makefile,
 normal/stable binaries and the owner's README introduction are preserved.
 
-**Next step within 4F.7:** agree the long run window, then execute the frozen
+**Next step at that checkpoint:** agree the long run window, then execute the frozen
 campaign and independently audit all results. The declared start window is
 23:00–23:30 Helsinki, with a 07:00 cutoff and an estimated 6–8 hours. No match
 or schedule is running, and puzzle permission does not authorize this match.
@@ -883,7 +908,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.7 full 78-search tactical comparison audited; fresh strength-campaign preparation next; hints remain off and all-on stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.7 tactical and 512-game match audits complete; match inconclusive, hints promotion parked/off. Select a new isolated search candidate; all-on stays parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

@@ -9,12 +9,13 @@ release numbers; detailed measurements live in the linked experiment records.
 
 - Added a reproducible 512-game TT Move Hints comparison with fresh paired
   openings, automatic tool setup, search-free readiness and an independent
-  results audit. Preparation checks passed; playing-strength results are pending.
-  Dated, explicit run permissions retain fixed resource limits and deadlines.
+  results audit. The completed match had no time forfeits; hints on scored
+  162 wins, 186 draws and 164 losses. Strength evidence was inconclusive,
+  so hints remain optional and off by default. See the
+  [audited result](docs/reports/2026-10-27-phase4f7-match-results.md).
 
 - Completed the audited 39-position, eight-thread TT Move Hints comparison.
-  Both settings found the same three mates and chose the same final moves;
-  hints remain optional pending separate playing-strength testing.
+  Both settings found the same three mates and chose the same final moves.
 
 - Added one-command readable puzzle reports and spreadsheet CSV exports from
   completed comparisons. Saved evidence is audited again before export; every

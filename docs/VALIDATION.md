@@ -1,5 +1,38 @@
 # Validation and experiment protocol
 
+## Phase 4F.7 full match — October 27, audited October 28, 2026
+
+The [match report](reports/2026-10-27-phase4f7-match-results.md) records the one
+complete fixed attempt: **512 games / 256 color-reversed pairs**, 60+0.6,
+Threads=1, Hash=64, four active workers, minimum 6 GiB reservation. Only
+TT Move Hints differed. The dated authorization allowed the 16:57:44 Helsinki
+start; completion was 23:20:01, before the original next-07:00 cutoff.
+
+Fresh independent audit through `tools/run.py tools/audit_phase4f7.py` exited
+zero, with all games/pairs included and no audit errors, source differences or
+time forfeits by either role. Saved evidence covers 52,927 search events,
+62,911 legal game plies, 3,059,254 legal PV plies and 52,577 legal ponder
+suggestions (Ponder=false).
+The parent supervisor recorded 23,364 observations. Audit replay validates
+membership, legal histories, raw clocks/options, resource coverage, provenance
+and cleanup. The launcher exited zero and the separate process check found no
+remaining match/search/sleep-inhibitor process; LM Studio may resume.
+
+Hints on scored **162 W / 186 D / 164 L**, **255/512 points (49.8046875%)**.
+Pair-point buckets for 0/0.5/1/1.5/2 points are **2/37/179/37/1**. The fixed
+conditional 95% Hoeffding score interval is **41.316553%–58.292822%**.
+Decision: **inconclusive; park promotion, leave hints off**. Shared opening
+stems and shared-host concurrency limit independence; this does not establish
+equivalence, a strength gain, absolute Elo, eight-thread match strength or a
+general repair of earlier clock failures. No replacement or extension is due.
+
+Raw campaign: `results/phase4f7-match-20261027/`. External audit:
+`results/phase4f7-match-20261027-audit.json`, SHA-256
+`de9cbe1851f63ae6126450bd35582b0bba1550245c695cce2549918a24e27e4a`.
+All 1,031 protected files and the README introduction still match their saved
+identities. This checkpoint changes documentation only; previous synthetic
+launcher/auditor tests were not rerun, and no engine was rebuilt or searched.
+
 ## Phase 4F.7 dated timing amendment — October 27, 2026
 
 The owner confirmed ready and instructed starting the prepared match. The
