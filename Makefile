@@ -282,6 +282,21 @@ test-profile-tt-move-hints:
 test-history-prefix-search: $(BUILD)/history-prefix-search-test$(EXE)
 	"$(BUILD)/history-prefix-search-test$(EXE)"
 
+$(BUILD)/continuation-history-test$(EXE): tests/continuation_history_test.cpp include/chess0live/detail/continuation_history.hpp $(BUILD)/toolchain.ok
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(LDFLAGS) $(LDLIBS) -o "$@"
+
+# Worker-private ordering and learning boundaries include search.cpp, not search.o.
+$(BUILD)/continuation-history-search-test$(EXE): tests/continuation_history_search_test.cpp src/search.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-continuation-history test-continuation-history-search
+test-continuation-history-search: $(BUILD)/continuation-history-test$(EXE) $(BUILD)/continuation-history-search-test$(EXE)
+	"$(BUILD)/continuation-history-test$(EXE)"
+	"$(BUILD)/continuation-history-search-test$(EXE)" "$(NET)"
+
+test-continuation-history: $(ENGINE) test-continuation-history-search
+	$(TOOL_PYTHON) tests/continuation_history_uci_test.py "$(ENGINE)" --network "$(NET)"
+
 .PHONY: test-ordering-search
 test-ordering-search: $(BUILD)/ordering-search-test$(EXE)
 	"$(BUILD)/ordering-search-test$(EXE)"
@@ -311,7 +326,7 @@ test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nn
 	"$(BUILD)/nnue-updates-test$(EXE)"
 	"$(BUILD)/nnue-dense-test$(EXE)"
 
-test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE) $(BUILD)/tt-move-hints-search-test$(EXE)
+test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE) $(BUILD)/tt-move-hints-search-test$(EXE) test-continuation-history-search
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
 	"$(BUILD)/ordering-search-test$(EXE)"
 	"$(BUILD)/history-prefix-search-test$(EXE)"
@@ -590,6 +605,7 @@ help:
 	@echo 'make test-smp          Parallel UCI/PV checks (automatic Python setup)'
 	@echo 'make test-profile-smp  Test the bounded parallel scaling profiler'
 	@echo 'make test-countermove test-profile-countermove  Check experimental quiet reply ordering'
+	@echo 'make test-continuation-history  Check optional contextual quiet history'
 	@echo 'make test-null-state test-null-search test-null-move  Check experimental verified null pruning'
 	@echo 'make test-reverse-futility-search test-reverse-futility  Check experimental static pruning'
 	@echo 'make SIMD=scalar test     Force portable scalar NNUE reference'
@@ -624,7 +640,8 @@ clean:
 
 -include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d \
          $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d \
-         $(BUILD)/tt-move-hints-search-test.d
+         $(BUILD)/tt-move-hints-search-test.d $(BUILD)/continuation-history-test.d \
+         $(BUILD)/continuation-history-search-test.d
 
 # Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
 .PHONY: tooling test-tooling

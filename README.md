@@ -435,6 +435,21 @@ python3 tools/run.py tools/profile_countermove.py --engine build/macos-arm64-gen
 See the [comparison protocol](docs/experiments/phase4d-countermove.md) for fixed
 settings, resource limits, and interpretation. Use a new output filename each run.
 
+`Continuation History` (default `false`) is a separate experimental quiet-move
+ordering option. Enable it with `setoption name Continuation History value true`.
+It learns quiet replies in the context of the preceding colored piece and its
+destination. Existing capture, promotion, killer and countermove priorities stay
+ahead of this history tier. Ordering can affect reductions, so this is not yet
+an accepted strength improvement.
+
+Each enabled search worker uses an additional 1.125 MiB outside the Hash budget
+(9 MiB for eight threads). The next search allocates or releases these private
+tables; changing the policy also clears reusable search state. `ucinewgame` and
+`Clear Hash` forget learned replies. With Search Diagnostics enabled, the final
+`continuation-history v1` record reports aggregate allocation and lookup/update
+counts. Run `make test-continuation-history` for table, search and UCI checks;
+optional Python dependencies are prepared automatically.
+
 For manual Cute Chess testing while development continues, use the preserved
 snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 For a current build, the guide also includes a pasteable

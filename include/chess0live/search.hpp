@@ -59,6 +59,9 @@ struct SearchLimits {
     CaptureOrdering capture_ordering = CaptureOrdering::mvv_lva;
     /** Experimental quiet reply ordering; changes neither depth nor pruning. */
     bool countermove_ordering = false;
+    /** Experimental one-ply contextual quiet history. No depth/pruning rule
+     * changes; altered ordering can still change which moves receive LMR. */
+    bool continuation_history = false;
     /** Experimental position-key move ordering; never supplies a score/bound
      * or the contextual TT exemption used by late-move reductions. */
     bool tt_move_hints = false;
@@ -150,6 +153,22 @@ struct MoveHintStatistics {
     std::uint64_t hits = 0;
     std::uint64_t legal_matches = 0;
     std::uint64_t stores = 0;
+};
+
+/** Optional quiet-history accounting, summed over private worker tables.
+ * Storage is allocated only when enabled, independently of the Hash setting.
+ * Lookups count ordinary positive-depth quiet-history rankings with a real
+ * previous-move context; nonzero counts their learned scores. Updates include
+ * rewards and penalties after completed ordinary quiet cutoffs. Event counters
+ * require Search Diagnostics, and include completed subtrees of an aborted root.
+ */
+struct ContinuationHistoryStatistics {
+    bool enabled = false;
+    std::size_t entries = 0;
+    std::size_t allocated_bytes = 0;
+    std::uint64_t lookups = 0;
+    std::uint64_t nonzero = 0;
+    std::uint64_t updates = 0;
 };
 
 struct SearchDiagnostics {
@@ -315,6 +334,7 @@ struct SearchResult {
     DeepLateMoveStatistics deep_lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
+    ContinuationHistoryStatistics continuation_history;
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;

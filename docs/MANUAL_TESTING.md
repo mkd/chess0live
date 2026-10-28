@@ -90,8 +90,10 @@ setoption name ProbCut value true
 isready
 ```
 
-Wait for `readyok`, then enter `position ...` and `go ...` as usual. This enables
-all currently selectable search experiments together. Automatic implementation
+Wait for `readyok`, then enter `position ...` and `go ...` as usual. This is the
+historical eight-setting combined experiment; it does not include newer
+`TT Move Hints` or `Continuation History`. Keep those two off when reproducing
+this comparison. Automatic implementation
 optimizations, PVS, aspiration windows, quiescence and the transposition table
 are already active; they need no extra switch. `Threads` and `Hash` remain
 independent settings, and Syzygy needs your external table directory. Time Policy
@@ -112,6 +114,15 @@ To restore current search defaults in the console, keep LMR `true`, change
 Capture Ordering to `mvv-lva`, and set the other six listed boolean experiments
 to `false`. Neither `ucinewgame` nor Clear Hash resets options. A fresh process
 uses defaults, but Cute Chess may immediately reapply its saved profile.
+
+## Testing continuation history separately
+
+To try `Continuation History` on a newly compiled engine, use a separate Cute
+Chess profile with that check option enabled and leave TT Move Hints and the
+other experiments off. Match the opponent's Threads/Hash/time control. Record
+the source revision, binary identity and full PGNs. The feature is default-off;
+the short development comparison does not establish a strength gain. None of
+the preserved older GUI snapshots is upgraded by rebuilding the current tree.
 
 ## Stable local test copy
 

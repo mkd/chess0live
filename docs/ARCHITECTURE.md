@@ -99,6 +99,20 @@ All workers use the same receipt/ponder origin and hard deadline. The leader's
 completion cancels helpers; normal and exceptional exits join them before return.
 Changing Threads transactionally replaces workers and clears learned/cache state.
 
+Optional `Continuation History` adds a worker-private 768 × 768 `int16_t` table
+in `detail/continuation_history.hpp`. Each dimension encodes a colored moving
+piece and destination; the previous move is passed by value and uses the original
+piece before promotion. Ordinary quiet-history rankings add the contextual score
+after all privileged move tiers. A completed ordinary quiet cutoff rewards its
+winner and penalizes the already searched quiet prefix using bounded gravity.
+Root, quiescence and speculative subtrees have no usable continuation context.
+Each new search halves this history; clear/new-game/policy changes erase it.
+Preparation allocates every worker's replacement before committing a transition,
+and disabled workers release storage. Counts aggregate only after joining helpers.
+The table is independent of the score TT and its Hash budget. This ordering-only
+experiment can change LMR selection and therefore requires separate strength
+qualification; see the [implementation protocol](experiments/phase4f8.md).
+
 Explicit node-limited searches reserve one global atomic ticket per visited
 node; the limit is not multiplied by Threads. Other searches publish padded
 worker counters every 128 nodes and on iteration/worker completion. Intermediate

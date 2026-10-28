@@ -8,6 +8,7 @@
  */
 #include "chess0live/search.hpp"
 
+#include "chess0live/detail/continuation_history.hpp"
 #include "chess0live/detail/move_hint_entry.hpp"
 #include "chess0live/detail/transposition_entry.hpp"
 #include "chess0live/exchange.hpp"
@@ -227,6 +228,10 @@ struct SearchWorker {
     // inferred at the root. Context travels by value through re-searches.
     static constexpr std::size_t no_previous_move = 12 * 64;
     std::array<Move, no_previous_move> countermoves{};
+    static_assert(no_previous_move == detail::ContinuationHistory::no_context);
+    // Contextual scores belong to one worker and are allocated before dispatch.
+    // Neither Hash capacity nor shared-table synchronization depends on them.
+    detail::ContinuationHistory continuation_scores;
     std::array<std::array<Move, max_ply>, max_ply> pv{};
     std::array<int, max_ply> pv_length{};
     std::vector<std::uint64_t> game_history;
@@ -241,6 +246,7 @@ struct SearchWorker {
     DeepLateMoveStatistics deep_lmr;
     OrderingStatistics ordering;
     CountermoveStatistics countermove;
+    ContinuationHistoryStatistics continuation;
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;
@@ -265,6 +271,7 @@ struct SearchWorker {
         history_score = {};
         killers = {};
         countermoves = {};
+        continuation_scores.clear();
         evaluator.reset();
     }
 
@@ -494,7 +501,7 @@ struct SearchWorker {
     }
 
     int ordering_score(const Position& position, Move move, Move tt_move, int ply,
-                       Move reply) const {
+                       Move reply, std::size_t previous_move = no_previous_move) {
         if (move == tt_move) return 2000000;
         if (move.promotion != PieceType::none)
             return 1200000 + piece_order_value[static_cast<unsigned>(move.promotion)];
@@ -507,7 +514,17 @@ struct SearchWorker {
         if (move == killers[static_cast<std::size_t>(ply)][0]) return 900000;
         if (move == killers[static_cast<std::size_t>(ply)][1]) return 800000;
         if (move == reply) return 700000;
-        return history_score[static_cast<unsigned>(position.turn())][move.from][move.to];
+        int score = history_score[static_cast<unsigned>(position.turn())][move.from][move.to];
+        if (limits.continuation_history && previous_move < no_previous_move) {
+            const int contextual = continuation_scores.value(previous_move,
+                detail::ContinuationHistory::context(position.at(move.from), move.to));
+            score += contextual;
+            if (limits.diagnostics) {
+                ++continuation.lookups;
+                if (contextual != 0) ++continuation.nonzero;
+            }
+        }
+        return score;
     }
 
     /** Helpers vary only equally ranked root moves. TT/capture/promotion and
@@ -528,7 +545,7 @@ struct SearchWorker {
     }
 
     void order(const Position& position, std::vector<Move>& moves, Move tt_move, int ply,
-               Move reply = {}) {
+               Move reply = {}, std::size_t previous_move = no_previous_move) {
         ranked_moves.clear();
         ranked_moves.reserve(moves.size());
         const bool use_see = limits.capture_ordering == CaptureOrdering::see;
@@ -536,7 +553,7 @@ struct SearchWorker {
         // immutable during sorting. Scoring once avoids repeated board/history
         // reads; delaying score computation into child search would change order.
         for (const auto move : moves) {
-            auto score = ordering_score(position, move, tt_move, ply, reply);
+            auto score = ordering_score(position, move, tt_move, ply, reply, previous_move);
             // SEE still visits every eligible capture, including singleton lists.
             // Losing ordinary captures follow quiet history; TT and promotions
             // retain priority. Neither ordering mode prunes any moves.
@@ -591,6 +608,34 @@ struct SearchWorker {
             const auto quiet_move = moves[index];
             if (!quiet_move.is_capture() && quiet_move.promotion == PieceType::none)
                 update_history(side, quiet_move, -bonus);
+        }
+    }
+
+    /** Learn a separate contextual signal from the same completed quiet prefix.
+     * The parent is restored before entry, so its original piece identities
+     * are available even after promotions elsewhere in the tree. Never read
+     * or train this table through fictional/verification/ProbCut subtrees.
+     * A future skipped-move policy must pass the actual searched subset here.
+     */
+    void learn_continuation_cutoff(const Position& position, const std::vector<Move>& moves,
+                                   std::size_t cutoff_index, int depth,
+                                   std::size_t previous_move, Mode mode) {
+        if (!limits.continuation_history || mode != Mode::ordinary
+            || previous_move >= no_previous_move) return;
+        assert(cutoff_index < moves.size());
+        const auto winner = moves[cutoff_index];
+        if (winner.is_capture() || winner.promotion != PieceType::none) return;
+        const int bonus = std::min(2048, depth * depth * 24);
+        const auto update = [&](Move move, int amount) {
+            continuation_scores.update(previous_move,
+                detail::ContinuationHistory::context(position.at(move.from), move.to), amount);
+            if (limits.diagnostics) ++continuation.updates;
+        };
+        update(winner, bonus);
+        for (std::size_t index = 0; index < cutoff_index; ++index) {
+            const auto move = moves[index];
+            if (!move.is_capture() && move.promotion == PieceType::none)
+                update(move, -bonus);
         }
     }
 
@@ -860,7 +905,8 @@ struct SearchWorker {
         // Only an exact legal-list match receives a rank. Stale suggestions
         // are never inserted, and quiescence retains its original ordering.
         const auto move_hint = ordering_move(position.key(), moves, tt_move, ply, mode);
-        order(position, moves, move_hint, ply, reply);
+        order(position, moves, move_hint, ply, reply,
+              mode == Mode::ordinary ? previous_move : no_previous_move);
 
         // A tactical reduced search is only a prediction of a full-depth
         // fail-high. Keep each subtree isolated from ordinary TT bounds,
@@ -946,9 +992,8 @@ struct SearchWorker {
         std::size_t move_number = 0;
         for (const auto move : moves) {
             const auto undo = position.make_move(move);
-            const auto child_context = limits.countermove_ordering
-                ? (6 * static_cast<std::size_t>(color_of(undo.moved))
-                   + static_cast<std::size_t>(type_of(undo.moved)) - 1) * 64 + move.to
+            const auto child_context = limits.countermove_ordering || limits.continuation_history
+                ? detail::ContinuationHistory::context(undo.moved, move.to)
                 : no_previous_move;
             const auto child_key = position.key();
             const auto child_digest = position.halfmove_clock() == 0
@@ -1022,6 +1067,8 @@ struct SearchWorker {
             if (score >= beta) {
                 learn_quiet_cutoff(position.turn(), moves, move_number - 1,
                                    depth, ply, previous_move, mode);
+                learn_continuation_cutoff(position, moves, move_number - 1,
+                                          depth, previous_move, mode);
                 break;
             }
         }
@@ -1066,6 +1113,10 @@ struct SearchWorker {
         ordering.policy = limits.capture_ordering;
         countermove = {};
         countermove.enabled = limits.countermove_ordering;
+        continuation = {};
+        continuation.enabled = limits.continuation_history;
+        continuation.entries = continuation_scores.entries();
+        continuation.allocated_bytes = continuation_scores.allocated_bytes();
         nullmove = {};
         nullmove.enabled = limits.null_move_pruning;
         reverse_futility = {};
@@ -1090,6 +1141,7 @@ struct SearchWorker {
         for (auto& side : history_score)
             for (auto& from : side)
                 for (auto& score : from) score /= 2;
+        continuation_scores.decay();
         killers = {};
         pv_length = {};
         game_history = std::move(history);
@@ -1119,6 +1171,7 @@ struct SearchWorker {
             result.deep_lmr = deep_lmr;
             result.ordering = ordering;
             result.countermove = countermove;
+            result.continuation_history = continuation;
             result.nullmove = nullmove;
             result.reverse_futility = reverse_futility;
             result.qsearch_see = qsearch_see;
@@ -1247,6 +1300,7 @@ struct Search::Impl {
     bool previous_deep_lmr = false;
     CaptureOrdering previous_ordering = CaptureOrdering::mvv_lva;
     bool previous_countermove = false;
+    bool previous_continuation = false;
     bool previous_tt_move_hints = false;
     bool previous_nullmove = false;
     bool previous_reverse_futility = false;
@@ -1288,13 +1342,31 @@ struct Search::Impl {
         request.syzygy_probe_depth = std::clamp(request.syzygy_probe_depth, 1, Search::max_ply);
         // Finish optional allocation before mutating shared policy or clearing
         // any current cache. Failure propagates with the previous state intact.
+        // Prepare every worker's new private table before committing any of
+        // them. Allocation failure must not leave only a subset enabled or
+        // discard the previously trained state. These moves allocate nothing.
+        std::vector<detail::ContinuationHistory> continuation_replacements;
+        const bool change_continuation =
+            workers.front()->continuation_scores.enabled() != request.continuation_history;
+        if (change_continuation) {
+            continuation_replacements.resize(workers.size());
+            for (auto& replacement : continuation_replacements)
+                replacement.enable(request.continuation_history);
+        }
         shared.set_move_hints(request.tt_move_hints);
+        if (change_continuation)
+            for (std::size_t id = 0; id < workers.size(); ++id)
+                std::swap(workers[id]->continuation_scores, continuation_replacements[id]);
+        // Old tables from a disabling transition must not remain resident
+        // throughout the next search merely because this local vector lives on.
+        continuation_replacements.clear();
         shared.tablebase_limit = std::min(request.syzygy_probe_limit,
                                          int(shared.tablebases.largest()));
         if (cache_policy_valid && (request.late_move_reductions != previous_lmr
             || request.deep_quiet_reductions != previous_deep_lmr
             || request.capture_ordering != previous_ordering
             || request.countermove_ordering != previous_countermove
+            || request.continuation_history != previous_continuation
             || request.tt_move_hints != previous_tt_move_hints
             || request.null_move_pruning != previous_nullmove
             || request.reverse_futility_pruning != previous_reverse_futility
@@ -1306,6 +1378,7 @@ struct Search::Impl {
         previous_deep_lmr = request.deep_quiet_reductions;
         previous_ordering = request.capture_ordering;
         previous_countermove = request.countermove_ordering;
+        previous_continuation = request.continuation_history;
         previous_tt_move_hints = request.tt_move_hints;
         previous_nullmove = request.null_move_pruning;
         previous_reverse_futility = request.reverse_futility_pruning;
@@ -1429,6 +1502,11 @@ struct Search::Impl {
             result.countermove.lookups += worker.countermove.lookups;
             result.countermove.matches += worker.countermove.matches;
             result.countermove.updates += worker.countermove.updates;
+            result.continuation_history.entries += worker.continuation.entries;
+            result.continuation_history.allocated_bytes += worker.continuation.allocated_bytes;
+            result.continuation_history.lookups += worker.continuation.lookups;
+            result.continuation_history.nonzero += worker.continuation.nonzero;
+            result.continuation_history.updates += worker.continuation.updates;
             result.nullmove.probes += worker.nullmove.probes;
             result.nullmove.fail_highs += worker.nullmove.fail_highs;
             result.nullmove.verifications += worker.nullmove.verifications;

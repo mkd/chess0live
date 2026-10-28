@@ -198,6 +198,7 @@ private:
     bool deep_quiet_reductions_ = false;
     CaptureOrdering capture_ordering_ = CaptureOrdering::mvv_lva;
     bool countermove_ordering_ = false;
+    bool continuation_history_ = false;
     bool null_move_pruning_ = false;
     bool reverse_futility_pruning_ = false;
     bool qsearch_see_pruning_ = false;
@@ -281,6 +282,7 @@ private:
         output("option name Deep Quiet Reductions type check default false");
         output("option name Capture Ordering type combo default mvv-lva var mvv-lva var see");
         output("option name Countermove Ordering type check default false");
+        output("option name Continuation History type check default false");
         output("option name Null Move Pruning type check default false");
         output("option name Reverse Futility Pruning type check default false");
         output("option name QSearch SEE Pruning type check default false");
@@ -399,6 +401,12 @@ private:
             else if (value == "false") countermove_ordering_ = false;
             else output("info string error: Countermove Ordering expects true or false");
             return; // Search isolates both cache and worker-local histories.
+        }
+        if (name == "Continuation History") {
+            if (value == "true") continuation_history_ = true;
+            else if (value == "false") continuation_history_ = false;
+            else output("info string error: Continuation History expects true or false");
+            return; // Search isolates the cache and each worker's learned context.
         }
         if (name == "Null Move Pruning") {
             if (value == "true") null_move_pruning_ = true;
@@ -642,6 +650,15 @@ private:
                  << " updates " << result.countermove.updates;
             output(line.str());
         }
+        if (result.continuation_history.enabled) {
+            const auto& history = result.continuation_history;
+            std::ostringstream line;
+            line << "info string continuation-history v1 enabled true entries " << history.entries
+                 << " allocated_bytes " << history.allocated_bytes
+                 << " lookups " << history.lookups << " nonzero " << history.nonzero
+                 << " updates " << history.updates;
+            output(line.str());
+        }
         switch (diagnostics.stop_reason) {
             case StopReason::external_stop: reason = "external_stop"; break;
             case StopReason::node_limit: reason = "node_limit"; break;
@@ -682,6 +699,7 @@ private:
         limits.deep_quiet_reductions = deep_quiet_reductions_;
         limits.capture_ordering = capture_ordering_;
         limits.countermove_ordering = countermove_ordering_;
+        limits.continuation_history = continuation_history_;
         limits.null_move_pruning = null_move_pruning_;
         limits.reverse_futility_pruning = reverse_futility_pruning_;
         limits.qsearch_see_pruning = qsearch_see_pruning_;

@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.7 complete — strength result inconclusive
+## Current checkpoint: Phase 4F.8 implemented — continuation history remains optional
+
+The [implementation report](reports/2026-10-28-phase4f8.md) records a new isolated
+`Continuation History` candidate, **off by default**. It ranks ordinary quiet
+replies using their preceding move's colored piece/destination. Each enabled
+worker uses 1.125 MiB of private history, outside Hash. Existing move-priority
+tiers and pruning predicates are preserved, but ordering can affect LMR.
+
+Native regression checks and focused ASan/UBSan/TSan checks passed. The finite
+15-root screen completed 180 searches: all 60 disabled-versus-parent signatures
+match, all repeated runs reproduce, and a separate saved-output audit passes.
+All completed-depth scores and final moves match with the option enabled, but
+node work is mixed: **+0.95% aggregate**, with a nearly unchanged per-case median.
+There is no demonstrated speed or strength gain and no default promotion.
+
+**Next checkpoint: Phase 4F.9**, prepare the matched 39-position tactical
+qualification and its independent audit, then agree a quiet run window before
+the full 60-second-per-role comparison. No long test or schedule was started.
+LM Studio may remain active for ordinary development. Preserve the frozen
+candidate, normal release, stable GUI `0.1-dev-4b8b35d` and completed campaigns.
+TT Move Hints and the older combined-policy promotion remain parked; broader
+SMP/platform/training and release acceptance gates remain open.
+
+## Previous checkpoint: Phase 4F.7 complete — strength result inconclusive
 
 The [completed match report](reports/2026-10-27-phase4f7-match-results.md) records
 **512 games / 256 complete opening pairs**, independently audited on October 28.
@@ -908,7 +931,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; combined-policy tactical audit and worker diagnosis; exact SEE and quiet-history implementations; optional position-key move hints | 4F.7 tactical and 512-game match audits complete; match inconclusive, hints promotion parked/off. Select a new isolated search candidate; all-on stays parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.8 implementation/correctness screen complete, mixed node work and default-off. 4F.9 tactical qualification preparation next; hints and all-on promotion stay parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

@@ -28,7 +28,39 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.7 audited and closed
+## Current checkpoint: Phase 4F.8 implemented and checked
+
+Read the [implementation report](reports/2026-10-28-phase4f8.md) and
+[fixed protocol](experiments/phase4f8.md). `Continuation History` is a new
+independent quiet-ordering experiment, **default false**. A worker-private
+768 × 768 `int16_t` table adds history for the preceding/current colored piece
+and destination. Preserve privileged move tiers, original-piece contexts,
+speculative exclusion, transactional allocation, option/reset isolation and
+aggregate counters after joining workers. Ordering can change LMR choices.
+
+Full native regressions and the focused table/direct/UCI tests pass, including
+ASan+UBSan and TSan. The isolated PATH test initially lacked an adjacent network;
+its unchanged command passed after fixing that local fixture, and both runs are
+recorded. The fixed 180-search screen and independent raw audit pass: 60 exact
+parent/off signatures, 90 repeat comparisons and 90 clean process exits. On/off
+scores and final moves match, but aggregate work increased **0.95%**; the result
+does not support a speed or strength claim. No constants were tuned afterward.
+
+Candidate `build/experiments/phase4f8/native/chess0live` has SHA-256
+`c117b828efe6c083520b4af6b45818879a70011a47c3acb96e53b112144dfd08` and an adjacent
+manifest/source copy. Preserve this binary if preparing the next comparison.
+Evidence: `results/phase4f8-20261028/`, including `development-screen/` and
+`development-screen-audit.json`. Stable GUI `0.1-dev-4b8b35d`, normal binaries,
+owner settings and historical artifacts are unchanged; README intro is exact.
+
+**Next: Phase 4F.9 tactical qualification preparation**, followed by a separately
+authorized quiet window for 39 positions × 60 seconds × two configurations.
+Freeze the new tools/inputs and independently validate readiness/smoke before
+launch. No full run, match, daytime exception or schedule is pending from this
+turn. LM Studio can stay active during development. Do not promote continuation
+history or retry the closed TT Move Hints campaign based on this short screen.
+
+## Previous checkpoint: Phase 4F.7 audited and closed
 
 Read the [completed match report](reports/2026-10-27-phase4f7-match-results.md).
 All **512 games / 256 opening pairs** are included: hints on scored

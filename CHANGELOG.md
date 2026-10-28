@@ -113,6 +113,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Playing and analysis
 
+- Added optional `Continuation History` to rank quiet replies using the previous
+  move's piece and destination. Private worker tables, diagnostics and lifecycle
+  checks are included. It remains off by default while tactical and playing
+  strength qualification are pending.
+
 - Added optional `TT Move Hints` to reuse legal cached moves across different
   repetition histories without reusing their scores. It shares the Hash budget,
   preserves score-table capacity and includes diagnostics and lifecycle tests.

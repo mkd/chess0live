@@ -1,5 +1,34 @@
 # Validation and experiment protocol
 
+## Phase 4F.8 continuation-history implementation — October 28, 2026
+
+The [protocol](experiments/phase4f8.md) and [report](reports/2026-10-28-phase4f8.md)
+cover the new default-off quiet-ordering option. Full native `make test` passed;
+new table, 36 direct-search groups and 60 UCI cases passed natively and under
+ASan+UBSan/TSan. Checks cover one/four-worker behavior, speculative exclusion,
+original-piece context, interrupted-state restoration and allocation failure.
+Existing countermove (57 cases), SMP UCI (43 cases) and direct ProbCut regressions
+also passed after integration.
+The first native PATH-launch fixture failed because the isolated directory had
+no default network beside its executable. Saved before/after output establishes
+that cause; the unchanged test passed with the adjacent network provisioned.
+
+All 180 fixed-depth searches on 15 exposed roots completed in 90 clean sessions.
+Independent raw replay validated 1,080 PVs / 4,656 plies and all best/ponder
+results, file identities, clean exits/EOF, 60 exact parent/off comparisons and
+90 repeat comparisons including continuation counters. The enabled option's
+scores and final moves match, but node work is mixed: fresh +0.28%, reused
++4.08%, combined +0.95%; per-case ratios range 0.7644–1.4847. Report all cases;
+no speed, nonregression or Elo qualification follows from this development set.
+
+Evidence lives in `results/phase4f8-20261028/`; the independent audit is
+`development-screen-audit.json`. Candidate identity and commands are in the
+report. The normal/stable binaries and 1,228 unchanged protected files are
+preserved; the other five inventory entries are intentional engine/Makefile/
+practical README edits. The README introduction remains byte-identical.
+Full matched 39-position tactical qualification and paired games are not yet
+run; prepare their separate finite protocol before requesting a quiet window.
+
 ## Phase 4F.7 full match — October 27, audited October 28, 2026
 
 The [match report](reports/2026-10-27-phase4f7-match-results.md) records the one
