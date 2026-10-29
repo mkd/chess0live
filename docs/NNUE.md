@@ -47,12 +47,19 @@ search workers have stopped. `Evaluator` belongs to one worker and references
 the longer-lived `Network`; do not share an evaluator between threads.
 
 `Network::evaluate()` rebuilds accumulators from the current position and returns
-the two exact integer components, `psqt` and `positional`. `Evaluator::raw()`
-maintains incremental accumulators: it enumerates and sorts the active features
-for both perspectives, subtracts features that disappeared, and adds features
-that appeared. Consequently, arbitrary transitions, undo, sibling traversal,
-king moves, and special moves all use the same correctness path. Reload/reset
-invalidates worker accumulators through a network generation identifier.
+the two exact integer components, `psqt` and `positional`. It retains the full
+feature enumerator as a reference. `Evaluator::raw()` remembers the last
+evaluated board and derives changed squares from piece identities. With unchanged
+king orientation, it enumerates only affected piece-square, threat and pawn-pair
+features, cancels common multiset entries, then subtracts/adds their columns.
+Empty-board attack masks conservatively select sources whose targets or blockers
+may have changed. A changed king bucket or mirror refreshes that perspective.
+
+Arbitrary transitions, undo, skipped evaluations, siblings, king moves and special
+moves retain exact behavior. Both perspectives' feature plans are fully prepared
+before either accumulator changes. Null moves reuse accumulator values but still
+run inference and calibration with the current side and clocks. Reload/reset
+invalidates the remembered board and accumulators through the network generation.
 
 Feature differences now stream through batches of up to eight column views.
 Each batch updates a 32-lane tile before storing it, reducing repeated hidden
@@ -63,10 +70,12 @@ the same modulo-2^16 and modulo-2^32 arithmetic in NEON and scalar code.
 The [Phase 3B result](reports/2026-10-16-phase3b-nnue-batching.md) records exact
 parity and the measured opening-search speedup, without a strength claim.
 
-This implementation deliberately retains a full-refresh reference. Enumerating
-all threats and sorting feature sets each evaluation is a performance limitation.
-A future position-state delta stack and refresh cache should replace that work
-only after they pass the same integer-stage and search-strength tests.
+The worker still has one pair of accumulators, not a per-ply saved stack. It
+compares piece bitboards and sorts the affected feature lists; full refreshes retain
+full enumeration. A lazy search-state stack and king refresh cache remain future
+hypotheses, requiring their own correctness and measurement evidence. The
+[Phase 4F.11 protocol](experiments/phase4f11.md) separates exact arithmetic and
+implementation timing from subsequent tactical and playing-strength assessment.
 
 On AArch64 with NEON available, independently written vector kernels accelerate
 accumulator updates and affine dot products. Other targets use the portable

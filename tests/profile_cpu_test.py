@@ -28,6 +28,20 @@ IDENTITY = [
     "option name Move Overhead type spin default 20 min 0 max 5000",
     "option name EvalFile type string default default.nnue", "uciok",
 ]
+CURRENT_IDENTITY = IDENTITY[:-1] + [
+    "option name Deep Quiet Reductions type check default false",
+    "option name Countermove Ordering type check default false",
+    "option name Continuation History type check default false",
+    "option name Null Move Pruning type check default false",
+    "option name Reverse Futility Pruning type check default false",
+    "option name QSearch SEE Pruning type check default false",
+    "option name ProbCut type check default false",
+    "option name TT Move Hints type check default false",
+    "option name SyzygyPath type string default <empty>",
+    "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+    "option name SyzygyProbeDepth type spin default 1 min 1 max 128",
+    "uciok",
+]
 
 
 class Clock:
@@ -201,6 +215,75 @@ class ProfileTests(unittest.TestCase):
         report = self.run_profile(duration=10, depth=2, repeats=1, search_timeout=1.)
         self.assertEqual([s["depth"] for s in report["samples"]], [5] * 12 + [2] * 12)
         self.assertEqual(self.sampler.command[2], "10")
+
+    def test_historical_preset_preserves_the_original_commands(self):
+        expected = {
+            "Threads": "1", "Hash": "64", "Time Policy": "classic",
+            "Late Move Reductions": "false", "Capture Ordering": "mvv-lva",
+            "Search Diagnostics": "false", "Ponder": "false", "Move Overhead": "20",
+        }
+        self.assertEqual(profiler.options_for(), expected)
+        report = self.run_profile()
+        self.assertEqual(report["settings"]["preset"], "historical")
+        options = dict(expected, EvalFile=str(self.network))
+        self.assertEqual(report["settings"]["options"], options)
+        self.assertEqual([c for c in self.peer.sent if c.startswith("setoption ")],
+                         [f"setoption name {name} value {value}" for name, value in options.items()])
+
+    def test_current_preset_explicitly_sets_every_current_policy(self):
+        self.identity = CURRENT_IDENTITY.copy()
+        expected = {
+            "Threads": "1", "Hash": "64", "Time Policy": "classic",
+            "Late Move Reductions": "true", "Capture Ordering": "mvv-lva",
+            "Search Diagnostics": "false", "Ponder": "false", "Move Overhead": "20",
+            "Deep Quiet Reductions": "false", "Countermove Ordering": "false",
+            "Continuation History": "false", "Null Move Pruning": "false",
+            "Reverse Futility Pruning": "false", "QSearch SEE Pruning": "false",
+            "ProbCut": "false", "TT Move Hints": "false", "SyzygyPath": "<empty>",
+            "SyzygyProbeLimit": "0", "SyzygyProbeDepth": "1", "EvalFile": str(self.network),
+        }
+        report = self.run_profile(preset="current")
+        self.assertEqual(report["settings"]["preset"], "current")
+        self.assertEqual(report["settings"]["options"], expected)
+        self.assertEqual([c for c in self.peer.sent if c.startswith("setoption ")],
+                         [f"setoption name {name} value {value}" for name, value in expected.items()])
+        self.assertEqual(report["status"], "complete")
+        self.assertTrue(self.peer.closed)
+
+    def test_preset_options_do_not_leak_between_calls(self):
+        old = profiler.options_for()
+        new = profiler.options_for("current")
+        new["Late Move Reductions"] = "false"
+        old["Hash"] = "128"
+        self.assertEqual(profiler.options_for("current")["Late Move Reductions"], "true")
+        self.assertEqual(profiler.options_for()["Hash"], "64")
+        self.assertNotIn("Continuation History", profiler.options_for())
+
+    def test_unknown_preset_is_rejected_before_launch(self):
+        with self.assertRaisesRegex(ValueError, "Unknown CPU profile preset"):
+            self.run_profile(preset="unknown")
+        self.assertIsNone(self.peer)
+        self.assertIsNone(self.sampler)
+        self.assertFalse(self.output.exists())
+
+    def test_current_preset_requires_its_additional_declarations(self):
+        for identity in (
+            IDENTITY,
+            [line for line in CURRENT_IDENTITY if not line.startswith("option name Continuation History ")],
+            [line.replace("TT Move Hints type check", "TT Move Hints type string") for line in CURRENT_IDENTITY],
+            [line.replace("default 7 min 0 max 7", "default 7 min 1 max 7") for line in CURRENT_IDENTITY],
+            CURRENT_IDENTITY[:-1] + [CURRENT_IDENTITY[-4], "uciok"],
+        ):
+            self.identity = identity
+            peer = Peer(self)
+            with self.subTest(identity=identity), self.assertRaises(ValueError):
+                profiler.prepare(peer, self.network, "current")
+            self.assertFalse(any(c.startswith(("setoption ", "go ")) for c in peer.sent))
+
+    def test_cli_forwards_current_preset(self):
+        with patch.object(profiler, "profile", return_value={"status": "complete"}) as run, patch("builtins.print"):
+            profiler.main([str(self.binary), "--output", str(self.output), "--preset", "current"])
+        self.assertEqual(run.call_args.kwargs, {"preset": "current"})
 
     def test_one_six_and_twelve_roots_preserve_histories_and_search_counts(self):
         original = json.loads(profiler.DEFAULT_POSITIONS.read_text())["openings"]

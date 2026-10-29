@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record a bounded macOS CPU sample of the unchanged default search.
+"""Record a bounded macOS CPU sample under an explicit search preset.
 
 Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
 SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 Warmups precede sampling. The engine stays alive until sample ends naturally;
 idle stacks after the search sweep are expected. Sampling perturbs execution:
 these records identify candidate hotspots, never throughput or playing strength.
+The historical preset preserves the original LMR-off setup; current explicitly
+selects accepted defaults with tablebase probing disabled.
 """
 import argparse
 from contextlib import ExitStack
@@ -35,20 +37,40 @@ BASELINE_OPTIONS = {
     "Late Move Reductions": "false", "Capture Ordering": "mvv-lva",
     "Search Diagnostics": "false", "Ponder": "false", "Move Overhead": "20",
 }
+CURRENT_OPTIONS = dict(BASELINE_OPTIONS, **{
+    "Late Move Reductions": "true", "Deep Quiet Reductions": "false",
+    "Countermove Ordering": "false", "Continuation History": "false",
+    "Null Move Pruning": "false", "Reverse Futility Pruning": "false",
+    "QSearch SEE Pruning": "false", "ProbCut": "false", "TT Move Hints": "false",
+    "SyzygyPath": "<empty>", "SyzygyProbeLimit": "0", "SyzygyProbeDepth": "1",
+})
+PRESETS = ("historical", "current")
 OPTION_TYPES = {
     "Threads": "spin", "Hash": "spin", "Time Policy": "combo",
     "Late Move Reductions": "check", "Capture Ordering": "combo",
     "Search Diagnostics": "check", "Ponder": "check", "Move Overhead": "spin",
     "EvalFile": "string",
+    "Deep Quiet Reductions": "check", "Countermove Ordering": "check",
+    "Continuation History": "check", "Null Move Pruning": "check",
+    "Reverse Futility Pruning": "check", "QSearch SEE Pruning": "check",
+    "ProbCut": "check", "TT Move Hints": "check", "SyzygyPath": "string",
+    "SyzygyProbeLimit": "spin", "SyzygyProbeDepth": "spin",
 }
 
 
-def prepare(engine, network):
+def options_for(preset="historical"):
+    """Keep historical calls unchanged and isolate each run's selected options."""
+    if preset not in PRESETS:
+        raise ValueError("Unknown CPU profile preset: " + str(preset))
+    return dict(BASELINE_OPTIONS if preset == "historical" else CURRENT_OPTIONS)
+
+
+def prepare(engine, network, preset="historical"):
     """Require supported option types/values, then explicitly set every policy."""
+    options = dict(options_for(preset), EvalFile=str(network))
     engine.send("uci")
     identity = engine.until("uciok")
     reject_errors(identity)
-    options = dict(BASELINE_OPTIONS, EvalFile=str(network))
     for name, value in options.items():
         prefix = f"option name {name} type "
         declarations = [line[len(prefix):].split() for line in identity if line.startswith(prefix)]
@@ -150,9 +172,11 @@ def profile_positions(document, depth):
     return positions, boards
 
 
-def profile(binary, network, input_path, output, duration=120, depth=5, repeats=2, search_timeout=20.):
+def profile(binary, network, input_path, output, duration=120, depth=5, repeats=2, search_timeout=20.,
+            preset="historical"):
     if sys.platform != "darwin":
         raise ValueError("CPU sampling requires macOS /usr/bin/sample")
+    options = options_for(preset)
     if any(type(value) is not int or not lower <= value <= upper for value, lower, upper in
            ((duration, 10, 300), (depth, 1, 12), (repeats, 1, 10))):
         raise ValueError("Use duration 10..300, depth 1..12 and repeats 1..10")
@@ -172,7 +196,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
     report = {"schema_version": 1, "status": "running", "started_utc": datetime.now(timezone.utc).isoformat(),
               "assets": frozen, "platform": platform.platform(), "machine": platform.machine(),
               "python": sys.version, "referee_version": getattr(chess, "__version__", None),
-              "settings": {"options": dict(BASELINE_OPTIONS, EvalFile=str(network)), "depth": depth,
+              "settings": {"preset": preset, "options": dict(options, EvalFile=str(network)), "depth": depth,
                            "repeats": repeats, "duration_seconds": duration, "sampling_interval_ms": 1,
                            "warmup_depth": 5, "warmups_per_root": 1, "search_timeout_seconds": search_timeout},
               "samples": [], "sampler": {},
@@ -188,7 +212,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
         with ExitStack() as stack:
             engine = stack.enter_context(Engine(binary))
             report["protocol_output"] = engine.transcript
-            report["setup"] = prepare(engine, network)
+            report["setup"] = prepare(engine, network, preset)
             expected = {}
 
             def search(index, repetition, warmup):
@@ -266,7 +290,7 @@ def profile(binary, network, input_path, output, duration=120, depth=5, repeats=
     return report
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("engine", type=Path)
     parser.add_argument("--network", type=Path, default=ROOT / "networks/nn-1a298aa575a0.nnue")
@@ -278,9 +302,12 @@ def main():
                         help="Sampled search depth unless overridden by profile_depth; warmups remain depth 5")
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--search-timeout", type=float, default=20.)
-    args = parser.parse_args()
+    parser.add_argument("--preset", choices=PRESETS, default="historical",
+                        help="historical preserves LMR-off setup; current pins accepted search defaults and disables tablebases")
+    args = parser.parse_args(argv)
     try:
-        report = profile(args.engine, args.network, args.positions, args.output, args.duration, args.depth, args.repeats, args.search_timeout)
+        report = profile(args.engine, args.network, args.positions, args.output, args.duration, args.depth, args.repeats,
+                         args.search_timeout, preset=args.preset)
     except (OSError, ValueError, RuntimeError, TimeoutError, subprocess.TimeoutExpired) as error:
         parser.exit(1, f"CPU profile failed: {error}\n")
     print(json.dumps({"status": report["status"], "output": str(args.output.resolve())}))

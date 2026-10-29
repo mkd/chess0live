@@ -35,13 +35,15 @@ OPTIONS = {
     'Threads': '1', 'Hash': '64', 'Time Policy': 'classic', 'Ponder': 'false',
     'Move Overhead': '20', 'Late Move Reductions': 'true',
     'Deep Quiet Reductions': 'false', 'Capture Ordering': 'mvv-lva',
-    'Countermove Ordering': 'false', 'Null Move Pruning': 'false',
+    'Countermove Ordering': 'false', 'Continuation History': 'false',
+    'TT Move Hints': 'false', 'Null Move Pruning': 'false',
     'Reverse Futility Pruning': 'false', 'QSearch SEE Pruning': 'false',
     'ProbCut': 'false', 'SyzygyPath': '<empty>', 'SyzygyProbeLimit': '0',
+    'SyzygyProbeDepth': '1',
     'Search Diagnostics': 'false',
 }
 PRESETS = ('default', 'see-ordering', 'all-on')
-OPTION_TYPES = {name: ('spin' if name in ('Threads', 'Hash', 'Move Overhead', 'SyzygyProbeLimit')
+OPTION_TYPES = {name: ('spin' if name in ('Threads', 'Hash', 'Move Overhead', 'SyzygyProbeLimit', 'SyzygyProbeDepth')
                       else 'combo' if name in ('Time Policy', 'Capture Ordering')
                       else 'string' if name == 'SyzygyPath' else 'check') for name in OPTIONS}
 OPTION_TYPES['EvalFile'] = 'string'

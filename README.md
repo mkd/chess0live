@@ -502,6 +502,21 @@ positions, search output, and resource policy. NPS and solved positions are not
 Elo estimates. [Validation](docs/VALIDATION.md) defines the required evidence for
 future match results and releases.
 
+`make test-nnue` also checks affected-feature updates against full feature
+enumeration, including accumulator lanes, special moves and arbitrary position
+transitions. Use `make SIMD=scalar test-nnue` for the portable arithmetic path.
+
+On macOS, record a bounded CPU sample with current search settings using:
+
+```sh
+python3 tools/run.py tools/profile_cpu.py /path/to/chess0live \
+  --preset current --output results/cpu-sample-new
+```
+
+Process-inspection permission may be required. The default `historical` preset
+retains the older LMR-off configuration for reproducibility. Sampling identifies
+hotspots and perturbs execution; use a separate comparison for timing evidence.
+
 For result-preserving search changes, compare two separately built executables
 with current playing defaults and automatic referee setup:
 

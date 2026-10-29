@@ -252,6 +252,9 @@ $(BUILD)/nnue-updates-test$(EXE): tests/nnue_updates_test.cpp src/nnue.cpp $(BUI
 $(BUILD)/nnue-dense-test$(EXE): tests/nnue_dense_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
+$(BUILD)/nnue-features-test$(EXE): tests/nnue_features_test.cpp src/nnue.cpp $(BUILD)/position.o $(BUILD)/toolchain.ok
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
+
 $(BUILD)/search-test$(EXE): tests/search_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS)
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(BUILD)/search.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
@@ -321,10 +324,11 @@ test-core: $(ENGINE) $(BUILD)/position-test$(EXE) $(BUILD)/tactical-moves-test$(
 	$(PYTHON) tests/uci_test.py "$(ENGINE)"
 	$(PYTHON) tests/resources_test.py
 
-test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nnue-dense-test$(EXE)
+test-nnue: $(BUILD)/nnue-test$(EXE) $(BUILD)/nnue-updates-test$(EXE) $(BUILD)/nnue-dense-test$(EXE) $(BUILD)/nnue-features-test$(EXE)
 	"$(BUILD)/nnue-test$(EXE)" --network "$(NET)"
 	"$(BUILD)/nnue-updates-test$(EXE)"
 	"$(BUILD)/nnue-dense-test$(EXE)"
+	"$(BUILD)/nnue-features-test$(EXE)" "$(NET)"
 
 test-search: $(BUILD)/search-test$(EXE) $(BUILD)/ordering-search-test$(EXE) $(BUILD)/history-prefix-search-test$(EXE) $(BUILD)/tt-move-hints-search-test$(EXE) test-continuation-history-search
 	"$(BUILD)/search-test$(EXE)" "$(NET)"
@@ -638,7 +642,7 @@ help:
 clean:
 	$(PYTHON) -c 'import shutil; shutil.rmtree("$(BUILD)", ignore_errors=True)'
 
--include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d \
+-include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d $(BUILD)/nnue-features-test.d \
          $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d \
          $(BUILD)/tt-move-hints-search-test.d $(BUILD)/continuation-history-test.d \
          $(BUILD)/continuation-history-search-test.d

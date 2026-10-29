@@ -1,5 +1,52 @@
 # Validation and experiment protocol
 
+## Phase 4F.11 NNUE affected-feature updates — October 29, 2026
+
+The [completed report](reports/2026-10-29-phase4f11-nnue.md) records two revisions,
+their declared gates, all observed regressions and retained failure evidence.
+Revision 2 passed the full native engine suite and 43 bounded SMP cases. Native,
+scalar and ASan+UBSan NNUE checks each passed 537 incremental/reference positions,
+360 update-arithmetic transitions and 1,515 dense cases / 84,126 outputs. New
+feature tests passed 1,273 transitions (2,055 incremental / 491 refresh plans,
+including 28 unchanged-board transitions), independently checking changed-square
+masks, exact feature multiplicities, every accumulator lane and raw/wrapped
+outputs, including undo, special moves, king orientations and network reloads.
+
+Fresh isolated SF19 oracle validation passed 2,057 positions in native and scalar
+builds against pinned reference `edb0d9db6731067ec50ce619ff372b463bc4dd5d`.
+The full-stage adapter checks the retained reference; the raw adapter and new
+lane tests exercise incremental updates. CPU and comparison recorder synthetic
+tests passed 27 + 29 cases. No TSan rerun, full sanitizer search-suite pass or
+foreign-target execution is claimed.
+
+The bounded CPU sample attributed 85.91% of 2,980 active-search observations to
+NNUE, with overlapping update/discovery costs. An independent audit checked all
+45 searches, options, assets, legal PVs and measured sampling-window coverage.
+Only 29 short search threads were sampled; no per-root stack coverage is claimed.
+The initial process-inspection denial and first parser assumption failure are
+retained. Later OS absence was checked; this sampler lacks a saved graceful
+engine exit code.
+
+The owner confirmed paused inference and AC/Automatic power for short timing
+comparisons. A parent/parent control had median ratio 0.999329 across 60 pairs.
+Revision 1's overall medians passed 1.03, but warm endgame-02 pooled to 0.973793
+and failed the 0.98 guard. A separately declared shared-bitboard-mask revision
+passed three run medians **1.056821 / 1.049287 / 1.053932**, lowest pooled ratio
+**0.987471**. This is finite exposed equal-work speed evidence, not Elo, uniform
+acceleration or a statistical confidence interval.
+
+Independent raw timing replay passed **660 searches / 3,960 iterations / 17,072
+legal PV plies**, including control: exact nodes/scores/PVs/best/ponder across
+roles, repetitions and control, recorded clean exits and source/asset identities.
+Ratios use recorded elapsed observations; absolute search clock timestamps were
+not saved. Early auditor schema/setup assumptions failed and were corrected;
+all records remain. Revision 2 used the corrected auditor without changes.
+
+Evidence: `results/phase4f11-20261029/`; authoritative timing receipt
+`timing-v2-independent-audit.json`; fresh oracle in
+`build/nnue-oracle-phase4f11-v2-20261029/`. The tested binary and baseline hashes
+are in the report. Full equal-time puzzles and game qualification remain pending.
+
 ## Phase 4F.10 full match — October 28–29, audited October 29, 2026
 
 The [completed report](reports/2026-10-29-phase4f10-match-results.md) records

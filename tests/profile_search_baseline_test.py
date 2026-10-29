@@ -109,9 +109,10 @@ class BaselineTests(unittest.TestCase):
 
     def test_current_options_explicit(self):
         self.assertEqual(p.OPTIONS['Late Move Reductions'],'true')
-        for name in ('ProbCut','Null Move Pruning','Deep Quiet Reductions','Countermove Ordering','Reverse Futility Pruning','QSearch SEE Pruning','Ponder','Search Diagnostics'):
+        for name in ('ProbCut','Null Move Pruning','Deep Quiet Reductions','Countermove Ordering','Continuation History','TT Move Hints','Reverse Futility Pruning','QSearch SEE Pruning','Ponder','Search Diagnostics'):
             self.assertEqual(p.OPTIONS[name],'false')
         self.assertEqual(p.OPTIONS['Threads'],'1');self.assertEqual(p.OPTIONS['SyzygyProbeLimit'],'0')
+        self.assertEqual(p.OPTIONS['SyzygyProbeDepth'],'1')
 
     def test_presets_are_exact_and_independent(self):
         original = dict(p.OPTIONS)
@@ -123,6 +124,9 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(p.options_for('all-on'), dict(original, **changes))
         for preset in p.PRESETS:
             changed = p.options_for(preset)
+            self.assertEqual(changed['Continuation History'], 'false')
+            self.assertEqual(changed['TT Move Hints'], 'false')
+            self.assertEqual(changed['SyzygyProbeDepth'], '1')
             changed['Threads'] = '99'
         self.assertEqual(p.OPTIONS, original)
         self.assertEqual(p.options_for(), original)
@@ -280,6 +284,17 @@ class BaselineTests(unittest.TestCase):
         for reply_lines in (['info string error: invalid option','readyok'],['bestmove g1h3','readyok']):
             with patch.object(engine,'until',side_effect=[identity,reply_lines]),self.assertRaises(ValueError):
                 p.prepare(engine,self.network,p.time.monotonic()+10)
+
+    def test_newer_policy_declarations_are_required_before_settings_or_search(self):
+        for preset in p.PRESETS:
+            for name in ('TT Move Hints', 'Continuation History', 'SyzygyProbeDepth'):
+                with self.subTest(preset=preset, name=name):
+                    engine = FakeEngine(self.baseline)
+                    identity = [line for line in engine.until('uciok')
+                                if not line.startswith('option name ' + name + ' type ')]
+                    with patch.object(engine, 'until', return_value=identity), self.assertRaisesRegex(ValueError, name):
+                        p.prepare(engine, self.network, p.time.monotonic() + 10, preset)
+                    self.assertEqual(engine.commands, ['uci'])
 
     def test_total_deadline_is_shared(self):
         with patch.object(p.time,'monotonic',return_value=9):self.assertEqual(p.remaining(10,30),1)

@@ -5,7 +5,20 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ## Unreleased — working toward 0.1
 
+### Evaluation
+
+- Reduced NNUE feature-discovery work using a shared bitboard change mask and
+  affected feature updates, retaining exact feature, accumulator and output
+  agreement in native, scalar, sanitizer and pinned-reference checks. The revised
+  implementation passed a bounded identical-search comparison at roughly 5%
+  greater median execution rate; playing-strength qualification remains pending.
+  Small endgame slowdowns and the rejected first revision are retained in the
+  [full report](docs/reports/2026-10-29-phase4f11-nnue.md).
+
 ### Developer tools
+
+- Added exact affected-feature transition tests and an explicit current-defaults
+  CPU profiling preset, while preserving historical profiling behavior.
 
 - Completed the independently audited 512-game Continuation History comparison:
   179 wins, 151 draws and 182 losses with it enabled, with no time forfeits or

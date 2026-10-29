@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -391,6 +392,145 @@ Features enumerate_features(const Position& position, Color perspective) {
     return features;
 }
 
+struct FeatureOrientation {
+    int king_bucket, psq_flip, relation_flip;
+    bool operator==(const FeatureOrientation&) const = default;
+};
+
+FeatureOrientation feature_orientation(const Position& position, Color side) {
+    const int vertical = side == Color::black ? 56 : 0;
+    const int king = position.king_square(side);
+    const int file = king % 8;
+    return {(7 - ((king ^ vertical) / 8)) * 4 + std::min(file, 7 - file),
+            vertical ^ (file < 4 ? 7 : 0), vertical ^ (file >= 4 ? 7 : 0)};
+}
+
+/** Sorted multiset changes. A refresh replaces one perspective from its bias;
+ * otherwise common affected features have already been cancelled. Preparing a
+ * plan never changes an accumulator, so both perspectives can be prepared first.
+ */
+struct FeatureUpdatePlan {
+    bool refresh = false;
+    Features removed, added;
+};
+
+FeatureUpdatePlan prepare_refresh(const Position& position, Color side) {
+    FeatureUpdatePlan plan;
+    plan.refresh = true;
+    plan.added = enumerate_features(position, side);
+    return plan;
+}
+
+/** Enumerate only features that can depend on a changed square. The retained
+ * full enumerator above remains an independent reference for this selection.
+ * Empty-board attack masks conservatively include every possible changed target
+ * or blocker, including friendly pieces and occupancy-preserving captures.
+ */
+Features affected_features(const Position& position, Color perspective,
+                           FeatureOrientation orientation, Bitboard dirty) {
+    Features result;
+    const auto& layout = relation_layout();
+    const int side = perspective == Color::black;
+    const auto occupied = position.occupied();
+    const auto pawns = position.pieces(Color::white, PieceType::pawn)
+        | position.pieces(Color::black, PieceType::pawn);
+    if ((pawns & Bitboard{0xff000000000000ff}) || std::popcount(pawns) > 16)
+        throw std::invalid_argument("NNUE requires a legal pawn configuration");
+    result.psq.reserve(std::popcount(occupied & dirty));
+    result.relations.reserve(64); // Initial capacity, never a feature-count limit.
+    for (Bitboard remaining = occupied; remaining; remaining &= remaining - 1) {
+        const int square = std::countr_zero(remaining);
+        const Piece piece = position.at(square);
+        const auto type = type_of(piece);
+        const int type_number = static_cast<int>(type);
+        const int relative_color = (color_of(piece) == Color::black) ^ side;
+        if (dirty & square_bit(square)) {
+            const int plane = type == PieceType::king ? 10 : 2 * (type_number - 1) + relative_color;
+            result.psq.push_back(static_cast<std::uint32_t>(orientation.king_bucket * 704
+                + plane * 64 + (square ^ orientation.psq_flip)));
+        }
+        if (!relation_slots(type)) continue;
+        const int physical_code = 6 * (color_of(piece) == Color::black) + type_number - 1;
+        if (!(dirty & (square_bit(square) | layout.rays[physical_code][square]))) continue;
+        const int code = relative_color * 6 + type_number - 1;
+        const int from = square ^ orientation.relation_flip;
+        const auto targets = geometry(type, color_of(piece), square, occupied) & occupied;
+        for (Bitboard remaining_targets = targets; remaining_targets; remaining_targets &= remaining_targets - 1) {
+            const int target = std::countr_zero(remaining_targets);
+            const auto target_piece = position.at(target);
+            const int slot = target_slot(type, type_of(target_piece));
+            if (slot < 0) continue;
+            const int to = target ^ orientation.relation_flip;
+            if (type == type_of(target_piece) && from < to) continue;
+            const int target_color = (color_of(target_piece) == Color::black) ^ side;
+            const auto earlier = layout.rays[code][from] & (square_bit(to) - 1);
+            const auto ordinal = layout.start[code][from] + std::popcount(earlier);
+            result.relations.push_back(layout.base[code]
+                + (target_color * relation_slots(type) + slot) * layout.span[code] + ordinal);
+        }
+    }
+    const auto changed_pawns = pawns & dirty;
+    for (Bitboard remaining = changed_pawns; remaining; remaining &= remaining - 1) {
+        const int first_square = std::countr_zero(remaining);
+        for (Bitboard partners = pawns & ~square_bit(first_square); partners; partners &= partners - 1) {
+            const int second_square = std::countr_zero(partners);
+            // An unordered pair with two dirty pawns is still emitted once.
+            if ((changed_pawns & square_bit(second_square)) && second_square < first_square) continue;
+            if (std::abs(first_square % 8 - second_square % 8) > 1) continue;
+            const auto pawn_id = [&](int square) {
+                const int color = (color_of(position.at(square)) == Color::black) ^ side;
+                return color * 48 + (square ^ orientation.relation_flip) - 8;
+            };
+            const int first = pawn_id(first_square), second = pawn_id(second_square);
+            const int high = std::max(first, second), low = std::min(first, second);
+            result.relations.push_back(static_cast<std::uint32_t>(threat_count + high * (high - 1) / 2 + low));
+        }
+    }
+    return result;
+}
+
+void cancel_common(std::vector<std::uint32_t>& before, std::vector<std::uint32_t>& after) {
+    std::sort(before.begin(), before.end());
+    std::sort(after.begin(), after.end());
+    std::size_t old_index = 0, new_index = 0, removed = 0, added = 0;
+    while (old_index != before.size() || new_index != after.size()) {
+        if (new_index == after.size() || (old_index != before.size() && before[old_index] < after[new_index]))
+            before[removed++] = before[old_index++];
+        else if (old_index == before.size() || after[new_index] < before[old_index])
+            after[added++] = after[new_index++];
+        else { ++old_index; ++new_index; }
+    }
+    before.resize(removed);
+    after.resize(added);
+}
+
+/** Piece-specific XORs retain identity changes even when occupancy is unchanged. */
+Bitboard changed_squares(const Position& before, const Position& after) {
+    Bitboard dirty = 0;
+    for (const auto side : {Color::white, Color::black})
+        for (int type = 1; type <= 6; ++type)
+            dirty |= before.pieces(side, static_cast<PieceType>(type))
+                   ^ after.pieces(side, static_cast<PieceType>(type));
+    return dirty;
+}
+
+FeatureUpdatePlan prepare_update(const Position& before, const Position& after, Color side,
+                                Bitboard dirty) {
+    const auto orientation = feature_orientation(after, side);
+    if (feature_orientation(before, side) != orientation) return prepare_refresh(after, side);
+    FeatureUpdatePlan plan;
+    if (dirty == 0) return plan; // Null moves still run inference with the new side/clocks.
+    plan.removed = affected_features(before, side, orientation, dirty);
+    plan.added = affected_features(after, side, orientation, dirty);
+    cancel_common(plan.removed.psq, plan.added.psq);
+    cancel_common(plan.removed.relations, plan.added.relations);
+    return plan;
+}
+
+[[maybe_unused]] FeatureUpdatePlan prepare_update(const Position& before, const Position& after, Color side) {
+    return prepare_update(before, after, side, changed_squares(before, after));
+}
+
 struct Accumulation {
     alignas(64) std::array<std::int16_t, width> hidden{};
     std::array<std::int32_t, buckets> psqt{};
@@ -542,6 +682,21 @@ void update(const Model& model, const Position& position, Color side, Accumulati
     state.active = std::move(next);
 }
 
+/** All potentially throwing discovery/allocation happens during preparation.
+ * The production state does not retain active lists; those belong to update(),
+ * the full-enumeration reference path. Column arithmetic is unchanged.
+ */
+void apply_update(const Model& model, Accumulation& state, const FeatureUpdatePlan& plan) noexcept {
+    if (plan.refresh) {
+        state.hidden = model.bias;
+        state.psqt.fill(0);
+    }
+    differences(state, plan.removed.psq, plan.added.psq, model.psq, model.psq_value);
+    differences(state, plan.removed.relations, plan.added.relations, model.relations, model.relation_value);
+    state.active.psq.clear();
+    state.active.relations.clear();
+}
+
 /** Both activation branches preserve integer truncation at their own layer. */
 void activate(const std::array<std::int32_t, 32>& input, std::uint8_t* output, unsigned shift) {
     for (std::size_t index = 0; index < input.size(); ++index) {
@@ -629,20 +784,27 @@ struct Evaluator::Impl {
     const Network& network;
     std::uint64_t generation = 0;
     std::array<Accumulation, 2> state{};
+    std::optional<Position> previous;
     explicit Impl(const Network& source) : network(source) {}
 };
 Evaluator::Evaluator(const Network& network) : impl_(std::make_unique<Impl>(network)) {}
 Evaluator::~Evaluator() = default;
-void Evaluator::reset() { impl_->generation = 0; }
+void Evaluator::reset() { impl_->generation = 0; impl_->previous.reset(); }
 Raw Evaluator::raw(const Position& position) {
     if (!impl_->network.impl_) throw std::logic_error("NNUE evaluation requires a loaded network");
     const auto& model = *impl_->network.impl_;
-    if (impl_->generation != model.generation) {
-        initialize(model, impl_->state);
-        impl_->generation = model.generation;
-    }
-    update(model, position, Color::white, impl_->state[0]);
-    update(model, position, Color::black, impl_->state[1]);
+    const bool refresh = impl_->generation != model.generation || !impl_->previous;
+    const Bitboard dirty = refresh ? 0 : changed_squares(*impl_->previous, position);
+    // Neither accumulator nor the remembered board changes if either plan fails.
+    const std::array plans{
+        refresh ? prepare_refresh(position, Color::white)
+                : prepare_update(*impl_->previous, position, Color::white, dirty),
+        refresh ? prepare_refresh(position, Color::black)
+                : prepare_update(*impl_->previous, position, Color::black, dirty)};
+    apply_update(model, impl_->state[0], plans[0]);
+    apply_update(model, impl_->state[1], plans[1]);
+    impl_->previous = position;
+    impl_->generation = model.generation;
     return infer(model, position, impl_->state);
 }
 int Evaluator::evaluate(const Position& position) {

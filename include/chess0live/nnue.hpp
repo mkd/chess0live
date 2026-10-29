@@ -47,8 +47,10 @@ private:
 };
 
 /** Worker-local incremental accumulator. Never share one between workers.
- * Feature-set differences support arbitrary position transitions, including
- * make/unmake. The first evaluation after reset performs a complete refresh.
+ * Changed board squares select exact piece-square, threat and pawn-pair deltas
+ * across arbitrary transitions, including make/unmake. King-orientation changes
+ * refresh that perspective; the first evaluation after reset refreshes both.
+ * Both update plans are prepared before either accumulator changes.
  */
 class Evaluator {
 public:

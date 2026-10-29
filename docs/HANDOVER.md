@@ -28,7 +28,47 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.10 audited and closed
+## Current checkpoint: Phase 4F.11 NNUE efficiency validated
+
+Read the [completed report](reports/2026-10-29-phase4f11-nnue.md),
+[initial protocol](experiments/phase4f11.md) and
+[revision-2 protocol](experiments/phase4f11-bitboard-delta.md). The evaluator now
+uses a shared piece-bitboard change mask and affected feature plans. Full
+enumeration remains the reference; king orientation changes refresh the affected
+perspective. Both plans are prepared before mutating accumulators. No search,
+network, calibration or UCI setting changed. Per-ply stacks and refresh caches
+are not implemented, and temporary feature vectors still allocate.
+
+Full native checks, 43 SMP cases, native/scalar/ASan+UBSan NNUE tests and a fresh
+2,057-position pinned oracle pass. New tests check 1,273 transitions, exact
+feature multisets and every hidden/PSQT lane. CPU/comparison harness tests pass
+27 + 29 cases. There was no TSan rerun or foreign-target execution in this phase.
+
+Three fixed-depth paired runs measured median parent/candidate ratios
+**1.056821 / 1.049287 / 1.053932**, with exact search signatures and a passing
+independent audit. The lowest pooled root/state ratio was **0.987471**: small
+endgame slowdowns remain within the predeclared 0.98 guard. This supports bounded
+execution efficiency only. The first revision failed the guard at 0.973793;
+its evidence and the separate follow-up declaration must remain intact.
+
+Preserve `results/phase4f11-20261029/`, both candidate source snapshots and
+`timing-v2-independent-audit.json`; do not overwrite an audit. The tested revision
+is `build/experiments/phase4f11-candidate-v2/chess0live` (SHA-256 in the report),
+against `build/experiments/phase4f11-baseline/chess0live`. Fresh oracle evidence
+is in `build/nnue-oracle-phase4f11-v2-20261029/`. Normal release, stable GUI
+`0.1-dev-4b8b35d`, other stable bundles, pinned network, owner batch settings and
+README introduction are preserved. Local result/build directories are not Git
+distribution artifacts; preserve them for reproducibility.
+
+**Next checkpoint:** prepare equal-time tactical qualification, then a separate
+prospective paired strength test. No full puzzle comparison or games ran here;
+the owner's quiet-host confirmation covered short comparisons only. Long runs
+need an appropriate quiet overnight window or explicit exception. No schedule
+was created. Keep TT hints/Continuation History off and do not reinterpret prior
+inconclusive campaigns. Null-move/LMR work follows as an isolated hypothesis;
+neither a rating gain nor a release gate is established by this speed result.
+
+## Previous checkpoint: Phase 4F.10 audited and closed
 
 Read the [completed report](reports/2026-10-29-phase4f10-match-results.md).
 All **512 games / 256 pairs** passed the independent audit: Continuation History

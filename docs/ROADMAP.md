@@ -5,7 +5,30 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.10 audited and closed — inconclusive
+## Current checkpoint: Phase 4F.11 NNUE efficiency implemented and measured
+
+The [completed report](reports/2026-10-29-phase4f11-nnue.md) records affected-feature
+NNUE updates with unchanged integer arithmetic and search policy. Exact feature,
+accumulator and output checks pass in native, scalar and ASan+UBSan builds; the
+fresh pinned oracle passes 2,057 positions. Full native regression and 43 bounded
+SMP searches/lifecycle cases also pass.
+
+The revised candidate passed the prospectively declared engineering gate: three
+equal-work runs measured median parent/candidate ratios of **1.056821, 1.049287
+and 1.053932**. Independent replay confirmed identical searches and legal output.
+This is roughly **4.9–5.7% greater execution rate on the exposed finite sample**,
+not an Elo or puzzle gain. Small endgame slowdowns remain within the declared
+2% pooled guard. The first revision failed that guard and remains documented.
+
+**Next checkpoint:** equal-time tactical comparison, followed by a prospectively
+declared paired strength test capable of assessing modest gains. The owner
+confirmed only short comparisons in this phase; no long run or schedule was
+started. Keep the tested parent and candidate, normal release, stable GUI
+`0.1-dev-4b8b35d` and completed campaigns intact. Further null-move/LMR development
+is a subsequent isolated hypothesis. TT Move Hints and Continuation History
+remain optional/off; broader platform, SMP-strength and release gates stay open.
+
+## Previous checkpoint: Phase 4F.10 audited and closed — inconclusive
 
 The [completed report](reports/2026-10-29-phase4f10-match-results.md) includes all
 **512 games / 256 reversed-color pairs**. Continuation History on scored
