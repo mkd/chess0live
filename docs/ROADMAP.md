@@ -5,26 +5,28 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.10 match running
+## Current checkpoint: Phase 4F.10 audited and closed — inconclusive
 
-The owner-confirmed attempt started **October 28 at 19:56 Helsinki**, after local
-commit `b9430a6`, 112 focused checks and fresh independent readiness audit.
-All four game workers started successfully. The [launch record](reports/2026-10-28-phase4f10-launch.md)
-and [dated amendment](experiments/phase4f10-match-daytime-20261028.md) preserve
-exact inputs and authorization. Live evidence is `results/phase4f10-match-20261028/`.
+The [completed report](reports/2026-10-29-phase4f10-match-results.md) includes all
+**512 games / 256 reversed-color pairs**. Continuation History on scored
+**179 wins, 151 draws, 182 losses: 254.5/512 points (49.71%)**. Independent
+audit passed with no errors, excluded games, changed frozen sources or time
+forfeits. The conditional 95% pair-level score interval is **41.22%–58.20%**;
+neither a gain, a loss nor equivalence is established. The predeclared decision
+is **inconclusive; keep Continuation History optional/off and park promotion**.
 
-The fixed comparison is 512 games / 256 reversed-color opening pairs, 60+0.6,
-Threads=1 and Hash=64 per engine, four active searches/eight resident engines,
-and 6 GiB reserved. Only Continuation History differs. Defaults remain unchanged.
-Expected duration is 6–8 hours; the fixed cutoff is October 29 07:00 Helsinki.
-Keep LM Studio inference paused and the Mac awake on AC/Automatic power.
+Play ran October 28 19:56:01 through October 29 02:06:51 Helsinki, **6h10m50s**,
+under the tested `b9430a6` timing amendment and before the fixed 07:00 cutoff.
+The launcher exited zero; saved and separate OS cleanup checks pass. The owner
+can resume LM Studio inference, and the progress heartbeat has been deleted.
+All 1,955 protected files, 62 frozen source identities and the README introduction
+remain intact. No retry, sample extension, default change or release follows.
 
-**Next checkpoint:** monitor this existing attempt, verify cleanup, let the owner
-resume inference, then independently audit the complete evidence. A five-minute
-progress heartbeat reports newly finished games; it cannot launch or retry games.
-Do not rebuild, alter frozen inputs, resume or extend this run. Provisional scores
-are not strength evidence; any forfeit blocks promotion eligibility. Broader
-platform/SMP-strength/release gates remain open.
+**Next checkpoint:** select a new isolated Phase 4F search hypothesis using
+existing diagnostics, then freeze correctness, tactical and strength acceptance
+criteria before testing. Do not tune against or rerun this completed campaign.
+TT Move Hints and the combined package remain parked; broader platform,
+SMP-strength and release gates remain open. No next experiment is scheduled.
 
 ## Previous checkpoint: Phase 4F.10 prepared — match awaits a quiet window
 
@@ -1019,7 +1021,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.9 tactical audit complete. 4F.10 paired-game preparation passes 122 synthetic checks and independent readiness; 512 games await a quiet window. Continuation History stays off; hints and all-on promotion stay parked |
+| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.10 full 512-game audit complete: 179W/151D/182L, inconclusive. Continuation History stays off and promotion is parked; choose a new isolated search hypothesis with frozen acceptance criteria. Hints and all-on promotion remain parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

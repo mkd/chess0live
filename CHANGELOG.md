@@ -7,6 +7,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Completed the independently audited 512-game Continuation History comparison:
+  179 wins, 151 draws and 182 losses with it enabled, with no time forfeits or
+  excluded games. Strength evidence is inconclusive, so the option remains off
+  and promotion is parked. See the
+  [full result](docs/reports/2026-10-29-phase4f10-match-results.md).
+
 - Added a tested, explicitly dated start-time exception for the prepared
   Continuation History match, preserving its fixed cutoff and resource limits.
   All 112 focused checks and fresh independent readiness audit pass;
@@ -14,20 +20,20 @@ release numbers; detailed measurements live in the linked experiment records.
 
 - Added a reproducible Continuation History match setup with fresh paired
   openings, automatic dependency setup, search-free readiness and independent
-  auditing. All 122 preparation tests pass; the full match awaits a quiet window.
+  auditing. All 122 preparation tests passed before the completed match.
   Engine defaults remain unchanged. See the
   [preparation record](docs/reports/2026-10-28-phase4f10-preparation.md).
 
 - Completed the independently audited Continuation History puzzle comparison:
   four mate reports with it enabled versus three disabled, with all 39 final moves
   matching and no failed searches. The extra M9 is a tactical observation;
-  the option remains off pending game-based strength qualification. See the
+  the option remains off following inconclusive game-based qualification. See the
   [complete results](docs/reports/2026-10-28-phase4f9-results.md).
 
 - Added an isolated Continuation History puzzle comparison with automatic tool
   setup, frozen inputs and independent analysis/cleanup auditing. Readiness and
-  all 78 one-second smoke searches pass; game-based strength qualification
-  remains pending, and the option stays off by default.
+  all 78 one-second smoke searches passed before full qualification; the option
+  stays off by default.
 
 - Added a reproducible 512-game TT Move Hints comparison with fresh paired
   openings, automatic tool setup, search-free readiness and an independent

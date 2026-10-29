@@ -1,5 +1,45 @@
 # Validation and experiment protocol
 
+## Phase 4F.10 full match — October 28–29, audited October 29, 2026
+
+The [completed report](reports/2026-10-29-phase4f10-match-results.md) records
+**512 games / 256 complete color-reversed pairs**, 60+0.6, Threads=1 and Hash=64.
+Only Continuation History differed. The authorized run finished at 02:06:51
+Helsinki, before the fixed 07:00 cutoff; the launcher exited zero. Saved cleanup
+and a separate OS process check confirm no remaining campaign processes, and
+the owner may resume LM Studio inference. The progress heartbeat is deleted.
+
+The fresh independent audit through `tools/run.py --offline` exited zero with
+`complete=true`, `decision=inconclusive`, `default_change=false`, no errors,
+no source differences, no exclusions and zero time forfeits by either role.
+It replayed 49,753 search events, 59,737 legal game plies including opening
+histories, 2,977,286 PV plies and 49,382 legal ponder suggestions (Ponder=false).
+All 1,024 game engine processes, 22,650 parent resource observations, raw clocks,
+options, pair membership, provenance and cleanup were checked. The audit records
+3,855 input identities. Recorded endings: 361 checkmates, 140 threefold draws,
+one stalemate, nine insufficient-material draws and one fifty-move draw.
+
+On scored **179 W / 151 D / 182 L**, **254.5/512 points (49.70703125%)**.
+Pair-point buckets for 0/0.5/1/1.5/2 points are **0/42/177/35/2**. The declared
+conditional 95% Hoeffding score interval is **41.218897%–58.195166%**. Neither
+the 299.5-point promotion-review threshold nor 212.5-point negative threshold
+was reached. Keep the option off and park promotion; no gain, loss, equivalence,
+universal nonregression or general Elo claim is supported. Shared stems and host
+limit independence; broader SMP/time-control/platform gates remain open.
+
+All 1,026 launcher stderr lines are the retained informational Syzygy-disabled
+response warning; none are additional match failures. Earlier preparation
+failures remain documented in the launch/preparation reports. No games were
+replaced, resumed or rerun. All 1,955 protected files, 62 frozen source identities,
+61 archived originals and README introduction match their saved identities.
+
+Raw evidence: `results/phase4f10-match-20261028/`. External audit:
+`results/phase4f10-match-20261028-audit.json`, SHA-256
+`d74c0c0c27eee1a6ea183bd069872b371e44e32afff559a6f48daf688ac59d1b`.
+Cleanup, preservation and documentation-validation receipts are in
+`results/phase4f10-match-20261028-closeout/`. This checkpoint changes documentation
+only; prior synthetic tests were not repeated, and no engine was rebuilt/searched.
+
 ## Phase 4F.10 dated launch amendment — October 28, 2026
 
 The [launch record](reports/2026-10-28-phase4f10-launch.md) records the owner's

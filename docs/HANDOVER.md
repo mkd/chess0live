@@ -28,35 +28,37 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.10 match running
+## Current checkpoint: Phase 4F.10 audited and closed
 
-The owner said “Ready, go ahead!”; the tested one-run timing amendment was
-committed as `b9430a6` before launch. The attempt started **October 28 at 19:56
-Helsinki** and all four workers are running. See the
-[launch record](reports/2026-10-28-phase4f10-launch.md) and
-[amendment](experiments/phase4f10-match-daytime-20261028.md). Fixed cutoff:
-October 29 07:00 Helsinki. Keep LM Studio inference paused, AC/Automatic power
-and the Mac awake. No competing builds or benchmarks during play.
+Read the [completed report](reports/2026-10-29-phase4f10-match-results.md).
+All **512 games / 256 pairs** passed the independent audit: Continuation History
+on scored **179 W / 151 D / 182 L**, **254.5/512 points (49.71%)**. No audit errors,
+time forfeits, exclusions or frozen-source differences were found. The declared
+conditional 95% score interval is **41.22%–58.20%**, so the result is inconclusive.
+**Continuation History stays optional and off; promotion is parked.** This does
+not prove equivalence, a strength gain/loss or eight-thread match performance.
 
-Read progress with `python3 results/phase4f10-match-20261028-preparation/progress.py
-results/phase4f10-match-20261028`. The five-minute progress heartbeat
-`chess0live-continuation-history-match-progress` is active in this chat and only
-monitors the existing attempt. Live W/D/L and remaining-time estimates are
-provisional. Do not retry, resume, extend, replace games or edit frozen inputs.
+The single authorized attempt ran October 28 19:56:01–October 29 02:06:51 Helsinki
+under the tested `b9430a6` amendment. The launcher exited zero; saved cleanup and
+the OS check found no remaining campaign engines, supervisor or sleep inhibitor.
+The owner has been told LM Studio inference can resume. The progress heartbeat
+`chess0live-continuation-history-match-progress` has been deleted.
 
-On termination verify cleanup from the launch receipts and OS, immediately tell
-the owner LM Studio can resume, then use `tools/run.py --offline` with
-`tools/audit_phase4f10.py --campaign results/phase4f10-match-20261028 --output
-results/phase4f10-match-20261028-audit.json`. Do not duplicate a running audit or
-overwrite one. Preserve all evidence, document the complete audited outcome,
-commit tested documentation locally and stop the progress heartbeat. Never push
-or promote engine defaults automatically; any forfeit blocks promotion.
+Preserve `results/phase4f10-match-20261028/`, its preparation directory, external
+`results/phase4f10-match-20261028-audit.json` and new
+`results/phase4f10-match-20261028-closeout/` receipts. Never overwrite the audit;
+any later read-only replay needs a fresh output path. No repeat, extension,
+resumption, replacement, pooling or tuning against these games is due.
+All 1,955 protected files, 62 amended source identities, 61 archived original
+sources/pins and the original indexed preparation evidence still match. Preserve
+the normal release, stable GUI `0.1-dev-4b8b35d`, owner batch settings and README
+introduction. No engine/default changes or GitHub pushes were made.
 
-Original preparation `4a53054` and all 61 sources/pins remain archived under
-`results/phase4f10-match-20261028-preparation/original-preparation/`; amended pins
-cover 62 sources. All 112 focused tests and fresh native readiness/audit passed.
-Preserve the normal release, stable GUI `0.1-dev-4b8b35d`, owner batch settings,
-README introduction, and all previous campaigns.
+**Next checkpoint:** choose a new isolated Phase 4F search hypothesis using the
+existing diagnostics, with correctness/tactical/strength criteria declared before
+testing. No specific candidate or long run is authorized by this closeout. Keep
+TT Move Hints and the combined package parked; broader platform, SMP strength
+and release acceptance gates remain open.
 
 ## Previous checkpoint: Phase 4F.10 preparation validated
 
