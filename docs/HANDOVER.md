@@ -28,7 +28,48 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.12 tactical comparison prepared
+## Current checkpoint: Phase 4F.12 full tactical comparison audited
+
+Read the [completed report](reports/2026-10-29-phase4f12-results.md) and frozen
+[protocol](experiments/phase4f12.md). The single full attempt completed all
+**78 searches / 39 pairs**, 60 seconds per binary, eight threads and identical
+options. It ran October 29 **21:58:31–23:16:42 Helsinki** under fresh owner
+quiet-window and daytime authorization `phase4f12-daytime-20261029`, from tested
+preparation commit `f15d003`. No engine was rebuilt and no default changed.
+
+Both roles reported **three positive mates**, on positions 1 (M7), 2 (M7) and
+15 (M9), matching supplied distances and ending their final legal PVs in mate.
+All 39 final moves match; no positive mate report was gained or lost. Candidate
+depth was one higher on 29 and 31, one lower on 1, and equal on 36 positions.
+Scores differed only on 3, 10, 29 and 31. First-positive-mate reports were later
+for the candidate on all three positions: baseline/candidate **11.303/12.806 s**,
+**5.788/10.794 s**, and **34.673/35.297 s** respectively. Position 1 initially
+reported M9 before both finished at M7. Retain these adverse observations;
+the exposed nondeterministic SMP comparison proves neither a tactical coverage
+gain, playing-strength gain, equivalence nor universal nonregression.
+
+The external independent audit passed: 78 frozen inputs, 823 iterations,
+7,584 legal PV plies, 156 best/ponder plies, 234 readiness barriers,
+2,545 resource observations and 78 zero exits. No failed searches, exclusions,
+retries or clock-limit breaches occurred. The launcher exited zero and a
+separate OS check found no comparison engines, runner or sleep inhibitor.
+The owner has been told **LM Studio inference can resume**.
+
+Preserve `results/phase4f12-full-20261029/`, external
+`results/phase4f12-full-20261029-audit.json`, and
+`results/phase4f12-full-20261029-launch/`, including authorization, start/exit
+and OS-cleanup receipts. Preserve preparation evidence and the 78 frozen inputs,
+including both binaries and 48 source snapshots; never overwrite the audit,
+rebuild/refreeze inputs or repeat this attempt. Keep normal release, stable GUI
+`0.1-dev-4b8b35d`, owner settings and README introduction intact.
+
+**Next:** prepare a separate prospective paired game qualification capable of
+assessing modest gains. This puzzle result does not convert Phase 4F.11's
+bounded efficiency evidence into Elo. No games or schedule are active; any
+long campaign needs its own protocol and appropriate operating authorization.
+Keep TT hints/Continuation History off and do not promote settings automatically.
+
+## Previous checkpoint: Phase 4F.12 tactical comparison prepared
 
 Read the [protocol](experiments/phase4f12.md) and
 [preparation report](reports/2026-10-29-phase4f12-preparation.md). All 87 synthetic
@@ -47,18 +88,19 @@ Evidence lives in `results/phase4f12-preparation-20261029/`; audit JSONs are out
 the readiness/smoke directories and must not be overwritten. The initial
 auditor-fixture path failure and corrected passing tests remain recorded.
 
-**Next:** agree a fresh approximately 78-minute window for 39 positions × two
+At preparation, the next step was to agree a fresh approximately 78-minute
+window for 39 positions × two
 binaries × 60 seconds, eight active workers, one resident engine and at least
 2 GiB reserved memory. All search options match, including LMR on and TT hints/
 Continuation History off. Full mode requires paused competing inference/builds,
 AC/Automatic power and an awake host; suspend/resume invalidates qualification.
 Default policy is overnight with next-07:00 Helsinki cutoff; daytime needs an
 explicit exception for this full comparison. Prior short-comparison permission
-does not cover it. No long run or schedule is active. Commit preparation before
-launch, audit the complete attempt and report all adverse observations before
+did not cover it. Preparation was committed before the later authorized full
+run and independent audit recorded above. Report all adverse observations before
 considering a separate paired game protocol.
 
-LM Studio inference may resume after the confirmed smoke cleanup. Preserve
+LM Studio inference could resume after the confirmed smoke cleanup. Preserve
 stable GUI `0.1-dev-4b8b35d`, batch settings and README introduction. The normal
 release already had a different hash at entry; its current bytes were preserved
 without attribution or use in this comparison (details in the report).

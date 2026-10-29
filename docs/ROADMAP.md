@@ -5,7 +5,37 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.12 prepared — full tactical run awaits a quiet window
+## Current checkpoint: Phase 4F.12 audited — no additional mate reports
+
+The [completed report](reports/2026-10-29-phase4f12-results.md) records all
+**78 searches / 39 complete pairs** at 60 seconds per binary, eight threads and
+identical settings. The single authorized attempt ran October 29
+**21:58:31–23:16:42 Helsinki**, about 78 minutes, using the frozen `1ca87d6`
+baseline and `3ee5eff` affected-feature NNUE candidate without rebuilding.
+
+Both versions reported the same **three positive mates**: positions 1 and 2
+at M7, position 15 at M9. All match the supplied mate distances and have legal
+final PVs ending in checkmate. All **39 final moves match**, with no gained or
+lost positive mate reports. Candidate depth was one higher on positions 29 and
+31, one lower on position 1, and equal on the other 36. Four centipawn scores
+differed; the full report retains every difference. Candidate first-positive-mate
+reports were later on all three mate-reporting positions. This run establishes
+no additional tactical mate coverage, playing-strength gain or equivalence.
+
+Independent raw replay passed all 78 frozen inputs, 823 analysis iterations,
+7,584 legal PV plies and 78 clean exits. No operational failure, retry or
+exclusion occurred. The launcher exit and separate OS check confirm cleanup;
+the owner has been told LM Studio inference can resume. Preserve the full
+attempt, external audit, launch receipts and all earlier preparation evidence.
+
+**Next checkpoint:** prepare a separate prospective paired game qualification
+with a design capable of assessing modest gains. The prior approximately 5%
+equal-work efficiency result remains distinct from this tactical result.
+No game run or schedule is active or authorized by this closeout, and no engine
+setting changes follow automatically. Keep TT Move Hints/Continuation History
+off and parked; broader SMP-strength, platform and release gates remain open.
+
+## Previous checkpoint: Phase 4F.12 preparation validated
 
 The [preparation report](reports/2026-10-29-phase4f12-preparation.md) records
 **87 passing synthetic checks**, two search-free readiness sessions and all
@@ -21,11 +51,10 @@ baseline and `3ee5eff` NNUE candidate without rebuilding. All 39 positions get
 eight workers reserve at least 2 GiB. Normal/stable builds and previous evidence
 are preserved. No engine or setting change is part of this phase.
 
-**Next checkpoint:** agree an approximately 78-minute quiet window, run the
-full comparison once, then independently audit all observations. Daytime needs
-an explicit exception to the overnight rule. No full run or schedule is active;
-LM Studio may run until the agreed window. Game-based strength qualification
-follows separately. TT Move Hints/Continuation History remain off and parked.
+At this preparation checkpoint, the approximately 78-minute full comparison
+still needed a quiet window and a daytime exception if applicable. It was later
+authorized and completed as recorded above. Game-based strength qualification
+remains separate. TT Move Hints/Continuation History remain off and parked.
 
 ## Previous checkpoint: Phase 4F.11 NNUE efficiency implemented and measured
 

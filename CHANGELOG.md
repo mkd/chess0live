@@ -19,9 +19,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 - Added a frozen before/after NNUE puzzle comparison with identical settings,
   per-process binary identity and independent raw-output auditing. All 87
-  synthetic checks, readiness and 78 one-second smoke searches pass; the full
-  tactical run remains pending. See the
-  [preparation record](docs/reports/2026-10-29-phase4f12-preparation.md).
+  synthetic checks, readiness, smoke and the full 78-search comparison pass.
+  Both binaries report the same three mates and choose the same 39 final moves;
+  depth, score and slower candidate mate-report timings remain documented.
+  No playing-strength gain is established. See the
+  [audited results](docs/reports/2026-10-29-phase4f12-results.md).
 
 - Added exact affected-feature transition tests and an explicit current-defaults
   CPU profiling preset, while preserving historical profiling behavior.

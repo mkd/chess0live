@@ -1,5 +1,45 @@
 # Validation and experiment protocol
 
+## Phase 4F.12 full tactical comparison — October 29, 2026
+
+The [completed report](reports/2026-10-29-phase4f12-results.md) records one
+authorized full attempt from preparation commit `f15d003`, running
+**21:58:31–23:16:42 Helsinki** (78 minutes 10.6 seconds). All **78 searches /
+39 pairs** completed at 60 seconds per binary, eight threads and equal settings.
+The owner confirmed the quiet host and daytime exception; one resident engine
+reserved at least 2 GiB. Eight active workers stayed within both the daytime
+and nighttime admission budgets. These reservations are not OS utilization
+telemetry, and operator assertions are not continuous power/load monitoring.
+
+The independent raw audit passed **78 frozen inputs**, **823 iterations**,
+**7,584 legal PV plies**, **156 best/ponder plies**, **2,184 commands**,
+**3,163 consumed output lines**, **234 readiness barriers** and **2,545 resource
+observations**. All 78 distinct recorded engine PIDs exited zero with EOF and
+completed readers. Maximum observed gap was **2.082915 seconds** and clock drift
+**0.008109 seconds**, within the five-second boundaries. No operational failure,
+selective exclusion, retry or resume occurred. Launcher exit and a separate OS
+snapshot confirmed cleanup; the owner was told LM Studio inference can resume.
+
+Both roles reported positive mates on positions **1 (M7), 2 (M7), 15 (M9)**;
+all matched supplied distances and ended their final legal PVs in mate.
+All 39 final moves matched, with no positive-mate gains or losses. Candidate
+completed depth increased by one on 29 and 31, decreased by one on 1 and matched
+on 36 positions. All score differences, baseline/candidate in centipawns:
+**3: +702/+706; 10: +2182/+2144; 29: +1014/+1134; 31: +1467/+1587**.
+Candidate first-positive-mate reports were later on all three positions:
+**1: 11.303/12.806 s; 2: 5.788/10.794 s; 15: 34.673/35.297 s**
+(baseline/candidate). Position 1's first report was M9, later M7 for both.
+These exposed SMP observations establish no additional mate coverage, speed,
+Elo, equivalence or universal nonregression; legal mating PVs do not prove a
+forced mate against every defense. Expected-best-move labels are unavailable.
+
+Evidence: `results/phase4f12-full-20261029/`, external
+`results/phase4f12-full-20261029-audit.json`, SHA-256
+`18869298dfefa29653e811f76047bf9b7c808b5974874846b3bdd74a875f0a8d`,
+and `results/phase4f12-full-20261029-launch/` receipts. No engine/default change
+or rebuild occurred. Separate prospective paired game qualification remains
+pending; no match or schedule was started by this closeout.
+
 ## Phase 4F.12 tactical preparation — October 29, 2026
 
 The [preparation report](reports/2026-10-29-phase4f12-preparation.md) records
@@ -27,8 +67,9 @@ Evidence: `results/phase4f12-preparation-20261029/`, including external
 protected files, prior campaigns, owner settings and README introduction are
 preserved. The normal executable's pre-existing historical hash difference is
 recorded without attributing a cause; that file was not used in this comparison.
-No full run or schedule is active. Full equal-time tactical and subsequent
-game-based qualification remain pending, with their own operating authorization.
+At preparation, full tactical and game-based qualification remained pending.
+The subsequently authorized full tactical result is recorded above; game-based
+qualification still needs a separate protocol and operating authorization.
 
 ## Phase 4F.11 NNUE affected-feature updates — October 29, 2026
 
