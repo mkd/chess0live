@@ -28,7 +28,42 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.11 NNUE efficiency validated
+## Current checkpoint: Phase 4F.12 tactical comparison prepared
+
+Read the [protocol](experiments/phase4f12.md) and
+[preparation report](reports/2026-10-29-phase4f12-preparation.md). All 87 synthetic
+checks pass (46 runner, 41 auditor). Actual readiness and all 78 one-second smoke
+searches pass independent raw replay: 78 pinned inputs, correct two-binary
+assignment, equal options, legal output and clean process exits. All 39 final
+moves match; the three score/depth differences are retained. This validates
+operation, not tactical improvement or playing strength.
+
+Reuse the frozen `build/experiments/phase4f12/{baseline,candidate}/chess0live`
+copies and all 48 source snapshots. Their original tested identities are in the
+protocol, with 78 inputs pinned by `tests/data/phase4f12-pins.json`. Never rebuild
+or silently refreeze these inputs. Preserve earlier scripts, pins and campaigns;
+the new independent auditor imports no runner parser/validator/summary.
+Evidence lives in `results/phase4f12-preparation-20261029/`; audit JSONs are outside
+the readiness/smoke directories and must not be overwritten. The initial
+auditor-fixture path failure and corrected passing tests remain recorded.
+
+**Next:** agree a fresh approximately 78-minute window for 39 positions × two
+binaries × 60 seconds, eight active workers, one resident engine and at least
+2 GiB reserved memory. All search options match, including LMR on and TT hints/
+Continuation History off. Full mode requires paused competing inference/builds,
+AC/Automatic power and an awake host; suspend/resume invalidates qualification.
+Default policy is overnight with next-07:00 Helsinki cutoff; daytime needs an
+explicit exception for this full comparison. Prior short-comparison permission
+does not cover it. No long run or schedule is active. Commit preparation before
+launch, audit the complete attempt and report all adverse observations before
+considering a separate paired game protocol.
+
+LM Studio inference may resume after the confirmed smoke cleanup. Preserve
+stable GUI `0.1-dev-4b8b35d`, batch settings and README introduction. The normal
+release already had a different hash at entry; its current bytes were preserved
+without attribution or use in this comparison (details in the report).
+
+## Previous checkpoint: Phase 4F.11 NNUE efficiency validated
 
 Read the [completed report](reports/2026-10-29-phase4f11-nnue.md),
 [initial protocol](experiments/phase4f11.md) and

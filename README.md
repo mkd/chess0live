@@ -156,6 +156,21 @@ audit reads existing evidence without launching an engine. Its synthetic tests
 run with `python3 tools/run.py tests/phase4f9_puzzles_test.py` and
 `python3 tools/run.py tests/audit_phase4f9_puzzles_test.py`.
 
+To compare the frozen before/after NNUE binaries with identical settings:
+
+```sh
+python3 tools/check_phase4f12_puzzles.py --mode check --output results/nnue-ready-new
+python3 tools/check_phase4f12_puzzles.py --mode smoke --output results/nnue-smoke-new
+python3 tools/audit_phase4f12_puzzles.py results/nnue-smoke-new/report.json --output results/nnue-smoke-audit-new.json
+```
+
+These commands require both local build bundles and their pinned provenance;
+see the [comparison instructions](docs/experiments/phase4f12.md). Readiness is
+search-free; smoke uses all 39 positions for one second per binary. The full
+60-second comparison requires a separately agreed quiet window. Synthetic tests
+run through `tools/run.py` with `tests/phase4f12_puzzles_test.py` and
+`tests/audit_phase4f12_puzzles_test.py`. Existing outputs and GUI settings stay intact.
+
 ### Automatic Python tool setup
 
 Run tools/tests that need Python packages through the shared launcher:

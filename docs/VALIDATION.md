@@ -1,5 +1,35 @@
 # Validation and experiment protocol
 
+## Phase 4F.12 tactical preparation — October 29, 2026
+
+The [preparation report](reports/2026-10-29-phase4f12-preparation.md) records
+87 passing synthetic checks: 46 runner and 41 independent auditor tests. They
+cover distinct binary assignment, identical options, normalized build/source
+provenance, raw legality, lifecycle, timing, resource/cutoff restrictions and
+failed/missing evidence. The first auditor fixture used a noncanonical macOS
+temporary path; its failure log and corrected passing checks are retained.
+
+Two actual readiness sessions passed without position/search commands. Their
+independent audit verified all 78 inputs, 50 commands, four readiness barriers,
+EOF and clean exits. Both copied binaries and all 48 role source files match
+their original Phase 4F.11 receipts and committed revisions. No rebuild occurred.
+
+Smoke completed **78 searches / 39 pairs** at one second per role, eight threads
+and 64 MiB Hash, **10:28:29–10:29:54 Helsinki**. Independent replay passed 525
+iterations, 3,380 legal PV plies, 156 best/ponder plies, 234 readiness barriers,
+313 resource observations and 78 clean process exits. A separate OS check
+confirmed cleanup. All 39 best moves match and neither role reported mate.
+Candidate depth/score was lower on positions 12 and 38 and higher on 23; the
+other 36 match. These smoke observations establish no speed or strength claim.
+
+Evidence: `results/phase4f12-preparation-20261029/`, including external
+`readiness-audit.json` and `smoke-audit.json` (hashes in the report). Existing
+protected files, prior campaigns, owner settings and README introduction are
+preserved. The normal executable's pre-existing historical hash difference is
+recorded without attributing a cause; that file was not used in this comparison.
+No full run or schedule is active. Full equal-time tactical and subsequent
+game-based qualification remain pending, with their own operating authorization.
+
 ## Phase 4F.11 NNUE affected-feature updates — October 29, 2026
 
 The [completed report](reports/2026-10-29-phase4f11-nnue.md) records two revisions,

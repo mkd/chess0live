@@ -17,6 +17,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a frozen before/after NNUE puzzle comparison with identical settings,
+  per-process binary identity and independent raw-output auditing. All 87
+  synthetic checks, readiness and 78 one-second smoke searches pass; the full
+  tactical run remains pending. See the
+  [preparation record](docs/reports/2026-10-29-phase4f12-preparation.md).
+
 - Added exact affected-feature transition tests and an explicit current-defaults
   CPU profiling preset, while preserving historical profiling behavior.
 

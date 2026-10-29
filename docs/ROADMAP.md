@@ -5,7 +5,29 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.11 NNUE efficiency implemented and measured
+## Current checkpoint: Phase 4F.12 prepared — full tactical run awaits a quiet window
+
+The [preparation report](reports/2026-10-29-phase4f12-preparation.md) records
+**87 passing synthetic checks**, two search-free readiness sessions and all
+**78 one-second smoke searches**, independently audited. The audit verifies
+78 frozen inputs, correct binary assignment, identical settings, legal output
+and clean exits. Both roles chose the same final moves on all 39 positions;
+three depth/score differences remain documented. Smoke establishes no strength
+or tactical improvement.
+
+The [fixed comparison](experiments/phase4f12.md) reuses the tested `1ca87d6`
+baseline and `3ee5eff` NNUE candidate without rebuilding. All 39 positions get
+60 seconds per binary, eight threads and 64 MiB Hash. One resident engine and
+eight workers reserve at least 2 GiB. Normal/stable builds and previous evidence
+are preserved. No engine or setting change is part of this phase.
+
+**Next checkpoint:** agree an approximately 78-minute quiet window, run the
+full comparison once, then independently audit all observations. Daytime needs
+an explicit exception to the overnight rule. No full run or schedule is active;
+LM Studio may run until the agreed window. Game-based strength qualification
+follows separately. TT Move Hints/Continuation History remain off and parked.
+
+## Previous checkpoint: Phase 4F.11 NNUE efficiency implemented and measured
 
 The [completed report](reports/2026-10-29-phase4f11-nnue.md) records affected-feature
 NNUE updates with unchanged integer arithmetic and search policy. Exact feature,
