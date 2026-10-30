@@ -91,11 +91,17 @@ Observation run(Search& search, Position position, const SearchLimits& request,
     require(result.nullmove.enabled == request.null_move_pruning, "Null option flag is stale");
     const auto& n = result.nullmove;
     require(n.fail_highs == n.verifications && n.verifications <= n.probes
-            && n.cutoffs + n.rejected <= n.verifications,
+            && n.cutoffs + n.rejected <= n.verifications
+            && n.verification_hints <= n.verifications,
             "Null diagnostics have inconsistent attempt/outcome counts");
+    require(n.probe_nodes + n.verification_nodes <= result.nodes
+            && n.verification_hints <= n.verification_nodes,
+            "Disjoint null subtrees or consumed hints exceeded visited work");
     if (!request.diagnostics || !request.null_move_pruning)
         require(n.probes == 0 && n.fail_highs == 0 && n.verifications == 0
-                && n.cutoffs == 0 && n.rejected == 0, "Inactive null diagnostics retained counts");
+                && n.cutoffs == 0 && n.rejected == 0 && n.probe_nodes == 0
+                && n.verification_nodes == 0 && n.verification_hints == 0,
+                "Inactive null diagnostics retained counts");
     require(std::accumulate(result.smp.worker_nodes.begin(), result.smp.worker_nodes.end(),
                             std::uint64_t{0}) == result.nodes,
             "Joined worker node totals do not equal the public aggregate");
@@ -129,8 +135,10 @@ void same_search(const Observation& actual, const Observation& expected) {
  * and learned ordering before reuse. Exact agreement here is not required
  * between selective and nonselective searches, only equivalent fresh policies.
  */
-Observation policies_and_diagnostics(Search& search, const Position& position) {
+Observation policies_and_diagnostics(Search& search, const Position& position,
+                                     bool lmr_enabled = false) {
     auto request = limits();
+    request.late_move_reductions = lmr_enabled;
     request.null_move_pruning = false;
     search.clear();
     const auto baseline = run(search, position, request);
@@ -189,15 +197,61 @@ void abort_boundaries(Search& search, const Position& position, const Observatio
                 && occurred(result) && result.nullmove.cutoffs == 0 && result.nullmove.rejected == 0,
                 "Attempt boundary must abort before publishing an outcome");
         if (verification)
-            require(result.nullmove.verifications == 1, "First verification boundary is not unique");
-        else require(result.nullmove.probes == 1 && result.nullmove.verifications == 0,
-                     "First null probe boundary unexpectedly completed a verification");
+            require(result.nullmove.verifications == 1 && result.nullmove.verification_nodes == 0
+                    && result.nullmove.verification_hints == 0,
+                    "Verification entry abort counted unvisited work or a consumed hint");
+        else require(result.nullmove.probes == 1 && result.nullmove.verifications == 0
+                     && result.nullmove.probe_nodes == 0,
+                     "First null probe boundary unexpectedly visited speculative work");
         require(result.diagnostics->iterations.back().completed == false,
                 "Aborted attempt must retain an incomplete iteration record");
         same_search(run(search, position, default_request), default_baseline);
         std::cout << "PASS interrupted " << (verification ? "verification" : "null probe")
                   << " at node cap " << low << ", followed by exact fresh-default reuse\n";
     }
+}
+
+/** Exercise the hint under the accepted LMR-on baseline, then stop at the first
+ * verification root that actually consumes one. At that minimum node budget,
+ * the root has been visited but its first legal child cannot be visited. The
+ * interrupted work must be accounted for and cannot publish a cutoff.
+ */
+void hinted_verification_and_abort(Search& search, const Position& position) {
+    const auto complete = policies_and_diagnostics(search, position, true);
+    require(complete.result.nullmove.verification_hints > 0
+            && complete.result.nullmove.probe_nodes > 0
+            && complete.result.nullmove.verification_nodes > 0,
+            "LMR-on fixture must consume real verification hints and count both subtrees");
+    auto request = limits();
+    request.late_move_reductions = true;
+    auto default_request = limits(3);
+    default_request.late_move_reductions = true;
+    default_request.null_move_pruning = false;
+    search.clear();
+    const auto default_baseline = run(search, position, default_request);
+    std::uint64_t low = 1, high = complete.result.nodes;
+    while (low < high) {
+        const auto middle = low + (high - low) / 2;
+        request.nodes = middle;
+        search.clear();
+        if (run(search, position, request).result.nullmove.verification_hints > 0)
+            high = middle;
+        else low = middle + 1;
+    }
+    request.nodes = low;
+    search.clear();
+    const auto stopped = run(search, position, request);
+    const auto& result = stopped.result;
+    require(result.nodes == low && result.diagnostics
+            && result.diagnostics->stop_reason == StopReason::node_limit
+            && !result.diagnostics->iterations.back().completed
+            && result.nullmove.verification_hints == 1
+            && result.nullmove.verification_nodes > 0
+            && result.nullmove.verifications == result.nullmove.cutoffs + result.nullmove.rejected + 1,
+            "First consumed hint must leave one unfinished verification at its entry budget");
+    same_search(run(search, position, default_request), default_baseline);
+    std::cout << "PASS LMR-on verification hint, diagnostic/policy parity and interruption at node cap "
+              << low << ", followed by exact fresh-default reuse\n";
 }
 
 void draw_history_and_terminals(Search& search) {
@@ -332,6 +386,7 @@ int main(int argc, char** argv) {
         const auto original_key = position.key();
         const auto complete = policies_and_diagnostics(search, position);
         abort_boundaries(search, position, complete);
+        hinted_verification_and_abort(search, position);
         draw_history_and_terminals(search);
         bounded_stops_and_workers(search, position);
         optional_tablebase_rules(search, argc == 3 ? std::filesystem::path(argv[2]) : std::filesystem::path{});

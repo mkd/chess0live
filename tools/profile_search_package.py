@@ -71,6 +71,7 @@ SCHEMAS = {
     "qsearchsee": "enabled evaluations pruned",
     "probcut": "enabled eligible_nodes see_evaluations qsearches qsearch_passes searches cutoffs rejected",
 }
+NULL_WORK_FIELDS = {"probe_nodes", "verification_nodes", "verification_hints"}
 OPTIONAL_RECORDS = {"deep-lmr", "countermove", "nullmove", "reversefutility", "qsearchsee", "probcut"}
 SOURCES = ("tools/profile_search_package.py", "tests/profile_search_package_test.py", "Makefile",
            "tools/bench.py", "tools/compare_bench.py", "tools/profile_cache.py",
@@ -117,7 +118,11 @@ def diagnostic_record(line):
     if len(values) % 2 or len(set(values[::2])) != len(values) // 2:
         raise ValueError("Malformed or duplicate diagnostic fields")
     fields = dict(zip(values[::2], values[1::2]))
-    if set(fields) != set(SCHEMAS[name].split()): raise ValueError("Missing or unexpected diagnostic fields")
+    expected = set(SCHEMAS[name].split())
+    # Preserve old evidence verbatim; the additive null-work extension must be
+    # complete when present. Missing historical work counts are not zeros.
+    if set(fields) != expected and not (name == "nullmove" and set(fields) == expected | NULL_WORK_FIELDS):
+        raise ValueError("Missing or unexpected diagnostic fields")
     for key, value in fields.items():
         if key in ("enabled", "completed", "forecast_active"):
             if value not in ("true", "false"): raise ValueError("Invalid diagnostic boolean")
@@ -222,6 +227,16 @@ def validate_result(lines, board, config, movetime_ms):
         if (null["fail_highs"] > null["probes"] or null["verifications"] != null["fail_highs"]
                 or null["cutoffs"] + null["rejected"] > null["verifications"]):
             raise ValueError("Invalid null-move accounting")
+        if NULL_WORK_FIELDS <= null.keys():
+            # An attempted subtree can stop before its first node; completed
+            # outcomes and admitted hints require at least one visited node.
+            if (null["probe_nodes"] + null["verification_nodes"] > summary["nodes"]
+                    or null["probe_nodes"] < null["fail_highs"]
+                    or null["verification_nodes"] < null["cutoffs"] + null["rejected"]
+                    or null["verification_hints"] > min(null["verifications"], null["verification_nodes"])
+                    or (null["probes"] == 0 and null["probe_nodes"] != 0)
+                    or (null["verifications"] == 0 and null["verification_nodes"] != 0)):
+                raise ValueError("Invalid null-move work accounting")
         if rfp["cutoffs"] > rfp["evaluations"] or qsee["pruned"] > qsee["evaluations"]:
             raise ValueError("Invalid futility/SEE pruning accounting")
         if (pc["see_evaluations"] > 3 * pc["eligible_nodes"] or pc["qsearches"] > pc["see_evaluations"]

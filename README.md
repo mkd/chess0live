@@ -385,10 +385,16 @@ and positions near the fifty-move limit. These safeguards do not prove strength
 preservation; leave it off for ordinary baseline comparisons. Changing the
 policy clears cached search state. With `Search Diagnostics=true`, a final
 `nullmove v1` record reports probes, fail-highs, verifications, accepted cutoffs,
-and rejected verifications, summed across workers. Check state and protocol
+rejected verifications, probe/verification nodes (including interrupted work),
+and legal verification roots receiving a cached move for ordering, summed across
+workers. The verification root can reuse an already available legal TT move;
+it does not use the cached score or enable TT access in speculative subtrees.
+Check state and protocol
 behavior with `make test-null-state test-null-search test-null-move`
 with automatic dependency setup. `make test-profile-null-move` checks
-the bounded development profiler without starting engine searches.
+the original bounded development profiler without starting engine searches.
+Check the separate verification-ordering profiler without running an engine:
+`python3 tools/run.py --offline tests/profile_null_verification_test.py`.
 
 `Reverse Futility Pruning` (default `false`) is an experimental shallow static
 cutoff, enabled with `setoption name Reverse Futility Pruning value true`.

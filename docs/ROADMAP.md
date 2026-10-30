@@ -5,7 +5,36 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.14 complete — bounded clock repair and diagnosis
+## Current checkpoint: Phase 4F.15 complete — small opt-in ordering improvement
+
+The [audited report](reports/2026-10-30-phase4f15-null-verification.md) records one
+[fixed hypothesis](experiments/phase4f15-null-verification.md): reuse the ordinary
+node's copied legal TT move only at the root of null verification. Bounds,
+depths, eligibility, speculative isolation and default settings stay unchanged.
+Native/scalar/ASan+UBSan/ThreadSanitizer checks pass, including **78 UCI cases per
+build**, interrupted verification, LMR-on diagnostics parity and policy reset.
+
+All **24 fixed-depth searches** pass independent raw audit. Default-off behavior
+matches the parent exactly. Compared with previous null on, the revision saves
+only **0.0821% cold / 0.3091% warm nodes**, with matching scores/PVs. Compared
+with accepted null off, it uses **8.9147% fewer cold but 22.3006% more warm
+nodes**. Retain the small opt-in implementation improvement and counters; **keep
+null pruning off and park its qualification**. No timing or Elo claim follows
+from this loaded-host, three-opening development screen.
+
+All engines exited; OS cleanup, 611 protected paths, stable GUI
+`0.1-dev-4b8b35d` and README introduction are verified. Evidence:
+`results/phase4f15-null-verification-20261030/`. No match or schedule was created.
+
+**Next proposed checkpoint: Phase 4F.16**, deferred sorting on the accepted
+LMR-on/null-off path. Freeze ranking keys before the first TT child in storage
+that child searches cannot overwrite, and sort remaining moves only if needed;
+preserve ordering, learning and reduction semantics. Keep speculative/ProbCut
+paths eager initially. A finite implementation/parity checkpoint can proceed on
+the loaded host; controlled timing requires a fresh suitable window. New game
+qualification still needs clock readiness. No large gain is promised.
+
+## Previous checkpoint: Phase 4F.14 complete — bounded clock repair and diagnosis
 
 The [completed report](reports/2026-10-30-phase4f14-clocks.md) records a reproduced
 match-runner responsiveness defect: synchronous draw adjudication could prevent
@@ -1242,7 +1271,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | Finite initial checkpoints concluded. Broader reductions and ProbCut remain parked off; subsequent search development is tracked in 4F |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 completed but failed clock qualification. 4F.14 repaired reproduced adjudication blocking; eight loaded-host diagnostic replies were on time, historical cause unresolved. Next proposed: 4F.15 isolated null-move efficiency. Hints, Continuation History and all-on promotion remain parked |
+| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 failed clock qualification; 4F.14 repaired adjudication blocking without resolving historical cause. 4F.15 small null-verification ordering gain did not fix warm-work regression; null stays off. Next proposed: 4F.16 deferred sorting on the accepted baseline. Hints, Continuation History and all-on promotion remain parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

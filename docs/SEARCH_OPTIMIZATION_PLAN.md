@@ -1,5 +1,16 @@
 # Phase 4D: search efficiency with strength gates
 
+Latest follow-up: [Phase 4F.15](reports/2026-10-30-phase4f15-null-verification.md)
+reuses a legal contextual TT move at the null-verification root without exposing
+cached bounds to speculative search. Correctness and a 24-search raw audit pass.
+The reduction versus previous null on is only 0.0821% cold / 0.3091% warm nodes;
+revised null on still adds 22.3006% warm work versus accepted LMR-on/null-off.
+Keep the small implementation improvement, null default off and qualification
+parked. Do not retune that opening sample. Next proposed 4F.16 targets deferred
+sorting on the accepted default path, freezing ranking keys before the first
+child and preserving them outside mutable worker scratch. This needs its own
+parity evidence and later controlled timing; no strength gain is established.
+
 Status: Phase 4D.1 complete with countermove ordering parked after a mixed
 360-search screen; [results and decision](reports/2026-10-18-phase4d-countermove.md).
 Phase 4D.2 finished all 1,024 games: its [audited result](reports/2026-10-19-phase4d2-results.md)

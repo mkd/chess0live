@@ -25,7 +25,8 @@ from uci_client import Engine
 
 OPTION = "Null Move Pruning"
 PREFIX = "info string nullmove v1 "
-COUNTERS = ("probes", "fail_highs", "verifications", "cutoffs", "rejected")
+COUNTERS = ("probes", "fail_highs", "verifications", "cutoffs", "rejected",
+            "probe_nodes", "verification_nodes", "verification_hints")
 CORPUS = ROOT / "tests/data/null-move-regressions.json"
 SANITIZER_MARKERS = ("Sanitizer", "runtime error:", "data race")
 
@@ -135,7 +136,7 @@ def replay(board, coordinates):
     return current
 
 
-def validate(lines, board, *, enabled, threads=1, diagnostics=True,
+def validate(lines, board, *, enabled, threads=1, diagnostics=True, lmr=False,
              allowed=None, node_limit=None, node_ceiling=None, score=None):
     """Check protocol, real-move legality, and aggregate search accounting."""
     prefixes = ("info depth ", "info nodes ", "bestmove ",
@@ -214,14 +215,17 @@ def validate(lines, board, *, enabled, threads=1, diagnostics=True,
         assert counters["fail_highs"] <= counters["probes"], counters
         assert counters["fail_highs"] == counters["verifications"], counters
         assert counters["cutoffs"] + counters["rejected"] <= counters["verifications"], counters
+        assert counters["verification_hints"] <= counters["verifications"], counters
+        assert counters["verification_hints"] <= counters["verification_nodes"], counters
+        assert counters["probe_nodes"] + counters["verification_nodes"] <= total, (counters, total)
     else:
         assert not null_lines, lines
     if diagnostics:
         summary = only_record(lines, "info string search-summary v1 ")
         assert int(summary["nodes"]) == total, (summary, total)
         assert lines[-2].startswith("info string search-summary v1 "), lines[-3:]
-        lmr = only_record(lines, "info string lmr v1 ")
-        assert lmr["enabled"] == "false", lmr
+        lmr_record = only_record(lines, "info string lmr v1 ")
+        assert lmr_record["enabled"] == str(lmr).lower(), lmr_record
         smp_lines = [line for line in lines if line.startswith("info string smp v1 ")]
         if threads == 1:
             assert not smp_lines, smp_lines
@@ -295,7 +299,9 @@ def run(executable, network, max_threads, activation_timeout=30):
         root_before = root_evaluation(engine)
         active = search(engine, board, "go depth 7 nodes 250000", enabled=True,
                         node_ceiling=250000, timeout=activation_timeout)
-        assert all(active["counters"][key] > 0 for key in COUNTERS[:-1]), active
+        assert all(active["counters"][key] > 0 for key in
+                   ("probes", "fail_highs", "verifications", "cutoffs",
+                    "probe_nodes", "verification_nodes", "verification_hints")), active
         assert root_evaluation(engine) == root_before
         option(engine, "Clear Hash")
         option(engine, "Search Diagnostics", "false")
@@ -303,6 +309,24 @@ def run(executable, network, max_threads, activation_timeout=30):
                         diagnostics=False, node_ceiling=250000, timeout=activation_timeout)
         assert silent["signature"] == active["signature"], (silent, active)
         option(engine, "Search Diagnostics", "true")
+        checks += 2
+
+        # The new root hint must also be consumed with the accepted LMR policy;
+        # diagnostics cannot change a fixed-work search or the external root.
+        option(engine, "Late Move Reductions", "true")
+        option(engine, "Clear Hash")
+        hinted = search(engine, board, "go depth 6 nodes 200000", enabled=True,
+                        lmr=True, node_ceiling=200000, timeout=activation_timeout)
+        assert hinted["counters"]["verification_hints"] > 0, hinted
+        assert root_evaluation(engine) == root_before
+        option(engine, "Clear Hash")
+        option(engine, "Search Diagnostics", "false")
+        silent_hint = search(engine, board, "go depth 6 nodes 200000", enabled=True,
+                             lmr=True, diagnostics=False, node_ceiling=200000,
+                             timeout=activation_timeout)
+        assert silent_hint["signature"] == hinted["signature"], (silent_hint, hinted)
+        option(engine, "Search Diagnostics", "true")
+        option(engine, "Late Move Reductions", "false")
         checks += 2
 
         for case, expected_board in cases:

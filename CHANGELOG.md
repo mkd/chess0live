@@ -5,6 +5,14 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ## Unreleased — working toward 0.1
 
+### Search
+
+- Reuse an already available legal transposition move to order the root of an
+  experimental null-move verification search. Verification retains its depth,
+  draw rules and speculative-search restrictions; null pruning remains off by
+  default. Added probe/verification work counters and interruption checks.
+  No playing-strength gain is established.
+
 ### Evaluation
 
 - Reduced NNUE feature-discovery work using a shared bitboard change mask and

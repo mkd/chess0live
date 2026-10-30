@@ -1,5 +1,41 @@
 # Validation and experiment protocol
 
+## Phase 4F.15 null-verification ordering — October 30, 2026
+
+The [report](reports/2026-10-30-phase4f15-null-verification.md) records the
+[single fixed hypothesis](experiments/phase4f15-null-verification.md): reuse only
+an already-copied legal contextual TT move at the verification root. No new TT
+bound/read, descendant hint, eligibility/depth change or default promotion.
+
+Native, scalar, ASan/UBSan and ThreadSanitizer direct API checks pass and each
+passes **78 UCI cases**, including independent legal PVs, both colors,
+history/draw/mate, policy reset, stops/pondering and one/four-worker accounting.
+All four reproduce stop boundaries at nodes **33,624 / 33,667 / 17,186** for
+null dispatch, legal verification dispatch and first admitted LMR-on hint;
+aborted work is accounted for and fresh-default reuse agrees. Native/scalar/
+ASan+UBSan each pass **63 null-state roots, 202 children, 1,045 incremental/full
+NNUE comparisons** and pure policy checks; native time-policy checks pass too.
+This is local macOS ARM64 execution, not new foreign-target or external NNUE
+oracle evidence. Entry-stop tests are not exhaustive concurrency proofs.
+
+New profiler: **15 engine-free tests**; extended/historical null diagnostics
+parser: **29 tests**. Pre-measurement review fixed schema compatibility and
+finalization deadline coverage, plus a synthetic fixture's path-alias mistake.
+All 24 planned work searches completed once with zero failed or omitted cells.
+Independent audit verifies **12 sessions, 144 iterations, 612 legal PV plies,
+24 bestmoves/ponders, 21 assets, 54 archived sources** and exact default-off
+signatures. Old/new null work is **382,457/382,143 cold** and **73,430/73,203
+warm**, with no per-depth score/PV change. Compared with accepted null off,
+revised null uses **8.9147% fewer cold but 22.3006% more warm nodes**. This
+opening-only loaded-host screen supplies no timing or strength inference.
+
+Twelve zero exits and OS cleanup are confirmed; all **611 protected paths** and
+README introduction are unchanged, including stable GUI `0.1-dev-4b8b35d`.
+Preserve the old normal-release digest discrepancy and all six historical
+forfeits. Keep null off and park its qualification; no game/schedule or release.
+Evidence: `results/phase4f15-null-verification-20261030/`. Independent audit SHA:
+`efa5947cb76a373cae420326c5e2d986a76c87c8e0abbcf949c9bd73f95b6edc`.
+
 ## Phase 4F.14 bounded clock checkpoint — October 30, 2026
 
 The [report](reports/2026-10-30-phase4f14-clocks.md) separates a reproduced

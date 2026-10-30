@@ -206,6 +206,57 @@ class PackageTests(unittest.TestCase):
             with self.subTest(new=new), self.assertRaises(ValueError):
                 self.parse([line.replace(old, new) for line in reply("all-on")], role="all-on")
 
+    def test_old_and_complete_extended_null_records_preserve_available_fields(self):
+        for threads in (1, 8):
+            old = self.parse(role="all-on", threads=threads)["diagnostics"]["nullmove"]
+            self.assertFalse(p.NULL_WORK_FIELDS & old.keys())
+            lines = [line + " probe_nodes 8 verification_nodes 6 verification_hints 2"
+                     if "string nullmove " in line else line for line in reply("all-on", threads)]
+            new = self.parse(lines, role="all-on", threads=threads)["diagnostics"]["nullmove"]
+            self.assertEqual({key: new[key] for key in old}, old)
+            self.assertEqual({key: new[key] for key in p.NULL_WORK_FIELDS},
+                             dict(probe_nodes=8, verification_nodes=6, verification_hints=2))
+
+    def test_partial_unknown_duplicate_and_negative_null_extensions_rejected(self):
+        full = " probe_nodes 8 verification_nodes 6 verification_hints 2"
+        for suffix in (" probe_nodes 8", " verification_nodes 6 verification_hints 2",
+                       full + " unexpected 0", full + " probe_nodes 8",
+                       full.replace("probe_nodes 8", "probe_nodes -1"),
+                       full.replace("verification_nodes 6", "verification_nodes -1"),
+                       full.replace("verification_hints 2", "verification_hints -1")):
+            lines = [line + suffix if "string nullmove " in line else line for line in reply("all-on")]
+            with self.subTest(suffix=suffix), self.assertRaises(ValueError):
+                self.parse(lines, role="all-on")
+
+    def test_extended_null_work_must_fit_attempts_outcomes_and_aggregate_nodes(self):
+        full = " probe_nodes 8 verification_nodes 6 verification_hints 2"
+        for old, new in (("probe_nodes 8", "probe_nodes 25"),
+                         ("probe_nodes 8", "probe_nodes 1"),
+                         ("verification_nodes 6", "verification_nodes 1"),
+                         ("verification_hints 2", "verification_hints 3")):
+            lines = [line + full.replace(old, new) if "string nullmove " in line else line
+                     for line in reply("all-on")]
+            with self.subTest(new=new), self.assertRaisesRegex(ValueError, "null-move work"):
+                self.parse(lines, role="all-on")
+        for record in (
+                "probes 0 fail_highs 0 verifications 0 cutoffs 0 rejected 0 probe_nodes 1 verification_nodes 0 verification_hints 0",
+                "probes 1 fail_highs 0 verifications 0 cutoffs 0 rejected 0 probe_nodes 1 verification_nodes 1 verification_hints 0",
+                "probes 1 fail_highs 1 verifications 1 cutoffs 0 rejected 0 probe_nodes 1 verification_nodes 0 verification_hints 1"):
+            lines = ["info string nullmove v1 enabled true " + record if "string nullmove " in line else line
+                     for line in reply("all-on")]
+            with self.subTest(record=record), self.assertRaisesRegex(ValueError, "null-move work"):
+                self.parse(lines, role="all-on")
+
+    def test_extended_null_attempts_may_stop_before_visiting_their_root(self):
+        for record in (
+                "probes 1 fail_highs 0 verifications 0 cutoffs 0 rejected 0 probe_nodes 0 verification_nodes 0 verification_hints 0",
+                "probes 1 fail_highs 1 verifications 1 cutoffs 0 rejected 0 probe_nodes 1 verification_nodes 0 verification_hints 0",
+                "probes 1 fail_highs 1 verifications 1 cutoffs 0 rejected 0 probe_nodes 1 verification_nodes 1 verification_hints 1"):
+            lines = ["info string nullmove v1 enabled true " + record if "string nullmove " in line else line
+                     for line in reply("all-on")]
+            with self.subTest(record=record):
+                self.parse(lines, role="all-on")
+
     def test_pruned_or_interrupted_cache_accounting_is_permitted(self):
         cache = self.parse()["diagnostics"]["cache"]
         self.assertNotEqual(cache["probes"], cache["stores"] + cache["cutoffs"])

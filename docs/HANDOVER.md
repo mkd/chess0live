@@ -28,7 +28,43 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.14 complete — narrow runner repair
+## Current checkpoint: Phase 4F.15 complete — null stays off
+
+The owner authorized this phase after pushing `19ddf06`. Read the
+[fixed protocol](experiments/phase4f15-null-verification.md) and
+[audited report](reports/2026-10-30-phase4f15-null-verification.md). The candidate passes
+the already-copied contextual TT move into the legal verification root only,
+with exact legal-list validation and no bound use or hint propagation. No
+default, null eligibility, verification depth, NNUE arithmetic or time policy
+changes. Native/scalar/ASan+UBSan/ThreadSanitizer checks pass, with 78 UCI cases
+per build, LMR-on diagnostic/policy parity and interrupted hinted verification.
+The 15 profiler and 29 compatible diagnostic-parser checks pass.
+
+All 24 fixed-work searches passed independent raw audit: exact off equivalence;
+old/new null totals **382,457→382,143 cold**, **73,430→73,203 warm**. This is only
+**0.0821% / 0.3091%** less work. Accepted null-off totals are **419,544 / 59,855**:
+the revised option still adds **22.3006% warm work**. Scores/PVs agree throughout
+the finite sample. Keep the tiny opt-in engineering change and diagnostics, but
+**park null qualification and retain default false**. Loaded-host node evidence
+is neither timing nor strength qualification.
+
+Preserve `results/phase4f15-null-verification-20261030/`, including all raw
+evidence, independent audit, archived build sources, preparation corrections
+and checks. All 12 screen engines exited zero; OS cleanup found no phase
+processes. All 611 protected paths and the README introduction are intact,
+including stable GUI `0.1-dev-4b8b35d`. The old normal-release digest caveat and
+six Phase 4F.13 forfeits remain unresolved. No game or schedule was created.
+
+**Next proposed Phase 4F.16:** defer sorting of remaining ordinary moves after
+the contextual TT move, on the accepted LMR-on/null-off path. Freeze ranking
+keys before searching the first child; child searches mutate history and reuse
+worker scratch, so delayed rescoring or reusing that scratch changes semantics.
+Use caller-owned/per-ply storage and preserve learning prefixes, tie order and
+LMR indices. Initially keep speculative/ProbCut paths eager. This needs its own
+finite exact-parity check, then a fresh quiet window for timing; no unmeasured
+gain or automatic future work is promised.
+
+## Previous checkpoint: Phase 4F.14 complete — narrow runner repair
 
 Read the [clock report](reports/2026-10-30-phase4f14-clocks.md) and
 [finite protocol](experiments/phase4f14-clocks.md). A deterministic pre-fix test

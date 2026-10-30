@@ -245,6 +245,12 @@ struct NullMoveStatistics {
     std::uint64_t verifications = 0;
     std::uint64_t cutoffs = 0;
     std::uint64_t rejected = 0;
+    // Visited nodes include interrupted attempts and quiescence. The two
+    // subtrees cannot nest, so their totals do not overlap. Hints count legal
+    // verification roots that reuse the ordinary caller's copied TT move.
+    std::uint64_t probe_nodes = 0;
+    std::uint64_t verification_nodes = 0;
+    std::uint64_t verification_hints = 0;
 };
 
 /** Fresh static evaluations and accepted shallow reverse-futility cutoffs.

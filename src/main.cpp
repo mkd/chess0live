@@ -582,7 +582,10 @@ private:
             line << "info string nullmove v1 enabled true probes " << result.nullmove.probes
                  << " fail_highs " << result.nullmove.fail_highs
                  << " verifications " << result.nullmove.verifications
-                 << " cutoffs " << result.nullmove.cutoffs << " rejected " << result.nullmove.rejected;
+                 << " cutoffs " << result.nullmove.cutoffs << " rejected " << result.nullmove.rejected
+                 << " probe_nodes " << result.nullmove.probe_nodes
+                 << " verification_nodes " << result.nullmove.verification_nodes
+                 << " verification_hints " << result.nullmove.verification_hints;
             output(line.str());
         }
         if (result.smp.threads > 1) {

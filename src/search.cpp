@@ -748,7 +748,8 @@ struct SearchWorker {
      */
     int alphabeta(Position& position, int depth, int alpha, int beta, int ply,
                   bool pv_node, std::uint64_t digest,
-                  std::size_t previous_move = no_previous_move, Mode mode = Mode::ordinary) {
+                  std::size_t previous_move = no_previous_move, Mode mode = Mode::ordinary,
+                  Move verification_hint = {}) {
         if (depth <= 0) return quiescence(position, alpha, beta, ply, mode);
         if (!visit(ply)) return 0;
         auto moves = position.legal_moves();
@@ -791,6 +792,15 @@ struct SearchWorker {
 
         const auto key = table_key(position, digest);
         Move tt_move;
+        // Only the legal verification root receives its ordinary caller's
+        // already-copied contextual move. It conveys no bound/depth and causes
+        // no TT access. Exact legal membership includes flags and promotion;
+        // recursive calls omit the argument, so descendants receive no hint.
+        if (mode == Mode::verification && verification_hint.valid()
+            && std::find(moves.begin(), moves.end(), verification_hint) != moves.end()) {
+            tt_move = verification_hint;
+            if (limits.diagnostics) ++nullmove.verification_hints;
+        }
         if (const auto entry = mode == Mode::ordinary ? probe(key) : std::nullopt) {
             tt_move = entry->move();
             const int score = score_from_table(entry->score, ply);
@@ -862,6 +872,7 @@ struct SearchWorker {
                 const int static_score = evaluate(position);
                 if (static_score >= beta && std::abs(static_score) < band) {
                     if (limits.diagnostics) ++nullmove.probes;
+                    const auto probe_begin = nodes;
                     const auto undo = position.make_null_move();
                     int null_score;
                     try {
@@ -872,14 +883,18 @@ struct SearchWorker {
                         throw;
                     }
                     position.unmake_null_move(undo);
+                    if (limits.diagnostics) nullmove.probe_nodes += nodes - probe_begin;
                     pv_length[static_cast<std::size_t>(ply)] = ply;
                     if (aborted) return 0;
                     // Reject mate/tablebase-band pseudo evidence. Both passes
                     // must finish normally before the real node may fail high.
                     if (null_score >= beta && std::abs(null_score) < band) {
                         if (limits.diagnostics) { ++nullmove.fail_highs; ++nullmove.verifications; }
+                        const auto verification_begin = nodes;
                         const int verified = alphabeta(position, depth - 2, beta - 1, beta,
-                            ply, false, digest, previous_move, Mode::verification);
+                            ply, false, digest, previous_move, Mode::verification, tt_move);
+                        if (limits.diagnostics)
+                            nullmove.verification_nodes += nodes - verification_begin;
                         pv_length[static_cast<std::size_t>(ply)] = ply;
                         if (aborted) return 0;
                         if (verified >= beta && std::abs(verified) < band) {
@@ -1512,6 +1527,9 @@ struct Search::Impl {
             result.nullmove.verifications += worker.nullmove.verifications;
             result.nullmove.cutoffs += worker.nullmove.cutoffs;
             result.nullmove.rejected += worker.nullmove.rejected;
+            result.nullmove.probe_nodes += worker.nullmove.probe_nodes;
+            result.nullmove.verification_nodes += worker.nullmove.verification_nodes;
+            result.nullmove.verification_hints += worker.nullmove.verification_hints;
             result.reverse_futility.evaluations += worker.reverse_futility.evaluations;
             result.reverse_futility.cutoffs += worker.reverse_futility.cutoffs;
             result.qsearch_see.evaluations += worker.qsearch_see.evaluations;
