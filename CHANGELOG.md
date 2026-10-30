@@ -11,12 +11,19 @@ release numbers; detailed measurements live in the linked experiment records.
   affected feature updates, retaining exact feature, accumulator and output
   agreement in native, scalar, sanitizer and pinned-reference checks. The revised
   implementation passed a bounded identical-search comparison at roughly 5%
-  greater median execution rate; playing-strength qualification remains pending.
+  greater median execution rate; the completed game comparison failed its
+  zero-forfeit qualification gate and establishes no playing-strength gain.
   Small endgame slowdowns and the rejected first revision are retained in the
   [full report](docs/reports/2026-10-29-phase4f11-nnue.md).
 
 ### Developer tools
 
+- Completed and independently audited the fixed NNUE comparison: 2,048 games,
+  686 wins / 695 draws / 667 losses for the optimized build. Six clock forfeits
+  (three per version) block strength qualification; confidence intervals are
+  withheld. All evidence and timing uncertainties are retained, cleanup is
+  verified and no settings are promoted. See the
+  [full results](docs/reports/2026-10-30-phase4f13-results.md).
 - Added a separately documented October 30 launch-time amendment for the
   prepared NNUE game comparison, preserving its fixed cutoff, sample and
   ordinary resource limits. All 140 focused checks pass after correcting a

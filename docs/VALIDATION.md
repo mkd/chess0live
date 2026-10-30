@@ -1,6 +1,61 @@
 # Validation and experiment protocol
 
-## Phase 4F.13 NNUE qualification running — October 30, 2026
+## Phase 4F.13 completed sample — qualification blocked, October 30, 2026
+
+The fixed attempt completed **2,048 games / 1,024 pairs** at 15+0.15, Threads=1,
+Hash=64, from preparation `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. The
+candidate scored **686 W / 695 D / 667 L**, **1,033.5 points (50.4638671875%)**;
+pair points 0/0.5/1/1.5/2 occur **18/133/696/166/11** times. Independent journal
+reconciliation found no omitted games, incomplete pairs or membership issues.
+Separate smoke: eight draws/four pairs, zero forfeits, excluded from qualification.
+
+Six raw-clock time forfeits, three per role, fail the prospective zero-forfeit
+gate. The [full report](reports/2026-10-30-phase4f13-results.md) retains each
+clock, elapsed time, lateness and engine-reported time. Raw/JSON/PGN bounded
+checks agree; temporally clustered failures do not prove a specific cause.
+The independent final audit exited zero with `complete=true`, `errors=[]`, no
+live-source differences and aggregate decision **`operational_regression`**.
+`inference_eligible=false`; conditional 95% score/Elo intervals and test capitals
+are withheld (`null`). The helper's generic incomplete-experiment reason means
+the operational gate failed, not that games are missing. No replacement interval
+or rating is calculated to bypass failed eligibility.
+
+Final raw replay covered **200,958 qualification search events, 240,888 legal
+game plies including openings, 8,435,752 legal PV plies and 199,532 legal ponder
+suggestions**. Smoke was replayed separately. The campaign contains **24,495
+aggregate resource observations**; the final audit records **7,570 input hashes**.
+All 4,114 launcher stderr lines are retained informational Syzygy-disabled
+warnings, accepted by the audit. There were no excluded games/pairs or additional
+evidence failures. Final audit SHA-256:
+`967c1ff7c55c6c5b7a536c95c26146e307dad38f33369c74ccf2adb9ad073627`.
+
+Campaign **15:04:34.532843–21:20:41.143133 Helsinki**, before the fixed next-07:00
+cutoff. All four shards finished; campaign input/configuration hashes remained
+unchanged. Wrapper and inhibitor exited zero. The terminal cleanup contains
+4,112 game engine PIDs without live/unknown entries. Separate OS verification
+at **21:40:00 Helsinki** found all 4,116 recorded engines including
+preflight/readiness plus runner/wrapper/inhibitor absent. LM Studio was released.
+
+Independent preservation matches 96 original archived inputs, 95 source records,
+94 dated pins and 11 assets. Stable GUI **0.1-dev-4b8b35d** (five files), protected
+owner batch runner and exact README introduction match. Of 401 inherited
+protected paths, 400 match; only the disclosed normal-release historical digest
+difference remains, outside campaign inputs. Its current `c6a60936...` digest is
+preserved; historical `b2db6cf8...` preservation remains unestablished.
+Resource reservations/owner confirmation are not continuous OS load/power telemetry.
+
+This is a documentation-only closeout. Raw auditing, reconciliation, preservation
+and documentation checks are the relevant validation; no engine rebuild, game,
+benchmark or repeat of synthetic preparation suites is part of closeout.
+Documentation link/diff checks and independent factual review are recorded in
+`results/phase4f13-match-20261030-closeout/`. The progress heartbeat was deleted
+after the terminal result and independent audit were reported.
+
+## Historical launch checkpoint: Phase 4F.13 running — October 30, 2026
+
+This records the launch state; the completed-sample section above supersedes
+its running-state instructions.
+
 
 The one authorized attempt launched from tested commit
 `e60345dc1e16c01e8cff4273608eb85d58b2f53d` at **15:04:34.532843 Helsinki**.

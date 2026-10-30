@@ -28,7 +28,52 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.13 NNUE qualification running
+## Current checkpoint: Phase 4F.13 completed — qualification blocked
+
+Read the [completed-game report](reports/2026-10-30-phase4f13-results.md).
+All **2,048 games / 1,024 pairs** finished October 30 at **21:20:41 Helsinki**,
+from preparation `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. Optimized NNUE
+scored **686 wins, 695 draws, 667 losses**, **1,033.5 points (50.46%)**.
+Pair-point distribution 0/0.5/1/1.5/2: **18/133/696/166/11**. All six time
+forfeits (**three per version**) remain included. Eight smoke draws/four pairs
+remain separate and establish no strength evidence.
+
+The independent final audit completed with no evidence errors or live-source
+differences, `complete=true`, decision **`operational_regression`** and
+`inference_eligible=false`. The conditional 95% score/Elo intervals are withheld.
+The zero-forfeit strength gate failed regardless of the descriptive score. Retain all six timing failures,
+including the two temporally clustered pairs. Existing receipts cannot attribute
+the extra command-to-bestmove delay to engine stopping, OS scheduling, pipe
+delivery or runner processing. Do not infer that the candidate specifically
+regressed from equal forfeit counts, or that it improved from its positive score.
+
+The wrapper and sleep inhibitor exited zero. The terminal campaign records
+4,112 game engine PIDs cleaned; the **21:40:00 Helsinki** OS check additionally
+confirmed all 4,116 recorded engine PIDs including preflight/readiness and the
+runner/wrapper/helper absent. The owner was explicitly told **LM Studio inference
+can resume**. Keep `results/phase4f13-match-20261030/`, its outside audit,
+`results/phase4f13-daytime-20261030-preparation/` and
+`results/phase4f13-match-20261030-closeout/`; never overwrite evidence.
+
+Preservation verifies 96 archived originals, 95 sources, 94 pinned inputs and
+11 assets. Stable GUI **0.1-dev-4b8b35d**, protected batch settings and README
+introduction remain intact. Preserve the disclosed normal-release historical
+digest discrepancy; its separately recorded current digest is intact and it is
+outside match inputs. Do not claim external GUI settings were inspected.
+
+The progress heartbeat has been deleted after reporting the terminal result and
+audit. The documentation-only closeout is validated for a local main commit.
+
+**Next:** diagnose timing with a prospective reproducible check before proposing
+another strength qualification. No retry,
+resume, replacement, expansion, new game schedule, default promotion, rebuild,
+release or push is part of this closeout. No strength gain is established.
+
+## Previous checkpoint: Phase 4F.13 NNUE launch and running qualification
+
+The following preserves the launch checkpoint; the terminal status above
+supersedes its running-state instructions.
+
 
 The authorized attempt started **October 30, 15:04:34.532843 Helsinki**, from
 tested commit `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. The eight-game smoke

@@ -5,7 +5,45 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.13 — NNUE qualification running
+## Current checkpoint: Phase 4F.13 completed — strength qualification blocked
+
+All **2,048 games / 1,024 reversed-color pairs** completed on October 30,
+**15:04:34–21:20:41 Helsinki**, under the fixed dated protocol. Candidate
+optimized NNUE scored **686 wins, 695 draws, 667 losses: 1,033.5/2,048 points
+(50.46%)**. Pair-point buckets 0/0.5/1/1.5/2 are **18/133/696/166/11**.
+The separate eight-draw smoke stage is excluded. All six time forfeits remain
+included: **three candidate and three baseline**, failing the zero-forfeit gate.
+
+The independent raw audit completed with **zero evidence errors** and unchanged
+frozen sources: `complete=true`, decision **`operational_regression`**,
+`inference_eligible=false`, score/Elo confidence intervals withheld. No qualified
+strength result follows from the descriptive score. See the [full results](reports/2026-10-30-phase4f13-results.md)
+for all six timing failures and preserved evidence. Two pairs of failures ended
+almost simultaneously. Engine-reported time and raw receipt elapsed time differ;
+the available logs cannot establish which component caused the extra delay.
+Equal forfeit totals do not cancel the operational failure.
+
+Launch receipts and an independent OS check confirm cleanup of the runner,
+wrapper, sleep inhibitor and every recorded engine PID. The owner was told
+**LM Studio inference can resume**. Frozen sources/pins, match binaries, the
+stable GUI **0.1-dev-4b8b35d**, protected batch settings and README introduction
+are preserved. The previously disclosed normal-release historical digest
+mismatch remains unresolved and outside match inputs; its recorded current
+digest is preserved. No default, engine or release change accompanies closeout.
+
+**Next checkpoint:** isolate and reproduce the short-clock timing failure before
+proposing another strength qualification. Preserve this complete sample without
+exclusion, retry, extension or tuning. No new games or schedule are authorized.
+The earlier approximately 5% equal-work efficiency result remains engineering
+evidence, with no demonstrated Elo gain. TT hints/Continuation History stay off.
+The final audit is retained, the progress heartbeat is stopped, and this
+closeout is documented and validated for a local commit on main.
+
+## Previous checkpoint: Phase 4F.13 — launch and running qualification
+
+The following preserves the launch checkpoint; the terminal status above
+supersedes its running-state instructions.
+
 
 The single authorized attempt started **October 30, 15:04:34.532843 Helsinki**,
 from tested commit `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. The eight-game

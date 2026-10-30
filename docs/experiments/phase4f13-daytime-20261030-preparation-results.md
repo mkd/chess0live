@@ -1,5 +1,12 @@
 # Phase 4F.13 dated launch amendment preparation — October 30, 2026
 
+The attempt has now completed and been independently audited. The
+[terminal results](../reports/2026-10-30-phase4f13-results.md) record all 2,048
+games, six time forfeits, withheld strength inference and verified cleanup.
+LM Studio inference has been released and the progress heartbeat stopped.
+The historical running-state instructions below are superseded by that closeout;
+the normal-release digest discrepancy disclosed here remains unresolved.
+
 This report preserves the prelaunch preparation checkpoint below. The subsequent
 authorized launch and passed smoke gate are recorded in
 [Launch and running qualification](#launch-and-running-qualification).
