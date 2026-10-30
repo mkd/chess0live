@@ -1,0 +1,18 @@
+{
+  "description": "Exposed development opening for the mandatory Phase 4F.13 clock smoke; not strength evidence.",
+  "openings": [
+    {
+      "id": "development-09",
+      "moves": [
+        "g1f3",
+        "d7d5",
+        "g2g3",
+        "g8f6",
+        "f1g2",
+        "e7e6",
+        "e1g1",
+        "f8e7"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,47 @@
 # Validation and experiment protocol
 
+## Phase 4F.13 NNUE game qualification preparation — October 29–30, 2026
+
+The [preparation report](reports/2026-10-29-phase4f13-preparation.md) and
+[prospective protocol](experiments/phase4f13-match.md) freeze the two existing
+NNUE binaries at identical settings, **2,048 games / 1,024 pairs at 15+0.15**,
+four active searches/eight resident engines and at least 6 GiB. No engine/default
+change or rebuild occurred. The fixed experiment only addresses this opponent,
+opening set and short time control; it does not qualify eight-thread strength.
+
+Generator replay passed all **1,024 legal, unique, balanced roots**, including
+original local source replay against **312,204 distinct prior roots** from
+185 recorded sources. There were zero generation rejections or accepted overlaps.
+Related tails share 64 stems, and the available exposure record is incomplete.
+The new statistical helper's 17 tests cover direct arithmetic, heterogeneous
+independent means, numerical boundaries, perspective reversal and withheld
+inference. Its fixed mixture's conditional 95% interval is separate from the
+unchanged historical Hoeffding rule. Synthetic planning power at +5/+10/+15/+20
+relative Elo is 6.14%/51.3%/94.9%/99.96%; these are not measured NNUE gains.
+
+An actual launch must first pass eight development smoke games with identical
+clock/options/concurrency, within 600 seconds and the original overnight cutoff.
+Independent raw evidence and cleanup gate held-out admission; smoke cannot
+contribute to the 1,024-pair result. The full sample requires zero forfeits by
+either role. Failed/incomplete evidence remains preserved and unqualified.
+
+Final validation passed **161 tests**: 56 launcher, 71 independent auditor,
+17 openings and 17 statistics. The raw fixtures cover full-size synthetic
+qualification and smoke evidence, illegal/altered/missing output, clock/resource
+gaps, cancellation and deadline boundaries. Corrected fixture assumptions and
+the smoke initial-persistence deadline defect are recorded with retained logs.
+
+Actual search-free readiness and independent external audit passed October 30,
+07:39 Helsinki. Both engines exited zero; OS process lookup confirmed cleanup.
+The audit verified 93 sources, 11 assets, all qualification/development histories
+and the 6 GiB plan; its digest is recorded in the preparation report. Two setup
+warnings about valid Syzygy `info string` output are retained and accepted by the
+auditor. All 370 protected files, original build identities and README introduction
+remain intact. No real smoke/full game or schedule has been started in preparation. A fresh quiet window remains required;
+LM Studio was released after the previous phase, and that permission does not
+carry into this full match. Resource reservations and operator confirmations
+are not continuous OS load/power telemetry.
+
 ## Phase 4F.12 full tactical comparison — October 29, 2026
 
 The [completed report](reports/2026-10-29-phase4f12-results.md) records one

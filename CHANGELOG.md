@@ -17,6 +17,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a prospective two-binary NNUE game comparison with 2,048 games at
+  15+0.15, distinct executable/provenance checks, a fixed overnight window,
+  four-worker supervision and independent raw clock/game auditing. A new
+  prospectively fixed pair-level interval improves sensitivity while retaining
+  explicit distribution assumptions. Preparation starts no full match and
+  establishes no strength gain; see the [protocol](docs/experiments/phase4f13-match.md).
 - Added a frozen before/after NNUE puzzle comparison with identical settings,
   per-process binary identity and independent raw-output auditing. All 87
   synthetic checks, readiness, smoke and the full 78-search comparison pass.

@@ -5,7 +5,40 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.12 audited — no additional mate reports
+## Current checkpoint: Phase 4F.13 — NNUE game qualification preparation
+
+The [prospective protocol](experiments/phase4f13-match.md) compares the exact
+preserved `1ca87d6` baseline and `3ee5eff` NNUE candidate with identical settings:
+**2,048 games / 1,024 color-reversed pairs at 15+0.15**, four active searches,
+eight resident engines and a minimum 6 GiB reservation. No rebuild or engine
+setting change is part of this phase. The fresh roots are balanced by side and
+exclude the available recorded exposure; their 64 shared stems remain a limitation.
+
+A new fixed pair-level interval replaces the overly insensitive historical rule
+for this prospective experiment only. A declared synthetic model estimates about
+95% detection at +15 relative Elo, 51% at +10 and 6% at +5. These are planning
+figures, not a prediction that NNUE produces such gains. Independence/common
+conditional-mean assumptions remain unverified; no absolute rating follows.
+
+An authorized attempt first plays **eight exposed development games** at the
+same faster clock and concurrency. Independent raw audit and cleanup must pass
+before any qualification game starts; smoke games never enter strength statistics.
+Full play requires a fresh quiet window, starts **23:00–23:30 Helsinki**, and
+retains its original next-07:00 cutoff. Allow **6–8 hours plus up to ten minutes**
+for the operational gate; completing within the night is not guaranteed.
+
+Preparation passed **161 tests**, original exposure replay and independent audit
+of two actual search-free sessions. Both engines exited cleanly; OS cleanup was
+confirmed. The [preparation report](reports/2026-10-29-phase4f13-preparation.md)
+records the frozen identities, corrected preparation failures and limitations.
+
+**Next checkpoint:** agree a fresh quiet window, then run and independently audit
+the single prepared attempt. No smoke/full game or schedule has been started. Full results may be positive, negative, inconclusive or operationally
+invalid; no retry, sample expansion or promotion follows automatically. TT hints
+and Continuation History stay off. Search-pruning development remains a separate
+subsequent hypothesis rather than a promised large gain.
+
+## Previous checkpoint: Phase 4F.12 audited — no additional mate reports
 
 The [completed report](reports/2026-10-29-phase4f12-results.md) records all
 **78 searches / 39 complete pairs** at 60 seconds per binary, eight threads and

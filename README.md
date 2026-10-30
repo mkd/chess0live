@@ -615,6 +615,21 @@ for saving/auditing the check, synthetic tests, and the separately authorized
 overnight launch. Dependencies prepare automatically; existing GUI settings
 and engine defaults are unaffected.
 
+For the prepared two-binary NNUE game comparison, save and audit readiness:
+
+```sh
+python3 tools/run.py --offline tools/qualify_phase4f13.py check > results/nnue-match-ready-new.json
+python3 tools/run.py --offline tools/audit_phase4f13.py --preflight results/nnue-match-ready-new.json --output results/nnue-match-ready-audit-new.json
+```
+
+Use new output paths. The check starts two short, search-free sessions and
+requires both frozen local build bundles. See the [operating protocol](docs/experiments/phase4f13-match.md)
+for the separately confirmed overnight run and external campaign audit. Check
+and audit do not play games or schedule work. Synthetic checks run through
+`tools/run.py --offline` using `tests/phase4f13_openings_test.py`,
+`tests/qualify_phase4f13_test.py`, `tests/audit_phase4f13_test.py` and
+`tests/paired_betting_test.py`.
+
 `make test-lmr-qualification` checks the fresh fixed LMR comparison's opening
 generator, supervisor and independent auditor using synthetic evidence.
 The [qualification guide](docs/experiments/lmr-20261022.md) documents the

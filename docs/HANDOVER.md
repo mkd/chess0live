@@ -28,7 +28,48 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.12 full tactical comparison audited
+## Current checkpoint: Phase 4F.13 NNUE game qualification preparation
+
+Read the [prospective protocol](experiments/phase4f13-match.md). Compare the
+preserved Phase 4F.12 baseline/candidate bundles, including all 48 archived source
+files, at **15+0.15**, Threads=1, Hash=64 and identical search options. The fixed
+sample is **2,048 games / 1,024 pairs**, four shards of 256 pairs. Reserve four
+active searches, eight resident engines and at least 6 GiB; do not increase
+concurrency to compensate for a late start. Normal release and the stable GUI
+`0.1-dev-4b8b35d` remain untouched.
+
+The run must begin with eight explicitly marked smoke games on existing
+`development-01/05/08/09` histories, in four slots. Its ten-minute bound and
+independent raw clock/cleanup gate come before any held-out game. Smoke results
+are operational evidence only and never pooled into the qualification sample.
+The new paired betting interval is fixed prospectively; the old statistics
+module and prior verdicts remain unchanged. Conditional synthetic sensitivity
+is about 95% at +15 relative Elo, 51% at +10 and 6% at +5, not an NNUE gain forecast.
+
+Full play needs fresh confirmation that LM Studio inference/competing builds are
+paused, AC/Automatic power is set and the Mac will stay awake. Ordinary launch
+is **23:00–23:30 Helsinki**, with the original next-07:00 cutoff across all stages.
+No daytime flag, automatic scheduling, retry, resume or replacement exists.
+Budget **6–8 hours plus up to ten minutes**; actual completion is uncertain.
+Any forfeit by either role, incomplete pair, bad evidence or resource/clock gap
+blocks eligibility. Preserve every failure and verify OS cleanup before telling
+the owner that LM Studio inference can resume.
+
+Preparation passed **161 tests** (56 launcher, 71 auditor, 17 openings and 17
+statistics). Actual search-free readiness and external independent audit passed;
+both engines exited zero and a separate OS check confirmed cleanup. Evidence:
+`results/phase4f13-preparation-20261029/`, including `readiness-audit.json`.
+The [preparation report](reports/2026-10-29-phase4f13-preparation.md) records
+93 source records, 11 runtime assets, hashes, retained failures and limitations.
+The real smoke gate remains pending; LM Studio inference can remain available.
+
+**Next:** agree a fresh quiet window after the tested local preparation commit,
+then execute and independently audit the one attempt. No games have been launched
+or scheduled in preparation.
+Keep historical campaigns/pins, both frozen binaries, owner settings and README
+introduction intact; do not promote settings, push or release automatically.
+
+## Previous checkpoint: Phase 4F.12 full tactical comparison audited
 
 Read the [completed report](reports/2026-10-29-phase4f12-results.md) and frozen
 [protocol](experiments/phase4f12.md). The single full attempt completed all
