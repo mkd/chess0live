@@ -23,6 +23,9 @@ import chess.pgn
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f13-nnue-2048-v1"
+# Independent constants: raw evidence never inherits permission from a launcher.
+DAYTIME_AUTHORIZATION = "phase4f13-daytime-20261030"
+DAYTIME_WINDOW = "2026-10-30 14:00–22:45 Europe/Helsinki"
 SETTINGS = {"initial": 15.0, "increment": 0.15, "hash_mb": 64, "threads": 1,
             "max_plies": 512, "startup_timeout": 30.0, "protocol_timeout": 5.0,
             "move_overhead_ms": 20, "smoke": False}
@@ -214,12 +217,21 @@ class Audit:
         require(local.tzinfo is not None and started.tzinfo is not None, "Launch timestamps lack timezone")
         require(local.isoformat() == local.astimezone(ZoneInfo("Europe/Helsinki")).isoformat(), "Incorrect Helsinki offset")
         night = local.hour >= 23 or local.hour < 7
-        require(policy["nighttime"] is True and night and policy["allow_daytime"] is False
-                and local.hour == 23 and local.minute < 30, "Launch is outside the fixed overnight window")
-        end_date = local.date()+timedelta(days=int(local.hour >= 7))
-        cutoff = datetime.combine(end_date, time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
+        flag = policy["allow_daytime"]
+        require(type(flag) is bool and policy["nighttime"] is night, "Launch permission or nighttime flag changed")
+        if flag:
+            permitted = local.date().isoformat() == "2026-10-30" and time(14) <= local.time() < time(22, 45)
+            cutoff = datetime(2026, 10, 31, 7, tzinfo=ZoneInfo("Europe/Helsinki"))
+        else:
+            permitted = local.hour == 23 and local.minute < 30
+            end_date = local.date()+timedelta(days=int(local.hour >= 7))
+            cutoff = datetime.combine(end_date, time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
+        require(policy["daytime_authorization"] == (DAYTIME_AUTHORIZATION if flag else None)
+                and policy["launch_window"] == (DAYTIME_WINDOW if flag else "23:00–23:30 Europe/Helsinki")
+                and policy["launch_permitted"] is True and permitted,
+                "Launch is outside its exact authorized date/window")
         require(datetime.fromisoformat(policy["cutoff_local"]) == cutoff and
-                datetime.fromisoformat(policy["cutoff_utc"]) == cutoff, "Cutoff is not the next Helsinki 07:00")
+                datetime.fromisoformat(policy["cutoff_utc"]) == cutoff, "Original Helsinki 07:00 cutoff changed")
         require(local <= started < cutoff and policy["remaining_seconds"] > 0, "Invalid launch/cutoff ordering")
         if launch["status"] == "finished":
             finished = datetime.fromisoformat(launch["finished_utc"])

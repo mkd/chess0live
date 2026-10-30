@@ -1,5 +1,65 @@
 # Validation and experiment protocol
 
+## Phase 4F.13 dated timing amendment preparation — October 30, 2026
+
+The [timing amendment](experiments/phase4f13-match-daytime-20261030.md) implements
+the owner's October 30 authorization to proceed with LM Studio inference paused.
+Explicit dated admission is **14:00–22:45 Helsinki**, ending before 22:45, with
+the fixed **October 31, 07:00 Helsinki** cutoff across readiness, smoke and full
+play. Ordinary overnight admission and resource ceilings remain unchanged.
+The 2,048-game sample, eight-game operational gate, 15+0.15 clocks, binaries,
+opening histories, options and statistical method are preserved.
+
+Final amendment suites passed **65 launcher tests** and **75 independent
+aggregate/raw auditor tests**. Coverage includes exact date/window boundaries,
+wrong grants and cutoffs, readiness crossing admission, smoke and full-child
+policy propagation, fixed cleanup/deadline behavior, and unchanged settings and
+resource reservations. Tests use synthetic evidence and do not establish a
+successful real smoke gate or playing-strength gain.
+
+Independent review after the initial 63/75 passing suites found that awaited
+child setup could cross the admission endpoint before its first game. Eight
+pre-fix failures are preserved in `launcher-boundary-before-fix.log`. The corrected
+launcher checks admission at each smoke/full shard's first game, while allowing
+already-admitted shards to continue within the original cutoff. Two focused
+tests cover 16 boundary cases plus continuation and pass in 14.547 seconds; the
+final full launcher suite passes in 57.195 seconds. The initial dated pins are
+retained as `pins-attempt1-before-boundary-review.json`; no readiness session or
+real game was started against that superseded attempt. The final frozen pin is
+`dba5fecdc37983f81f75bd89d9be7d7281b90e270d50fcfec6512089c955d0bb`.
+
+Before the amendment, 96 distinct original inputs were archived from the
+`70a5f2d` preparation, with a manifest covering 401 protected paths. The amended
+inventory has **95 source records, 94 pinned inputs and 11 runtime assets**.
+The base protocol and original pins remain in place; the dated amendment and
+original pin are inputs to the new pin document. Evidence and retained test
+logs are in `results/phase4f13-daytime-20261030-preparation/`; see the
+[preparation record](experiments/phase4f13-daytime-20261030-preparation-results.md).
+
+The first freeze attempt failed before creating the new pins: the normal-release
+binary differs from the inherited October 29 digest. Its October 30, 08:24 file
+timestamps predate this amendment; the cause is unknown. The retained
+`normal-binary-baseline-discrepancy.json` records both digests. This binary is
+outside the campaign inputs; both match binaries, all archived originals and
+the remaining 400 protected paths match. The completed `source-freeze-final.json`
+discloses this limitation and checks the normal binary against its separately
+recorded current digest. The superseded first `source-freeze.json` is retained.
+Historical normal-binary preservation is not established.
+
+Fresh search-free readiness passed at 14:58 Helsinki in 2.54 seconds. The separate
+independent audit passed in 13.53 seconds with no errors: 95 sources/94 pins,
+1,024 distinct qualification roots plus four smoke roots, and 3,322 input hashes.
+Both serial UCI handshakes exited zero with zero search commands; OS lookup at
+15:00 confirmed PIDs 66243/66244 absent. Audit SHA-256:
+`50a9eda8c3f68f9bd244e07ea5a32a22047f432476340a0bcb4efbe5e0429a90`.
+The ignored launch/progress helpers also passed 23 synthetic tests; these do not
+replace actual runtime cleanup or qualification. No real smoke/full game has
+started at this preparation checkpoint. Host observations and resource
+reservations are not continuous power, temperature or external-load telemetry.
+Final match inference remains conditional on complete, valid raw evidence and
+the base protocol's statistical assumptions; no settings are promoted by this
+amendment.
+
 ## Phase 4F.13 NNUE game qualification preparation — October 29–30, 2026
 
 The [preparation report](reports/2026-10-29-phase4f13-preparation.md) and

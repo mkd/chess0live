@@ -41,7 +41,11 @@ ENGINE_SHA256 = {
     "opponent": "8230cb3dd174952866d8c2e9d1eae7f327183b286b393246c6bd7c041a86eabc",
 }
 NETWORK_SHA256 = "1a298aa575a085434d29027978dc36867fe9c5bcea9376654b7a8eba1e52dfc2"
-PIN_FILE = "tests/data/phase4f13-match-pins.json"
+BASE_PIN_FILE = "tests/data/phase4f13-match-pins.json"
+PIN_FILE = "tests/data/phase4f13-match-daytime-20261030-pins.json"
+DAYTIME_AMENDMENT = "docs/experiments/phase4f13-match-daytime-20261030.md"
+DAYTIME_AUTHORIZATION = "phase4f13-daytime-20261030"
+DAYTIME_WINDOW = "2026-10-30 14:00–22:45 Europe/Helsinki"
 GENERATION_METADATA = "tests/data/phase4f13-match-generation.json"
 EXCLUSIONS = "tests/data/phase4f13-match-exclusions.json"
 GENERATOR = "tools/generate_phase4f13_openings.py"
@@ -155,7 +159,7 @@ REQUIRED_SOURCES = (
     "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
     "tests/phase4f13_openings_test.py", "tests/qualify_phase4f13_test.py", "tests/audit_phase4f13_test.py",
     GENERATION_METADATA, EXCLUSIONS, *BUILD_MANIFESTS.values(), *ORIGIN_MANIFESTS.values(), *BUILD_LOGS.values(), "requirements-match.txt", PROTOCOL_DOCUMENT,
-    PIN_FILE, "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
+    PIN_FILE, BASE_PIN_FILE, DAYTIME_AMENDMENT, "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
     "tools/run.py", "tools/tooling.py", "tools/python-packages.json",
     "tests/data/phase4d2-exclusions.json", "tests/match_test.py",
     SMOKE_CATALOG,
@@ -251,7 +255,10 @@ def aggregate_reservation(network_bytes):
 
 
 def permitted_launch(local, allow_daytime):
-    """A fresh run can begin only in the fixed overnight admission window."""
+    """Check ordinary night admission or this experiment's exact dated grant."""
+    if allow_daytime is True:
+        return (local.date().isoformat() == "2026-10-30"
+                and time(14) <= local.time() < time(22, 45))
     return allow_daytime is False and local.hour == 23 and local.minute < 30
 
 
@@ -259,7 +266,7 @@ def validate_launch_policy(policy, label, *, require_window=False, cutoff=None):
     """Independently verify permission metadata and the original civil cutoff.
 
     Search-free readiness is valid outside the launch window. A match launch
-    must use the overnight window; no earlier daytime exception transfers.
+    must use the overnight window or the independently pinned October 30 grant.
     Returning a valid policy never authorizes a second attempt or a later cutoff.
     """
     flag = policy["allow_daytime"]
@@ -268,17 +275,18 @@ def validate_launch_policy(policy, label, *, require_window=False, cutoff=None):
     stamp = instant(policy["local_time"])
     local = stamp.astimezone(ZoneInfo("Europe/Helsinki"))
     permitted = permitted_launch(local, flag)
-    require(flag is False and policy["daytime_authorization"] is None,
-            label + " inherits a forbidden daytime exception")
-    require(policy["launch_window"] == "23:00–23:30 Europe/Helsinki"
+    require(policy["daytime_authorization"] == (DAYTIME_AUTHORIZATION if flag else None),
+            label + " daytime authorization changed")
+    require(policy["launch_window"] == (DAYTIME_WINDOW if flag else "23:00–23:30 Europe/Helsinki")
             and policy["launch_permitted"] is permitted,
             label + " declared launch window changed")
     require(policy["nighttime"] is (local.hour >= 23 or local.hour < 7),
             label + " nighttime flag differs from Helsinki civil time")
     require(not (require_window or flag) or permitted,
             label + " launch is outside its authorized date/window")
-    expected_cutoff = datetime.combine(local.date()+timedelta(days=int(local.hour >= 7)),
-                                       time(7), tzinfo=ZoneInfo("Europe/Helsinki"))
+    expected_cutoff = (datetime(2026, 10, 31, 7, tzinfo=ZoneInfo("Europe/Helsinki")) if flag else
+                       datetime.combine(local.date()+timedelta(days=int(local.hour >= 7)),
+                                        time(7), tzinfo=ZoneInfo("Europe/Helsinki")))
     require(instant(policy["cutoff_utc"]) == expected_cutoff == instant(policy["cutoff_local"])
             and (cutoff is None or cutoff == expected_cutoff), label + " original cutoff changed")
     require(type(policy["remaining_seconds"]) in (int, float)

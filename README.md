@@ -624,7 +624,10 @@ python3 tools/run.py --offline tools/audit_phase4f13.py --preflight results/nnue
 
 Use new output paths. The check starts two short, search-free sessions and
 requires both frozen local build bundles. See the [operating protocol](docs/experiments/phase4f13-match.md)
-for the separately confirmed overnight run and external campaign audit. Check
+for the separately confirmed overnight run and external campaign audit. The
+explicit `--allow-daytime` option applies only to the
+[dated launch amendment](docs/experiments/phase4f13-match-daytime-20261030.md);
+use it for both readiness and play when that amendment is authorized. Check
 and audit do not play games or schedule work. Synthetic checks run through
 `tools/run.py --offline` using `tests/phase4f13_openings_test.py`,
 `tests/qualify_phase4f13_test.py`, `tests/audit_phase4f13_test.py` and

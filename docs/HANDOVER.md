@@ -28,7 +28,56 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.13 NNUE game qualification preparation
+## Current checkpoint: Phase 4F.13 dated launch amendment tested and frozen
+
+The owner confirmed LM Studio inference is paused and authorized proceeding on
+October 30. The [dated amendment](experiments/phase4f13-match-daytime-20261030.md)
+adds explicit `--allow-daytime` admission only on **October 30, 14:00 inclusive
+to 22:45 exclusive Helsinki**, with a fixed **October 31, 07:00 Helsinki** cutoff.
+The ordinary 23:00–23:30 mode remains available without the flag. This is a timing
+exception within the ordinary 50% daytime/80% nighttime resource limits, with
+four active searches, eight resident engines and at least 6 GiB reserved.
+
+The original protocol, old pin file, binaries, corpora, options, clocks and
+statistical method remain unchanged. All 96 distinct original inputs were
+archived before editing the launcher/auditors and their tests. The amended
+inventory contains **95 source records, 94 pinned inputs and 11 runtime assets**;
+the original pin and dated amendment are inputs of the new pin document.
+Evidence is in `results/phase4f13-daytime-20261030-preparation/`, including the
+original `70a5f2d` snapshot and preservation manifest.
+
+Preservation found a pre-existing normal-release binary digest discrepancy:
+its October 30, 08:24 timestamps precede this amendment, and the cause is unknown.
+It is not a campaign input; both match binaries, all 96 archived originals and
+the other 400 protected paths match. See `normal-binary-baseline-discrepancy.json`
+in the preparation directory. Preserve its separately recorded current digest;
+do not claim that it matches the inherited October 29 receipt.
+
+The [amendment preparation record](experiments/phase4f13-daytime-20261030-preparation-results.md)
+records final **65 passing launcher and 75 passing auditor tests**. Independent
+review after the initial suites found that awaited child setup could cross the
+admission endpoint before its first game. The failure was reproduced and fixed
+with a first-game check for each smoke/full shard; admitted shards may continue
+within the original cutoff. The superseded pins and eight pre-fix failures are
+retained. `source-freeze-final.json` records the final dated pin digest
+`dba5fecdc37983f81f75bd89d9be7d7281b90e270d50fcfec6512089c955d0bb`.
+Fresh search-free readiness and its independent audit passed at 14:58 Helsinki.
+Both engines exited zero without searching; OS lookup confirmed both PIDs absent.
+No smoke or qualification game has started. Keep LM Studio inference and
+competing heavy workloads paused for the authorized attempt, AC connected and
+the Mac awake; lid-close suspension is not safe for this run.
+
+**Next:** commit the tested amendment locally, then launch once. The eight-game smoke gate must pass
+raw auditing and cleanup within 600 seconds before the 2,048-game qualification.
+Preserve every failure; do not retry, resume, enlarge the sample, change defaults
+or schedule another attempt. Confirm OS cleanup before releasing the host.
+The stable GUI `0.1-dev-4b8b35d` and owner settings remain intact. This amendment
+does not rebuild or replace the normal release.
+
+## Previous checkpoint: Phase 4F.13 original qualification preparation
+
+The following records the original preparation checkpoint before the dated
+amendment above; its readiness evidence applies to the original inventory.
 
 Read the [prospective protocol](experiments/phase4f13-match.md). Compare the
 preserved Phase 4F.12 baseline/candidate bundles, including all 48 archived source

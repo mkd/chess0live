@@ -5,7 +5,43 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.13 — NNUE game qualification preparation
+## Current checkpoint: Phase 4F.13 — dated launch amendment tested and frozen
+
+The owner confirmed LM Studio inference is paused and authorized proceeding on
+October 30. The [dated amendment](experiments/phase4f13-match-daytime-20261030.md)
+permits an explicit daytime launch **14:00–22:45 Helsinki** on that date only,
+with the fixed **October 31, 07:00 Helsinki** cutoff. Four active searches,
+eight resident engines and at least 6 GiB remain within the ordinary resource
+ceilings. The frozen 2,048-game/1,024-pair design, eight-game smoke gate, binaries,
+clock, opening histories, options and interval method are unchanged.
+
+Final **65 launcher and 75 independent auditor tests** pass. Independent review
+exposed a first-game admission gap during awaited child setup; eight reproduced
+failures are retained, and a per-shard first-game check now closes it without
+stopping already-admitted play at the launch endpoint. The final amended inventory
+contains **95 source records and 94 pinned inputs**, preserving the original
+protocol/pin and all prior evidence. The original `70a5f2d` inputs were archived
+before tool changes. The [preparation record](experiments/phase4f13-daytime-20261030-preparation-results.md)
+links the evidence in `results/phase4f13-daytime-20261030-preparation/`.
+
+The preservation check exposed a pre-existing normal-release binary digest
+difference of unknown cause, documented in that report. It is outside the match
+inputs; both match binaries and all archived originals remain exact. The new
+freeze preserves its separately recorded current digest without claiming a
+match to the inherited historical receipt.
+
+Fresh search-free readiness, independent audit and OS cleanup verification passed
+at 14:58–15:00 Helsinki. Both engines exited zero without searching.
+
+**Next checkpoint:** commit the tested amendment locally, then run the single
+authorized attempt. No smoke or qualification game has started. The smoke gate must pass
+before held-out play; complete audited results may be positive, negative,
+inconclusive or operationally invalid. No retry, sample expansion, schedule or
+automatic promotion follows. There is no new strength evidence at this checkpoint.
+
+## Previous checkpoint: Phase 4F.13 — original qualification preparation
+
+The following records preparation before the dated timing amendment above.
 
 The [prospective protocol](experiments/phase4f13-match.md) compares the exact
 preserved `1ca87d6` baseline and `3ee5eff` NNUE candidate with identical settings:

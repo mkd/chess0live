@@ -162,7 +162,7 @@ class LauncherTests(unittest.TestCase):
 
         # Existing supervisor tests isolate the held-out stage. Dedicated gate
         # tests below restore the real smoke implementation with mocked games.
-        async def completed_smoke(output, record, *_):
+        async def completed_smoke(output, record, *_, **__):
             record["clock_smoke"].update(status="passed", started_utc=self.now.isoformat(),
                                         finished_utc=self.now.isoformat(), passed_utc=self.now.isoformat())
         self.patch(campaign, "run_smoke", side_effect=completed_smoke)
@@ -724,9 +724,142 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(policy["estimated_memory_bytes"], 8 * (64 + 4 * 256 + 128) * 1024**2)
 
     def test_no_inherited_daytime_authorization(self):
-        for value in (True, 1, 0, None, "false"):
-            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "no daytime authorization"):
+        for value in (1, 0, None, "false", "phase4f10-daytime-20261028"):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "must be boolean"):
                 campaign.launch_policy(self.now, allow_daytime=value)
+        for date in (self.now, datetime(2026, 10, 28, 17, tzinfo=timezone.utc),
+                     datetime(2026, 10, 29, 12, tzinfo=timezone.utc),
+                     datetime(2026, 10, 31, 12, tzinfo=timezone.utc)):
+            with self.subTest(date=date), self.assertRaisesRegex(ValueError, "may launch only"):
+                campaign.launch_policy(date, allow_daytime=True)
+
+    def test_dated_window_bounds_fixed_cutoff_and_explicit_selection(self):
+        day = datetime(2026, 10, 30, tzinfo=timezone.utc)
+        for hour, minute, second, permitted in ((11,59,59,False), (12,0,0,True),
+                                               (20,44,59,True), (20,45,0,False),
+                                               (21,0,0,False)):
+            instant = day.replace(hour=hour, minute=minute, second=second)
+            with self.subTest(instant=instant):
+                if not permitted:
+                    with self.assertRaisesRegex(ValueError, "may launch only"):
+                        campaign.launch_policy(instant, allow_daytime=True)
+                    continue
+                policy = campaign.launch_policy(instant, allow_daytime=True, require_window=True)
+                self.assertTrue(policy["allow_daytime"])
+                self.assertFalse(policy["nighttime"])
+                self.assertTrue(policy["launch_permitted"])
+                self.assertEqual(policy["daytime_authorization"], "phase4f13-daytime-20261030")
+                self.assertEqual(policy["launch_window"], "2026-10-30 14:00–22:45 Europe/Helsinki")
+                self.assertEqual(policy["cutoff_local"], "2026-10-31T07:00:00+02:00")
+                self.assertEqual(policy["cutoff_utc"], "2026-10-31T05:00:00+00:00")
+                self.assertEqual(policy["remaining_seconds"],
+                                 (datetime(2026,10,31,5,tzinfo=timezone.utc)-instant).total_seconds())
+                with self.assertRaisesRegex(ValueError, "may launch only"):
+                    campaign.launch_policy(instant, require_window=True)
+        self.assertIn(campaign.BASE_PIN_FILE, campaign.PINNED_INPUTS)
+        self.assertIn(campaign.DAYTIME_AMENDMENT, campaign.PINNED_INPUTS)
+        self.assertIn(campaign.PIN_FILE, campaign.SOURCES)
+        self.assertNotIn(campaign.PIN_FILE, campaign.PINNED_INPUTS)
+
+    def test_dated_readiness_rechecks_window_after_clean_handshakes(self):
+        original_close = match.close_engine
+        start = datetime(2026, 10, 30, 20, 44, tzinfo=timezone.utc)
+        closed = []
+        async def close(transport, protocol):
+            await original_close(transport, protocol)
+            closed.append(transport.get_returncode())
+            if len(closed) == 2:
+                self.clock.return_value = start.replace(minute=45)
+        self.clock.return_value = start
+        with patch.object(campaign, "fixed_request", return_value=self.fake_request()), \
+                patch.object(match, "close_engine", side_effect=close):
+            with self.assertRaisesRegex(ValueError, "may launch only"):
+                asyncio.run(campaign.check(allow_daytime=True))
+        self.assertEqual(closed, [0, 0])
+
+    def test_dated_search_free_readiness_records_current_grant(self):
+        self.clock.return_value = datetime(2026, 10, 30, 12, 40, tzinfo=timezone.utc)
+        self.budget.update(source="daytime", percent=50, max_cpu_workers=9, memory_fraction=.5)
+        with patch.object(campaign, "fixed_request", return_value=self.fake_request()):
+            report = asyncio.run(campaign.check(allow_daytime=True))
+        self.assertTrue(report["launch_policy"]["allow_daytime"])
+        self.assertEqual(report["launch_policy"]["daytime_authorization"], campaign.DAYTIME_AUTHORIZATION)
+        for engine in report["preflight"]["engines"]:
+            self.assertEqual(engine["returncode"], 0)
+            self.assertFalse(any(event["line"].startswith(("position ", "go ")) for event in engine["transcript"]))
+
+    def test_dated_grant_reaches_readiness_smoke_and_full_children_without_resource_override(self):
+        self.now = datetime(2026, 10, 30, 12, 40, tzinfo=timezone.utc)
+        self.clock.return_value = self.now
+        self.budget.update(source="daytime", percent=50, max_cpu_workers=9, memory_fraction=.5)
+        output = self.root/"dated-gate"
+        original = shared.run
+        selections = []
+        async def child(*args, **kwargs):
+            selections.append(kwargs["allow_daytime"])
+            return await original(*args, **kwargs)
+        with patch.object(campaign, "run_smoke", REAL_RUN_SMOKE), \
+                patch.object(campaign, "check", return_value=self.checked()) as checked, \
+                patch.object(campaign, "audit_clock_smoke", side_effect=self.smoke_audit_pass), \
+                patch.object(shared, "run", side_effect=child), \
+                patch.object(match, "run_match", side_effect=self.successful_games):
+            saved = asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=True))
+        checked.assert_awaited_once_with(allow_daytime=True)
+        self.assertEqual(selections, [True]*8)
+        self.assertEqual(saved["status"], "finished")
+        self.assertEqual(saved["clock_smoke"]["status"], "passed")
+        for stage in (output, output/"clock-smoke"):
+            for index in range(1, 5):
+                launch = json.loads((stage/f"shard-{index}"/"launch.json").read_text())
+                self.assertEqual(launch["launch_policy"]["daytime_authorization"], campaign.DAYTIME_AUTHORIZATION)
+                self.assertEqual(launch["launch_policy"]["cutoff_utc"], saved["cutoff_utc"])
+                self.assertTrue(launch["launch_policy"]["allow_daytime"])
+        policy, allowed = campaign.resource_policy()
+        self.assertTrue(allowed)
+        self.assertEqual((policy["percent"], policy["active_search_workers"], policy["resident_engines"],
+                          policy["estimated_memory_bytes"]), (50, 4, 8, 6*1024**3))
+
+    def test_dated_smoke_audit_cannot_cross_admission_or_fixed_cutoff(self):
+        self.now = datetime(2026, 10, 30, 20, 44, tzinfo=timezone.utc)
+        for finish, error in ((self.now.replace(minute=45), ValueError),
+                              (datetime(2026,10,31,5,tzinfo=timezone.utc), shared.WindowExpired)):
+            self.clock.return_value = self.now
+            output = self.root/f"dated-late-audit-{finish.day}-{finish.hour}"
+            def delayed_audit(directory):
+                result = self.smoke_audit_pass(directory)
+                self.clock.return_value = finish
+                return result
+            with patch.object(campaign, "run_smoke", REAL_RUN_SMOKE), \
+                    patch.object(campaign, "check", return_value=self.checked()), \
+                    patch.object(campaign, "audit_clock_smoke", side_effect=delayed_audit), \
+                    patch.object(match, "run_match", side_effect=self.successful_games):
+                with self.assertRaises(error):
+                    asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=True))
+            self.assertFalse((output/"shard-1").exists())
+            saved = json.loads((output/"campaign.json").read_text())
+            self.assertEqual(saved["cutoff_utc"], "2026-10-31T05:00:00+00:00")
+            self.assertEqual(saved["clock_smoke"]["status"], "failed")
+
+    def test_dated_smoke_child_readiness_cannot_cross_admission_endpoint(self):
+        self.now = datetime(2026, 10, 30, 20, 44, tzinfo=timezone.utc)
+        self.clock.return_value = self.now
+        checked = self.checked()
+        original = shared.run
+        async def delayed_child(*args, **kwargs):
+            self.clock.return_value = self.now.replace(minute=45)
+            return await original(*args, **kwargs)
+        output = self.root/"dated-late-smoke-child"
+        with patch.object(campaign, "run_smoke", REAL_RUN_SMOKE), \
+                patch.object(campaign, "check", return_value=checked), \
+                patch.object(shared, "run", side_effect=delayed_child), \
+                patch.object(match, "run_match", new_callable=AsyncMock) as runner:
+            with self.assertRaisesRegex(ValueError, "may launch only"):
+                asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=True))
+        runner.assert_not_called()
+        saved = json.loads((output/"campaign.json").read_text())
+        self.assertEqual(saved["clock_smoke"]["status"], "failed")
+        self.assertEqual(saved["cutoff_utc"], "2026-10-31T05:00:00+00:00")
+        self.assertFalse((output/"shard-1").exists())
 
     def test_quiet_host_confirmation_required_before_side_effects(self):
         for value in (False, 1, 0, None, "true"):
@@ -738,22 +871,115 @@ class LauncherTests(unittest.TestCase):
             self.assertFalse(output.exists())
 
     def test_child_readiness_cannot_cross_admission_endpoint(self):
-        self.clock.return_value = self.now.replace(minute=29)
-        checked = self.checked()
-        original = shared.run
-        async def delayed_child(*args, **kwargs):
-            self.clock.return_value = self.now.replace(minute=30)
-            return await original(*args, **kwargs)
-        output = self.root/"late-child"
-        with patch.object(campaign, "check", return_value=checked), \
-                patch.object(shared, "run", side_effect=delayed_child), \
-                patch.object(match, "run_match", new_callable=AsyncMock) as runner:
-            with self.assertRaisesRegex(ValueError, "may launch only"):
-                asyncio.run(campaign.run(output, quiet_host=True))
-        runner.assert_not_called()
-        saved = json.loads((output/"campaign.json").read_text())
-        self.assertEqual(saved["status"], "failed")
-        self.assertTrue(saved["quiet_host"])
+        for allow_daytime, start, finish in (
+                (False, self.now.replace(minute=29), self.now.replace(minute=30)),
+                (True, datetime(2026,10,30,20,44,tzinfo=timezone.utc),
+                 datetime(2026,10,30,20,45,tzinfo=timezone.utc))):
+            self.clock.return_value = start
+            checked = self.checked()
+            original = shared.run
+            async def delayed_child(*args, **kwargs):
+                self.clock.return_value = finish
+                return await original(*args, **kwargs)
+            output = self.root/f"late-child-{allow_daytime}"
+            with patch.object(campaign, "check", return_value=checked), \
+                    patch.object(shared, "run", side_effect=delayed_child), \
+                    patch.object(match, "run_match", new_callable=AsyncMock) as runner:
+                with self.assertRaisesRegex(ValueError, "may launch only"):
+                    asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=allow_daytime))
+            runner.assert_not_called()
+            saved = json.loads((output/"campaign.json").read_text())
+            self.assertEqual(saved["status"], "failed")
+            self.assertTrue(saved["quiet_host"])
+
+    def test_first_game_rechecks_admission_after_awaited_setup_and_guard(self):
+        for allow_daytime, start, finish, error in (
+                (False, self.now.replace(minute=29), self.now.replace(minute=30), ValueError),
+                (True, datetime(2026,10,30,20,44,tzinfo=timezone.utc),
+                 datetime(2026,10,30,20,45,tzinfo=timezone.utc), ValueError),
+                (False, self.now.replace(minute=29), self.now+timedelta(days=1), shared.WindowExpired),
+                (True, datetime(2026,10,30,20,44,tzinfo=timezone.utc),
+                 datetime(2026,10,31,5,tzinfo=timezone.utc), shared.WindowExpired)):
+            for smoke in (True, False):
+                for delay in ("setup", "guard"):
+                    with self.subTest(daytime=allow_daytime, smoke=smoke, delay=delay, finish=finish):
+                        self.clock.return_value = start
+                        cutoff = campaign.launch_policy(start, allow_daytime=allow_daytime)["cutoff_utc"]
+                        output = self.root/f"late-first-{allow_daytime}-{smoke}-{delay}-{finish.day}-{finish.hour}"
+                        accepted, delayed = [], []
+                        original_verify = shared.verify_unchanged
+                        original_append = campaign.append_resource_event
+                        def verify(profile, *args):
+                            result = original_verify(profile, *args)
+                            if delay == "setup" and ("-smoke-shard-" in profile.protocol_id) is smoke:
+                                self.clock.return_value = finish
+                                delayed.append(True)
+                            return result
+                        def append(journal, event):
+                            result = original_append(journal, event)
+                            trigger = "before_smoke_game" if smoke else "before_game"
+                            if delay == "guard" and event["trigger"] == trigger:
+                                self.clock.return_value = finish
+                                delayed.append(True)
+                            return result
+                        async def runner(*args, **hooks):
+                            for leg in (1, 2):
+                                await hooks["before_game"](f"p000001-{leg}")
+                                if args[1].smoke is smoke:
+                                    accepted.append((args[5], leg))
+                            return {"experiment_complete": True, "smoke": args[1].smoke}
+                        with patch.object(campaign, "run_smoke", REAL_RUN_SMOKE), \
+                                patch.object(campaign, "check", return_value=self.checked()), \
+                                patch.object(campaign, "audit_clock_smoke", side_effect=self.smoke_audit_pass), \
+                                patch.object(shared, "verify_unchanged", side_effect=verify), \
+                                patch.object(campaign, "append_resource_event", side_effect=append), \
+                                patch.object(match, "run_match", side_effect=runner):
+                            with self.assertRaises(error):
+                                asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=allow_daytime))
+                        self.assertTrue(delayed)
+                        self.assertEqual(accepted, [], "No first game may pass admission after awaited setup or guard")
+                        saved = json.loads((output/"campaign.json").read_text())
+                        self.assertEqual(saved["status"], "interrupted" if error is shared.WindowExpired else "failed")
+                        self.assertEqual(saved["cutoff_utc"], cutoff)
+                        if smoke:
+                            self.assertFalse((output/"shard-1").exists())
+
+    def test_admitted_shards_continue_games_after_admission_endpoint(self):
+        for allow_daytime, start, finish in (
+                (False, self.now.replace(minute=29), self.now.replace(minute=30)),
+                (True, datetime(2026,10,30,20,44,tzinfo=timezone.utc),
+                 datetime(2026,10,30,20,45,tzinfo=timezone.utc))):
+            for smoke in (True, False):
+                with self.subTest(daytime=allow_daytime, smoke=smoke):
+                    self.clock.return_value = start
+                    output = self.root/f"ongoing-{allow_daytime}-{smoke}"
+                    first, second = set(), set()
+                    async def runner(*args, **hooks):
+                        if args[1].smoke is not smoke:
+                            return await self.successful_games(*args, **hooks)
+                        await hooks["before_game"]("p000001-1")
+                        first.add(args[5])
+                        while len(first) < 4:
+                            await asyncio.sleep(.001)
+                        self.clock.return_value = finish
+                        await hooks["before_game"]("p000001-2")
+                        second.add(args[5])
+                        return {"experiment_complete": True, "smoke": smoke}
+                    with patch.object(campaign, "run_smoke", REAL_RUN_SMOKE), \
+                            patch.object(campaign, "check", return_value=self.checked()), \
+                            patch.object(campaign, "audit_clock_smoke", side_effect=self.smoke_audit_pass), \
+                            patch.object(match, "run_match", side_effect=runner):
+                        if smoke:
+                            # Games already admitted may finish, but late smoke
+                            # completion still cannot admit the held-out stage.
+                            with self.assertRaisesRegex(ValueError, "may launch only"):
+                                asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=allow_daytime))
+                        else:
+                            saved = asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=allow_daytime))
+                            self.assertEqual(saved["status"], "finished")
+                    seeds = set(campaign.SMOKE_SEEDS if smoke else campaign.SEEDS)
+                    self.assertEqual(first, seeds)
+                    self.assertEqual(second, seeds)
 
     def test_daytime_search_free_readiness_does_not_grant_launch(self):
         self.clock.return_value = datetime(2026, 10, 28, 10, tzinfo=timezone.utc)
@@ -839,20 +1065,23 @@ class LauncherTests(unittest.TestCase):
         runner.assert_not_called()
 
     def test_preflight_crossing_launch_window_rejects_without_starting_children(self):
-        for allow_daytime in (False,):
-            self.clock.return_value = self.now.replace(minute=29)
+        for allow_daytime, start, finish in (
+                (False, self.now.replace(minute=29), self.now.replace(minute=30)),
+                (True, datetime(2026,10,30,20,44,tzinfo=timezone.utc),
+                 datetime(2026,10,30,20,45,tzinfo=timezone.utc))):
+            self.clock.return_value = start
             cutoff = campaign.launch_policy(self.clock.return_value, allow_daytime=allow_daytime)["cutoff_utc"]
             checked = self.checked()
 
             async def delayed(**_):
-                self.clock.return_value = self.now.replace(minute=30)
+                self.clock.return_value = finish
                 return checked
 
             output = self.root / f"past-launch-window-{allow_daytime}"
             with patch.object(campaign, "check", side_effect=delayed), \
                     patch.object(match, "run_match", new_callable=AsyncMock) as runner:
                 with self.assertRaisesRegex(ValueError, "may launch only"):
-                    asyncio.run(campaign.run(output, quiet_host=True))
+                    asyncio.run(campaign.run(output, quiet_host=True, allow_daytime=allow_daytime))
             runner.assert_not_called()
             saved = json.loads((output / "campaign.json").read_text())
             self.assertEqual(saved["cutoff_utc"], cutoff)
@@ -905,7 +1134,7 @@ class LauncherTests(unittest.TestCase):
         report=json.loads((self.root/"cutoff/campaign.json").read_text()); self.assertEqual(report["status"],"interrupted")
 
     def test_cli_has_no_resume_or_sample_overrides(self):
-        for argument in ("--resume","--pairs","--seed","--threads","--allow-daytime"):
+        for argument in ("--resume","--pairs","--seed","--threads"):
             with patch("sys.stderr",new_callable=io.StringIO),self.assertRaises(SystemExit):
                 campaign.main(["run","--output",str(self.root/"out"),argument])
 
@@ -914,14 +1143,27 @@ class LauncherTests(unittest.TestCase):
         with patch.object(campaign, "check", new_callable=AsyncMock, return_value={}) as operation, \
                 patch("sys.stdout", new_callable=io.StringIO):
             self.assertEqual(campaign.main(["check"]), 0)
-        operation.assert_awaited_once_with()
+        operation.assert_awaited_once_with(allow_daytime=False)
         with patch.object(campaign, "run", new_callable=AsyncMock, return_value={}) as operation, \
                 patch("sys.stdout", new_callable=io.StringIO):
             self.assertEqual(campaign.main(["run", "--output", str(self.root/"cli-run"), "--quiet-host"]), 0)
-        operation.assert_awaited_once_with(self.root/"cli-run", quiet_host=True)
+        operation.assert_awaited_once_with(self.root/"cli-run", quiet_host=True, allow_daytime=False)
         for arguments in (["check", "--quiet-host"], ["run", "--output", str(self.root/"cli-run")]):
             with patch("sys.stderr", new_callable=io.StringIO), self.assertRaises(SystemExit):
                 campaign.main(arguments)
+
+    def test_cli_daytime_selection_reaches_check_and_run_explicitly(self):
+        with patch.object(campaign, "check", new_callable=AsyncMock, return_value={}) as operation, \
+                patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(campaign.main(["check", "--allow-daytime"]), 0)
+        operation.assert_awaited_once_with(allow_daytime=True)
+        with patch.object(campaign, "run", new_callable=AsyncMock, return_value={}) as operation, \
+                patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(campaign.main(["run", "--quiet-host", "--allow-daytime", "--output",
+                                            str(self.root/"dated-cli-run")]), 0)
+        operation.assert_awaited_once_with(self.root/"dated-cli-run", quiet_host=True, allow_daytime=True)
+        with patch("sys.stderr", new_callable=io.StringIO), self.assertRaises(SystemExit):
+            campaign.main(["run", "--allow-daytime", "--output", str(self.root/"not-quiet")])
 
     def test_monitor_gap_fails_closed(self):
         async def runner(*_, **__):

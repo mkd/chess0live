@@ -17,6 +17,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a separately documented October 30 launch-time amendment for the
+  prepared NNUE game comparison, preserving its fixed cutoff, sample and
+  ordinary resource limits. All 140 focused checks pass after correcting a
+  first-game admission gap found in independent review. Fresh search-free
+  readiness, independent audit and OS cleanup verification passed. See the
+  [amendment preparation record](docs/experiments/phase4f13-daytime-20261030-preparation-results.md).
 - Added a prospective two-binary NNUE game comparison with 2,048 games at
   15+0.15, distinct executable/provenance checks, a fixed overnight window,
   four-worker supervision and independent raw clock/game auditing. A new

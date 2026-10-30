@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the fixed before/after NNUE optimization match once, within one night.
+"""Run the fixed before/after NNUE optimization match once, to its fixed cutoff.
 
 Copyright (C) 2026 Claudio M. Camacho <claudiomkd@gmail.com>
 SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
@@ -7,8 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later. See LICENSE; no warranty.
 The existing QualificationProfile/run implementation owns every game's clocks,
 process cleanup, raw evidence and child manifests. This facade adds only the
 aggregate resource/deadline supervisor. Frozen Phase 3L sources remain unchanged.
-No scheduling, resume, daytime exception or sample overrides. A fresh quiet-host
-confirmation is required for play; search-free readiness is available anytime.
+No scheduling, resume or sample overrides. The separately frozen October 30
+daytime amendment requires an explicit flag and fresh quiet-host confirmation;
+ordinary search-free readiness remains available anytime.
 """
 from __future__ import annotations
 
@@ -38,6 +39,10 @@ from qualify_phase3l import cooperative_signals, cancel_and_wait, append_resourc
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "phase4f13-nnue-2048-v1"
 PROTOCOL_DOCUMENT = "docs/experiments/phase4f13-match.md"
+DAYTIME_AMENDMENT = "docs/experiments/phase4f13-match-daytime-20261030.md"
+DAYTIME_AUTHORIZATION = "phase4f13-daytime-20261030"
+DAYTIME_DATE = "2026-10-30"
+DAYTIME_WINDOW = "2026-10-30 14:00–22:45 Europe/Helsinki"
 CHESS_VERSION = "1.11.2"
 SHARDS, SHARD_PAIRS, PAIRS = 4, 256, 1024
 SEEDS = tuple(range(202610304131, 202610304135))
@@ -47,7 +52,8 @@ SMOKE_SEEDS = tuple(range(202610304151, 202610304155))
 SMOKE_CATALOG = "tests/data/openings-development.json"
 SMOKE_OPENING_IDS = ("development-01", "development-05", "development-08", "development-09")
 SMOKE_SUITE_FILES = tuple(f"tests/data/phase4f13-match-smoke-{i:02d}.json" for i in range(1, 5))
-PIN_FILE = "tests/data/phase4f13-match-pins.json"
+BASE_PIN_FILE = "tests/data/phase4f13-match-pins.json"
+PIN_FILE = "tests/data/phase4f13-match-daytime-20261030-pins.json"
 EXCLUSIONS = "tests/data/phase4f13-match-exclusions.json"
 GENERATION = "tests/data/phase4f13-match-generation.json"
 GENERATOR = "tools/generate_phase4f13_openings.py"
@@ -143,7 +149,8 @@ SOURCES = (
     "tools/generate_phase4d2_openings.py", "tools/generate_readiness_openings.py",
     "tools/qualify_phase3l.py", "tools/audit_phase3l.py", "tools/audit_time_policy.py", "tools/qualification.py", "tools/match.py",
     "tools/match_statistics.py", "tools/resources.py", "requirements-match.txt",
-    PROTOCOL_DOCUMENT, EXCLUSIONS, GENERATION, PIN_FILE, SMOKE_CATALOG, *SMOKE_SUITE_FILES,
+    PROTOCOL_DOCUMENT, DAYTIME_AMENDMENT, BASE_PIN_FILE, EXCLUSIONS, GENERATION, PIN_FILE,
+    SMOKE_CATALOG, *SMOKE_SUITE_FILES,
     *BUILD_MANIFESTS.values(), *ORIGIN_MANIFESTS.values(), *BUILD_LOGS.values(),
     "tests/data/phase4f3-puzzles.json", "tools/generate_lmr_20261022_openings.py",
     "tools/run.py", "tools/tooling.py", "tools/python-packages.json", "tests/match_test.py",
@@ -296,16 +303,21 @@ def fingerprints():
 
 
 def launch_policy(now=None, *, allow_daytime=False, require_window=False):
-    """Admit one normal night only; earlier daytime grants cannot be inherited."""
-    if type(allow_daytime) is not bool or allow_daytime:
-        raise ValueError("Phase 4F.13 has no daytime authorization")
-    policy = shared.launch_policy(now or utc_now(), allow_daytime=False)
+    """Admit an ordinary night or the explicit, dated daytime amendment."""
+    if type(allow_daytime) is not bool:
+        raise ValueError("Phase 4F.13 daytime selection must be boolean")
+    policy = shared.launch_policy(now or utc_now(), allow_daytime=allow_daytime)
     local = datetime.fromisoformat(policy["local_time"])
-    permitted = local.hour == 23 and local.minute < 30
-    window = "23:00–23:30 Europe/Helsinki"
-    if require_window and not permitted:
+    if allow_daytime:
+        permitted = (local.date().isoformat() == DAYTIME_DATE
+                     and (14, 0) <= (local.hour, local.minute) < (22, 45))
+        window, authorization = DAYTIME_WINDOW, DAYTIME_AUTHORIZATION
+    else:
+        permitted = local.hour == 23 and local.minute < 30
+        window, authorization = "23:00–23:30 Europe/Helsinki", None
+    if (require_window or allow_daytime) and not permitted:
         raise ValueError("Phase 4F.13 may launch only " + window)
-    policy.update(launch_window=window, launch_permitted=permitted, daytime_authorization=None)
+    policy.update(launch_window=window, launch_permitted=permitted, daytime_authorization=authorization)
     return policy
 
 
@@ -399,8 +411,8 @@ def validate_options(protocol, configured, spec, settings):
             raise ValueError("Configured UCI option differs from frozen package: " + name)
 
 
-async def check():
-    launch_policy()
+async def check(allow_daytime=False):
+    launch_policy(allow_daytime=allow_daytime)
     if match.chess.__version__ != CHESS_VERSION:
         raise ValueError(f"Qualification requires chess=={CHESS_VERSION}")
     initial, details = snapshot(), opening_check()
@@ -446,7 +458,8 @@ async def check():
     return {"schema_version": 1, "protocol_id": PROTOCOL_ID, "status": "checked", "checked_utc": utc_now().isoformat(),
             "configuration": config, "configuration_sha256": shared.configuration_hash(config),
             "frozen": initial["assets"], "sources": initial["sources"], "artifacts_before": initial,
-            "launch_policy": launch_policy(), "preflight": {**details, "engines": engines, "resource_policy": budget}}
+            "launch_policy": launch_policy(allow_daytime=allow_daytime),
+            "preflight": {**details, "engines": engines, "resource_policy": budget}}
 
 
 def child_report(master, index, *, smoke=False):
@@ -513,7 +526,7 @@ async def isolated_smoke_audit(output):
         executor.shutdown(wait=True)
 
 
-async def run_smoke(output, record, guard, child_window, capture_resources):
+async def run_smoke(output, record, guard, child_window, capture_resources, *, allow_daytime=False):
     """One bounded operational gate, owning its four workers through cleanup."""
     started_tick, started = time.monotonic(), utc_now()
     smoke_cutoff = started + timedelta(seconds=SMOKE_TIMEOUT_SECONDS)
@@ -522,12 +535,23 @@ async def run_smoke(output, record, guard, child_window, capture_resources):
     workers = []
 
     async def worker(index):
+        admitted = False
         async def cached_preflight():
             return await shared.disk_io(child_report, record, index, smoke=True)
         async def before_game(game_id):
+            nonlocal admitted
             await guard(game_id, index, trigger="before_smoke_game")
+            # Child preparation and the resource journal both await storage.
+            # Admit this shard only after they finish; later games retain the
+            # original campaign cutoff rather than the launch-window endpoint.
+            if not admitted:
+                now = utc_now()
+                if now >= datetime.fromisoformat(record["cutoff_utc"]):
+                    raise shared.WindowExpired("Original Helsinki cutoff elapsed before smoke admission")
+                launch_policy(now, allow_daytime=allow_daytime, require_window=True)
+                admitted = True
         return await shared.run(profile(index, smoke=True), output/"clock-smoke"/f"shard-{index}",
-            allow_daytime=False, preflight=cached_preflight, request=smoke_request, clock=utc_now,
+            allow_daytime=allow_daytime, preflight=cached_preflight, request=smoke_request, clock=utc_now,
             window=child_window, run_guard=before_game, fail_fast=True, manage_deadline=False)
 
     async def gate():
@@ -559,7 +583,7 @@ async def run_smoke(output, record, guard, child_window, capture_resources):
                 raise ValueError("Clock smoke audit failed: " + "; ".join(map(str, audited.get("errors", []))))
             if utc_now() >= datetime.fromisoformat(record["cutoff_utc"]):
                 raise shared.WindowExpired("Original Helsinki cutoff elapsed during clock smoke audit")
-            launch_policy(utc_now(), require_window=True)
+            launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             if utc_now() >= smoke_cutoff or time.monotonic() - started_tick >= SMOKE_TIMEOUT_SECONDS:
                 raise asyncio.TimeoutError("Clock smoke exceeded its original 600-second deadline")
             smoke.update(status="passed", passed_utc=utc_now().isoformat())
@@ -582,14 +606,14 @@ async def run_smoke(output, record, guard, child_window, capture_resources):
         raise
 
 
-async def run(output, quiet_host=False):
+async def run(output, quiet_host=False, *, allow_daytime=False):
     if quiet_host is not True:
         raise ValueError("Run requires fresh --quiet-host confirmation: LM Studio paused, AC/Automatic, Mac awake")
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
         raise ValueError("Campaign output must be a new directory; overwrite/resume is disabled")
     started = utc_now()
-    policy = launch_policy(started, allow_daytime=False, require_window=True)
+    policy = launch_policy(started, allow_daytime=allow_daytime, require_window=True)
     cutoff = datetime.fromisoformat(policy["cutoff_utc"])
     initial = snapshot()
     metadata = fingerprints()
@@ -668,18 +692,26 @@ async def run(output, quiet_host=False):
             # Child readiness may cross the admission endpoint after the
             # parent's check. Reject that launch, while preserving the parent's
             # cutoff for every child that did begin within its allowed window.
-            current = launch_policy(utc_now(), allow_daytime=False, require_window=True)
+            current = launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             current.update(cutoff_utc=policy["cutoff_utc"], cutoff_local=policy["cutoff_local"],
                            remaining_seconds=(cutoff - utc_now()).total_seconds(),
                            daytime_authorization=policy["daytime_authorization"])
             return current
 
         async def worker(index):
+            admitted = False
             async def cached_preflight():
                 return await shared.disk_io(child_report, record, index)
             async def before_game(game_id):
+                nonlocal admitted
                 await guard(game_id, index)
-            return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=False,
+                if not admitted:
+                    now = utc_now()
+                    if now >= cutoff:
+                        raise shared.WindowExpired("Original Helsinki cutoff elapsed before held-out admission")
+                    launch_policy(now, allow_daytime=allow_daytime, require_window=True)
+                    admitted = True
+            return await shared.run(profile(index), output / f"shard-{index}", allow_daytime=allow_daytime,
                 preflight=cached_preflight, request=fixed_request, clock=utc_now, window=child_window,
                 run_guard=before_game, fail_fast=True, manage_deadline=False)
 
@@ -687,7 +719,7 @@ async def run(output, quiet_host=False):
         try:
             if not await observe("initial"):
                 raise ValueError("Aggregate four-worker/eight-engine resource budget is insufficient")
-            checked = await check()
+            checked = await check(allow_daytime=allow_daytime)
             if checked["artifacts_before"] != initial or fingerprints() != metadata:
                 raise ValueError("Frozen campaign inputs changed during preflight")
             record.update(checked_utc=checked["checked_utc"], preflight=checked["preflight"])
@@ -695,11 +727,12 @@ async def run(output, quiet_host=False):
                 raise shared.WindowExpired("Initial Helsinki cutoff elapsed during preflight")
             # Do not begin held-out games if setup has consumed the launch
             # window; the originally recorded 07:00 cutoff never moves.
-            launch_policy(utc_now(), allow_daytime=False, require_window=True)
+            launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             match.atomic_json(output / "campaign.json", record)
             supervisors = [asyncio.create_task(monitor()), asyncio.create_task(deadline())]
             smoke_task = asyncio.create_task(run_smoke(output, record, guard, child_window,
-                                                       capture_smoke_resources), name="phase4f13-clock-smoke")
+                                                       capture_smoke_resources, allow_daytime=allow_daytime),
+                                             name="phase4f13-clock-smoke")
             tasks = [smoke_task, *supervisors]
             async def supervise(owned):
                 pending = set([*owned, *supervisors])
@@ -714,7 +747,7 @@ async def run(output, quiet_host=False):
             # held-out game; the original launch endpoint and cutoff still apply.
             if record["clock_smoke"]["status"] != "passed":
                 raise ValueError("Clock smoke gate did not pass")
-            launch_policy(utc_now(), require_window=True)
+            launch_policy(utc_now(), allow_daytime=allow_daytime, require_window=True)
             workers = [asyncio.create_task(worker(i), name=f"phase4f13-shard-{i}")
                        for i in range(1, SHARDS + 1)]
             tasks.extend(workers)
@@ -777,6 +810,8 @@ def main(argv=None):
     parser.add_argument("--output", type=Path)
     parser.add_argument("--quiet-host", action="store_true",
                         help="Confirm LM Studio inference paused, AC/Automatic mode, and Mac kept awake")
+    parser.add_argument("--allow-daytime", action="store_true",
+                        help="Use only the frozen October 30 daytime amendment and October 31 07:00 cutoff")
     args = parser.parse_args(argv)
     if args.action == "check" and args.output is not None:
         parser.error("check does not accept --output")
@@ -790,8 +825,9 @@ def main(argv=None):
         # All coordinated hashing uses one background worker, not four more
         # unbounded CPU jobs alongside the four active engine search workers.
         asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=1))
-        return await cooperative_signals(check() if args.action == "check"
-                                         else run(args.output, quiet_host=args.quiet_host))
+        return await cooperative_signals(check(allow_daytime=args.allow_daytime) if args.action == "check"
+                                         else run(args.output, quiet_host=args.quiet_host,
+                                                  allow_daytime=args.allow_daytime))
     try:
         print(json.dumps(asyncio.run(execute()), indent=2, allow_nan=False))
         return 0

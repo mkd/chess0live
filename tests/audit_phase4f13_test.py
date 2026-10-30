@@ -342,10 +342,11 @@ class AggregateTests(unittest.TestCase):
         self.start, self.end = start, self.end+delta
         helsinki = ZoneInfo("Europe/Helsinki")
         local = start.astimezone(helsinki)
-        cutoff = datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=helsinki).astimezone(timezone.utc)
-        marker = "phase4f13-daytime-20261028" if allow_daytime else None
-        launch_window = "2026-10-28 19:00–22:00 Europe/Helsinki" if allow_daytime else "23:00–23:30 Europe/Helsinki"
-        permitted = ((local.date().isoformat() == "2026-10-28" and 19 <= local.hour < 22) if allow_daytime
+        cutoff = (datetime(2026, 10, 31, 7, tzinfo=helsinki) if allow_daytime else
+                  datetime.combine(local.date()+timedelta(days=1), time(7), tzinfo=helsinki)).astimezone(timezone.utc)
+        marker = "phase4f13-daytime-20261030" if allow_daytime else None
+        launch_window = "2026-10-30 14:00–22:45 Europe/Helsinki" if allow_daytime else "23:00–23:30 Europe/Helsinki"
+        permitted = ((local.date().isoformat() == "2026-10-30" and time(14) <= local.time() < time(22, 45)) if allow_daytime
                      else local.hour == 23 and local.minute < 30)
         self.master["cutoff_utc"] = cutoff.isoformat()
         self.master["launch_policy"].update(
@@ -369,7 +370,7 @@ class AggregateTests(unittest.TestCase):
             child["launch"]["launch_policy"] = {
                 **self.master["launch_policy"], "local_time": child_local.isoformat(),
                 "remaining_seconds": (cutoff-child_start).total_seconds(),
-                "launch_permitted": ((child_local.date().isoformat() == "2026-10-28" and 19 <= child_local.hour < 22)
+                "launch_permitted": ((child_local.date().isoformat() == "2026-10-30" and time(14) <= child_local.time() < time(22, 45))
                                      if allow_daytime else child_local.hour == 23 and child_local.minute < 30)}
             for game in child["records"]:
                 budget(game["resource_policy"], datetime.fromisoformat(game["started_utc"]))
@@ -417,7 +418,7 @@ class AggregateTests(unittest.TestCase):
 
 
     def test_daytime_requires_exact_recorded_owner_authorization(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc), allow_daytime=True)
         for marker in (None, "owner-other-campaign", "phase4f7-daytime-20261027", "missing"):
             with self.subTest(marker=marker):
                 if marker == "missing":
@@ -426,8 +427,35 @@ class AggregateTests(unittest.TestCase):
                     self.master["launch_policy"]["daytime_authorization"] = marker
                 self.check()
 
+    def test_exact_dated_daytime_full_smoke_and_readiness_are_valid(self):
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc), allow_daytime=True)
+        self.assertEqual(self.master["cutoff_utc"], "2026-10-31T05:00:00+00:00")
+        self.check_readiness(self.readiness())
+        smoke = auditor.audit_smoke(self.campaign)
+        self.assertTrue(smoke["passed"], smoke["errors"])
+        self.assertFalse(smoke["inference_eligible"])
+        self.assertEqual((smoke["pairs"], smoke["games"]), (4, 8))
+        result = self.check("inconclusive")
+        self.assertEqual(result["statistics"]["recorded_games"], 2048)
+        self.assertEqual(result["statistics"]["included_pairs"], 1024)
+
+    def test_dated_smoke_child_rejects_forged_authorization_and_cutoff(self):
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc), allow_daytime=True)
+        original = copy.deepcopy(self.smoke_children[0]["launch"]["launch_policy"])
+        for key, value in (("daytime_authorization", "phase4f13-daytime-20261028"),
+                           ("allow_daytime", 1), ("launch_window", "any time"),
+                           ("local_time", "2026-10-29T14:00:00+02:00"),
+                           ("cutoff_utc", "2026-11-01T05:00:00+00:00")):
+            with self.subTest(key=key):
+                self.smoke_children[0]["launch"]["launch_policy"] = {**original, key: value}
+                self.save()
+                result = auditor.audit_smoke(self.campaign)
+                self.assertFalse(result["passed"])
+                self.assertTrue(result["errors"])
+                self.assertFalse(result["inference_eligible"])
+
     def test_daytime_requires_explicit_boolean_permission(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, 0, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc), allow_daytime=True)
         for flag in (False, 1, "true"):
             with self.subTest(flag=flag):
                 self.master["launch_policy"]["allow_daytime"] = flag
@@ -475,26 +503,26 @@ class AggregateTests(unittest.TestCase):
 
 
     def test_daytime_child_must_preserve_exact_authorization(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc), allow_daytime=True)
         self.children[0]["launch"]["launch_policy"]["daytime_authorization"] = None
         self.check()
 
 
 
     def test_daytime_preflight_cannot_finish_past_authorized_window(self):
-        self.move_campaign(datetime(2026, 10, 28, 19, 59, tzinfo=timezone.utc), allow_daytime=True)
-        self.master["checked_utc"] = "2026-10-28T20:00:00+00:00"
+        self.move_campaign(datetime(2026, 10, 30, 20, 44, tzinfo=timezone.utc), allow_daytime=True)
+        self.master["checked_utc"] = "2026-10-30T20:45:00+00:00"
         self.check()
         self.check_readiness(self.readiness(), False)
 
     def test_daytime_cutoff_and_declaration_cannot_be_extended(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc), allow_daytime=True)
         original = copy.deepcopy(self.master["launch_policy"])
         for corruption in ("cutoff_utc", "cutoff_local", "launch_window", "launch_permitted", "nighttime", "local_time"):
             with self.subTest(corruption=corruption):
                 policy = copy.deepcopy(original)
-                policy[corruption] = {"cutoff_utc": "2026-10-29T06:00:00+00:00",
-                                      "cutoff_local": "2026-10-29T08:00:00+02:00",
+                policy[corruption] = {"cutoff_utc": "2026-10-31T06:00:00+00:00",
+                                      "cutoff_local": "2026-10-31T08:00:00+02:00",
                                       "launch_window": "any time",
                                       "launch_permitted": 1, "nighttime": True,
                                       "local_time": "2026-10-29T19:00:00+02:00"}[corruption]
@@ -504,21 +532,21 @@ class AggregateTests(unittest.TestCase):
         self.master["launch_policy"] = original
 
     def test_daytime_child_permission_and_original_cutoff_cannot_drift(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, tzinfo=timezone.utc), allow_daytime=True)
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc), allow_daytime=True)
         original = copy.deepcopy(self.children[0]["launch"]["launch_policy"])
         for key, value in (("allow_daytime", False), ("allow_daytime", 1),
                            ("daytime_authorization", "phase4f7-daytime-20261027"),
                            ("launch_window", "any time"), ("launch_permitted", False),
                            ("local_time", "2026-10-29T19:00:00+02:00"),
-                           ("cutoff_local", "2026-10-29T08:00:00+02:00"),
-                           ("cutoff_utc", "2026-10-29T06:00:00+00:00")):
+                           ("cutoff_local", "2026-10-31T08:00:00+02:00"),
+                           ("cutoff_utc", "2026-10-31T06:00:00+00:00")):
             with self.subTest(key=key, value=value):
                 self.children[0]["launch"]["launch_policy"] = {**original, key: value}
                 self.check()
         self.children[0]["launch"]["launch_policy"] = original
 
     def test_unflagged_daytime_readiness_never_authorizes_launch(self):
-        self.move_campaign(datetime(2026, 10, 28, 17, tzinfo=timezone.utc))
+        self.move_campaign(datetime(2026, 10, 30, 12, tzinfo=timezone.utc))
         self.check_readiness(self.readiness())
         self.check()
 
@@ -967,7 +995,8 @@ class RawFixture(unittest.TestCase):
                        "started_utc": "2026-10-15T20:00:00.001+00:00",
                        "finished_utc": "2026-10-15T20:30:00+00:00",
                        "launch_policy": {"timezone": "Europe/Helsinki", "local_time": "2026-10-15T23:00:00+03:00",
-                                         "nighttime": True, "allow_daytime": False,
+                                         "nighttime": True, "allow_daytime": False, "daytime_authorization": None,
+                                         "launch_window": "23:00–23:30 Europe/Helsinki", "launch_permitted": True,
                                          "cutoff_local": "2026-10-16T07:00:00+03:00",
                                          "cutoff_utc": "2026-10-16T04:00:00+00:00", "remaining_seconds": 28800.},
                        "preflight": {"opening_count": self.protocol.pairs, "distinct_roots": self.protocol.pairs},
@@ -1090,6 +1119,40 @@ class RawChildTests(unittest.TestCase):
             jsonl(path, events)
         self.fixture.save()
 
+    def place_daytime(self, fixture):
+        fixture.launch.update(started_utc="2026-10-30T12:00:00.001+00:00",
+                              finished_utc="2026-10-30T12:30:00+00:00")
+        fixture.launch["launch_policy"] = {
+            "timezone": "Europe/Helsinki", "local_time": "2026-10-30T14:00:00+02:00",
+            "nighttime": False, "allow_daytime": True,
+            "daytime_authorization": "phase4f13-daytime-20261030",
+            "launch_window": "2026-10-30 14:00–22:45 Europe/Helsinki", "launch_permitted": True,
+            "cutoff_local": "2026-10-31T07:00:00+02:00", "cutoff_utc": "2026-10-31T05:00:00+00:00",
+            "remaining_seconds": 17*3600.}
+        fixture.save()
+
+    def test_dated_raw_full_game_replay_and_policy_forgery(self):
+        self.place_daytime(self.fixture)
+        result = auditor.audit_child(self.fixture.directory, self.fixture.protocol)
+        self.assertEqual(result["errors"], [])
+        self.assertTrue(result["complete"])
+        self.assertEqual(len(result["output_checks"]), 512)
+        original = copy.deepcopy(self.fixture.launch["launch_policy"])
+        for key, value in (("allow_daytime", 1), ("allow_daytime", False),
+                           ("daytime_authorization", "phase4f13-daytime-20261028"),
+                           ("local_time", "2026-10-29T14:00:00+02:00"),
+                           ("local_time", "2026-10-30T13:59:59+02:00"),
+                           ("local_time", "2026-10-30T22:45:00+02:00"),
+                           ("launch_window", "any time"), ("launch_permitted", 1),
+                           ("cutoff_local", "2026-10-31T08:00:00+02:00"),
+                           ("cutoff_utc", "2026-11-01T05:00:00+00:00")):
+            with self.subTest(key=key, value=value):
+                self.fixture.launch["launch_policy"] = {**original, key: value}
+                self.fixture.save()
+                result = auditor.audit_child(self.fixture.directory, self.fixture.protocol)
+                self.assertTrue(result["errors"])
+                self.assertFalse(result["statistics"]["inference_eligible"])
+
     def test_two_game_smoke_raw_profile_has_no_strength_inference(self):
         with patch.object(auditor, "smoke_opening_sha256", return_value=("0"*64,)*4):
             protocol = auditor.smoke_child_protocol(1)
@@ -1110,6 +1173,12 @@ class RawChildTests(unittest.TestCase):
         fixture.save()
         result = auditor.audit_child(fixture.directory,fixture.protocol)
         self.assertEqual(result["errors"],[])
+        self.assertTrue(result["complete"])
+        self.assertFalse(result["statistics"]["inference_eligible"])
+        self.assertIsNone(result["statistics"]["score_interval"])
+        self.place_daytime(fixture)
+        result = auditor.audit_child(fixture.directory, fixture.protocol)
+        self.assertEqual(result["errors"], [])
         self.assertTrue(result["complete"])
         self.assertFalse(result["statistics"]["inference_eligible"])
         self.assertIsNone(result["statistics"]["score_interval"])
@@ -1189,6 +1258,29 @@ class RawChildTests(unittest.TestCase):
 
 class OutputAndSourceTests(unittest.TestCase):
     """Small real chess records exercise additions without campaign stubs."""
+    def test_dated_admission_boundaries_and_fixed_cutoff(self):
+        for stamp, permitted in (("2026-10-30T13:59:59+02:00", False),
+                                 ("2026-10-30T14:00:00+02:00", True),
+                                 ("2026-10-30T22:44:59.999999+02:00", True),
+                                 ("2026-10-30T22:45:00+02:00", False),
+                                 ("2026-10-30T23:00:00+02:00", False),
+                                 ("2026-10-29T14:00:00+02:00", False),
+                                 ("2026-10-31T14:00:00+02:00", False)):
+            with self.subTest(stamp=stamp):
+                local = datetime.fromisoformat(stamp)
+                self.assertIs(auditor.permitted_launch(local, True), permitted)
+                policy = {"timezone": "Europe/Helsinki", "local_time": stamp,
+                          "nighttime": local.hour >= 23 or local.hour < 7,
+                          "allow_daytime": True, "daytime_authorization": "phase4f13-daytime-20261030",
+                          "launch_window": "2026-10-30 14:00–22:45 Europe/Helsinki",
+                          "launch_permitted": permitted, "cutoff_local": "2026-10-31T07:00:00+02:00",
+                          "cutoff_utc": "2026-10-31T05:00:00+00:00", "remaining_seconds": 1.}
+                if permitted:
+                    self.assertEqual(auditor.validate_launch_policy(policy, "Dated test", require_window=True), local)
+                else:
+                    with self.assertRaises(ValueError):
+                        auditor.validate_launch_policy(policy, "Dated test", require_window=True)
+
     def test_missing_or_malformed_smoke_parent_returns_diagnostics(self):
         with tempfile.TemporaryDirectory(prefix="chess0live-smoke-malformed-") as temporary:
             directory = Path(temporary)
