@@ -5,7 +5,15 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.13 — dated launch amendment tested and frozen
+## Current checkpoint: Phase 4F.13 — NNUE qualification running
+
+The single authorized attempt started **October 30, 15:04:34.532843 Helsinki**,
+from tested commit `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. The eight-game
+development smoke gate independently passed at **15:06:27.831943**, with all
+four pairs complete, eight draws, zero failures/forfeits and verified cleanup.
+All four qualification shards started at **15:06:27.993884–15:06:27.994546**.
+The campaign is running in `results/phase4f13-match-20261030/`; smoke scores are
+excluded from strength inference and live qualification scores remain provisional.
 
 The owner confirmed LM Studio inference is paused and authorized proceeding on
 October 30. The [dated amendment](experiments/phase4f13-match-daytime-20261030.md)
@@ -33,11 +41,14 @@ match to the inherited historical receipt.
 Fresh search-free readiness, independent audit and OS cleanup verification passed
 at 14:58–15:00 Helsinki. Both engines exited zero without searching.
 
-**Next checkpoint:** commit the tested amendment locally, then run the single
-authorized attempt. No smoke or qualification game has started. The smoke gate must pass
-before held-out play; complete audited results may be positive, negative,
-inconclusive or operationally invalid. No retry, sample expansion, schedule or
-automatic promotion follows. There is no new strength evidence at this checkpoint.
+**Next checkpoint:** let the existing attempt finish under its fixed
+October 31, 07:00 cutoff, verify cleanup, and independently audit all retained
+evidence. The read-only progress heartbeat is active every five minutes; its
+first snapshot is retained as `initial-running-progress.json` in the preparation
+directory. Keep LM Studio inference paused until terminal cleanup is verified.
+Complete audited results may be positive, negative, inconclusive or operationally
+invalid. No retry, sample expansion, rebuild, new game schedule or automatic
+promotion follows. There is no qualified strength result at this checkpoint.
 
 ## Previous checkpoint: Phase 4F.13 — original qualification preparation
 

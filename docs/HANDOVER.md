@@ -28,7 +28,14 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.13 dated launch amendment tested and frozen
+## Current checkpoint: Phase 4F.13 NNUE qualification running
+
+The authorized attempt started **October 30, 15:04:34.532843 Helsinki**, from
+tested commit `e60345dc1e16c01e8cff4273608eb85d58b2f53d`. The eight-game smoke
+gate passed independent raw audit and cleanup at **15:06:27.831943**; all four
+full qualification shards began at **15:06:27.993884–15:06:27.994546** and are
+running. Campaign: `results/phase4f13-match-20261030/`. The cutoff remains
+**October 31, 07:00 Helsinki**.
 
 The owner confirmed LM Studio inference is paused and authorized proceeding on
 October 30. The [dated amendment](experiments/phase4f13-match-daytime-20261030.md)
@@ -63,14 +70,24 @@ retained. `source-freeze-final.json` records the final dated pin digest
 `dba5fecdc37983f81f75bd89d9be7d7281b90e270d50fcfec6512089c955d0bb`.
 Fresh search-free readiness and its independent audit passed at 14:58 Helsinki.
 Both engines exited zero without searching; OS lookup confirmed both PIDs absent.
-No smoke or qualification game has started. Keep LM Studio inference and
-competing heavy workloads paused for the authorized attempt, AC connected and
-the Mac awake; lid-close suspension is not safe for this run.
+Smoke completed all **eight games/four pairs**, with eight draws, zero failures
+and zero forfeits. All 16 recorded smoke engine PIDs were absent with no unknown
+cleanup status before held-out admission. Smoke remains operational evidence
+only and is excluded from strength inference. The live qualification score is
+provisional; the ignored `initial-running-progress.json` retains its first
+snapshot without making it a durable result.
 
-**Next:** commit the tested amendment locally, then launch once. The eight-game smoke gate must pass
-raw auditing and cleanup within 600 seconds before the 2,048-game qualification.
+The read-only `chess0live-nnue-match-progress` heartbeat is active every five
+minutes. Monitor the existing attempt only. Keep LM Studio inference and
+competing heavy workloads paused, AC connected and the Mac awake until terminal
+cleanup is verified; lid-close suspension is not safe for this run.
+
+**Next:** monitor to a terminal outcome, verify launch receipts and OS process
+cleanup, then independently audit the complete retained campaign and report it.
 Preserve every failure; do not retry, resume, enlarge the sample, change defaults
-or schedule another attempt. Confirm OS cleanup before releasing the host.
+or schedule another attempt. Tell the owner explicitly when LM Studio inference
+can resume after verified cleanup. Stop the progress heartbeat after the terminal
+result and independent audit are reported.
 The stable GUI `0.1-dev-4b8b35d` and owner settings remain intact. This amendment
 does not rebuild or replace the normal release.
 

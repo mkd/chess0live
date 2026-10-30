@@ -1,5 +1,9 @@
 # Phase 4F.13 dated launch amendment preparation — October 30, 2026
 
+This report preserves the prelaunch preparation checkpoint below. The subsequent
+authorized launch and passed smoke gate are recorded in
+[Launch and running qualification](#launch-and-running-qualification).
+
 The [dated timing amendment](phase4f13-match-daytime-20261030.md) is prepared
 following the owner's confirmation that LM Studio inference is paused and the
 request to proceed. Final suites pass **65 launcher tests and 75 independent
@@ -80,7 +84,7 @@ did not rebuild or replace it, rebuild a match engine, change defaults, modify
 historical campaigns, play a real game or push remotely. The stable GUI
 `0.1-dev-4b8b35d` remains intact. The owner handles GitHub pushes.
 
-## Remaining checkpoint and limitations
+## Readiness and prelaunch checkpoint
 
 Fresh readiness passed at 14:58 Helsinki in 2.54 seconds. The independent audit
 passed in 13.53 seconds, with no errors, verifying 95 sources/94 pins, 1,024
@@ -93,11 +97,47 @@ Audit SHA-256:
 The ignored one-shot launch wrapper and read-only progress helper passed 23
 synthetic tests. These establish helper behavior, not a successful live run.
 
-Commit the tested amendment locally and launch the authorized attempt once.
+At this checkpoint, the next action was to commit the tested amendment locally
+and launch the authorized attempt once, as recorded below.
 Earlier readiness belongs to the original inventory and was not reused as proof
 of amended readiness.
 Any failure, forfeit, incomplete pair/sample, changed input, clock/resource gap
 or cutoff blocks qualification; preserve the evidence and do not retry or resume.
+
+## Launch and running qualification
+
+The authorized attempt started **October 30, 15:04:34.532843 Europe/Helsinki**
+from tested local commit `e60345dc1e16c01e8cff4273608eb85d58b2f53d`.
+Campaign evidence is in `results/phase4f13-match-20261030/`; preparation receipts,
+including `launch-started.json`, remain in the preparation directory. The cutoff
+is fixed at **October 31, 07:00 Helsinki**. Four active searches and eight resident
+engines reserve at least 6 GiB under the unchanged resource policy.
+
+The smoke stage ran **15:04:36.935510–15:06:26.003460 Helsinki**. Independent
+raw auditing passed at **15:06:27.828267**, and the campaign admitted qualification
+after recording the gate pass at **15:06:27.831943**. All **eight games/four
+pairs** completed: zero candidate wins, eight draws and zero losses, with zero
+failures or time forfeits. All 16 recorded smoke engine PIDs were absent and
+none had unverified cleanup status. Its saved resource prefix contains 118
+observations. Smoke audit SHA-256:
+`743a11c3ac932296dd5ecaf9883e6b4c6bbb520ef89dcaba48c561ec3ebef6f6`.
+This is operational evidence, excluded from qualification statistics.
+
+The four full qualification shards began at
+**15:06:27.993884–15:06:27.994546 Helsinki** and are running. The initial live
+snapshot is retained in
+[`initial-running-progress.json`](../../results/phase4f13-daytime-20261030-preparation/initial-running-progress.json).
+Its score is provisional; no partial score is promoted to a durable strength
+result. The read-only `chess0live-nnue-match-progress` heartbeat is active every
+five minutes and may not launch, resume, retry or schedule games.
+
+Keep LM Studio inference and competing heavy work paused until the campaign
+ends and launch receipts plus OS checks verify cleanup. Then explicitly release
+the host, independently audit the terminal campaign, record its full outcome
+and stop the progress heartbeat. No rebuild, sample extension or default change
+is part of this run.
+
+## Limitations
 
 This change establishes no performance, puzzle or strength gain. The fixed
 sample's limited sensitivity to small gains, shared opening stems, incomplete

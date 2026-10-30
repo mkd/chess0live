@@ -1,5 +1,36 @@
 # Validation and experiment protocol
 
+## Phase 4F.13 NNUE qualification running — October 30, 2026
+
+The one authorized attempt launched from tested commit
+`e60345dc1e16c01e8cff4273608eb85d58b2f53d` at **15:04:34.532843 Helsinki**.
+`results/phase4f13-match-20261030/campaign.json` records its running status and
+fixed **October 31, 07:00 Helsinki** cutoff. Four active search workers and eight
+resident engines reserve at least 6 GiB; settings remain 15+0.15, Threads=1,
+Hash=64 and the frozen 2,048-game/1,024-pair sample.
+
+The actual smoke stage began at **15:04:36.935510** and completed at
+**15:06:26.003460 Helsinki**. Its independent raw audit passed with no errors at
+**15:06:27.828267**; the gate recorded its pass at **15:06:27.831943**, within
+600 seconds. All **eight games/four pairs** completed with eight draws, zero
+failures and zero forfeits. All 16 recorded engine PIDs were absent, with no
+unknown cleanup status. The saved smoke resource prefix contains 118 observations.
+`clock-smoke-audit.json` SHA-256:
+`743a11c3ac932296dd5ecaf9883e6b4c6bbb520ef89dcaba48c561ec3ebef6f6`.
+
+The four qualification shards then began at
+**15:06:27.993884–15:06:27.994546 Helsinki**. Smoke is excluded from strength
+inference; qualification scores remain provisional until the terminal raw audit.
+The ignored preparation receipt `initial-running-progress.json` retains the
+first full-stage progress snapshot. The read-only
+`chess0live-nnue-match-progress` heartbeat checks every five minutes.
+
+No retry, resume, rebuild or default change accompanies this launch. Keep LM
+Studio inference paused until launch receipts and OS checks confirm terminal
+cleanup, then report that inference may resume. Preserve every outcome and run
+the independent final audit without overwriting existing evidence. The
+preparation history and its disclosed preservation limitation follow below.
+
 ## Phase 4F.13 dated timing amendment preparation — October 30, 2026
 
 The [timing amendment](experiments/phase4f13-match-daytime-20261030.md) implements
