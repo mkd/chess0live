@@ -708,7 +708,12 @@ async def play_game(specs, settings, opening, pair_id, game_id, candidate_color,
                                             "ponder": False, "pid": transport.get_pid()}
         stage = "play"
         while True:
-            outcome = board.outcome(claim_draw=True)
+            # Claimable repetition checks replay history and possible moves.
+            # This shard has no active clock, but other shards may be waiting
+            # for a reply on this event loop. Keep their callbacks serviceable.
+            # The worker exclusively owns this board until it returns; even
+            # cancellation must wait for its temporary make/unmake to finish.
+            outcome = await finish_cleanup(asyncio.to_thread(board.outcome, claim_draw=True))
             if outcome is not None:
                 record.update(status="complete", result=outcome.result(), termination=outcome.termination.name.lower())
                 break

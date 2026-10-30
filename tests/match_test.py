@@ -466,6 +466,120 @@ class BufferedLogTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(done.is_set())
 
 
+class RefereeResponsivenessTests(unittest.IsolatedAsyncioTestCase):
+    """Adjudication must leave other shards' protocol callbacks serviceable."""
+
+    async def test_adjudication_does_not_block_another_protocol_receipt(self):
+        loop = asyncio.get_running_loop()
+        delivered = threading.Event()
+        observation = {}
+        virtual_now = [1_000_000_000]
+        receiver = match.RecordingProtocol("other-shard", io.StringIO())
+        receiver.go_ns = 950_000_000
+        receiver.line_received = lambda _: None
+        original_outcome = chess.Board.outcome
+
+        def receive():
+            receiver.pipe_data_received(1, b"bestmove e2e4\n")
+            delivered.set()
+
+        def adjudicate(board, *, claim_draw=False):
+            if not claim_draw:
+                return original_outcome(board, claim_draw=claim_draw)
+            # The callback is ready while this shard is adjudicating. Only the
+            # event loop can release this gate. The watchdog bounds a broken
+            # implementation; no measured scheduling duration selects a pass.
+            loop.call_soon_threadsafe(receive)
+            observation["callback_during_adjudication"] = delivered.wait(2.0)
+            if not observation["callback_during_adjudication"]:
+                virtual_now[0] += 200_000_000
+            return chess.Outcome(chess.Termination.STALEMATE, None)
+
+        with tempfile.TemporaryDirectory(prefix="chess0live-referee-test-") as directory:
+            output = Path(directory)
+            opening = match.Opening("controlled-adjudication", chess.Board(), "test")
+            records = []
+            # Empty specs deliberately avoid engines/searches. This is a
+            # controlled terminal referee result, not a real chess game.
+            with patch.object(chess.Board, "outcome", adjudicate), patch.object(
+                    match.time, "monotonic_ns", side_effect=lambda: virtual_now[0]):
+                record = await match.play_game([], match.Settings(initial=1.0, increment=0.0), opening,
+                                               "p1", "p1-1", "white", {},
+                                               output, records.append)
+            self.assertEqual(record["termination"], "stalemate")
+            self.assertEqual(records, [record])
+        self.assertTrue(observation["callback_during_adjudication"],
+                        "Referee adjudication blocked another shard's ready callback")
+        self.assertEqual(receiver.bestmove_ns - receiver.go_ns, 50_000_000)
+
+    async def test_cancel_waits_for_adjudication_to_restore_board(self):
+        entered, release, restored = threading.Event(), threading.Event(), threading.Event()
+        original_outcome = chess.Board.outcome
+        records = []
+
+        def adjudicate(board, *, claim_draw=False):
+            if not claim_draw:
+                return original_outcome(board, claim_draw=claim_draw)
+            board.push_uci("e2e4")
+            entered.set()
+            try:
+                if not release.wait(2.0):
+                    raise RuntimeError("test adjudication gate expired")
+            finally:
+                board.pop()
+                restored.set()
+            return None
+
+        def record_result(record):
+            self.assertTrue(restored.is_set(), "Cleanup raced a mutating referee worker")
+            records.append(record)
+
+        with tempfile.TemporaryDirectory(prefix="chess0live-referee-cancel-") as directory:
+            opening = match.Opening("controlled-cancellation", chess.Board(), "test")
+            with patch.object(chess.Board, "outcome", adjudicate):
+                task = asyncio.create_task(match.play_game(
+                    [], match.Settings(initial=1.0, increment=0.0), opening,
+                    "p1", "p1-1", "white", {}, Path(directory), record_result))
+                try:
+                    self.assertTrue(await asyncio.to_thread(entered.wait, 2.0))
+                    task.cancel()
+                    await asyncio.sleep(0)
+                    self.assertFalse(task.done())
+                    self.assertEqual(records, [])
+                finally:
+                    release.set()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+            self.assertTrue(restored.is_set())
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0]["status"], "interrupted")
+            self.assertEqual(records[0]["final_fen"], chess.STARTING_FEN)
+            self.assertEqual(records[0]["played_plies"], 0)
+            self.assertEqual(opening.board.fen(), chess.STARTING_FEN)
+
+    async def test_adjudication_error_remains_a_runner_failure(self):
+        original_outcome = chess.Board.outcome
+
+        def adjudicate(board, *, claim_draw=False):
+            if claim_draw:
+                raise RuntimeError("controlled adjudication failure")
+            return original_outcome(board, claim_draw=claim_draw)
+
+        with tempfile.TemporaryDirectory(prefix="chess0live-referee-error-") as directory:
+            opening = match.Opening("controlled-error", chess.Board(), "test")
+            records = []
+            with patch.object(chess.Board, "outcome", adjudicate):
+                record = await match.play_game(
+                    [], match.Settings(initial=1.0, increment=0.0), opening,
+                    "p1", "p1-1", "white", {}, Path(directory), records.append)
+            self.assertEqual(records, [record])
+            self.assertEqual(record["status"], "protocol_failure")
+            self.assertEqual(record["termination"], "runner_error")
+            self.assertIn("controlled adjudication failure", record["error"])
+            self.assertEqual(record["result"], "*")
+            self.assertIsNone(record["candidate_score"])
+
+
 class MatchTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="chess0live-match-test-")

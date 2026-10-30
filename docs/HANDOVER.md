@@ -28,7 +28,45 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.13 completed — qualification blocked
+## Current checkpoint: Phase 4F.14 complete — narrow runner repair
+
+Read the [clock report](reports/2026-10-30-phase4f14-clocks.md) and
+[finite protocol](experiments/phase4f14-clocks.md). A deterministic pre-fix test
+reproduces synchronous draw adjudication blocking another game's ready callback.
+`play_game` now awaits worker-thread adjudication through `finish_cleanup`,
+retaining exclusive board ownership until temporary moves are restored, including
+cancellation. Draw rules, go-to-receipt accounting and increment semantics stay
+unchanged. Full match suite: **43 passed**; new diagnostic checks: **11 passed**.
+
+The owner expressly requested testing **while LM Studio runs**, because the next
+quiet window is unavailable for 72 hours. One fixed eight-search diagnostic ran
+at 22:12 Helsinki: eight on-time replies, minimum slack **19.8585 ms**, actual
+four-way overlap **94.771917 ms**, independent raw audit passed, eight zero exits
+and OS cleanup confirmed. This uses production receipt/timing helpers with
+in-memory evidence, not complete games or adjudication. It is not a performance
+comparison, reliability qualification or historical-cause proof.
+
+The six historical forfeits remain unexplained. Resource-observation correlations
+are retained; a bounded engine-free resource-call check did not reproduce a long
+delay. No clock overhead, engine sources, NNUE arithmetic, search policy or
+defaults changed. All 569 protected files, 18 engine source/Makefile identities,
+stable GUI `0.1-dev-4b8b35d` and README introduction match the before record.
+Normal/qualification binaries and old campaign audits remain intact; only
+`build/experiments/phase4f14/clock-trace/chess0live` was newly built.
+
+Evidence: `results/phase4f14-clock-20261030/`, including original failures, fixed
+test logs, raw diagnostic, independent audit, preservation and OS receipts.
+Keep the existing normal-release historical digest caveat; only its current
+recorded bytes are preserved. No run, monitor or automatic schedule remains.
+
+**Next proposed implementation:** Phase 4F.15, one isolated verified-null-move
+efficiency hypothesis. Begin with verification/re-search cost and eligibility;
+keep the current LMR-on baseline and parked options. Development/correctness can
+proceed on the loaded host. Controlled comparisons need a fresh suitable window;
+any new game qualification must separately address remaining clock readiness.
+Do not schedule anything automatically for 72 hours later or repeat Phase 4F.13.
+
+## Previous checkpoint: Phase 4F.13 completed — qualification blocked
 
 Read the [completed-game report](reports/2026-10-30-phase4f13-results.md).
 All **2,048 games / 1,024 pairs** finished October 30 at **21:20:41 Helsinki**,

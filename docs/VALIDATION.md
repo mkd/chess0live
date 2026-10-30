@@ -1,5 +1,44 @@
 # Validation and experiment protocol
 
+## Phase 4F.14 bounded clock checkpoint — October 30, 2026
+
+The [report](reports/2026-10-30-phase4f14-clocks.md) separates a reproduced
+runner defect from unresolved historical timing failures. Direct draw
+adjudication blocked another shard's ready callback in the deterministic
+pre-fix regression. Worker-thread adjudication passes that check plus board
+restoration on cancellation and error handling. Full match tests: **43 passed**.
+The fixed short-clock diagnostic tool passes **11 engine-free checks**, including
+raw calibration corruption, exact coverage, late-boundary classification and
+repeated cancellation during cleanup. An initial test setup error, the genuine
+pre-fix failure and pre-measurement validator/review repairs remain recorded.
+
+Unchanged engine sources were built only into the isolated clock-trace directory.
+The existing trace UCI contract passed **11 diagnostic searches** plus normal
+interface isolation. Native macOS ARM64 only; no new scalar/sanitizer/foreign
+execution is claimed for this Python runner change.
+
+One eight-search loaded-host diagnostic at 22:12 Helsinki used 170-ms clocks,
+150-ms increments, overhead 20, Hash 64, Threads 1 and LMR on. All **8/8** replies
+arrived on time; minimum margin **19.8585 ms**, maximum elapsed **150.1415 ms**.
+Four-way overlap was **94.771917 ms**. Independent raw replay passed 48 pings,
+42 iterations, 156 legal PV plies, eight bestmoves and eight ponder suggestions,
+with 20 unchanged diagnostic identities and eight clean exits. Separate OS
+checks found all recorded engine PIDs absent. Owner-requested LM Studio load was
+declared, not continuously measured. This sample does not exercise full-game
+adjudication, persistence, periodic supervision or long historical positions.
+
+Preservation: **569 protected paths**, **18 engine source/Makefile identities**
+and exact README introduction unchanged. Prior binaries, GUI `0.1-dev-4b8b35d`,
+campaign evidence and decisions remain intact. Historical normal-release digest
+discrepancy is still unresolved. No new game, default promotion, engine-clock
+change or strength claim follows. Original forfeits remain included in 4F.13.
+
+Evidence/audit/review/cleanup: `results/phase4f14-clock-20261030/`.
+Raw diagnostic SHA-256:
+`dd6723e92d7fb5a4d595c6f1f2973d76d370f92d81735c450eccd5797a7c4f19`.
+Independent audit SHA-256:
+`921a8129c7da0a68eb25add27ff2ab7de1bff0b8716e3633858252ab7ad5cc81`.
+
 ## Phase 4F.13 completed sample — qualification blocked, October 30, 2026
 
 The fixed attempt completed **2,048 games / 1,024 pairs** at 15+0.15, Threads=1,

@@ -5,7 +5,36 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.13 completed — strength qualification blocked
+## Current checkpoint: Phase 4F.14 complete — bounded clock repair and diagnosis
+
+The [completed report](reports/2026-10-30-phase4f14-clocks.md) records a reproduced
+match-runner responsiveness defect: synchronous draw adjudication could prevent
+another game's ready receipt callback from running. Adjudication now runs off
+the shared event loop with exclusive board ownership through cancellation.
+All **43 match regressions** and **11 diagnostic-tool checks** pass; independent
+review confirms the narrow repair. Chess rules and clock accounting are unchanged.
+
+The single fixed **eight-search** trace diagnostic ran with **LM Studio active
+at the owner's request**: all replies were on time, minimum clock margin
+**19.8585 ms**, actual four-way overlap **94.771917 ms**, eight clean exits and a
+passing independent raw audit. It uses the real receipt path, not full games;
+the deterministic regressions separately validate the adjudication repair.
+The six historical Phase 4F.13 forfeits were not reproduced or explained.
+No general reliability, throughput or Elo improvement is established.
+
+All 569 protected files, 18 engine source/Makefile identities and the README
+introduction remain unchanged; stable GUI `0.1-dev-4b8b35d` and existing binaries
+are preserved. The only new executable is an isolated diagnostic build.
+
+**Next proposed checkpoint: Phase 4F.15**, one isolated verified-null-move
+efficiency hypothesis, beginning with eligibility and verification/re-search
+cost. Development can proceed under the current loaded host. Before any new
+controlled match, resolve its clock-readiness requirements and agree a suitable
+window; the owner says the next quiet window is unavailable for 72 hours.
+No game run or future schedule is created. TT hints/Continuation History remain
+off, and earlier failed/inconclusive decisions remain unchanged.
+
+## Previous checkpoint: Phase 4F.13 completed — strength qualification blocked
 
 All **2,048 games / 1,024 reversed-color pairs** completed on October 30,
 **15:04:34–21:20:41 Helsinki**, under the fixed dated protocol. Candidate
@@ -1211,9 +1240,9 @@ it does not indefinitely block unrelated engine development.
 | 4A: search cache efficiency — complete | Measured cache reuse; compact 16-byte entries, unchanged capacity/draw-aware bounds, UCI occupancy, optional detailed counters | Retained one-third entry-storage reduction with exact parity and passing regression guards; no further tuning required for this checkpoint |
 | 4B: Lazy SMP | Implemented configurable workers, shared synchronized cache, private search state, coordinated limits, and audited scaling screen | Complete bounded implementation/scaling checkpoint; broader worker/platform execution and strength qualification remain separate |
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
-| 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | 4D.6 parked off; 4D.7 finite attempt concluded with timing qualification inconclusive after host sleep. ProbCut remains off; 4E next |
+| 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | Finite initial checkpoints concluded. Broader reductions and ProbCut remain parked off; subsequent search development is tracked in 4F |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Quiescence/ordering improvements; audited combined-policy/TT-hint experiments; exact SEE and quiet-history implementations; optional continuation history | 4F.10 full 512-game audit complete: 179W/151D/182L, inconclusive. Continuation History stays off and promotion is parked; choose a new isolated search hypothesis with frozen acceptance criteria. Hints and all-on promotion remain parked |
+| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 completed but failed clock qualification. 4F.14 repaired reproduced adjudication blocking; eight loaded-host diagnostic replies were on time, historical cause unresolved. Next proposed: 4F.15 isolated null-move efficiency. Hints, Continuation History and all-on promotion remain parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen

@@ -659,6 +659,23 @@ The [receipt diagnostic guide](docs/MATCHES.md#response-timing-diagnostics)
 explains how to distinguish consumer delay from observed engine response time.
 Its process-pause control requires POSIX signals; it does not change engine play.
 
+For a bounded short-clock investigation through the match runner's actual
+receipt path, use a separate diagnostic build and a new output path:
+
+```sh
+make -j2 CLOCK_TRACE=1 BUILD=build/experiments/phase4f14/clock-trace
+python3 tools/run.py --offline tests/probe_short_clocks_test.py
+python3 tools/run.py --offline tools/probe_short_clocks.py \
+  build/experiments/phase4f14/clock-trace/chess0live \
+  networks/nn-1a298aa575a0.nnue results/short-clock-diagnostic.json \
+  --host-load lm-studio-running
+```
+
+The host-load declaration must describe the actual condition. This fixed
+eight-search diagnostic uses up to four workers; it is not a game or strength
+test. It refuses to overwrite evidence. See its
+[scope and interpretation](docs/experiments/phase4f14-clocks.md).
+
 For changes intended to preserve search behavior, use the
 [performance comparison guide](docs/BENCHMARKING.md). Its alternating baseline
 and candidate runs verify identical search work before reporting timing ratios.

@@ -18,6 +18,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Moved match draw adjudication off the shared protocol event loop so one game's
+  referee work can no longer synchronously block another game's move-receipt
+  callback. Cancellation waits for board restoration; clock accounting and
+  chess rules are unchanged. Added a bounded short-clock trace diagnostic.
+  This repair does not establish the cause of historical forfeits or a strength
+  gain.
 - Completed and independently audited the fixed NNUE comparison: 2,048 games,
   686 wins / 695 draws / 667 losses for the optimized build. Six clock forfeits
   (three per version) block strength qualification; confidence intervals are
