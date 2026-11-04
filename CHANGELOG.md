@@ -10,8 +10,9 @@ release numbers; detailed measurements live in the linked experiment records.
 - Added default-off quiescence delta pruning with conservative material
   allowances, checking/terminal-child protection, reversible cancellation and
   diagnostics. Native/scalar/sanitizer checks and an independent 150-search
-  development audit pass. Full puzzle and playing-strength qualification remain
-  pending; no default change or Elo gain is established. See the
+  development audit pass. The full puzzle attempt completed, but changing from
+  AC to battery power failed its host-condition audit; controlled qualification
+  remains inconclusive. No default change or Elo gain is established. See the
   [development result](docs/reports/2026-11-04-phase4f18-delta.md).
 
 - Reuse an already available legal transposition move to order the root of an

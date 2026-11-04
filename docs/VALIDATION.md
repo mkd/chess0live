@@ -50,13 +50,46 @@ normal-release digest uncertainty and six Phase 4F.13 forfeits remain open.
 Evidence: `results/phase4f18-delta-20261104/`, including full raw screen/audit,
 source pins, review, cleanup and preparation failure receipts.
 
-**Still required:** the 39-position × 60,000-ms × two-role puzzle checkpoint
-below. Configuration-only runner copies and pins are prepared, with all 39 FENs
-statically validated; no full puzzle search has run. It needs a fresh 80–90 minute
-quiet window and overnight timing or an explicit daytime exception, final pin
-checks, tracked sleep inhibition and sleep/wake/cleanup evidence. No schedule or
-game launch is authorized. Retain delta as opt-in pending that checkpoint and
-separate later clock/strength qualification.
+The required full puzzle attempt subsequently ran once with the owner's daytime
+exception, **20:22:17–21:40:22 Helsinki**, November 4. All 39 original positions
+received 60,000-ms requests per role, baseline then candidate-on, Threads 1 /
+Hash 64, one worker and fresh processes. All 78 rows completed with no reported
+search failures, forced cleanup or drift. Both batches and supervisor exited zero;
+external OS verification at 21:48:21 found all 83 recorded identities absent and
+no related survivor or PID reuse. LM Studio was released after confirmation.
+Individual engine exit codes are not retained by this unchanged runner.
+
+**Independent full audit failed the host-condition gate:** AC/100% at the start
+became battery/77% at the end. The transition time and affected positions are
+unknown. Automatic mode is recorded at both endpoints; retained evidence contains
+no thermal warning or actual sleep/wake transition. The execution receipt's
+complete status is not qualification. Preserve `puzzle-full/audit.json` unchanged;
+no passing full audit exists and no automatic repeat is authorized.
+
+The independent descriptive `observations.json` verifies all 78 legal final moves,
+original rows/annotations, 51 declared input pins, 27 parent archives/42 frozen
+sources and supervision/cleanup receipts. Both roles report **2/39 positive mates**:
+position 1 reports M9 against annotated M7; position 2 reports M7 against annotated
+M7. No mate gain/loss/distance change occurs. All 39 final moves and 35 final scores
+match; the four numeric differences (#27, #28, #29, #37) are listed in the report.
+No mate proof, tactical-equivalence, performance or strength conclusion follows.
+Controlled tactical qualification is **inconclusive** and delta remains default off.
+
+The full-puzzle auditor passed 26 selftests and peer review. Preserve its initial
+static FENS-hash assumption error (corrected before execution), the real failed
+host audit and the descriptive collector's denied extra OS read. The latter uses
+the root agent's approved external cleanup receipt, not an independent OS snapshot.
+The unchanged runner lacks full PV/depth/node histories and any-depth mate detection;
+sampled processes and endpoint power records cannot prove constant host load.
+The declared input map does not freeze `tools/run.py` or interpreter/environment.
+Post-run preservation again passes all 1,342 protected paths, parent/candidate
+archives, frozen current sources/assets, README intro, owner edit and stable GUI.
+
+The proposed next diagnostic compares three explicitly defined feature profiles
+at equal time; see [the search plan](SEARCH_OPTIMIZATION_PLAN.md#proposed-phase-4f19-combined-search-diagnosis).
+It is not a scheduled run. Separate tactical/clock/held-out game evidence is still
+needed for any package or default change; the six historical clock forfeits remain
+unresolved.
 
 ## Phase 4F.17 NNUE accumulator reuse — November 4, 2026
 

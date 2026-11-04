@@ -28,48 +28,69 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.18 implementation checked; full puzzles pending
+## Current checkpoint: Phase 4F.18 closed — retain delta opt-in
 
 Read the [report](reports/2026-11-04-phase4f18-delta.md) and
 [fixed protocol](experiments/phase4f18-delta.md). Parent `0bbe5f0` has the same
-engine as `e16ca73`. The independently authored `QSearch Delta Pruning` option
-is implemented with default false, original-window/stand-pat material allowances,
-real checking/terminal-child protection and reversible interruption/failure paths.
-Do not copy previous-engine code/assets or retune the fixed exposed experiment.
+engine as `e16ca73`; implementation commit is `9f8ff9f`. `QSearch Delta Pruning`
+is independently implemented with default false and reversible checking/terminal
+child protection. No previous-engine code/assets were copied or rule retuned.
 
 Native/scalar/ASan+UBSan/TSan direct-branch/API/policy checks and 93 UCI cases per
-build pass. Native full regressions and native/TSan 43-case SMP suites pass.
-The 18-test screen tool and independent 21-test auditor pass. Preserve first-run
-FEN-parser/negative-fixture failures and the two-capture stalemate fixture error;
-these were fixed before timing without changing the production rule. The frozen
-note says 20 auditor tests; the final frozen auditor passed 21, separately recorded.
+build pass; native full regressions and native/TSan 43-case SMP suites pass.
+The 18-test screen tool and independent 21-test auditor pass. Preserve initial
+FEN-parser/negative-fixture and stalemate-fixture failures. The frozen note says
+20 auditor tests; its final auditor passed 21, separately recorded.
+The short screen completed 150 searches / 90 sessions and passed independent raw
+audit, including 30 exact parent/off pairs. Aggregate depth-6 nodes fall 14.19%
+cold / 18.34% warm; per-root medians 6.26% / 3.75%. Final moves/scores match;
+intermediate/PV and ponder changes remain disclosed. Two 500-ms roots gain one
+completed depth. These results establish no Elo gain.
 
-The owner-confirmed quiet-host screen completed 150 searches / 90 sessions and
-passed raw independent audit, including 30 exact parent/off pairs and 42 assets.
-Aggregate depth-6 nodes fall 14.19% cold / 18.34% warm; per-root medians fall
-6.26% / 3.75%. All final fixed-depth moves/displayed scores match; four mg-04
-intermediate/PV changes and final ponder differences remain disclosed. At 500 ms,
-two roots gain one completed depth, none lose depth, and final moves match.
-Two different-depth score changes are retained. Timed quiescence-only nodes and
-internal scores are unavailable. These observations establish no Elo gain.
+The owner authorized one full daytime puzzle attempt with LM Studio paused.
+It ran November 4, **20:22:17–21:40:22 Helsinki**, baseline first then candidate-on:
+39 positions × 60,000 ms per role, fresh processes, Threads 1 / Hash 64, one
+active worker and 1 GiB reserved. All 78 rows completed, both batches and the
+supervisor exited zero, and no search failure, forced cleanup or pin drift was
+reported. There was no retry, replacement search or future schedule.
 
-Retain delta as opt-in; full tactical and strength qualification remain pending.
-All 90 recorded exits were zero, OS found no survivors or related jobs, and
-LM Studio was released. All 1,342 protected paths, 27 parent source archives,
-42 frozen source/tool archives, owner batch edit and README introduction match.
-Stable GUI `build/test-baselines/0.1-dev-4b8b35d/`, old normal-release digest
-uncertainty and six Phase 4F.13 forfeits remain unchanged. Do not stage the
-unrelated owner edit in `tools/batch_positions.py`.
+**Qualification audit failed:** `puzzle-full/audit.json` records `AC power not
+evidenced after`. Before-search AC/100% became after-search battery/77%; the
+transition time is unknown. Automatic mode appears at both endpoints, with no
+recorded thermal warning or actual sleep/wake transition. Preserve the failed
+audit. `run.json` being complete is not a passing qualification result.
+`observations.json` is a separate descriptive review, not a replacement passing
+audit. It verifies 78 legal final moves, preparation/pins and process receipts.
+Both roles report two positive mates, one exact annotated length, no mate
+changes and identical final moves on all 39 positions. Four final numeric scores
+change (#27, #28, #29, #37); the report lists every value. Mate annotations are
+not independent proofs. Full controlled tactical qualification is **inconclusive**;
+keep delta default false and do not infer a strength gain.
 
-Evidence is under `results/phase4f18-delta-20261104/`. `puzzle-preparation/` has
-configuration-only copies of the existing printed-output runner, original 39
-FENs/annotations, Threads 1 / Hash 64 / 60,000 ms and pinned parent/candidate-on.
-Static FEN/AST validation passed; no full puzzle search has run. Budget 80–90
-minutes including overhead and obtain a fresh quiet window plus daytime exception
-or authorized overnight window. Verify final pins, tracked sleep inhibition,
-sleep/wake evidence and process cleanup on any eventual run. Nothing is scheduled.
-Only after that checkpoint consider a separately prepared clock/strength gate;
-no automatic settings promotion, games, release or push.
+At 21:48:21, the approved external OS check found all 83 recorded identities gone:
+78 engines, two batch wrappers, two inhibitors and supervisor. The parent app-server
+predates the run and was left untouched. **LM Studio was released after this
+confirmation.** The unchanged runner does not retain individual engine exit codes
+or full PV/depth/node histories; only the batch/supervisor zero exits are verified.
+The descriptive collector's extra OS read was denied; its log is retained and it
+explicitly relies on the approved cleanup receipt. The 51-input map does not pin
+`tools/run.py` or the interpreter/environment. Constant host load is unproved.
+
+Evidence is under `results/phase4f18-delta-20261104/`, with full-attempt records in
+`puzzle-full/`. All 1,342 protected paths, 27 parent/42 candidate source archives,
+42 frozen current sources/tools, asset pins, README intro and owner batch edit
+match. Preserve stable GUI `build/test-baselines/0.1-dev-4b8b35d/`, historical
+normal-release digest uncertainty and the six Phase 4F.13 clock forfeits. Do not
+stage the unrelated owner edit in `tools/batch_positions.py`.
+
+**Next proposed Phase 4F.19:** a roughly five-minute equal-time comparison of
+optional search features off, accepted defaults and an explicit all-experiments
+package, followed by separately frozen leave-one-out tests. See the
+[profile definitions and limits](SEARCH_OPTIMIZATION_PLAN.md#proposed-phase-4f19-combined-search-diagnosis).
+Core NNUE/PVS/TT remain active; accepted defaults differ from optional-off only by
+LMR. Prepare concrete inputs and confirm the host before execution; no automatic
+repeat, game, settings promotion, release, schedule or GitHub push is authorized.
+Later strength testing still requires clock readiness and held-out games.
 
 ## Previous checkpoint: Phase 4F.17 complete — retain parent engine
 

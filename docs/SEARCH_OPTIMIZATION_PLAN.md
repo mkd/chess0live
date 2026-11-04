@@ -6,9 +6,70 @@ correctness and the independent 150-search screen pass. Aggregate depth-6 work
 falls 14.19% cold / 18.34% warm, with per-root median reductions 6.26% / 3.75%.
 Final moves/displayed scores match; intermediate/PV changes remain documented.
 Two equal-time roots gain one completed depth, with none lost. Retain the opt-in
-candidate for the required full puzzle checkpoint, prepared but not run.
-No Elo/default promotion follows; clock and strength qualification remain
-separate. No future run is scheduled.
+candidate as opt-in. The full 78-search puzzle attempt completed, but its
+independent audit failed the host-condition gate: AC power at the start became
+battery power at the end. It is inconclusive for controlled qualification.
+Both roles report two positive mates and identical final moves on all 39 roots;
+four final numeric scores differ. No Elo/default promotion follows; clock and
+strength qualification remain separate. No future run is scheduled.
+
+## Proposed Phase 4F.19: combined search diagnosis
+
+The owner asked whether optional features off versus all on could explain the
+large reported depth gap. Isolated tests and combined tests answer different
+questions: isolated changes identify causes; a defined package tests interactions.
+The older [Phase 4F.3](reports/2026-10-24-phase4f3.md) package reported fewer final
+positive mates (3→2) and completed a lower nominal depth on 29 of 39 roots (higher
+on one, tied on nine). It predates current changes and does not settle this
+package. Continuation History's later match was inconclusive, not a proved loss.
+
+Proposed initial diagnostic: the existing fifteen chess0live mixed roots, three
+profiles, five seconds per cell, fresh processes, rotated profile order. This is
+225 seconds of requested search, roughly five minutes with setup. Preserve full
+UCI output, completed depth/seldepth, nodes, elapsed time, final moves/scores and
+all PV changes, then independently audit. One observation per cell diagnoses a
+large effect; it is not statistical speed or strength qualification. Prepare and
+freeze the exact protocol/inputs and confirm the host before any new execution.
+This proposal is **not a scheduled run or automatic authorization to launch**.
+
+| Search option | Optional features off | Accepted defaults | All search experiments |
+| --- | --- | --- | --- |
+| Late Move Reductions | false | true | true |
+| Deep Quiet Reductions | false | false | true |
+| Capture Ordering | mvv-lva | mvv-lva | see |
+| Countermove Ordering | false | false | true |
+| Continuation History | false | false | true |
+| Null Move Pruning | false | false | true |
+| Reverse Futility Pruning | false | false | true |
+| QSearch SEE Pruning | false | false | true |
+| QSearch Delta Pruning | false | false | true |
+| ProbCut | false | false | true |
+| TT Move Hints | false | false | true |
+
+“Optional features off” retains core NNUE, PVS, aspiration, contextual TT bounds,
+killers, ordinary history, quiescence and check extensions; only LMR differs from
+accepted defaults. Keep the same executable/network, Threads 1, Hash 64 MiB,
+Move Overhead 20, classic time policy, ponder/diagnostics off and Syzygy disabled.
+Capture Ordering and Time Policy are mutually exclusive choices, so a literal
+“everything on” is undefined. Extra history/hint storage must be reserved and
+disclosed; equal Hash does not imply equal total memory.
+
+Follow with a separately frozen leave-one-out comparison to identify interactions,
+not within-run tuning. Deep Quiet Reductions requires LMR, so removing LMR also
+removes deep reductions. Delta precedes SEE pruning; their savings cannot simply
+be added. Ordering/history changes also affect which moves receive reductions.
+Fresh-process results do not establish retained-history benefits; those need a
+separate retained-state design. A promising package still needs tactical and
+clock qualification followed by held-out games before any default promotion.
+
+A repeatable depth-25 versus depth-6 gap at equal time deserves direct diagnosis,
+not dismissal. Nominal depth is not uniform tree coverage, and many current
+microchecks deliberately request depth 6. Use uncapped equal-time searches for
+this question. Manual comparisons must identify the stable GUI snapshot
+`build/test-baselines/0.1-dev-4b8b35d/`, actual executable, position, network and
+resource settings. No previous-engine code or test assets are imported.
+
+## Earlier follow-ups
 
 Previous follow-up: [Phase 4F.17](reports/2026-11-04-phase4f17-nnue-reuse.md)
 profiled NNUE and tested selective quiescence-parent accumulator checkpoints.

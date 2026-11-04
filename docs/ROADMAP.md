@@ -5,31 +5,50 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Active checkpoint: Phase 4F.18 — delta implementation checked; full puzzles pending
+## Current checkpoint: Phase 4F.18 closed — full puzzle qualification inconclusive
 
-The [audited report](reports/2026-11-04-phase4f18-delta.md) records one original,
+The [report](reports/2026-11-04-phase4f18-delta.md) records one original,
 default-off quiescence delta rule under the [fixed protocol](experiments/phase4f18-delta.md).
 Native/scalar/ASan+UBSan/TSan branch, state, API and 93 UCI cases per build pass;
-native and TSan also pass 43 existing SMP cases each. The independent 150-search
-audit passes all 90 sessions and 30 exact parent/off pairs. No foreign engine
-code or testing assets were reused after the owner's read-only Hyperion review.
+native and TSan also pass 43 SMP cases each. The independent short-screen audit
+passes all 150 searches, 90 sessions and 30 exact parent/off pairs. Aggregate
+depth-6 node savings are 14.19% cold / 18.34% warm; per-root medians are 6.26% /
+3.75%. Two 500-ms roots gain one completed depth; final moves remain unchanged.
+No foreign engine code or testing assets were reused.
 
-At depth 6, aggregate nodes fall **14.19% cold / 18.34% warm**; per-root median
-reductions are **6.26% / 3.75%**. All final moves/displayed scores match, with four
-intermediate/PV changes preserved. Equal-time searches gain one completed depth
-on two roots, lose none, and retain final moves. **Keep delta off by default;
-retain the candidate for full tactical qualification.** No Elo claim follows.
+The authorized full puzzle attempt ran November 4, **20:22:17–21:40:22 Helsinki**:
+39 baseline then 39 delta-on positions, 60 seconds each, one worker, Threads 1 /
+Hash 64, fixed network/options. All 78 searches completed without reported search
+failures, forced cleanup or input drift. **The final independent audit failed:**
+the Mac started on AC (100%) and finished on battery (77%). The transition time is
+unknown. No actual sleep/wake event was found, but this does not repair changed
+power conditions. The complete execution is **inconclusive for controlled tactical
+qualification**; preserve the failed audit and do not retry automatically.
 
-All 90 engines exited normally and OS cleanup passed; LM Studio is released.
-All 1,342 protected paths, the stable GUI, README introduction and owner's batch
-edit remain intact. Initial harness/fixture failures and the freeze note's
-20-versus-21 auditor-test discrepancy are documented without overwriting evidence.
+Separate descriptive checks verify all 78 legal final moves and saved inputs.
+Both roles report **two positive mates**, with no mate gain/loss/distance change;
+all **39 final moves match**. Four numeric scores change (#27, #28, #29, #37),
+fully listed in the report; 35 final scores match. Only one mate length matches
+its original annotation in each role. Neither annotations nor mate reports are
+independently proved. **Retain delta opt-in, default false; no Elo gain is established.**
 
-**Next required checkpoint:** the prepared 39-position × 60-second × two-role
-puzzle comparison, about 78 minutes of search / 80–90 minutes overall. It has
-not run and needs a fresh quiet window and overnight timing or an explicit
-daytime exception. No game or future schedule is authorized. Later strength
-qualification also needs clock readiness; historical six forfeits remain open.
+Both batch wrappers and the supervisor exited zero. External OS verification at
+21:48:21 found all 83 recorded identities gone (78 engines, two batch wrappers,
+two sleep inhibitors, supervisor); LM Studio was released immediately. All 1,342
+protected paths, source archives, stable GUI, README intro and owner batch edit
+remain intact. The failed audit, auxiliary OS-read denial and all observations
+are preserved under `results/phase4f18-delta-20261104/puzzle-full/`. Historical
+release-digest uncertainty and six Phase 4F.13 clock forfeits remain open.
+
+**Next proposed checkpoint: Phase 4F.19, combined search diagnosis.** Compare
+optional search features off, accepted defaults and an explicitly defined all-on
+package at equal time on fifteen existing mixed roots (five seconds each, about
+five minutes overall). Then prepare leave-one-out tests to identify interactions.
+The [search plan](SEARCH_OPTIMIZATION_PLAN.md#proposed-phase-4f19-combined-search-diagnosis)
+defines the profile options and dependency limits. “Off” retains core NNUE/PVS/TT;
+only LMR differs from accepted defaults. This is a proposal requiring preparation
+and host confirmation, not an automatic launch or schedule. A promising package
+still needs tactical, clock and held-out game qualification before promotion.
 
 ## Previous checkpoint: Phase 4F.17 complete — NNUE checkpoints parked
 
@@ -1300,7 +1319,8 @@ bookkeeping costs. No clock policy or qualification result changed. Before
 another match qualification, use one short predeclared instrumented diagnostic.
 That checkpoint led to **4D.5 quiescence work reduction** below. Delta pruning
 was retained as a separate hypothesis and is now implemented in Phase 4F.18;
-its full tactical and strength qualification remain pending.
+its full puzzle attempt completed with a failed changed-power audit; controlled
+tactical qualification is inconclusive and strength qualification remains open.
 
 **Phase 4D.5 implementation, bounded checks and full puzzle comparison are
 complete; the candidate remains experimental and off by default.** The
@@ -1363,7 +1383,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | Finite initial checkpoints concluded. Broader reductions and ProbCut remain parked off; subsequent search development is tracked in 4F |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 clock qualification remains blocked; 4F.14 narrow runner repair did not explain historical forfeits. Null stays off after 4F.15. Deferred sorting (4F.16) and NNUE checkpoints (4F.17) failed timing gates and are archived. 4F.18 default-off delta implementation/screen pass; full puzzle checkpoint is prepared and pending. Hints, Continuation History and all-on promotion remain parked |
+| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 clock qualification remains blocked; 4F.14 narrow runner repair did not explain historical forfeits. Null stays off after 4F.15. Deferred sorting (4F.16) and NNUE checkpoints (4F.17) failed timing gates and are archived. 4F.18 default-off delta implementation/screen pass; full puzzle attempt completed but changing AC to battery failed its host audit. Qualification is inconclusive. Proposed 4F.19 diagnoses current feature combinations. Hints, Continuation History and all-on promotion remain parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
