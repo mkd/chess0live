@@ -1,5 +1,63 @@
 # Validation and experiment protocol
 
+## Phase 4F.18 delta pruning development checkpoint — November 4, 2026
+
+The [report](reports/2026-11-04-phase4f18-delta.md) records implementation and
+short-screen completion under the [prospective protocol](experiments/phase4f18-delta.md).
+The default-off rule uses frozen original stand-pat/entry alpha, int64 arithmetic,
+fixed internal-unit victim allowances/margin and real reversible child checks.
+Native/scalar/ASan+UBSan/TSan direct production-branch tests pass actual skips,
+strict boundaries, both colors, checking mates/stalemates, speculative/window/
+history/ending exclusions, special captures, SEE precedence, node-limit/stop/
+allocation-failure restoration, NNUE/history/board integrity and policy reset.
+Each build passes general Search API/policy checks and **93 bounded UCI cases**.
+The separate activation sample records 13,821 eligible nodes, 391 proposed
+captures, 317 skipped and 74 protected checking captures in every build.
+
+Native full core/UCI, NNUE, exchange, search/order/history, time and resource
+regressions pass, including 537 parser/incremental comparisons, 360 update cases,
+84,126 dense outputs and 1,273 feature transitions. Native and TSan each pass
+43 existing SMP lifecycle cases. No new external NNUE reference or foreign-target
+execution claim follows: NNUE production arithmetic is unchanged and runtime
+coverage here is local macOS ARM64.
+
+The first screen-tool test run failed on FEN parsing and an incorrectly scoped
+negative fixture (two failures/four errors); corrected run passes 18 tests.
+The first direct suite counted one stalemate capture where queen and king could
+both capture; the corrected one-capture fixture passes without a production
+change. Every initial log is retained. Independent code review found no blocker.
+The independent raw auditor passes 21 tests; the frozen note's earlier count
+of 20 is corrected in the report while both receipts remain preserved.
+
+The quiet-host screen completed **150 searches / 90 sessions** in 44.741 seconds,
+all 15 exposed roots, Threads 1 / Hash 64, one observation per cell. Independent
+replay passes complete matrices, exact command/readiness order, legal PV/final
+moves, all 42 assets and **30 exact parent/off cold/warm pairs**. No retries,
+failed cells, forced kills or drift. With delta on, depth-6 aggregate nodes fall
+14.19% cold / 18.34% warm; per-root median savings are 6.26% / 3.75%. All final
+best moves/displayed scores match, but four intermediate/PV changes and final
+ponder differences on mg-04 remain reported. At 500 ms, mg-02 gains depth 5→6,
+mg-03 4→5; none loses depth and all final best moves match. Two final score
+changes occur at those unequal depths; common-depth scores/PVs match.
+No statistical speed, tactical-safety, clock-reliability or Elo claim follows.
+Uninstrumented quiescence-only nodes/internal integer scores are unavailable.
+
+All 90 recorded processes exited zero and OS identity inspection found no
+survivors or remaining related jobs; LM Studio was released. Preservation passes
+all 1,342 protected paths, 27 parent/42 frozen source-tool archives, README intro,
+stable GUI `0.1-dev-4b8b35d` and owner's modified batch runner. The historical
+normal-release digest uncertainty and six Phase 4F.13 forfeits remain open.
+Evidence: `results/phase4f18-delta-20261104/`, including full raw screen/audit,
+source pins, review, cleanup and preparation failure receipts.
+
+**Still required:** the 39-position × 60,000-ms × two-role puzzle checkpoint
+below. Configuration-only runner copies and pins are prepared, with all 39 FENs
+statically validated; no full puzzle search has run. It needs a fresh 80–90 minute
+quiet window and overnight timing or an explicit daytime exception, final pin
+checks, tracked sleep inhibition and sleep/wake/cleanup evidence. No schedule or
+game launch is authorized. Retain delta as opt-in pending that checkpoint and
+separate later clock/strength qualification.
+
 ## Phase 4F.17 NNUE accumulator reuse — November 4, 2026
 
 The [report](reports/2026-11-04-phase4f17-nnue-reuse.md) separates a passing

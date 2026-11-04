@@ -425,6 +425,21 @@ test-qsearch-see: $(ENGINE)
 test-profile-qsearch-see:
 	$(TOOL_PYTHON) tests/profile_qsearch_see_test.py
 
+# Independent opt-in delta rule and direct interior-branch restoration checks.
+QSEARCH_DELTA_ACTIVATION_TIMEOUT ?= $(if $(filter thread-sanitize,$(MODE)),180,30)
+$(BUILD)/qsearch-delta-search-test$(EXE): tests/qsearch_delta_search_test.cpp src/search.cpp $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS)
+	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) -MMD -MP "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(BUILD)/exchange.o $(TB_OBJECTS) $(LDFLAGS) $(LDLIBS) -o "$@"
+
+.PHONY: test-qsearch-delta-search test-qsearch-delta test-profile-qsearch-delta
+test-qsearch-delta-search: $(BUILD)/qsearch-delta-search-test$(EXE)
+	"$(BUILD)/qsearch-delta-search-test$(EXE)" "$(NET)"
+
+test-qsearch-delta: $(ENGINE)
+	$(TOOL_PYTHON) tests/qsearch_delta_uci_test.py "$(ENGINE)" --network "$(NET)" --activation-timeout $(QSEARCH_DELTA_ACTIVATION_TIMEOUT)
+
+test-profile-qsearch-delta:
+	$(TOOL_PYTHON) tests/profile_qsearch_delta_test.py
+
 # Optional independent-referee checks for the isolated quiet-reply experiment.
 .PHONY: test-countermove test-profile-countermove
 test-countermove: $(ENGINE)
@@ -645,7 +660,7 @@ clean:
 -include $(OBJECTS:.o=.d) $(BUILD)/nnue-updates-test.d $(BUILD)/nnue-dense-test.d $(BUILD)/nnue-features-test.d \
          $(BUILD)/exchange-attacks-test.d $(BUILD)/history-prefix-search-test.d \
          $(BUILD)/tt-move-hints-search-test.d $(BUILD)/continuation-history-test.d \
-         $(BUILD)/continuation-history-search-test.d
+         $(BUILD)/continuation-history-search-test.d $(BUILD)/qsearch-delta-search-test.d
 
 # Setup is also automatic in TOOL_PYTHON recipes and direct batch puzzle runs.
 .PHONY: tooling test-tooling

@@ -250,6 +250,7 @@ struct SearchWorker {
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;
+    QSearchDeltaStatistics qsearch_delta;
     ProbCutStatistics probcut;
     CacheStatistics cache;
     MoveHintStatistics move_hints;
@@ -677,8 +678,9 @@ struct SearchWorker {
         if (ply >= max_ply - 1) return evaluate(position);
 
         const int entry_alpha = alpha;
+        int stand_pat = 0;
         if (!checked) {
-            const int stand_pat = evaluate(position);
+            stand_pat = evaluate(position);
             if (stand_pat >= beta) return stand_pat;
             alpha = std::max(alpha, stand_pat);
         }
@@ -697,8 +699,51 @@ struct SearchWorker {
                 std::popcount(position.occupied()), true};
             filter_captures = search_policy::qsearch_see_eligible(context);
         }
+        bool filter_delta = false;
+        if (limits.qsearch_delta_pruning && mode == Mode::ordinary
+            && !checked && std::int64_t(beta) - entry_alpha == 1) {
+            const int band = shared.tablebase_limit > 0 ? tablebase_score : mate_threshold;
+            const bool advanced = (position.pieces(Color::white, PieceType::pawn) & (Bitboard{0xffff} << 40))
+                || (position.pieces(Color::black, PieceType::pawn) & (Bitboard{0xffff} << 8));
+            const search_policy::QSearchDeltaContext context{
+                ply, checked, std::abs(entry_alpha) >= band || std::abs(beta) >= band
+                    || std::abs(stand_pat) >= band,
+                false, repeated(position), advanced, position.halfmove_clock(),
+                std::popcount(position.occupied()), true};
+            filter_delta = search_policy::qsearch_delta_eligible(context);
+            if (filter_delta && limits.diagnostics) ++qsearch_delta.eligible_nodes;
+        }
         order(position, moves, {}, ply);
         for (const auto move : moves) {
+            if (filter_delta && search_policy::qsearch_delta_candidate(
+                    move, type_of(position.at(move.to)), stand_pat, entry_alpha)) {
+                if (limits.diagnostics) ++qsearch_delta.candidates;
+                const auto probe_undo = position.make_move(move);
+                bool child_check = false;
+                bool child_has_moves = false;
+                bool stopped = false;
+                try {
+                    child_check = position.in_check(position.turn());
+                    child_has_moves = child_check || !position.legal_moves().empty();
+                    stopped = must_stop();
+                } catch (...) {
+                    position.unmake_move(move, probe_undo);
+                    throw;
+                }
+                position.unmake_move(move, probe_undo);
+                if (stopped) return 0;
+                if (child_check) {
+                    if (limits.diagnostics) ++qsearch_delta.protected_checks;
+                } else if (!child_has_moves) {
+                    if (limits.diagnostics) ++qsearch_delta.protected_terminals;
+                } else {
+                    if (limits.diagnostics) ++qsearch_delta.pruned;
+                    continue;
+                }
+                // Protected children retain the existing ordinary path below.
+                // No history/evaluator mutation occurs during the delta probe;
+                // a skipped child never reaches the separate SEE policy.
+            }
             int exchange = 0;
             if (filter_captures && search_policy::qsearch_see_capture(
                     move.is_capture(), move.promotion != PieceType::none,
@@ -1138,6 +1183,8 @@ struct SearchWorker {
         reverse_futility.enabled = limits.reverse_futility_pruning;
         qsearch_see = {};
         qsearch_see.enabled = limits.qsearch_see_pruning;
+        qsearch_delta = {};
+        qsearch_delta.enabled = limits.qsearch_delta_pruning;
         probcut = {};
         probcut.enabled = limits.probcut;
         cache = {};
@@ -1190,6 +1237,7 @@ struct SearchWorker {
             result.nullmove = nullmove;
             result.reverse_futility = reverse_futility;
             result.qsearch_see = qsearch_see;
+            result.qsearch_delta = qsearch_delta;
             result.probcut = probcut;
             if (result.diagnostics) {
                 auto& diagnostics = *result.diagnostics;
@@ -1320,6 +1368,7 @@ struct Search::Impl {
     bool previous_nullmove = false;
     bool previous_reverse_futility = false;
     bool previous_qsearch_see = false;
+    bool previous_qsearch_delta = false;
     bool previous_probcut = false;
     int previous_tb_limit = 0;
     int previous_tb_depth = 1;
@@ -1386,6 +1435,7 @@ struct Search::Impl {
             || request.null_move_pruning != previous_nullmove
             || request.reverse_futility_pruning != previous_reverse_futility
             || request.qsearch_see_pruning != previous_qsearch_see
+            || request.qsearch_delta_pruning != previous_qsearch_delta
             || request.probcut != previous_probcut
             || shared.tablebase_limit != previous_tb_limit
             || request.syzygy_probe_depth != previous_tb_depth)) clear();
@@ -1398,6 +1448,7 @@ struct Search::Impl {
         previous_nullmove = request.null_move_pruning;
         previous_reverse_futility = request.reverse_futility_pruning;
         previous_qsearch_see = request.qsearch_see_pruning;
+        previous_qsearch_delta = request.qsearch_delta_pruning;
         previous_probcut = request.probcut;
         previous_tb_limit = shared.tablebase_limit;
         previous_tb_depth = request.syzygy_probe_depth;
@@ -1534,6 +1585,11 @@ struct Search::Impl {
             result.reverse_futility.cutoffs += worker.reverse_futility.cutoffs;
             result.qsearch_see.evaluations += worker.qsearch_see.evaluations;
             result.qsearch_see.pruned += worker.qsearch_see.pruned;
+            result.qsearch_delta.eligible_nodes += worker.qsearch_delta.eligible_nodes;
+            result.qsearch_delta.candidates += worker.qsearch_delta.candidates;
+            result.qsearch_delta.pruned += worker.qsearch_delta.pruned;
+            result.qsearch_delta.protected_checks += worker.qsearch_delta.protected_checks;
+            result.qsearch_delta.protected_terminals += worker.qsearch_delta.protected_terminals;
             result.probcut.eligible_nodes += worker.probcut.eligible_nodes;
             result.probcut.see_evaluations += worker.probcut.see_evaluations;
             result.probcut.qsearches += worker.probcut.qsearches;

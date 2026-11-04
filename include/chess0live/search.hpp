@@ -71,6 +71,7 @@ struct SearchLimits {
     bool reverse_futility_pruning = false;
     /** Experimental negative-SEE capture filter in interior scout quiescence. */
     bool qsearch_see_pruning = false;
+    bool qsearch_delta_pruning = false;
     /** Experimental elevated-threshold, reduced-depth legal-capture probes. */
     bool probcut = false;
     /** Zero disables probing. Interior probes require at least this depth;
@@ -274,6 +275,20 @@ struct QSearchSeeStatistics {
     std::uint64_t pruned = 0;
 };
 
+/** Worker-local accounting for the optional quiescence material-deficit rule.
+ * Candidates passed the fixed deficit test; protected checks/terminals retain
+ * search, while interrupted inspection is not a completed decision. Counters
+ * require diagnostics and include interrupted work after helper joins.
+ */
+struct QSearchDeltaStatistics {
+    bool enabled = false;
+    std::uint64_t eligible_nodes = 0;
+    std::uint64_t candidates = 0;
+    std::uint64_t pruned = 0;
+    std::uint64_t protected_checks = 0;
+    std::uint64_t protected_terminals = 0;
+};
+
 /** Optional worker-local tactical probe accounting. Attempts include interrupted
  * work; cutoffs/rejected count completed reduced searches only. Failed qsearch
  * screens do not enter that outcome partition. Diagnostics must be enabled.
@@ -344,6 +359,7 @@ struct SearchResult {
     NullMoveStatistics nullmove;
     ReverseFutilityStatistics reverse_futility;
     QSearchSeeStatistics qsearch_see;
+    QSearchDeltaStatistics qsearch_delta;
     ProbCutStatistics probcut;
 };
 

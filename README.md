@@ -418,6 +418,18 @@ evaluations and skipped captures across joined workers. Use `make test-qsearch-s
 for correctness checks, or `make test-profile-qsearch-see` for engine-free
 profiler checks.
 
+`QSearch Delta Pruning` defaults to `false`. Enable the experimental material
+allowance filter with `setoption name QSearch Delta Pruning value true`. It
+can skip ordinary captures in selected quiescence scout searches, protecting
+checking and terminal children, promotions, en passant and sensitive endings.
+The allowance is a heuristic and can miss tactics; leave it off for baseline
+comparisons. Changing the option clears reusable search state. With
+`Search Diagnostics=true`, the final `qsearchdelta v1` record counts eligible
+nodes, proposed captures, actual skips and protected checking/terminal children
+across joined workers. Use `make test-qsearch-delta-search test-qsearch-delta`
+for correctness checks and `make test-profile-qsearch-delta` for engine-free
+comparison-tool checks.
+
 `ProbCut` defaults to `false`. Enable the experimental tactical probe policy
 with `setoption name ProbCut value true`. It searches a few promising captures
 at reduced depth against a raised cutoff threshold, including quiet defensive

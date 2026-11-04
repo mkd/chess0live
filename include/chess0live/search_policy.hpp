@@ -90,6 +90,51 @@ constexpr bool qsearch_see_skip(int see, bool child_in_check, bool child_has_leg
     return see < 0 && !child_in_check && child_has_legal_moves;
 }
 
+/** Independent opt-in delta hypothesis. The caller preserves terminal/draw
+ * handling and supplies original-entry window and stand-pat band facts.
+ * This policy deliberately does not depend on the separate SEE filter.
+ */
+struct QSearchDeltaContext {
+    int ply = 0;
+    bool in_check = false;
+    bool special_window = false;
+    bool speculative = false;
+    bool repeated = false;
+    bool advanced_pawn = false;
+    unsigned halfmove = 0;
+    int pieces = 0;
+    bool scout = false;
+};
+
+constexpr bool qsearch_delta_eligible(const QSearchDeltaContext& c) {
+    return c.ply > 0 && c.scout && !c.in_check && !c.special_window
+        && !c.speculative && !c.repeated && !c.advanced_pawn
+        && c.halfmove < 80 && c.pieces > 8;
+}
+
+// Internal NNUE search units, not displayed centipawns. Four times the local
+// ordering material values plus this fixed margin are generous allowances,
+// not a certified bound on a neural evaluation or tactical consequences.
+constexpr int qsearch_delta_margin = 400;
+constexpr int qsearch_delta_allowance(PieceType victim) {
+    switch (victim) {
+        case PieceType::pawn: return 400;
+        case PieceType::knight: return 1280;
+        case PieceType::bishop: return 1320;
+        case PieceType::rook: return 2000;
+        case PieceType::queen: return 3600;
+        default: return 0;
+    }
+}
+
+constexpr bool qsearch_delta_candidate(Move move, PieceType victim,
+                                       int stand_pat, int entry_alpha) {
+    const int allowance = qsearch_delta_allowance(victim);
+    return move.is_capture() && move.promotion == PieceType::none
+        && !(move.flags & en_passant) && allowance > 0
+        && std::int64_t(stand_pat) + allowance + qsearch_delta_margin < entry_alpha;
+}
+
 /** Eligibility for one frozen reverse-futility hypothesis. A quiet position
  * here has no legal capture or promotion; quiet checking moves are not excluded.
  * Terminal states and actual draws must be handled before applying this policy.

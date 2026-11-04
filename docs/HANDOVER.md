@@ -28,7 +28,50 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.17 complete — retain parent engine
+## Current checkpoint: Phase 4F.18 implementation checked; full puzzles pending
+
+Read the [report](reports/2026-11-04-phase4f18-delta.md) and
+[fixed protocol](experiments/phase4f18-delta.md). Parent `0bbe5f0` has the same
+engine as `e16ca73`. The independently authored `QSearch Delta Pruning` option
+is implemented with default false, original-window/stand-pat material allowances,
+real checking/terminal-child protection and reversible interruption/failure paths.
+Do not copy previous-engine code/assets or retune the fixed exposed experiment.
+
+Native/scalar/ASan+UBSan/TSan direct-branch/API/policy checks and 93 UCI cases per
+build pass. Native full regressions and native/TSan 43-case SMP suites pass.
+The 18-test screen tool and independent 21-test auditor pass. Preserve first-run
+FEN-parser/negative-fixture failures and the two-capture stalemate fixture error;
+these were fixed before timing without changing the production rule. The frozen
+note says 20 auditor tests; the final frozen auditor passed 21, separately recorded.
+
+The owner-confirmed quiet-host screen completed 150 searches / 90 sessions and
+passed raw independent audit, including 30 exact parent/off pairs and 42 assets.
+Aggregate depth-6 nodes fall 14.19% cold / 18.34% warm; per-root medians fall
+6.26% / 3.75%. All final fixed-depth moves/displayed scores match; four mg-04
+intermediate/PV changes and final ponder differences remain disclosed. At 500 ms,
+two roots gain one completed depth, none lose depth, and final moves match.
+Two different-depth score changes are retained. Timed quiescence-only nodes and
+internal scores are unavailable. These observations establish no Elo gain.
+
+Retain delta as opt-in; full tactical and strength qualification remain pending.
+All 90 recorded exits were zero, OS found no survivors or related jobs, and
+LM Studio was released. All 1,342 protected paths, 27 parent source archives,
+42 frozen source/tool archives, owner batch edit and README introduction match.
+Stable GUI `build/test-baselines/0.1-dev-4b8b35d/`, old normal-release digest
+uncertainty and six Phase 4F.13 forfeits remain unchanged. Do not stage the
+unrelated owner edit in `tools/batch_positions.py`.
+
+Evidence is under `results/phase4f18-delta-20261104/`. `puzzle-preparation/` has
+configuration-only copies of the existing printed-output runner, original 39
+FENs/annotations, Threads 1 / Hash 64 / 60,000 ms and pinned parent/candidate-on.
+Static FEN/AST validation passed; no full puzzle search has run. Budget 80–90
+minutes including overhead and obtain a fresh quiet window plus daytime exception
+or authorized overnight window. Verify final pins, tracked sleep inhibition,
+sleep/wake evidence and process cleanup on any eventual run. Nothing is scheduled.
+Only after that checkpoint consider a separately prepared clock/strength gate;
+no automatic settings promotion, games, release or push.
+
+## Previous checkpoint: Phase 4F.17 complete — retain parent engine
 
 Read the [full report](reports/2026-11-04-phase4f17-nnue-reuse.md),
 [diagnosis protocol](experiments/phase4f17-nnue-reuse.md) and

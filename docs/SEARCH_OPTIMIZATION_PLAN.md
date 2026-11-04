@@ -1,6 +1,16 @@
 # Phase 4D: search efficiency with strength gates
 
-Latest follow-up: [Phase 4F.17](reports/2026-11-04-phase4f17-nnue-reuse.md)
+Latest follow-up: [Phase 4F.18](reports/2026-11-04-phase4f18-delta.md) implements
+one independently authored delta-pruning rule, disabled by default. Four-build
+correctness and the independent 150-search screen pass. Aggregate depth-6 work
+falls 14.19% cold / 18.34% warm, with per-root median reductions 6.26% / 3.75%.
+Final moves/displayed scores match; intermediate/PV changes remain documented.
+Two equal-time roots gain one completed depth, with none lost. Retain the opt-in
+candidate for the required full puzzle checkpoint, prepared but not run.
+No Elo/default promotion follows; clock and strength qualification remain
+separate. No future run is scheduled.
+
+Previous follow-up: [Phase 4F.17](reports/2026-11-04-phase4f17-nnue-reuse.md)
 profiled NNUE and tested selective quiescence-parent accumulator checkpoints.
 Correctness and all 660 search transcripts passed independent checks, but the
 three median timing ratios (1.016391 / 0.999867 / 1.004984) missed the 1.03 gate
@@ -92,7 +102,8 @@ sleep leaves equal-time tactical qualification inconclusive. Close this finite
 attempt with ProbCut parked off and no automatic repeat. Broader Phase 4E work
 can proceed independently; any later qualification needs a separately prepared
 sleep-aware protocol, not repeated tuning of this exposed suite. Delta pruning
-remains separate and unimplemented.
+is now separately implemented and checked in Phase 4F.18 above; it remains
+default-off with full tactical/strength qualification pending.
 This follows the owner's
 October 18 request and is a sequence of bounded experiments, not an enabled
 bundle of new pruning rules. Phase 4E retains broader platform execution and

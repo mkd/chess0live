@@ -202,6 +202,7 @@ private:
     bool null_move_pruning_ = false;
     bool reverse_futility_pruning_ = false;
     bool qsearch_see_pruning_ = false;
+    bool qsearch_delta_pruning_ = false;
     bool probcut_ = false;
     bool tt_move_hints_ = false;
     int syzygy_probe_limit_ = 7;
@@ -286,6 +287,7 @@ private:
         output("option name Null Move Pruning type check default false");
         output("option name Reverse Futility Pruning type check default false");
         output("option name QSearch SEE Pruning type check default false");
+        output("option name QSearch Delta Pruning type check default false");
         output("option name ProbCut type check default false");
         output("option name TT Move Hints type check default false");
         output("uciok");
@@ -438,6 +440,12 @@ private:
             else output("info string error: QSearch SEE Pruning expects true or false");
             return; // Leaf pruning can affect ancestor bounds and learned replies.
         }
+        if (name == "QSearch Delta Pruning") {
+            if (value == "true") qsearch_delta_pruning_ = true;
+            else if (value == "false") qsearch_delta_pruning_ = false;
+            else output("info string error: QSearch Delta Pruning expects true or false");
+            return; // Search isolates leaf-policy changes for every API caller.
+        }
         int numeric = 0;
         if (!number(value, numeric)) { output("info string error: option requires an integer"); return; }
         if (name == "Hash" && numeric >= 1 && numeric <= 16384) search_.set_hash(static_cast<std::size_t>(numeric));
@@ -568,6 +576,16 @@ private:
             std::ostringstream line;
             line << "info string qsearchsee v1 enabled true evaluations "
                  << result.qsearch_see.evaluations << " pruned " << result.qsearch_see.pruned;
+            output(line.str());
+        }
+        if (result.qsearch_delta.enabled) {
+            std::ostringstream line;
+            line << "info string qsearchdelta v1 enabled true eligible_nodes "
+                 << result.qsearch_delta.eligible_nodes
+                 << " candidates " << result.qsearch_delta.candidates
+                 << " pruned " << result.qsearch_delta.pruned
+                 << " protected_checks " << result.qsearch_delta.protected_checks
+                 << " protected_terminals " << result.qsearch_delta.protected_terminals;
             output(line.str());
         }
         if (result.reverse_futility.enabled) {
@@ -706,6 +724,7 @@ private:
         limits.null_move_pruning = null_move_pruning_;
         limits.reverse_futility_pruning = reverse_futility_pruning_;
         limits.qsearch_see_pruning = qsearch_see_pruning_;
+        limits.qsearch_delta_pruning = qsearch_delta_pruning_;
         limits.probcut = probcut_;
         limits.tt_move_hints = tt_move_hints_;
         limits.syzygy_probe_limit = syzygy_probe_limit_;
