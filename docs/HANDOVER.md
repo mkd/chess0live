@@ -28,7 +28,61 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.16 complete — retain parent engine
+## Current checkpoint: Phase 4F.17 complete — retain parent engine
+
+Read the [full report](reports/2026-11-04-phase4f17-nnue-reuse.md),
+[diagnosis protocol](experiments/phase4f17-nnue-reuse.md) and
+[frozen checkpoint protocol](experiments/phase4f17-checkpoints.md). Parent is
+`7163b1ff0f1bb52feb18daefdbe13dc89494f266`; its engine matches `e16ca73`.
+The owner confirmed LM Studio paused, AC power and Automatic mode for this phase.
+The 60-second parent sample identified NNUE in 4,439/5,210 active-search
+observations (85.20%), feature planning/application in 3,213 (61.67%). Only 23
+short-lived worker threads were sampled for 30 measured searches: no per-root
+coverage or speed claim follows. Independent CPU audit passed all 45 searches.
+
+One candidate saved numeric accumulators at selected quiescence parents and
+selected a valid ancestor as the base for updates. Both plans were prepared
+before restoring or changing numeric state; current slots were invalidated even
+at unevaluated nodes.
+It added 573,440 bytes per worker (4.375 MiB for eight, excluding allocator
+bookkeeping). Native, scalar, ASan+UBSan and TSan checks passed; actual reuse
+received 351 lane/output visits, 299 restores, five rejected saves and two
+allocation-failure checks on native/scalar/ASan. Fresh pinned external reference
+agreement passed 2,057 positions but exercises full refresh, not cache reuse.
+The temporary-cwd UCI discovery fixture initially failed on the nested build;
+both parent and candidate reproduced it. Placing the pinned network beside the
+candidate fixed the unchanged suite. Preserve the original failure/reproduction.
+
+The independently audited **660-search / 330-pair** screen has exact global
+search parity, **3,960 iterations / 17,072 legal PV plies**, and all eight exits
+zero. Control median **1.000958776** passes; candidate medians
+**1.016390556 / 0.999866636 / 1.004984039** all fail **1.03**. Cold
+`gamephases-eg-02` pooled median **0.977998564** fails **0.98**. **Park the
+candidate.** Archive and restore receipts confirm all four edited source/test
+files are back to parent bytes; the candidate must not become a normal build.
+Timing gate failure is separate from the successful correctness/evidence audits.
+No new game, policy, default, schedule or strength claim follows.
+
+Preserve `results/phase4f17-nnue-reuse-20261104/`, including source archives,
+`candidate.patch`, all isolated executables, raw transcripts, CPU/timing audits,
+failed initial test log, freeze, cleanup, restoration and preservation receipts.
+All 800 protected paths and 27 parent sources match; stable GUI
+`0.1-dev-4b8b35d`, README introduction and the owner's modified
+`tools/batch_positions.py` are untouched. Do not stage that unrelated edit.
+OS cleanup found all recorded timing PIDs absent and no remaining chess/build
+processes; LM Studio was released. The historical normal-release digest caveat
+and six Phase 4F.13 forfeits remain unresolved.
+
+**Next proposed Phase 4F.18:** one isolated default-off quiescence delta-pruning
+rule, already planned separately from SEE pruning. Freeze one per-capture rule
+and margin before measurement; preserve check/tactical/endgame exclusions and
+existing defaults. Require exact disabled-path parent parity, dedicated tactical,
+state and cancellation checks, then one finite mixed-position development screen
+with work and equal-time observations. Report enabled-path score/move/PV changes
+honestly; it is a heuristic, not an exact-search optimization. Later promotion
+requires separate strength evidence and clock readiness. No future run is scheduled.
+
+## Previous checkpoint: Phase 4F.16 complete — retain parent engine
 
 The owner authorized this phase after pushing `e16ca73`. Read the
 [fixed protocol](experiments/phase4f16-deferred-sort.md) and

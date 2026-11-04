@@ -1,5 +1,67 @@
 # Validation and experiment protocol
 
+## Phase 4F.17 NNUE accumulator reuse — November 4, 2026
+
+The [report](reports/2026-11-04-phase4f17-nnue-reuse.md) separates a passing
+correctness/evidence audit from **failed timing acceptance** under the
+[prospective protocol](experiments/phase4f17-checkpoints.md). Current-parent
+sampling replay passed all 45 searches (15 depth-5 warmups, 30 depth-6 measured),
+255 iterations and 1,066 legal PV plies. In 5,210 active-search observations,
+NNUE accounted for 4,439, feature planning for 1,464 and application for 1,749.
+Only 23 worker threads were sampled; the active sweep lasted 10.513 seconds of
+the 60-second window. Sampling and its idle tail establish no speed/Elo result.
+
+Native/scalar/ASan+UBSan/TSan search checks passed general API/policy checks,
+2,264 ordering and 1,408 learning-prefix comparisons, 23 TT-hint groups with
+three injected allocation failures, and 36 continuation groups with five
+failures. Native and TSan each passed 43 SMP lifecycle cases. Native core/UCI,
+exchange/time and optional null/ProbCut/QSEE/RFP checks passed. Native/scalar/ASan
+NNUE suites passed 537 parser/incremental comparisons, 360 update-arithmetic
+cases, 84,126 dense-output comparisons and 1,273 feature transitions. The new
+actual checkpoint path separately passed **351 lane/output visits, 299 ancestor
+restores, five rejected saves and two injected preparation failures** each.
+Storage was **4,480 bytes/slot; 573,440 bytes/128 slots per worker**. TSan covers
+search integration; no separate TSan feature-suite claim. The unchanged timing
+harness passed 29 engine-free tests. A fresh isolated pinned external reference
+passed all integer stages and raw/wrapped outputs for **2,057 positions**;
+this validates full refresh, with cache parity established by internal checks.
+Local macOS ARM64 execution only; no new foreign-target runtime claim.
+
+The initial native aggregate check stopped at default-network discovery from a
+temporary cwd. Both unchanged parent and candidate reproduced `network not
+found` because their build paths are nested more deeply. Installing a symlink
+to the pinned network beside the candidate made the unmodified UCI suite pass;
+remaining checks ran separately and passed. No engine fix was made for this
+fixture issue. Initial failure, reproduction and corrected receipts remain saved.
+Timing used absolute EvalFile throughout.
+
+The owner-confirmed quiet-host screen completed **660 searches / 330 pairs**:
+120 control searches and three blocks of 180, all 15 exposed roots at depth 6,
+cold/warm, alternating order, Threads 1, Hash 64, diagnostics off, LMR on/null off.
+Independent raw audit passed **3,960 iterations / 17,072 legal PV plies / 660
+bestmoves and ponders**, 37 assets per block, 27 parent and 30 candidate archived
+sources, frozen identities and exact signatures across every role/block/repeat.
+Auditor self-checks rejected nine corrupt outputs and four malformed matrices;
+eight boundary/failure checks passed. No timing block was retried or omitted.
+
+Control median **1.000958776** passes 0.98–1.02. Candidate pooled medians
+**1.016390556 / 0.999866636 / 1.004984039** all fail 1.03. The 30 root/state
+pooled medians range **0.977998564–1.079113593**; cold `gamephases-eg-02` alone
+fails 0.98, with all nine observations below one. All distributions remain in
+the audit/report. These engineering thresholds are not confidence intervals.
+No strength, sustained-speed or clock-reliability qualification follows.
+
+Eight zero exits plus OS absence of all recorded PIDs confirm cleanup; LM Studio
+was released. Candidate source/test changes were archived and restored to parent
+`7163b1f` exactly. All **800 protected paths**, 27 parent source identities,
+README introduction and owner batch-tool edit are preserved. Stable GUI
+`0.1-dev-4b8b35d`, the old normal-release digest discrepancy and all historical
+forfeits remain unchanged. No match, schedule, default change or release.
+Evidence: `results/phase4f17-nnue-reuse-20261104/`. Final timing audit SHA-256:
+`b65a180103adbb0f8c900769693358ba82f01fb4e8b94eddeee621d72ef7f38e`.
+CPU audit SHA-256:
+`db0a252d75a8b64c0f27efb32b99121509a8bc0a0fe4a6dbd61c421035c78a55`.
+
 ## Phase 4F.16 deferred sorting — November 4, 2026
 
 The [fixed protocol](experiments/phase4f16-deferred-sort.md) and

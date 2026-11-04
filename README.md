@@ -559,6 +559,12 @@ never change the engine's saved GUI settings. This checks implementation equival
 and local speed, not playing strength. Exact search agreement alone does not
 establish a useful speed gain: declare acceptance thresholds before measuring,
 inspect each position's cold and warm results, and preserve failed comparisons.
+For a small expected speedup, declare a same-binary control and repeated
+comparison blocks before testing; retain every block when applying the acceptance
+rule. A report marked `passed` confirms the harness checks, not an independently
+declared performance threshold. In deeply nested experimental build directories,
+place the default network beside the executable for network-discovery tests;
+use an absolute `EvalFile` for controlled comparisons.
 `make test-profile-search-baseline`
 checks the comparison tool; `make test-tactical-moves` checks capture/promotion
 generation and terminal-position detection against the full legal move list.

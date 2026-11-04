@@ -26,6 +26,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Profiled and tested NNUE accumulator checkpoints with exact incremental and
+  pinned-reference agreement. The fixed repeated timing screen failed its
+  acceptance gates, so the candidate is archived and parent engine bytes are
+  restored. No search/default change or strength gain follows; see the
+  [audited outcome](docs/reports/2026-11-04-phase4f17-nnue-reuse.md).
 - Documented an independently audited deferred-sorting experiment: exact search
   parity passed, but the measured benefit failed the declared timing gates.
   The candidate is archived and the engine implementation remains unchanged;

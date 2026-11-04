@@ -1,6 +1,20 @@
 # Phase 4D: search efficiency with strength gates
 
-Latest follow-up: [Phase 4F.16](reports/2026-11-04-phase4f16-deferred-sort.md)
+Latest follow-up: [Phase 4F.17](reports/2026-11-04-phase4f17-nnue-reuse.md)
+profiled NNUE and tested selective quiescence-parent accumulator checkpoints.
+Correctness and all 660 search transcripts passed independent checks, but the
+three median timing ratios (1.016391 / 0.999867 / 1.004984) missed the 1.03 gate
+and one endgame/state missed the 0.98 guard. Archive the candidate and restore
+parent bytes. No strength gain follows; do not retune the exposed cache screen.
+Proposed 4F.18 is the already-planned, separate default-off quiescence delta-pruning
+hypothesis: one conservative per-capture rule/margin, exact disabled-path parity,
+dedicated tactical/state checks and a frozen work/equal-time development screen.
+Preserve checks, promotions, en passant, terminal/draw rules and declared
+endgame/mate/tablebase exclusions. Keep LMR and other experiment defaults
+unchanged. Report all enabled-path move/score/PV changes; later clock/strength
+qualification remains separate. No future run is scheduled.
+
+Previous follow-up: [Phase 4F.16](reports/2026-11-04-phase4f16-deferred-sort.md)
 tested deferred sorting after the contextual TT move. Correctness passed across
 native/scalar/sanitizer builds and all 180 timed searches matched exact search
 work, but pooled median ratio 1.004785 missed the 1.01 gate and cold `opening-03`

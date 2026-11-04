@@ -5,7 +5,46 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.16 complete — deferred sorting parked
+## Current checkpoint: Phase 4F.17 complete — NNUE checkpoints parked
+
+The [audited report](reports/2026-11-04-phase4f17-nnue-reuse.md) closes the
+[diagnosis](experiments/phase4f17-nnue-reuse.md) and
+[fixed candidate protocol](experiments/phase4f17-checkpoints.md). The current-parent
+CPU sample attributed 85.20% of active-search observations to NNUE, including
+61.67% to feature planning plus accumulator application. This motivated one
+selective quiescence-parent accumulator cache, adding 0.547 MiB per worker.
+Native/scalar/sanitizer checks and a fresh 2,057-position pinned reference
+comparison passed; actual checkpoint reuse was checked separately against full
+refresh, including every accumulator lane and injected allocation failures.
+
+All **660 timed searches / 330 pairs** passed independent raw replay with exact
+search parity. The parent control median **1.000959** passed its 0.98–1.02 range.
+Candidate block medians **1.016391 / 0.999867 / 1.004984** all missed the declared
+**1.03** minimum. Cold `gamephases-eg-02` pooled median **0.977999** also missed
+the **0.98** guard. **Archive the candidate and retain the parent engine.**
+The four source/test files are restored byte-for-byte to `7163b1f` (same engine
+as `e16ca73`); no new implementation, default change or strength gain is accepted.
+
+Eight zero exits and OS cleanup are confirmed; LM Studio was released. All
+**800 protected paths**, 27 parent source identities, stable GUI `0.1-dev-4b8b35d`,
+README introduction and the owner's existing batch-tool edit are preserved.
+Evidence under `results/phase4f17-nnue-reuse-20261104/` includes the rejected
+patch, source/binary archives, raw reports, audits and an isolated-build network
+fixture failure reproduced on both parent and candidate before correction.
+Historical release-digest uncertainty and six Phase 4F.13 forfeits remain open.
+
+**Next proposed checkpoint: Phase 4F.18**, one separate, default-off quiescence
+**delta-pruning** experiment from the existing search plan. Test a conservative
+per-capture rule with one margin frozen before measurement; protect checks,
+promotions, en passant, terminal/draw handling, mate/tablebase boundaries and
+declared tactical/endgame exclusions. Keep conservative LMR and other experiment
+defaults unchanged. Require exact disabled-path equivalence, dedicated state and
+tactical checks, then one frozen mixed-position work/equal-time development screen
+reporting every changed score, move and PV. Enabled-path parity is not expected
+for a pruning heuristic. Only promising evidence warrants separate clock/strength
+qualification. Do not retune the exposed 4F.17 cache or schedule a future run.
+
+## Previous checkpoint: Phase 4F.16 complete — deferred sorting parked
 
 The [audited report](reports/2026-11-04-phase4f16-deferred-sort.md) records the
 [fixed deferred-sorting experiment](experiments/phase4f16-deferred-sort.md).
@@ -1297,7 +1336,7 @@ it does not indefinitely block unrelated engine development.
 | 4C: Syzygy — complete | Pinned Fathom, independent adapter/search integration, external table paths and UCI hits; 140 oracle roots plus lifecycle/clock checks | Bounded three-/four-piece checkpoint complete; larger-table and foreign runtime execution remain unverified |
 | 4D: strength-gated search efficiency | PVS, shared TT and qualified conservative LMR enabled; other pruning experiments remain optional | Finite initial checkpoints concluded. Broader reductions and ProbCut remain parked off; subsequent search development is tracked in 4F |
 | 4E: broader runtime support and network tooling | 4E.7 bounded workflow complete: automatic build/tool setup, inspect/qualify/train/export/select; all six engine targets have prior build evidence | Training on other hosts/GPU, dataset validation, native Windows acceptance and further Linux provisioning remain follow-ups |
-| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 failed clock qualification; 4F.14 repaired adjudication blocking without resolving historical cause. 4F.15 small null-verification ordering gain did not fix warm-work regression; null stays off. Next proposed: 4F.16 deferred sorting on the accepted baseline. Hints, Continuation History and all-on promotion remain parked |
+| 4F: strength-focused search development | Exact SEE/quiet-history and incremental NNUE efficiency work; optional search experiments; bounded runner diagnosis | 4F.13 clock qualification remains blocked; 4F.14 narrow runner repair did not explain historical forfeits. Null stays off after 4F.15. Deferred sorting (4F.16) and NNUE checkpoints (4F.17) failed timing gates and are archived. Next proposed: 4F.18 isolated quiescence delta pruning. Hints, Continuation History and all-on promotion remain parked |
 
 Freeze qualification binaries separately so later engine development cannot
 change an ongoing comparison. The normal build may advance after a frozen
