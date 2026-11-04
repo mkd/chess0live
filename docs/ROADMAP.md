@@ -5,7 +5,22 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.18 closed — full puzzle qualification inconclusive
+## Active checkpoint: Phase 4F.19 — three-profile comparison preparation
+
+The owner authorized the next phase and freshly confirmed LM Studio paused,
+AC power and Automatic mode. The [prospective protocol](experiments/phase4f19-combinations.md)
+fixes 15 original mixed roots × three profiles × 5 seconds, 45 fresh serial
+processes, one worker / Hash 64 and the unchanged pinned current binary/network.
+The initial measurement has not run. Engine-free runner/auditor checks and
+independent preflight review precede one frozen attempt. Runtime power monitoring
+stops on a detected change; no retry, extra cell, game or default change.
+
+This finite initial checkpoint diagnoses optional-off/default/all-on differences
+and proposes separately frozen component-removal work. Full PV/move/score and
+completed-depth evidence is required; neither depth nor NPS establishes strength.
+Preserve the stable GUI, owner batch edit and all earlier experiment evidence.
+
+## Previous checkpoint: Phase 4F.18 closed — full puzzle qualification inconclusive
 
 The [report](reports/2026-11-04-phase4f18-delta.md) records one original,
 default-off quiescence delta rule under the [fixed protocol](experiments/phase4f18-delta.md).

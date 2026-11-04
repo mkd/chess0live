@@ -34,6 +34,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added a fixed equal-time comparison of optional-off, accepted-default and
+  combined search settings, with raw UCI evidence, fresh processes, explicit
+  resource limits, power checks and engine-free runner tests. It reports
+  diagnostic differences without changing playing defaults.
+
 - Profiled and tested NNUE accumulator checkpoints with exact incremental and
   pinned-reference agreement. The fixed repeated timing screen failed its
   acceptance gates, so the candidate is archived and parent engine bytes are

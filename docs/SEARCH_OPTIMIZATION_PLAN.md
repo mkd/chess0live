@@ -5,7 +5,7 @@ one independently authored delta-pruning rule, disabled by default. Four-build
 correctness and the independent 150-search screen pass. Aggregate depth-6 work
 falls 14.19% cold / 18.34% warm, with per-root median reductions 6.26% / 3.75%.
 Final moves/displayed scores match; intermediate/PV changes remain documented.
-Two equal-time roots gain one completed depth, with none lost. Retain the opt-in
+Two equal-time roots gain one completed depth, with none lost. Retain the
 candidate as opt-in. The full 78-search puzzle attempt completed, but its
 independent audit failed the host-condition gate: AC power at the start became
 battery power at the end. It is inconclusive for controlled qualification.
@@ -14,6 +14,11 @@ four final numeric scores differ. No Elo/default promotion follows; clock and
 strength qualification remain separate. No future run is scheduled.
 
 ## Proposed Phase 4F.19: combined search diagnosis
+
+The owner has now authorized the initial comparison and confirmed the quiet host.
+The [prospective execution protocol](experiments/phase4f19-combinations.md) fixes
+its 45 cells, inputs, deadlines, power monitoring and evidence requirements.
+Preparation is active; no initial measurement has run yet.
 
 The owner asked whether optional features off versus all on could explain the
 large reported depth gap. Isolated tests and combined tests answer different
@@ -30,7 +35,8 @@ UCI output, completed depth/seldepth, nodes, elapsed time, final moves/scores an
 all PV changes, then independently audit. One observation per cell diagnoses a
 large effect; it is not statistical speed or strength qualification. Prepare and
 freeze the exact protocol/inputs and confirm the host before any new execution.
-This proposal is **not a scheduled run or automatic authorization to launch**.
+The initial run is now authorized; no future run, automatic repeat or additional
+component-removal measurement is scheduled.
 
 | Search option | Optional features off | Accepted defaults | All search experiments |
 | --- | --- | --- | --- |

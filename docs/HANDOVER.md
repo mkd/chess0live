@@ -28,7 +28,24 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.18 closed — retain delta opt-in
+## Current checkpoint: Phase 4F.19 — preparing one combined-search diagnosis
+
+The owner authorized proceeding and confirmed LM Studio paused, AC and Automatic
+mode for the roughly five-minute timing run. Read the
+[fixed protocol](experiments/phase4f19-combinations.md). No production source or
+playing default changes: use the pinned Phase 4F.18 candidate binary for all
+45 fresh sessions (15 existing roots × optional-off/default/all-on × 5 seconds).
+Preserve raw commands/outputs, all move/PV/score changes, per-engine cleanup,
+resource admission and before/during/after power evidence. Stop on detected host
+or protocol failure and retain partial evidence; no retry or automatic extension.
+
+The initial measurement is not yet launched. Root coordinates the single
+supervisor under `results/phase4f19-combinations-20261104/`; runner and independent
+auditor are checked without engines before freezing. Confirm full OS cleanup
+before releasing LM Studio. Later component-removal experiments need a separately
+frozen scope; historical clock failures still block strength qualification.
+
+## Previous checkpoint: Phase 4F.18 closed — retain delta opt-in
 
 Read the [report](reports/2026-11-04-phase4f18-delta.md) and
 [fixed protocol](experiments/phase4f18-delta.md). Parent `0bbe5f0` has the same

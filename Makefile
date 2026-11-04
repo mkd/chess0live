@@ -231,7 +231,7 @@ $(BUILD)/position-test$(EXE): tests/position_test.cpp $(BUILD)/position.o
 $(BUILD)/tactical-moves-test$(EXE): tests/tactical_moves_test.cpp $(BUILD)/position.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(LDFLAGS) $(LDLIBS) -o "$@"
 
-.PHONY: test-tactical-moves test-profile-search-baseline test-profile-search-package
+.PHONY: test-tactical-moves test-profile-search-baseline test-profile-search-package test-profile-search-combinations
 test-tactical-moves: $(BUILD)/tactical-moves-test$(EXE)
 	"$(BUILD)/tactical-moves-test$(EXE)"
 
@@ -240,6 +240,9 @@ test-profile-search-baseline:
 
 test-profile-search-package:
 	$(TOOL_PYTHON) tests/profile_search_package_test.py
+
+test-profile-search-combinations:
+	$(TOOL_PYTHON) tests/profile_search_combinations_test.py
 
 $(BUILD)/nnue-test$(EXE): tests/nnue_test.cpp $(BUILD)/position.o $(BUILD)/nnue.o
 	$(COMPILER_COMMAND) $(CPPFLAGS) $(filter-out -DNDEBUG,$(CXXFLAGS)) "$<" $(BUILD)/position.o $(BUILD)/nnue.o $(LDFLAGS) $(LDLIBS) -o "$@"
@@ -611,6 +614,7 @@ help:
 	@echo 'make test-profile-tt-move-hints Check the bounded move-hint work comparison tool'
 	@echo 'make test-profile-search-baseline Check the current-policy search comparison tool'
 	@echo 'make test-profile-search-package Check the bounded search-package diagnostic tool'
+	@echo 'make test-profile-search-combinations Check the fixed three-profile comparison tool'
 	@echo 'make training-plan    Show local training requirements without setup'
 	@echo 'make training-smoke   Run tiny synthetic training, export and qualification'
 	@echo 'make test-training    Check training setup, recipes and provenance tooling'

@@ -1,5 +1,22 @@
 # Validation and experiment protocol
 
+## Phase 4F.19 current search combinations — preparation November 4, 2026
+
+The [prospective protocol](experiments/phase4f19-combinations.md) declares one
+45-cell diagnostic, not a strength or statistical speed test. Same pinned engine,
+network, 15 original positions/history, Threads 1, Hash 64, 5,000-ms requests,
+rotated optional-off/default/all-on order and fresh processes. Preserve all legal
+PV/final moves, displayed scores, nodes, completed depths, timings and failures.
+Engine-free synthetic runner/auditor tests and independent review precede launch;
+no initial measurement has run yet. No production implementation/default change.
+
+Fresh owner quiet-host confirmation is recorded. AC/mode checks before/after
+cells and externally sampled AC during searches stop on detected drift, with
+no sample gap above three seconds. Freeze source/tool/dependency identities,
+verify process cleanup externally, then release LM Studio. Preserve every failure
+and avoid replacing partial evidence with a retry. The historical Phase 4F.18
+host-condition audit remains failed and its observations stay descriptive.
+
 ## Phase 4F.18 delta pruning development checkpoint — November 4, 2026
 
 The [report](reports/2026-11-04-phase4f18-delta.md) records implementation and

@@ -606,6 +606,27 @@ The enabled counters and differing search trees make this a diagnostic, not an
 Elo test or a pure speed benchmark. `make test-profile-search-package` checks
 the tool without starting real engine searches.
 
+To compare optional search features off, accepted defaults, and the current
+combined search experiments with one worker and diagnostics disabled:
+
+```sh
+python3 tools/profile_search_combinations.py /path/to/pinned/chess0live \
+  --output results/search-combinations-01.json --quiet-host
+make test-profile-search-combinations
+```
+
+This fixed macOS diagnostic accepts the binary and network identities specified
+in its [comparison protocol](docs/experiments/phase4f19-combinations.md). It runs
+45 fresh processes across the same 15 positions, five seconds per search, using
+Threads 1 and Hash 64 MiB, with at least 2 GiB reserved. Dependencies prepare
+automatically. Keep LM Studio and other heavy work paused, the Mac plugged into
+AC, and power mode Automatic throughout. The tool checks power before and after
+each cell, saves raw UCI and process receipts, and refuses an existing output.
+It preserves partial evidence and stops on failure; it never retries cells.
+Optional-off retains core NNUE/PVS/TT and differs from defaults only by disabling
+LMR. Nominal depth, node counts and changed evaluations are diagnostic observations,
+not an Elo result. The test target checks the runner without starting engines.
+
 Pass `--positions /path/to/positions.txt` to `tools/bench.py` to benchmark your own
 positions/openings, one `startpos moves ...` or `fen ...` entry per line. Comments
 start with `#`.
