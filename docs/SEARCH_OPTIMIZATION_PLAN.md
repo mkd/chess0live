@@ -1,6 +1,11 @@
 # Phase 4D: search efficiency with strength gates
 
-Latest follow-up: [Phase 4F.18](reports/2026-11-04-phase4f18-delta.md) implements
+Latest checkpoint: [Phase 4F.19](reports/2026-11-04-phase4f19-combinations.md)
+prepared the three-profile diagnostic, but its single attempt stopped before
+measurement because preflight reported battery power. No searches ran and no
+package conclusion is available. Cleanup is confirmed; no retry is scheduled.
+
+Previous follow-up: [Phase 4F.18](reports/2026-11-04-phase4f18-delta.md) implements
 one independently authored delta-pruning rule, disabled by default. Four-build
 correctness and the independent 150-search screen pass. Aggregate depth-6 work
 falls 14.19% cold / 18.34% warm, with per-root median reductions 6.26% / 3.75%.
@@ -15,10 +20,16 @@ strength qualification remain separate. No future run is scheduled.
 
 ## Proposed Phase 4F.19: combined search diagnosis
 
-The owner has now authorized the initial comparison and confirmed the quiet host.
-The [prospective execution protocol](experiments/phase4f19-combinations.md) fixes
+The owner authorized one initial comparison and confirmed the quiet host. The
+[prospective execution protocol](experiments/phase4f19-combinations.md) fixes
 its 45 cells, inputs, deadlines, power monitoring and evidence requirements.
-Preparation is active; no initial measurement has run yet.
+Preparation `fa920b8` passed 21 runner and 44 independent auditor tests and froze
+61 inputs. At 22:30:54 Helsinki on November 4, actual preflight reported Battery
+Power at 66%; the attempt stopped before launching any engine. Zero searches ran.
+The missing-screen search audit fails; a separate prelaunch review verifies the
+failure and cleanup evidence. The comparison remains pending, with no result on
+the current package. A future attempt requires fresh authorization and verified
+AC/quiet-host conditions in a new evidence directory; preserve this failed attempt.
 
 The owner asked whether optional features off versus all on could explain the
 large reported depth gap. Isolated tests and combined tests answer different
@@ -35,7 +46,7 @@ UCI output, completed depth/seldepth, nodes, elapsed time, final moves/scores an
 all PV changes, then independently audit. One observation per cell diagnoses a
 large effect; it is not statistical speed or strength qualification. Prepare and
 freeze the exact protocol/inputs and confirm the host before any new execution.
-The initial run is now authorized; no future run, automatic repeat or additional
+The authorized attempt has ended; no future run, automatic repeat or additional
 component-removal measurement is scheduled.
 
 | Search option | Optional features off | Accepted defaults | All search experiments |

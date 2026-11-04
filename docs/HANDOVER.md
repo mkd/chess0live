@@ -28,22 +28,33 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.19 — preparing one combined-search diagnosis
+## Current checkpoint: Phase 4F.19 — prelaunch failure preserved
 
-The owner authorized proceeding and confirmed LM Studio paused, AC and Automatic
-mode for the roughly five-minute timing run. Read the
-[fixed protocol](experiments/phase4f19-combinations.md). No production source or
-playing default changes: use the pinned Phase 4F.18 candidate binary for all
-45 fresh sessions (15 existing roots × optional-off/default/all-on × 5 seconds).
-Preserve raw commands/outputs, all move/PV/score changes, per-engine cleanup,
-resource admission and before/during/after power evidence. Stop on detected host
-or protocol failure and retain partial evidence; no retry or automatic extension.
+Read the [report](reports/2026-11-04-phase4f19-combinations.md) and unchanged
+[fixed protocol](experiments/phase4f19-combinations.md). Preparation `fa920b8`
+commits the three-profile runner and documentation. Its 21 engine-free tests and
+the independent auditor's 44 tests pass; 61 inputs were frozen. Production engine
+source remains `9f8ff9f`, with the same pinned Phase 4F.18 candidate binary/network.
 
-The initial measurement is not yet launched. Root coordinates the single
-supervisor under `results/phase4f19-combinations-20261104/`; runner and independent
-auditor are checked without engines before freezing. Confirm full OS cleanup
-before releasing LM Studio. Later component-removal experiments need a separately
-frozen scope; historical clock failures still block strength qualification.
+The owner confirmed readiness, but actual preflight at **22:30:54 Helsinki,
+November 4**, reported **Battery Power at 66%**. The supervisor failed before
+starting the runner, inhibitor or engines. **Zero of 45 searches ran**; no
+`screen.json` or runner logs exist. The frozen search audit was run once and
+failed on the absent screen; preserve that verdict and the separate prelaunch
+evidence review. Neither is a passing comparison or performance result.
+
+External OS verification at **22:35:14** confirmed supervisor identity gone and
+no related process; no cleanup signal was needed. LM Studio was released. All
+1,631 protected paths, 26 engine source identities and 61 frozen inputs match,
+including stable GUI `build/test-baselines/0.1-dev-4b8b35d/`; README introduction
+and the owner's `tools/batch_positions.py` edit remain untouched. Preserve the
+historical normal-release digest caveat and six Phase 4F.13 clock forfeits.
+
+Evidence is under `results/phase4f19-combinations-20261104/`. Do not overwrite it,
+edit the frozen inputs or retry automatically. The next work is still the initial
+three-profile comparison, requiring a new authorized attempt, evidence directory
+and verified AC/quiet-host conditions. Component removal depends on its result;
+no package/default selection, game, schedule or strength claim follows here.
 
 ## Previous checkpoint: Phase 4F.18 closed — retain delta opt-in
 

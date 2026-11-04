@@ -37,7 +37,10 @@ release numbers; detailed measurements live in the linked experiment records.
 - Added a fixed equal-time comparison of optional-off, accepted-default and
   combined search settings, with raw UCI evidence, fresh processes, explicit
   resource limits, power checks and engine-free runner tests. It reports
-  diagnostic differences without changing playing defaults.
+  diagnostic differences without changing playing defaults. The first attempt
+  stopped before any search because preflight reported battery power; no
+  comparative result is available. See the
+  [attempt report](docs/reports/2026-11-04-phase4f19-combinations.md).
 
 - Profiled and tested NNUE accumulator checkpoints with exact incremental and
   pinned-reference agreement. The fixed repeated timing screen failed its

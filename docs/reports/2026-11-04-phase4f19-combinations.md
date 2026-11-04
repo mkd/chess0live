@@ -1,6 +1,53 @@
 # Phase 4F.19 — current search combinations
 
-Date: November 4, 2026. Initial comparison prepared; measurement not yet run.
+Date: November 4, 2026. Single attempt stopped in preflight; measurement not run.
+
+## Outcome
+
+**No comparison result is available: 0/45 searches ran.** At **22:30:54 Helsinki**,
+the supervisor's first power sample reported `Now drawing from 'Battery Power'`,
+with battery **66%, discharging**. Before/after host files agree. The owner had
+confirmed readiness, but the actual launch condition did not meet the frozen AC
+requirement. The supervisor stopped before spawning the runner, sleep inhibitor
+or any engine. This is a host preflight failure, not an engine/search failure.
+Automatic mode and LM Studio state were not independently qualified for a run.
+
+No `screen.json`, runner stdout/stderr, per-profile sample, move/score/PV/depth
+comparison or timing statistic exists. Do not substitute zeros for unavailable
+performance metrics. No default change, strength gain or all-on advantage can be
+inferred. The only attempt is preserved; no retry, extra search or rebuild occurred.
+
+The external OS check confirmed the sole experiment identity, supervisor PID
+90478 with start `Wed Nov 4 22:30:54 2026`, had exited. No related runner, engine
+or inhibitor process remained and no PID reuse was found. The cleanup receipt is
+dated **22:35:14 Helsinki**; LM Studio was released immediately after confirmation.
+No cleanup signal was needed. The existing Codex app-server parent predates the
+attempt and is not experiment-owned.
+
+## Independent audit and preservation
+
+Preparation commit is **`fa920b8d31fe23850824021b5d37896cd54d97b0`**. Before launch,
+`freeze.json` records **61 input identities**, including the unchanged binary,
+network, corpus, production sources, protocol, runner, auditor, supervisor,
+declared helper dependencies and interpreter. It is not a complete OS/dynamic
+dependency freeze. The source engine remains implementation `9f8ff9f`.
+
+The frozen independent search auditor ran **once**, exited **1**, and wrote
+`audit.json` with status **failed**: `FileNotFoundError` for absent `screen.json`.
+Its stdout/stderr and failed verdict are retained unchanged. The auditor stops
+at missing input, so that receipt does not itself validate supervision or cleanup.
+The separate **`prelaunch-failure-audit.json`**, status
+**`prelaunch_failure_verified`**, independently checks the saved raw power samples,
+guard placement before process launch, missing measurement artifacts, source
+hashes and the external cleanup receipt. It relies on that approved OS receipt,
+not a second OS snapshot. This is a verified prelaunch failure, not a passing
+search comparison or replacement qualification audit.
+
+All **1,631 protected paths**, **26 current engine source files** and **61 frozen
+inputs** match. README introduction, owner batch-runner edit and stable GUI
+`build/test-baselines/0.1-dev-4b8b35d/` are intact. Neither the historical
+normal-release digest uncertainty nor the six Phase 4F.13 clock forfeits is
+resolved. No publishing, game campaign or schedule occurred.
 
 ## Scope and preparation
 
@@ -39,20 +86,18 @@ policy section. The external AC sample interval has a predeclared three-second
 maximum; per-cell observations also require Automatic mode. All fixes precede
 measurements and logs are preserved.
 
-## Pending execution and interpretation
+## Next step and evidence
 
-Freeze inputs before the single authorized run. Preserve full command/readiness/
-search/shutdown transcripts, source/interpreter identities, host samples, all
-changed moves/scores/PVs and per-engine exits. The independent auditor must replay
-raw evidence and matrix ordering, check legal moves and source/host/cleanup records,
-and preserve descriptive observations alongside any nonpassing verdict. Never
-overwrite an audit or retry a cell. Confirm external OS cleanup and release LM
-Studio before further analysis.
+The initial optional-off/default/all-on diagnosis remains pending. A future
+attempt needs authorization, verified AC/quiet-host conditions and a new evidence
+directory; preserve this attempt and its frozen inputs. Do not skip ahead to
+component-removal tests or select a package without the initial result. If the
+comparison later shows useful differences, freeze a separate leave-one-out scope
+that respects the LMR/deep-reduction, ordering/history and delta/SEE dependencies.
+No automatic retry, future run, game, default promotion or Elo claim is authorized.
 
-The finite checkpoint ends with a diagnosis and the next separately frozen
-component-removal proposal. No game campaign, automatic schedule, default promotion
-or Elo claim is implied. The six historical clock forfeits and normal-release
-digest uncertainty remain unresolved. Preserve the owner's batch-runner edit,
-README introduction, stable GUI `build/test-baselines/0.1-dev-4b8b35d/`, all previous
-results and archived sources/binaries. Evidence is under
-`results/phase4f19-combinations-20261104/`.
+Evidence is under `results/phase4f19-combinations-20261104/`: `freeze.json`,
+`supervision.json`, raw before/after host files, `cleanup.json`, failed `audit.json`,
+`prelaunch-failure-audit.json`, preparation test logs and source copies,
+`post-attempt-preservation.json` and documentation validation. The protocol stays
+unchanged so the declaration and failed attempt remain reviewable.

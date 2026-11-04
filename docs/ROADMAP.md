@@ -5,20 +5,29 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Active checkpoint: Phase 4F.19 — three-profile comparison preparation
+## Current checkpoint: Phase 4F.19 — attempt stopped before measurement
 
-The owner authorized the next phase and freshly confirmed LM Studio paused,
-AC power and Automatic mode. The [prospective protocol](experiments/phase4f19-combinations.md)
-fixes 15 original mixed roots × three profiles × 5 seconds, 45 fresh serial
-processes, one worker / Hash 64 and the unchanged pinned current binary/network.
-The initial measurement has not run. Engine-free runner/auditor checks and
-independent preflight review precede one frozen attempt. Runtime power monitoring
-stops on a detected change; no retry, extra cell, game or default change.
+The [report](reports/2026-11-04-phase4f19-combinations.md) records one attempt
+under the [fixed protocol](experiments/phase4f19-combinations.md). Preparation
+commit `fa920b8` freezes 61 inputs; the runner passes 21 engine-free tests and
+the independent auditor 44. No production source, build or default changed.
 
-This finite initial checkpoint diagnoses optional-off/default/all-on differences
-and proposes separately frozen component-removal work. Full PV/move/score and
-completed-depth evidence is required; neither depth nor NPS establishes strength.
-Preserve the stable GUI, owner batch edit and all earlier experiment evidence.
+At **22:30:54 Helsinki, November 4**, preflight reported **Battery Power, 66%**,
+despite the owner's earlier ready confirmation. It stopped before spawning the
+runner, sleep inhibitor or any engine: **0/45 searches, no profile results**.
+The regular audit fails because no search report exists; the separate prelaunch
+review verifies the failure evidence, not a completed comparison. No depth,
+speed, tactical or strength conclusion is available. No retry was made.
+
+External OS cleanup passed at **22:35:14** and LM Studio was released. All 1,631
+protected paths, 26 engine source files, 61 frozen inputs, stable GUI, README
+introduction and owner batch edit are preserved. Historical release-digest
+uncertainty and six Phase 4F.13 clock forfeits remain unresolved.
+
+**Next step remains the initial combined-search diagnosis**, in a separately
+authorized attempt with confirmed AC and quiet-host conditions and a new evidence
+directory. Do not skip to component removal without the three-profile result.
+No retry, schedule, game or default promotion is authorized automatically.
 
 ## Previous checkpoint: Phase 4F.18 closed — full puzzle qualification inconclusive
 
