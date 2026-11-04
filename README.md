@@ -556,7 +556,10 @@ capture ordering in both builds, or `--preset all-on` to enable the existing
 combined search recipe in both (TT Move Hints remains off). Omitting it uses
 `--preset default`; presets
 never change the engine's saved GUI settings. This checks implementation equivalence
-and local speed, not playing strength. `make test-profile-search-baseline`
+and local speed, not playing strength. Exact search agreement alone does not
+establish a useful speed gain: declare acceptance thresholds before measuring,
+inspect each position's cold and warm results, and preserve failed comparisons.
+`make test-profile-search-baseline`
 checks the comparison tool; `make test-tactical-moves` checks capture/promotion
 generation and terminal-position detection against the full legal move list.
 `make test-ordering-search` checks exact move priorities, helper-thread ties,

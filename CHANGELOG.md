@@ -26,6 +26,11 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Documented an independently audited deferred-sorting experiment: exact search
+  parity passed, but the measured benefit failed the declared timing gates.
+  The candidate is archived and the engine implementation remains unchanged;
+  comparison guidance now distinguishes parity from performance acceptance.
+  See the [results](docs/reports/2026-11-04-phase4f16-deferred-sort.md).
 - Moved match draw adjudication off the shared protocol event loop so one game's
   referee work can no longer synchronously block another game's move-receipt
   callback. Cancellation waits for board restoration; clock accounting and

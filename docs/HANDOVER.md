@@ -28,7 +28,44 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.15 complete — null stays off
+## Current checkpoint: Phase 4F.16 complete — retain parent engine
+
+The owner authorized this phase after pushing `e16ca73`. Read the
+[fixed protocol](experiments/phase4f16-deferred-sort.md) and
+[audited report](reports/2026-11-04-phase4f16-deferred-sort.md). The candidate
+froze all ranking keys before searching the legal contextual TT move and used
+separate worker/ply storage to defer tail sorting. It passed native, scalar,
+ASan+UBSan and ThreadSanitizer checks; each passed 7,260 new ordering/boundary
+comparisons. Native and TSan also passed 43 SMP lifecycle cases each.
+
+The single quiet-host screen completed all **180 searches / 90 pairs** with
+exact search parity. Independent raw audit passed **1,080 iterations / 4,656
+legal PV plies**. Pooled median parent/candidate elapsed ratio **1.004785** failed
+the **1.01** minimum; cold `opening-03` median **0.977855** failed the **0.98**
+guard. **Candidate parked, production source/test bytes restored to e16ca73.**
+Do not adopt or rebuild the archived candidate as the normal release. No search
+default, NNUE arithmetic or time policy changed; no strength gain is established.
+
+Preserve `results/phase4f16-deferred-sort-20261104/`: complete source archives and
+patch, isolated executables, test logs, raw comparison, all three audit versions,
+cleanup/restoration and preservation receipts. Initial test-fixture constness and
+two auditor output-schema assumptions were corrected before their final checks;
+the full report discloses them. Final audit v3 passed before source restoration.
+Both engines exited zero and OS cleanup confirmed absence; LM Studio was released.
+All 701 protected paths, stable GUI `0.1-dev-4b8b35d`, README introduction and the
+owner's pre-existing `tools/batch_positions.py` modification are preserved.
+Do not stage that unrelated modification. Historical release-digest discrepancy
+and six Phase 4F.13 forfeits remain unresolved; no match/schedule was started.
+
+**Next proposed Phase 4F.17:** investigate NNUE accumulator reuse across search
+branches. Current evaluation updates from the previously evaluated position,
+without a search-ply accumulator restore/cache. Start with a bounded current-path
+profile and explicit memory/reversible-state design, then isolate one candidate.
+Require exact feature/accumulator/output agreement and equal-work timing before
+adoption. Fresh timing readiness and later clock/strength qualification remain
+separate checkpoints. No future run is scheduled or gain promised.
+
+## Previous checkpoint: Phase 4F.15 complete — null stays off
 
 The owner authorized this phase after pushing `19ddf06`. Read the
 [fixed protocol](experiments/phase4f15-null-verification.md) and

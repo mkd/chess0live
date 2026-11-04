@@ -1,6 +1,15 @@
 # Phase 4D: search efficiency with strength gates
 
-Latest follow-up: [Phase 4F.15](reports/2026-10-30-phase4f15-null-verification.md)
+Latest follow-up: [Phase 4F.16](reports/2026-11-04-phase4f16-deferred-sort.md)
+tested deferred sorting after the contextual TT move. Correctness passed across
+native/scalar/sanitizer builds and all 180 timed searches matched exact search
+work, but pooled median ratio 1.004785 missed the 1.01 gate and cold `opening-03`
+missed the 0.98 guard. The candidate is archived; parent engine bytes are restored.
+No strength gain is established. Proposed Phase 4F.17 investigates NNUE accumulator
+reuse across branches, beginning with current profiling and a memory/reversibility
+design before one isolated implementation. No future benchmark or match is scheduled.
+
+Previous follow-up: [Phase 4F.15](reports/2026-10-30-phase4f15-null-verification.md)
 reuses a legal contextual TT move at the null-verification root without exposing
 cached bounds to speculative search. Correctness and a 24-search raw audit pass.
 The reduction versus previous null on is only 0.0821% cold / 0.3091% warm nodes;

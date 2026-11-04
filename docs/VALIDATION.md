@@ -1,5 +1,45 @@
 # Validation and experiment protocol
 
+## Phase 4F.16 deferred sorting — November 4, 2026
+
+The [fixed protocol](experiments/phase4f16-deferred-sort.md) and
+[full report](reports/2026-11-04-phase4f16-deferred-sort.md) record a correct but
+unaccepted execution optimization. Native/scalar/ASan+UBSan/ThreadSanitizer each
+passed general Search API/policy checks, 2,264 eager plus **7,260 deferred/boundary
+ordering comparisons**, 1,408 prefix comparisons, 23 TT-hint groups (three injected
+allocation failures), and 36 continuation groups (five allocation failures).
+Native and TSan each passed 43 SMP searches/lifecycle cases; the unchanged
+profiler passed 29 engine-free tests. No foreign execution or new NNUE oracle.
+
+One owner-confirmed quiet-host run, **16:39:58–16:40:33 Helsinki**, completed
+**180 searches / 90 pairs** across all 15 exposed roots, depth 6, three cold/warm
+repetitions, Threads 1, Hash 64, accepted defaults. Independent audit v3 replayed
+**1,080 iterations, 4,656 legal PV plies, 180 bestmoves/ponders**, verified 37
+frozen assets and 27 archived parent sources, exact reported search signatures
+and two zero exits. OS cleanup independently confirmed both PIDs absent and no
+remaining chess/test/compiler processes; the owner was told LM Studio could resume.
+
+Pooled median ratio **1.004784856 < 1.01**; cold `opening-03` median
+**0.977854645 < 0.98**. Both acceptance gates fail. Cold/warm median ratios
+**1.004211 / 1.008490**, aggregate ratios **1.015543 / 1.012296**. All 30
+position/state distributions and raw observations are retained. No significance
+interval, Elo claim, or causal attribution to allocation/sorting costs follows.
+Diagnostics were off; hash occupancy is not part of the exact signature.
+
+The initial test compilation failed on two const fixtures; corrected before
+measurement. Audit v1/v2 rejected valid Syzygy setup/final aggregate output;
+v3 explicitly validates it and passes nine corrupt-output checks. Preserve all
+original failed logs/scripts/audits. The final source/test changes were restored
+byte-for-byte to `e16ca73`; candidate archives and isolated builds remain.
+All **701 protected paths**, owner batch-tool modification and README introduction
+are unchanged. Stable GUI `0.1-dev-4b8b35d`, old release-digest caveat and historical
+forfeits remain intact. No new games, defaults, schedule or release.
+
+Evidence: `results/phase4f16-deferred-sort-20261104/`. Raw SHA-256:
+`7f940ed00a4415ecf34d9c97b49e46248c7dd0b4e8e7a1755e601cea47169f89`.
+Final audit SHA-256:
+`fc09ba2f88a3c35fb18ef9f12dce07759c042fde9bdc15d9221fc53bbdff0be9`.
+
 ## Phase 4F.15 null-verification ordering — October 30, 2026
 
 The [report](reports/2026-10-30-phase4f15-null-verification.md) records the

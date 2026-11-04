@@ -5,7 +5,33 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.15 complete — small opt-in ordering improvement
+## Current checkpoint: Phase 4F.16 complete — deferred sorting parked
+
+The [audited report](reports/2026-11-04-phase4f16-deferred-sort.md) records the
+[fixed deferred-sorting experiment](experiments/phase4f16-deferred-sort.md).
+Native/scalar/ASan+UBSan/ThreadSanitizer correctness checks passed, including
+7,260 new ordering/boundary comparisons per build. All **180 timed searches /
+90 pairs** matched parent depth, selective depth, nodes, scores, PVs and final
+moves exactly. Both engines exited cleanly; OS cleanup was confirmed and the
+owner was told LM Studio could resume.
+
+The observed pooled median execution-rate ratio was **1.004785**, below the
+declared **1.01** minimum; cold `opening-03` also breached the **0.98** guard at
+**0.977855**. **Park the candidate and retain the parent engine implementation.**
+Candidate sources, binaries, tests, raw results and all preparation/audit errors
+are preserved under `results/phase4f16-deferred-sort-20261104/`; engine/test
+changes were restored byte-for-byte. All 701 protected paths and the owner's
+existing batch-tool modification remain intact. No Elo gain, default change,
+new match or schedule follows.
+
+**Next proposed checkpoint: Phase 4F.17**, NNUE accumulator reuse across search
+branches. Begin with a bounded profile of the accepted implementation and a
+memory/reversibility design; then test one reuse hypothesis if the evidence
+supports it. Exact feature/accumulator/output parity and equal-work timing are
+required before adoption. No large gain is promised; future strength testing
+still needs clock readiness and a suitable window.
+
+## Previous checkpoint: Phase 4F.15 complete — small opt-in ordering improvement
 
 The [audited report](reports/2026-10-30-phase4f15-null-verification.md) records one
 [fixed hypothesis](experiments/phase4f15-null-verification.md): reuse the ordinary
