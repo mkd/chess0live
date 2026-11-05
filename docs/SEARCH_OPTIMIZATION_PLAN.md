@@ -1,9 +1,11 @@
 # Phase 4D: search efficiency with strength gates
 
 Latest checkpoint: [Phase 4F.19](reports/2026-11-04-phase4f19-combinations.md)
-prepared the three-profile diagnostic, but its single attempt stopped before
-measurement because preflight reported battery power. No searches ran and no
-package conclusion is available. Cleanup is confirmed; no retry is scheduled.
+completed and independently audited all 45 three-profile searches. Default LMR
+exceeds optional-off depth on every root; all-on versus defaults is higher/equal/
+lower on 5/8/2, mean +0.2 plies, with one changed final move. Retain defaults:
+there is no large bundled depth jump or strength conclusion. A byte-preserving
+monitor repair passed 15 tests; both earlier zero-search failures are preserved.
 
 Previous follow-up: [Phase 4F.18](reports/2026-11-04-phase4f18-delta.md) implements
 one independently authored delta-pruning rule, disabled by default. Four-build
@@ -20,16 +22,12 @@ strength qualification remain separate. No future run is scheduled.
 
 ## Proposed Phase 4F.19: combined search diagnosis
 
-The owner authorized one initial comparison and confirmed the quiet host. The
-[prospective execution protocol](experiments/phase4f19-combinations.md) fixes
-its 45 cells, inputs, deadlines, power monitoring and evidence requirements.
-Preparation `fa920b8` passed 21 runner and 44 independent auditor tests and froze
-61 inputs. At 22:30:54 Helsinki on November 4, actual preflight reported Battery
-Power at 66%; the attempt stopped before launching any engine. Zero searches ran.
-The missing-screen search audit fails; a separate prelaunch review verifies the
-failure and cleanup evidence. The comparison remains pending, with no result on
-the current package. A future attempt requires fresh authorization and verified
-AC/quiet-host conditions in a new evidence directory; preserve this failed attempt.
+The [original execution protocol](experiments/phase4f19-combinations.md) and
+[monitor repair addendum](experiments/phase4f19-monitor-repair.md) govern the completed
+45-cell diagnostic. Two prelaunch failures produced zero searches; the repaired
+attempt completed all 45 with passing raw-output and power-evidence audits.
+All 48 process identities exited, LM Studio was released, and 66 frozen inputs
+and 1,795 protected paths match. No engine implementation/default changed.
 
 The owner asked whether optional features off versus all on could explain the
 large reported depth gap. Isolated tests and combined tests answer different
@@ -39,14 +37,14 @@ positive mates (3→2) and completed a lower nominal depth on 29 of 39 roots (hi
 on one, tied on nine). It predates current changes and does not settle this
 package. Continuation History's later match was inconclusive, not a proved loss.
 
-Proposed initial diagnostic: the existing fifteen chess0live mixed roots, three
+Completed initial diagnostic: the existing fifteen chess0live mixed roots, three
 profiles, five seconds per cell, fresh processes, rotated profile order. This is
 225 seconds of requested search, roughly five minutes with setup. Preserve full
 UCI output, completed depth/seldepth, nodes, elapsed time, final moves/scores and
 all PV changes, then independently audit. One observation per cell diagnoses a
 large effect; it is not statistical speed or strength qualification. Prepare and
 freeze the exact protocol/inputs and confirm the host before any new execution.
-The authorized attempt has ended; no future run, automatic repeat or additional
+The authorized comparison has ended; no future run, automatic repeat or additional
 component-removal measurement is scheduled.
 
 | Search option | Optional features off | Accepted defaults | All search experiments |
@@ -71,13 +69,23 @@ Capture Ordering and Time Policy are mutually exclusive choices, so a literal
 “everything on” is undefined. Extra history/hint storage must be reserved and
 disclosed; equal Hash does not imply equal total memory.
 
-Follow with a separately frozen leave-one-out comparison to identify interactions,
-not within-run tuning. Deep Quiet Reductions requires LMR, so removing LMR also
-removes deep reductions. Delta precedes SEE pruning; their savings cannot simply
-be added. Ordering/history changes also affect which moves receive reductions.
-Fresh-process results do not establish retained-history benefits; those need a
-separate retained-state design. A promising package still needs tactical and
-clock qualification followed by held-out games before any default promotion.
+**Proposed Phase 4F.20:** a separately frozen five-profile comparison of defaults,
+all-on, all-on minus null pruning, minus Deep Quiet Reductions, and minus both.
+Use all 15 roots, fresh processes, five seconds each: 75 searches / 375 seconds
+requested thinking, roughly seven minutes. Keep LMR on in all five profiles;
+other toggles stay fixed within the four all-on-derived profiles. Accepted
+defaults is a separate reference with its usual additional differences. This
+2×2 diagnostic plus baseline measures two effects and their interaction in the
+all-on context; it cannot attribute every package effect. Earlier null warm-search
+regression motivates the hypothesis but does not prove causation here. Report
+all root outcomes and common-depth move/score/PV changes; no tuning or retries.
+
+Later broader component removal must respect dependencies: removing LMR also
+removes Deep Quiet Reductions; delta precedes SEE pruning; ordering/history affect
+reduction eligibility. Fresh-process results do not establish retained-history
+benefits, which need a separate design. Tactical and clock qualification plus
+held-out games remain prerequisites for any default promotion. This proposed
+75-search scope has not been launched, frozen or scheduled.
 
 A repeatable depth-25 versus depth-6 gap at equal time deserves direct diagnosis,
 not dismissal. Nominal depth is not uniform tree coverage, and many current

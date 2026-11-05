@@ -28,33 +28,54 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
-## Current checkpoint: Phase 4F.19 — prelaunch failure preserved
+## Current checkpoint: Phase 4F.19 complete — retain accepted defaults
 
-Read the [report](reports/2026-11-04-phase4f19-combinations.md) and unchanged
-[fixed protocol](experiments/phase4f19-combinations.md). Preparation `fa920b8`
-commits the three-profile runner and documentation. Its 21 engine-free tests and
-the independent auditor's 44 tests pass; 61 inputs were frozen. Production engine
-source remains `9f8ff9f`, with the same pinned Phase 4F.18 candidate binary/network.
+Read the [full report](reports/2026-11-04-phase4f19-combinations.md), unchanged
+[comparison protocol](experiments/phase4f19-combinations.md) and prospective
+[monitor repair addendum](experiments/phase4f19-monitor-repair.md). Preparation
+`fa920b8` added the three-profile runner; first-failure closeout is `c5cd567`.
+Production source remains `9f8ff9f`, using the pinned Phase 4F.18 binary/network.
 
-The owner confirmed readiness, but actual preflight at **22:30:54 Helsinki,
-November 4**, reported **Battery Power at 66%**. The supervisor failed before
-starting the runner, inhibitor or engines. **Zero of 45 searches ran**; no
-`screen.json` or runner logs exist. The frozen search audit was run once and
-failed on the absent screen; preserve that verdict and the separate prelaunch
-evidence review. Neither is a passing comparison or performance result.
+The successful third process attempt ran **23:00:41–23:04:33 Helsinki, November 4**:
+45 fresh serial searches / 15 original roots, 5,000-ms requests, Threads 1 / Hash 64,
+rotated optional-off/default/all-on. The full independent audit passes legal raw
+outputs, complete matrix/options, source identities and host/cleanup evidence.
+A separate power audit verifies all 18 raw streams and escaped views. There are
+90 endpoint host checks, 222 external AC samples (max gap 1.071354 seconds), no
+actual sleep event, failed search, forced cleanup or input drift. All 45 engines,
+runner and supervisor exit zero. External OS verification at **23:05:09** finds
+all 48 identities gone; LM Studio was released.
 
-External OS verification at **22:35:14** confirmed supervisor identity gone and
-no related process; no cleanup signal was needed. LM Studio was released. All
-1,631 protected paths, 26 engine source identities and 61 frozen inputs match,
-including stable GUI `build/test-baselines/0.1-dev-4b8b35d/`; README introduction
-and the owner's `tools/batch_positions.py` edit remain untouched. Preserve the
-historical normal-release digest caveat and six Phase 4F.13 clock forfeits.
+Defaults exceed optional-off depth on all **15 roots**, mean +1.4 plies. All-on
+versus default is **higher 5 / equal 8 / lower 2**, mean +0.2; only mg-04 changes
+final move (`d6d5` → `f6g4`). The report preserves every final score/move, common-depth
+PV differences and all three pairwise comparisons. Nominal depth is not uniform
+tree coverage; this is a diagnostic, not tactical or Elo qualification. **Retain
+accepted defaults.** Fresh processes do not establish retained-history benefit.
 
-Evidence is under `results/phase4f19-combinations-20261104/`. Do not overwrite it,
-edit the frozen inputs or retry automatically. The next work is still the initial
-three-profile comparison, requiring a new authorized attempt, evidence directory
-and verified AC/quiet-host conditions. Component removal depends on its result;
-no package/default selection, game, schedule or strength claim follows here.
+Keep both earlier failures and failed audits: first battery preflight (0 engines),
+then a UnicodeDecodeError in macOS assertions/logs before runner launch (0 engines).
+The original malformed bytes were not saved. New `tools/mac_power_evidence.py`
+preserves raw bytes and escaped text; **15 engine-free tests** and a live reproduction
+pass before freezing. Original **21 runner / 44 auditor** test receipts are reused
+for unchanged code, not rerun. The final freeze records `c5cd567` plus explicitly
+hashed then-uncommitted monitor/helper/test/addendum files, not a clean-commit claim.
+
+Evidence: `results/phase4f19-combinations-20261104/`, `...-attempt2/`, and successful
+`...-attempt3/`. Preservation passes **1,795 earlier paths, 26 engine source files
+and 66 frozen inputs**, README introduction, owner `tools/batch_positions.py` edit
+and stable GUI `build/test-baselines/0.1-dev-4b8b35d/`. Do not stage the owner edit.
+Historical normal-release digest uncertainty and six Phase 4F.13 forfeits remain.
+
+**Next proposed Phase 4F.20:** five profiles—defaults, all-on, all-on minus null,
+minus Deep Quiet Reductions, minus both—on all 15 roots at five seconds each.
+Keep LMR on in all five, with other toggles fixed within the four all-on-derived
+profiles; defaults is a separate reference. This 2×2 diagnostic plus baseline is
+75 searches / roughly seven minutes. It isolates two factors and their interaction
+in the all-on context; it does
+not identify every feature or prove either caused the observed losses. Prepare a
+separate frozen protocol before execution. No new run, match, default promotion,
+release, schedule or push follows automatically from this diagnostic.
 
 ## Previous checkpoint: Phase 4F.18 closed — retain delta opt-in
 

@@ -5,29 +5,40 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
-## Current checkpoint: Phase 4F.19 — attempt stopped before measurement
+## Current checkpoint: Phase 4F.19 complete — mixed combined-search effect
 
-The [report](reports/2026-11-04-phase4f19-combinations.md) records one attempt
-under the [fixed protocol](experiments/phase4f19-combinations.md). Preparation
-commit `fa920b8` freezes 61 inputs; the runner passes 21 engine-free tests and
-the independent auditor 44. No production source, build or default changed.
+The [audited report](reports/2026-11-04-phase4f19-combinations.md) records the
+successful **45-search / 15-root** comparison at five seconds per profile. It ran
+**23:00:41–23:04:33 Helsinki on November 4**, using one unchanged binary/network,
+Threads 1 / Hash 64 and optional-off/default/all-on settings. The full independent
+audit and supplemental raw-power-evidence audit pass. No engine source or default
+changed; no Elo gain is established.
 
-At **22:30:54 Helsinki, November 4**, preflight reported **Battery Power, 66%**,
-despite the owner's earlier ready confirmation. It stopped before spawning the
-runner, sleep inhibitor or any engine: **0/45 searches, no profile results**.
-The regular audit fails because no search report exists; the separate prelaunch
-review verifies the failure evidence, not a completed comparison. No depth,
-speed, tactical or strength conclusion is available. No retry was made.
+**Existing LMR supplies most of the depth difference in this screen.** Defaults
+search deeper than optional-off on all 15 roots (mean +1.4 plies). All-on versus
+default is higher on **5**, equal on **8**, lower on **2** (mean +0.2). Its only
+changed final move is mg-04, `d6d5` → `f6g4`; legality does not establish quality.
+Depth means are 7.8 / 9.2 / 9.4; medians are 7 / 9 / 8. This is not the large
+all-on depth jump the owner hoped for. Retain defaults and investigate components
+before selecting a package. Full move/score/PV differences remain in the report.
 
-External OS cleanup passed at **22:35:14** and LM Studio was released. All 1,631
-protected paths, 26 engine source files, 61 frozen inputs, stable GUI, README
-introduction and owner batch edit are preserved. Historical release-digest
-uncertainty and six Phase 4F.13 clock forfeits remain unresolved.
+Two zero-search failures remain preserved: battery-power preflight, then invalid
+UTF-8 in macOS logs. A narrow byte-preserving monitor fix passed **15 tests** and
+a live log-read check before freezing; the original **21 runner / 44 auditor**
+checks apply to unchanged code. The repaired run has no failed cells, forced
+cleanup or drift. All **48 identities** exited, externally confirmed at **23:05:09**;
+LM Studio was released. All **1,795 protected paths, 26 engine sources and 66 frozen
+inputs** match. Preserve the owner batch edit, README intro, stable GUI, historical
+release-digest uncertainty and six Phase 4F.13 clock forfeits.
 
-**Next step remains the initial combined-search diagnosis**, in a separately
-authorized attempt with confirmed AC and quiet-host conditions and a new evidence
-directory. Do not skip to component removal without the three-profile result.
-No retry, schedule, game or default promotion is authorized automatically.
+**Proposed Phase 4F.20:** isolate null pruning and Deep Quiet Reductions within the
+all-on package, including their interaction. Compare defaults, all-on, all-on minus
+null, minus deep reductions, and minus both on 15 roots × five seconds: **75 fresh
+searches**, roughly seven minutes. Keep LMR on in all five; other toggles stay
+fixed within the four all-on-derived profiles. Defaults is a separate reference:
+a 2×2 diagnostic plus baseline. This is a proposal, not a launched/scheduled run
+or a diagnosed cause. Freeze its
+scope separately; tactical, clock and held-out games still gate promotion.
 
 ## Previous checkpoint: Phase 4F.18 closed — full puzzle qualification inconclusive
 

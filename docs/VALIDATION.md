@@ -1,38 +1,71 @@
 # Validation and experiment protocol
 
-## Phase 4F.19 current search combinations — prelaunch failure November 4, 2026
+## Phase 4F.19 current search combinations — completed November 4, 2026
 
-The [report](reports/2026-11-04-phase4f19-combinations.md) closes the single
-attempt under the [prospective protocol](experiments/phase4f19-combinations.md).
-Preparation `fa920b8` passes 21 engine-free runner tests (including the public Make
-target), 44 independent auditor tests, five supervisor ownership assertions and
-mocked cleanup checks. Strict handshake validation replays earlier output from
-the pinned binary; it is not a new engine execution. Retain the auditor's earlier
-indentation failure and corrected final pass. Independent preflight review found
-no remaining blocker. The 61-input freeze includes declared tools/dependencies
-and interpreter identity, without claiming full OS/dynamic-dependency coverage.
+The [report](reports/2026-11-04-phase4f19-combinations.md) records a passing full
+comparison audit under the [fixed protocol](experiments/phase4f19-combinations.md)
+and [prospective monitor repair](experiments/phase4f19-monitor-repair.md).
+Successful execution: **45/45 searches in 45 fresh sessions**, **396 iterations /
+2,428 PV plies**, all 15 original histories and three rotated profiles, 5,000-ms
+requests without depth/node cap. Same pinned engine/network, Threads 1 / Hash 64,
+no diagnostics/ponder/Syzygy, one worker with 2 GiB reserved. All final best/ponder
+moves and PVs are legal; this is not an objective move-quality or mate proof.
 
-At **22:30:54 Helsinki**, the actual first AC sample reported **Battery Power,
-66%, discharging**, as did the before/after host files. This contradicts readiness
-for this attempt despite the owner's confirmation. Preflight stopped before
-`Popen`: no wrapper/inhibitor/runner/engine, **0/45 completed cells**, no screen or
-runner logs. There is no search outcome, move/score/depth comparison, timing result
-or strength evidence. No retry, replacement, build or default change occurred.
+The run spans **23:00:41–23:04:33 Helsinki**, 232.093 seconds externally / 231.532
+seconds inside the runner. All 45 engine exits and runner/supervisor exits are zero,
+with no failed cell, forced kill or drift. Independent replay verifies complete
+matrix/options/defaults and producer aggregates, 90 host endpoint observations,
+222 external AC samples (maximum gap 1.071354 seconds), before/after Automatic
+mode, 66 frozen inputs and cleanup. No actual sleep/wake transition or recorded
+thermal/performance warning appears. Sampled evidence does not establish constant
+host load or rule out every brief event; LM Studio pause is owner-declared.
 
-The frozen independent search auditor was run once and preserves a failed
-`audit.json` for missing `screen.json`. A separate prelaunch evidence review
-checks supervision, source preservation and cleanup; it cannot qualify the absent
-comparison. External OS identity verification at **22:35:14** found the supervisor
-gone, no reused PID and no related processes. Zero cleanup signals were required;
-LM Studio was released after verification. Preservation passes all **1,631 earlier
-paths, 26 engine source files and 61 frozen inputs**, plus README introduction,
-stable GUI and owner batch edit.
+Default versus optional-off completes higher depth on 15/15 roots; mean paired
+difference +1.4. All-on versus default is higher/equal/lower on **5/8/2**, mean +0.2,
+with one changed final move, nine changed final scores, and 18 common-depth
+score/PV changes across nine roots. All three pairwise comparisons and every
+final move/score are retained. No profile reports a positive final mate. These
+single exposed cells establish neither statistical speed nor playing strength;
+retain defaults. Fresh sessions do not test cross-search history reuse.
 
-Preserve `results/phase4f19-combinations-20261104/` and the failed Phase 4F.18 host
-audit. The next step remains an authorized initial comparison in a fresh evidence
-directory with actual AC/quiet-host readiness. No automatic retry or schedule;
-component removal awaits results. Historical clock forfeits and the normal-release
-digest caveat remain unresolved.
+The first prelaunch attempt failed on Battery Power at 66%, before any engine.
+The owner then authorized the next step; attempt2 encountered invalid UTF-8 in
+macOS assertions/log output before launching its runner, again zero engines.
+Preserve both missing-screen failed audits and separate prelaunch reviews. The
+second attempt did not save malformed original assertion/log bytes; do not claim
+that missing evidence is reconstructed by later logs. Cleanup was independently
+confirmed after each failed attempt.
+
+New `tools/mac_power_evidence.py` captures stdout/stderr bytes and receipts before
+writing escaped UTF-8 views; nonzero/timeout/launch failures remain failures and
+existing evidence is not overwritten. **15 engine-free tests pass on first run**
+(`python3 tests/mac_power_evidence_test.py`); a live read-only preflight reproduces
+invalid bytes in assertions and the 7,520,891-byte system log and passes unchanged.
+The original **21 runner / 44 auditor** tests are prior receipts for unchanged
+code; no rerun is implied. Preserve earlier auditor indentation error and its
+corrected pass, supervisor ownership tests and all preflight review corrections.
+
+The frozen main auditor passes once on successful attempt3. A separate independent
+`power-evidence-audit.json` passes **nine captures / 18 raw streams**, verifying
+bytes, hashes, lengths, UTF-8 flags, all escaped text and sleep filtering, including
+a one-second boundary check. It finds no selected or actual sleep event. The
+original auditor was not edited to accommodate the new run or its results.
+
+External OS confirmation at **23:05:09** finds all **48 identities** gone with no
+PID reuse or related survivor; LM Studio was released. Preservation passes
+**1,795 protected paths, 26 production source identities and 66 frozen inputs**,
+owner batch edit, README intro and stable GUI. Freeze `c5cd567` is the parent
+commit plus explicitly hashed then-uncommitted monitoring changes; it does not
+represent a full OS/dynamic-dependency closure. Evidence is in the original
+`results/phase4f19-combinations-20261104/` and its `-attempt2` / `-attempt3` siblings.
+No rebuild, previous-engine asset reuse, new game, release or default promotion.
+Historical digest uncertainty and six Phase 4F.13 forfeits remain unresolved.
+
+The next proposed five-profile null/deep-reduction ablation is a 2×2 diagnostic
+within all-on plus a separate accepted-default reference. LMR stays on in all
+five; other toggles stay fixed within the four all-on-derived profiles. It needs
+its own frozen scope and authorization and is not scheduled. Tactical, clock and held-out match
+qualification remain separate gates.
 
 ## Phase 4F.18 delta pruning development checkpoint — November 4, 2026
 
