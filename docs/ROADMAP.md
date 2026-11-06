@@ -7,6 +7,16 @@ The owner handles GitHub pushes. Phase numbers are work areas, not release names
 
 ## November 6 tournament review — priorities for the next checkpoint
 
+**Attachment follow-up:** the [Linux settings review](reports/2026-11-06-linux-tournament-followup.md)
+finds conflicting initialization commands and saved options. The owner confirms
+using only the initialization text field, without tournament resource overrides.
+Standard Cute Chess v1.5.1 would later request chess0live 1/64, Hyperion 1/64,
+sic 9/4096 and Gargantua 1/1024 (Threads/Hash MB). chess0live also stores LMR off
+and a pre-SMP option schema. These are expected settings, not startup-log proof.
+**First verify the Linux executable and final applied settings.** The recovered
+Sic–Hyperion game ends 79...Rf8#; no chess0live game or full tournament PGN is
+available. Current-source performance hypotheses remain unqualified by this event.
+
 The [four-engine review](reports/2026-11-06-four-engine-tournament-review.md)
 reconciles the owner's 60-game 2+1 result and inspects all four local sources.
 chess0live's three wins are opponent disconnects; its other games are 0W/7D/20L.

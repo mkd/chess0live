@@ -39,6 +39,9 @@ release numbers; detailed measurements live in the linked experiment records.
   and identifying search, evaluation-cost and parallel/cache experiments. This
   documentation update changes no playing defaults and claims no strength gain.
   See the [review](docs/reports/2026-11-06-four-engine-tournament-review.md).
+  The [Linux follow-up](docs/reports/2026-11-06-linux-tournament-followup.md)
+  identifies conflicting saved options, an old/stale chess0live profile and
+  recovers one legally replayed final game from the supplied debug log.
 
 - Added a fixed equal-time comparison of optional-off, accepted-default and
   combined search settings, with raw UCI evidence, fresh processes, explicit

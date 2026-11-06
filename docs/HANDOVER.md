@@ -30,12 +30,24 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## November 6 owner tournament review
 
+**Read the [attachment follow-up](reports/2026-11-06-linux-tournament-followup.md)
+first.** The owner used resource initialization strings only. Saved Options would
+override them under verified Cute Chess v1.5.1 behavior: chess0live and Hyperion
+1 thread / Hash 64, sic 9 / 4096, Gargantua 1 / 1024. chess0live's saved LMR is
+false and its registered Threads maximum is one, consistent with an old/stale
+profile. No live startup or Linux executable identity proves actual settings.
+Prioritize build/profile verification before a new engine comparison. No full
+tournament PGN was saved; the final game's embedded histories recover only
+Sic–Hyperion, 158 legal plies ending 79...Rf8#. Raw attachments, PGN and two
+passing replay receipts are in `results/four-engine-owner-20261106/`.
+
 Read the [four-engine review](reports/2026-11-06-four-engine-tournament-review.md)
 before planning the next experiment. The owner supplied 60 games at 2+1,
 Threads 10 / Hash 1024, no Syzygy/ponder. chess0live scored 3W/7D/20L, but all
 three wins were sic disconnects. All seven disconnect losses in the event were
 sic's. Removing disconnect games is descriptive only, not a corrected rating.
-PGNs, full profiles and tournament executable/network identities are missing.
+The original review lacked profiles/logs; the follow-up adds those supplied
+above, while tournament executable/network identities remain missing.
 
 Read-only inspection at chess0live `491d105` and pinned peer revisions found
 different evaluation architectures, broader peer search policies, and a real

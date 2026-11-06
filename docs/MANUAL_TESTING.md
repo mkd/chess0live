@@ -126,6 +126,14 @@ the preserved older GUI snapshots is upgraded by rebuilding the current tree.
 
 ## Saving tournament evidence
 
+Set Threads and Hash in the engine's **Options fields**. Avoid duplicate resource
+commands in the initialization text field: inspected Cute Chess v1.5.1 applies
+saved option values after initialization strings, even when those values equal
+their saved defaults. Re-detect options by registering a fresh engine entry after
+replacing a binary; an old Threads maximum or saved LMR false can survive a
+rebuild. Verify the final startup commands/errors, not only the entered text.
+See the [configuration investigation](reports/2026-11-06-linux-tournament-followup.md).
+
 Before rebuilding or changing a saved engine profile, retain the exact executable
 and network files used, their SHA-256 hashes, source revision/build manifest and
 full GUI engine profile. UCI names alone do not distinguish development builds.

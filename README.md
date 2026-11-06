@@ -509,6 +509,8 @@ and instructions for restoring defaults and comparing engine profiles.
 When sharing tournament results, follow the
 [evidence checklist](docs/MANUAL_TESTING.md#saving-tournament-evidence) to retain
 the played executable/network identities, complete settings, PGNs and failure logs.
+Set Threads/Hash in the GUI's engine Options fields and refresh the registered
+options after replacing a binary; saved values can override initialization commands.
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
 replay and additional NNUE parity checks; they identify clock allocation and
 search efficiency as priorities without establishing an Elo rating. The

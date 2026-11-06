@@ -1,5 +1,24 @@
 # Validation and experiment protocol
 
+## Linux configuration and final-game replay — November 6, 2026
+
+The [attachment follow-up](reports/2026-11-06-linux-tournament-followup.md)
+preserves hashes of the supplied INI, engine profiles and selected-game log.
+Saved Options conflict with resource initialization strings; official Cute Chess
+v1.5.1 applies the options later. The owner confirms no tournament resource edits.
+Actual installed version, startup settings and executable/network bytes remain
+unverified. The old/stale chess0live schema includes Threads max 1 and LMR false;
+this event cannot qualify current equal-resource engine behavior.
+
+Recovered Sic–Hyperion: **158 legal plies, 146 consistent position histories,
+146 legal observed bestmoves and 3,357 legal PV lines**, ending 79...Rf8# / 0–1.
+PGN round-trip and independent raw replay with existing chess 1.11.2 pass. The
+first replay used existing chess 0.31.4 after a tooling interpreter failed on a
+missing Homebrew library; that failure is retained. No installs, engine searches
+or builds ran. Evidence: `results/four-engine-owner-20261106/`, including
+`log-audit.json` and `independent-replay.json`. This is one game, with no startup
+or process exits and no chess0live moves, not a tournament/strength validation.
+
 ## Owner four-engine tournament review — November 6, 2026
 
 The [report](reports/2026-11-06-four-engine-tournament-review.md) checks the supplied

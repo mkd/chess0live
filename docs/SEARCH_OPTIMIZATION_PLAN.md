@@ -7,6 +7,13 @@ lower on 5/8/2, mean +0.2 plies, with one changed final move. Retain defaults:
 there is no large bundled depth jump or strength conclusion. A byte-preserving
 monitor repair passed 15 tests; both earlier zero-search failures are preserved.
 
+The [subsequent Linux settings evidence](reports/2026-11-06-linux-tournament-followup.md)
+puts build/profile verification first: saved options conflict with the owner's
+initialization commands and chess0live's profile is old or stale. Do not use the
+event as an equal-resource test of current defaults or attribute its losses to
+current SMP/cache behavior. The complete tournament PGN was not saved; only the
+Sic–Hyperion final game was reconstructed. Phase 4F.20 remains proposed unchanged.
+
 November 6 follow-up: the [owner's four-engine tournament review](reports/2026-11-06-four-engine-tournament-review.md)
 adds source-backed priorities without changing that checkpoint. First identify
 the played binaries/options and reconstruct actual losses. Keep the proposed

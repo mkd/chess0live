@@ -1,13 +1,24 @@
 # Four-engine tournament: results, source review and development priorities
 
-Reviewed November 6, 2026. The tournament's execution date was not supplied.
+Originally reviewed November 6, 2026. The tournament's execution date was not supplied.
 Status: owner-reported tournament summary and read-only source inspection;
 not a reproduced match, accepted strength improvement, or release qualification.
 
+**Subsequent attachments materially qualify the interpretation.** Read the
+[Linux configuration follow-up](2026-11-06-linux-tournament-followup.md) first.
+The owner used raw initialization commands without tournament resource edits;
+the saved Options fields would override those commands under verified Cute Chess
+v1.5.1 startup behavior. chess0live's profile stores Threads 1 / Hash 64 / LMR
+false and a historical maximum of one thread. The actual Linux binary remains
+unidentified. The final Sic–Hyperion game was recovered and legally replayed;
+the complete tournament PGN was not saved. Verify build and applied options
+before treating this as a current, equal-resource engine comparison.
+
 ## Conclusion
 
-The reported result is a serious playing-strength signal for chess0live in this
-field. Its three wins were all opponent disconnects; its other games were
+The reported result is a serious playing-strength signal for the chess0live
+configuration that played, whose relationship to current defaults is unverified.
+Its three wins were all opponent disconnects; its other games were
 **0 wins, 20 mate losses and 7 draws**. Hyperion and Gargantua won substantial
 numbers of games by mate. Prioritize useful search per second and useful work
 from multiple workers, while preserving independent evaluation and chess rules.
@@ -238,12 +249,16 @@ defects. An undefeated result likewise does not prove Hyperion race-free.
 
 ## Ordered follow-up and decisions
 
-1. **Identify and explain this tournament.** Obtain PGNs, logs, exact executable
-   and network hashes, full saved options, openings/color policy, host and game
-   concurrency. Replay legal histories; distinguish on-board losses from process
-   failures. Classify the first consequential divergence in each chess0live loss
-   rather than only the final mate. If using an oracle, pin an external build and
-   budget; it remains an analysis tool. Treat these exposed games as development
+1. **Identify the build and verify the setup.** The subsequent
+   [configuration follow-up](2026-11-06-linux-tournament-followup.md) found
+   conflicting initialization/saved options and an old or stale chess0live
+   profile. Resolve the Linux executable identity, refresh its registration and
+   verify final applied options before another comparison. The owner confirms
+   no full tournament PGN was saved; the recovered final game contains no
+   chess0live moves. Loss reconstruction therefore remains a requirement for
+   future retained games, not a claim that these missing games can be recovered.
+   Keep openings/color policy, host, concurrency, full logs and file hashes.
+   Any later oracle remains external and pinned; exposed games are development
    evidence, with separate held-out openings for qualification.
 2. **Complete the existing selective-search diagnosis.** Prepare the separate
    Phase 4F.20 five-profile protocol already described in
