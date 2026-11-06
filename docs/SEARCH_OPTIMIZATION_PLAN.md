@@ -7,6 +7,18 @@ lower on 5/8/2, mean +0.2 plies, with one changed final move. Retain defaults:
 there is no large bundled depth jump or strength conclusion. A byte-preserving
 monitor repair passed 15 tests; both earlier zero-search failures are preserved.
 
+November 6 follow-up: the [owner's four-engine tournament review](reports/2026-11-06-four-engine-tournament-review.md)
+adds source-backed priorities without changing that checkpoint. First identify
+the played binaries/options and reconstruct actual losses. Keep the proposed
+Phase 4F.20 selective-search interaction diagnostic, then measure useful SMP/TT
+scaling and repeated evaluation work. Current chess0live Hash 1024 retains
+512 MiB of score-table storage with hints off; common settings do not guarantee
+equal actual memory. Raw-evaluation caching is a separate possible hypothesis,
+with halfmove/network-context correctness requirements, not restoration of the
+failed accumulator candidate. Broader peer search policies motivate experiments;
+their Stockfish-derived evaluation implementations must not be imported. No
+new run or default promotion follows from the summary.
+
 Previous follow-up: [Phase 4F.18](reports/2026-11-04-phase4f18-delta.md) implements
 one independently authored delta-pruning rule, disabled by default. Four-build
 correctness and the independent 150-search screen pass. Aggregate depth-6 work

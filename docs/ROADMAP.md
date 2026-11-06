@@ -5,6 +5,25 @@ Progress updates should name the active phase and step, explain what was learned
 and distinguish an implemented experiment from an accepted strength improvement.
 The owner handles GitHub pushes. Phase numbers are work areas, not release names.
 
+## November 6 tournament review — priorities for the next checkpoint
+
+The [four-engine review](reports/2026-11-06-four-engine-tournament-review.md)
+reconciles the owner's 60-game 2+1 result and inspects all four local sources.
+chess0live's three wins are opponent disconnects; its other games are 0W/7D/20L.
+All seven disconnect losses belong to sic. Actual tournament binaries, networks,
+full settings and PGNs remain unidentified; current source cannot establish the
+cause of a game result. No engine/default change or strength gain follows.
+
+Keep Phase 4F.20's null/deep-reduction diagnostic as the next proposed search
+step. Add game-loss reconstruction, actual TT memory and useful SMP scaling,
+then repeat-evaluation profiling as priorities. Current Hash 1024 retains
+512 MiB of score-table storage with hints off; equal requested Hash/Threads
+does not establish equal actual resources or useful work. A raw-evaluation cache
+is a distinct possible experiment, not a revival of the rejected Phase 4F.17
+candidate. The other engines' Stockfish-derived evaluators and race-prone TT
+patterns are not implementation sources for chess0live. The report gives source
+references and finite decision points. No new search, match or schedule ran.
+
 ## Current checkpoint: Phase 4F.19 complete — mixed combined-search effect
 
 The [audited report](reports/2026-11-04-phase4f19-combinations.md) records the

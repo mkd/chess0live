@@ -1,5 +1,22 @@
 # Validation and experiment protocol
 
+## Owner four-engine tournament review — November 6, 2026
+
+The [report](reports/2026-11-06-four-engine-tournament-review.md) checks the supplied
+standings and termination totals: 60 games = 36 mates + 7 disconnects + 17 draws.
+chess0live's 3W/7D/20L includes three disconnect wins and no mate wins; all seven
+disconnect losses are sic's. The event's printed Elo/SPRT values do not establish
+a calibrated rating or a finite sequential-test acceptance. No game-level replay
+or executable/network identification was possible from the supplied summary.
+
+Independent read-only peer source reviews and arithmetic checks support the
+report's hypotheses and limitations. Current-source Hash 1024 allocation differs
+between chess0live and Hyperion; this is not measured tournament memory. No engine
+test, match, default promotion or production behavior change occurred. The review
+does not settle the historical six clock forfeits or replace existing gates.
+Preserve tournament PGNs, logs and complete identities using
+[manual evidence guidance](MANUAL_TESTING.md#saving-tournament-evidence).
+
 ## Phase 4F.19 current search combinations — completed November 4, 2026
 
 The [report](reports/2026-11-04-phase4f19-combinations.md) records a passing full

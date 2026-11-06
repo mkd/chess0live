@@ -28,6 +28,29 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 5. Optimize ARM64, extend portable builds, measure search improvements, and add
    parallelism with correctness and match evidence. Training integration follows.
 
+## November 6 owner tournament review
+
+Read the [four-engine review](reports/2026-11-06-four-engine-tournament-review.md)
+before planning the next experiment. The owner supplied 60 games at 2+1,
+Threads 10 / Hash 1024, no Syzygy/ponder. chess0live scored 3W/7D/20L, but all
+three wins were sic disconnects. All seven disconnect losses in the event were
+sic's. Removing disconnect games is descriptive only, not a corrected rating.
+PGNs, full profiles and tournament executable/network identities are missing.
+
+Read-only inspection at chess0live `491d105` and pinned peer revisions found
+different evaluation architectures, broader peer search policies, and a real
+Hash-budget/physical-allocation difference. Retain the proposed Phase 4F.20
+diagnostic; prioritize replaying losses, useful SMP/cache measurement and repeated
+evaluation cost. Do not import peer code/assets, enable all experiments, restore
+failed Phase 4F.16/17 candidates, or infer causes from peer feature lists. Sic
+failure paths in the report are static hypotheses, not reproduced disconnects.
+
+This checkpoint changes documentation only. Preserve owner
+`tools/batch_positions.py`, all GUI snapshots including `0.1-dev-4b8b35d`, and
+the existing six-forfeit uncertainty. No builds/searches/matches were launched.
+Use the new [tournament evidence checklist](MANUAL_TESTING.md#saving-tournament-evidence)
+for subsequent manual feedback. Phase 4F.19 remains the completed engine checkpoint.
+
 ## Current checkpoint: Phase 4F.19 complete — retain accepted defaults
 
 Read the [full report](reports/2026-11-04-phase4f19-combinations.md), unchanged

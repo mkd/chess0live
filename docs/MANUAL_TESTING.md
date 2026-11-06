@@ -124,6 +124,28 @@ the source revision, binary identity and full PGNs. The feature is default-off;
 the short development comparison does not establish a strength gain. None of
 the preserved older GUI snapshots is upgraded by rebuilding the current tree.
 
+## Saving tournament evidence
+
+Before rebuilding or changing a saved engine profile, retain the exact executable
+and network files used, their SHA-256 hashes, source revision/build manifest and
+full GUI engine profile. UCI names alone do not distinguish development builds.
+Record all option values, including search experiments, time policy, overhead,
+network paths, Threads, Hash, tablebases and ponder. Confirm the GUI-applied
+options in the protocol log; a current source default is not a saved GUI setting.
+
+Export the complete PGN, cross-table, opening/book settings and termination
+summary. Keep engine stdout/stderr or GUI debug logs, elapsed clocks and process
+exit/crash records where available. Record time control, paired-color policy,
+GUI version, machine, concurrent games, power mode and other substantial load.
+Equal Hash settings need not allocate equal bytes; include actual memory/cache
+diagnostics when investigating resource differences.
+
+Report disconnects and time forfeits separately from mate and draw outcomes.
+Keep every game in the official standings; any exclusion must state its changed
+denominator and is not automatically a corrected strength estimate. Preserve
+`build/test-baselines/0.1-dev-4b8b35d/` and the other stable GUI bundles. State the
+actual bundle/path used rather than assuming a normal rebuild updated it.
+
 ## Stable local test copy
 
 The October 13, 2026 baseline is `0.1-dev-4b8b35d`, at:

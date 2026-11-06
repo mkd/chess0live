@@ -34,6 +34,12 @@ release numbers; detailed measurements live in the linked experiment records.
 
 ### Developer tools
 
+- Added manual tournament evidence guidance and a source-backed review of the
+  owner's four-engine result, separating disconnects from played-out outcomes
+  and identifying search, evaluation-cost and parallel/cache experiments. This
+  documentation update changes no playing defaults and claims no strength gain.
+  See the [review](docs/reports/2026-11-06-four-engine-tournament-review.md).
+
 - Added a fixed equal-time comparison of optional-off, accepted-default and
   combined search settings, with raw UCI evidence, fresh processes, explicit
   resource limits, power checks and engine-free runner tests. It reports

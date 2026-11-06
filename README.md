@@ -506,6 +506,9 @@ snapshot and settings in [the GUI testing guide](docs/MANUAL_TESTING.md).
 For a current build, the guide also includes a pasteable
 [combined search configuration](docs/MANUAL_TESTING.md#testing-combined-search-optimizations)
 and instructions for restoring defaults and comparing engine profiles.
+When sharing tournament results, follow the
+[evidence checklist](docs/MANUAL_TESTING.md#saving-tournament-evidence) to retain
+the played executable/network identities, complete settings, PGNs and failure logs.
 The [first owner-run games](docs/reports/2026-10-14-cutechess.md) passed legal
 replay and additional NNUE parity checks; they identify clock allocation and
 search efficiency as priorities without establishing an Elo rating. The
