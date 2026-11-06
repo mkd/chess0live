@@ -42,6 +42,8 @@ release numbers; detailed measurements live in the linked experiment records.
   The [Linux follow-up](docs/reports/2026-11-06-linux-tournament-followup.md)
   identifies conflicting saved options, an old/stale chess0live profile and
   recovers one legally replayed final game from the supplied debug log.
+  A later owner-supplied Linux handshake confirms the GUI metadata is stale
+  relative to a binary advertising max 64 workers and LMR default true.
 
 - Added a fixed equal-time comparison of optional-off, accepted-default and
   combined search settings, with raw UCI evidence, fresh processes, explicit

@@ -2,6 +2,14 @@
 
 ## Linux configuration and final-game replay — November 6, 2026
 
+Later owner-supplied `output.txt` reaches `uciok`, advertises 21 options including
+Threads max 64 / LMR default true, and records a Linux executable SHA-256. Its
+metadata contradicts the old saved GUI schema. The receipt is
+`results/four-engine-owner-20261106/linux-handshake.json`; source bytes are kept
+under `raw/`. This checks reported capabilities, not network loading, actual
+workers, applied GUI options, exact source revision or tournament continuity.
+The complete list omits QSearch Delta Pruning present in current local mainline.
+
 The [attachment follow-up](reports/2026-11-06-linux-tournament-followup.md)
 preserves hashes of the supplied INI, engine profiles and selected-game log.
 Saved Options conflict with resource initialization strings; official Cute Chess

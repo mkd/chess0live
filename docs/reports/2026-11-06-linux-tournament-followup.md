@@ -4,6 +4,13 @@ November 6, 2026. Supplements and qualifies the
 [initial four-engine review](2026-11-06-four-engine-tournament-review.md).
 No engine behavior or default changed; no engine search, match or build ran.
 
+**Latest evidence:** the owner subsequently supplied a live Linux UCI handshake
+and executable digest. It confirms that the registered GUI schema is stale
+relative to the currently probed binary: Threads max 64 and LMR default true.
+See [the handshake follow-up](#live-linux-handshake-follow-up). Tournament startup
+settings and binary continuity remain unproved; refreshing the GUI profile is
+now the immediate step rather than assuming a one-thread-only executable.
+
 ## Revised interpretation
 
 The supplied configuration contains a concrete conflict: every engine's raw
@@ -143,9 +150,43 @@ depth 127, seldepth 1, 4,699 nodes and 2 ms for mate in one: nominal depth is
 plainly not uniform tree coverage or a cross-engine strength measurement.
 The file ends with readiness responses and quit commands, not exit-code receipts.
 
+## Live Linux handshake follow-up
+
+The owner ran the identification commands below and supplied
+`/Users/claudio/output.txt`. Its original bytes are retained as
+`results/four-engine-owner-20261106/raw/output.txt`; the parsed receipt and source
+fingerprint are in `linux-handshake.json`. The original three-file manifest is
+unchanged. The supplied executable digest is:
+
+```text
+07a6d4e7374ed9a4dc1972e364f3f21db971ecee4abb2189e25c32b6d6d2a6c0
+```
+
+The queried path is the same Linux path stored in the GUI profile. The transcript
+reaches `uciok` and advertises **Threads maximum 64**, **LMR default true**,
+bounded time policy, Continuation History, TT Move Hints and other later options.
+This confirms the GUI's saved max-1/LMR-false schema is stale relative to the
+currently probed executable; it does not establish when that executable changed.
+The live default is still Threads 1 / Hash 64: capability is not configuration.
+A later saved LMR false request also overrides the advertised true default.
+
+Its complete 21-option list lacks **QSearch Delta Pruning**, which current
+mainline added in `9f8ff9f9b203f70cecd8cd8efd23c364176059b8` on November 4.
+Consequently the advertised surface differs from current local mainline. This
+does not identify an exact commit/build date or prove the default-off delta
+feature affected the tournament. The fingerprint is owner-supplied output,
+not a locally inspected Linux executable or proof that this binary played every
+game. No network load/digest, actual worker count or GUI option exchange is
+demonstrated by this handshake.
+
+Independent review of the attachment and local source history agrees. No engine
+was executed by the agents and no rebuild is required merely to establish that
+this executable advertises multiple-worker capability.
+
 ## Concrete next step
 
-On Linux, identify the existing executable before replacing or rebuilding it:
+The owner has completed this identification step; retain the commands for
+reproducibility before any future replacement or rebuild:
 
 ```sh
 cd /home/claudio/projects/chess0live/build/linux-x86_64-generic-release
@@ -157,7 +198,7 @@ This handshake requests no search. Retain its complete output, the Cute Chess
 version, and the actual network's SHA-256. A source checkout's HEAD alone cannot
 identify an already built executable.
 
-Then register the intended current Linux binary as a fresh engine entry so its
+Now register the intended Linux binary as a fresh engine entry so its
 options are detected again. Set Threads and Hash through the **Options fields**,
 remove duplicate resource initialization commands, and use LMR true for the
 current accepted chess0live profile. If the freshly detected maximum is still

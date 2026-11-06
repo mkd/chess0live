@@ -30,6 +30,16 @@ the first match-testing focus. Do not reuse any of the owner's earlier engines.
 
 ## November 6 owner tournament review
 
+**Live Linux handshake now received:** `output.txt` advertises Threads max 64,
+LMR default true and the later option family; the GUI schema is confirmed stale
+relative to that executable. Owner-supplied SHA-256 is
+`07a6d4e7374ed9a4dc1972e364f3f21db971ecee4abb2189e25c32b6d6d2a6c0`.
+QSearch Delta Pruning is absent, so its option surface differs from local mainline;
+no exact source commit or tournament binary continuity is established. Refresh
+the GUI entry and set real Options fields next. Preserve `raw/output.txt` and
+`linux-handshake.json` in the existing evidence directory; do not request the
+same identification step again. See the report's handshake follow-up.
+
 **Read the [attachment follow-up](reports/2026-11-06-linux-tournament-followup.md)
 first.** The owner used resource initialization strings only. Saved Options would
 override them under verified Cute Chess v1.5.1 behavior: chess0live and Hyperion

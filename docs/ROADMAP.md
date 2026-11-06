@@ -7,6 +7,13 @@ The owner handles GitHub pushes. Phase numbers are work areas, not release names
 
 ## November 6 tournament review — priorities for the next checkpoint
 
+The subsequent [live Linux handshake](reports/2026-11-06-linux-tournament-followup.md#live-linux-handshake-follow-up)
+confirms max 64 workers and LMR default true, so the saved max-1/LMR-false GUI
+schema is stale relative to the probed binary. Its supplied digest is recorded;
+the absence of QSearch Delta Pruning distinguishes its advertised surface from
+local mainline without identifying a revision. Next refresh the GUI profile and
+verify applied Options; the tournament's effective settings remain unobserved.
+
 **Attachment follow-up:** the [Linux settings review](reports/2026-11-06-linux-tournament-followup.md)
 finds conflicting initialization commands and saved options. The owner confirms
 using only the initialization text field, without tournament resource overrides.

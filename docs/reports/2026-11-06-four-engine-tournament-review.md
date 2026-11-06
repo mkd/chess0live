@@ -9,8 +9,10 @@ not a reproduced match, accepted strength improvement, or release qualification.
 The owner used raw initialization commands without tournament resource edits;
 the saved Options fields would override those commands under verified Cute Chess
 v1.5.1 startup behavior. chess0live's profile stores Threads 1 / Hash 64 / LMR
-false and a historical maximum of one thread. The actual Linux binary remains
-unidentified. The final Sic–Hyperion game was recovered and legally replayed;
+false and a historical maximum of one thread. A subsequent live Linux handshake
+advertises max 64 / LMR default true, confirming stale GUI metadata relative to
+the probed executable; its supplied digest still does not prove tournament
+binary continuity. The final Sic–Hyperion game was recovered and legally replayed;
 the complete tournament PGN was not saved. Verify build and applied options
 before treating this as a current, equal-resource engine comparison.
 
